@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nguyen Pham Dieu Hien - Financial Data Scientist</title>
+
+  <!-- Tailwind CSS for AI Finance Section -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- AI Finance Styles -->
+  <link rel="stylesheet" href="agent_finance/front/styles.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111111;
+      --bg-card: #1a1a1a;
+      --accent-primary: #3b82f6;
+      --accent-secondary: #8b5cf6;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --border-color: #2a2a2a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    .gradient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.4;
+      background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+      animation: gradientShift 20s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 30px) scale(1.1); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 20px 0;
+      margin-bottom: 60px;
+    }
+
+    nav .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-size: 1.2em;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    nav .nav-links {
+      display: flex;
+      gap: 30px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.3s;
+      font-size: 0.95em;
+    }
+
+    nav a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 100px 0 150px 0;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 4em;
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    .hero .subtitle {
+      font-size: 1.5em;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      animation: fadeInUp 0.8s ease 0.2s backwards;
+    }
+
+    .hero .description {
+      font-size: 1.1em;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto 50px auto;
+      line-height: 1.8;
+      animation: fadeInUp 0.8s ease 0.4s backwards;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      animation: fadeInUp 0.8s ease 0.6s backwards;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-size: 1em;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      background: transparent;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-primary);
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+      padding: 60px 0;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 100px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 3em;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.95em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+
+    /* Section Headers */
+    .section {
+      margin-bottom: 120px;
+    }
+
+    .section-header {
+      margin-bottom: 60px;
+    }
+
+    .section-title {
+      font-size: 2.5em;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 15px;
+    }
+
+    .section-subtitle {
+      font-size: 1.2em;
+      color: var(--text-secondary);
+      max-width: 700px;
+    }
+
+    /* Project Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 30px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 30px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transform: scaleX(0);
+      transition: transform 0.3s;
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-icon {
+      font-size: 2.5em;
+      filter: grayscale(100%);
+      opacity: 0.8;
+      transition: all 0.3s;
+    }
+
+    .card:hover .card-icon {
+      filter: grayscale(0%);
+      opacity: 1;
+    }
+
+    .card-badge {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent-primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-badge.live {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .card-badge.beta {
+      background: rgba(234, 179, 8, 0.1);
+      color: #eab308;
+    }
+
+    .card h3 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .card p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      color: var(--text-secondary);
+    }
+
+    .card-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .tag:hover {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent-primary);
+    }
+
+    .card-footer {
+      display: flex;
+      gap: 10px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .card-link {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9em;
+      transition: all 0.3s;
+    }
+
+    .card-link-primary {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent-primary);
+      border: 1px solid transparent;
+    }
+
+    .card-link-primary:hover {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .card-link-secondary {
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .card-link-secondary:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    /* Featured Project - Full Width */
+    .featured-card {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      padding: 50px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+    }
+
+    .featured-content h3 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+
+    .featured-visual {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      font-size: 5em;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 60px 0;
+      margin-top: 120px;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .footer-section h4 {
+      margin-bottom: 20px;
+      font-size: 1.1em;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 40px;
+      margin-top: 40px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.9em;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 20px;
+      }
+
+      nav .nav-content {
+        padding: 0 20px;
+      }
+
+      .hero h1 {
+        font-size: 2.5em;
+      }
+
+      .hero .subtitle {
+        font-size: 1.2em;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .featured-card {
+        grid-template-columns: 1fr;
+        padding: 30px;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body>
+  <div class="gradient-bg"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-content">
+      <div class="logo">NPD Hien</div>
+      <div class="nav-links">
+        <a href="#books">Books</a>
+        <a href="#projects">Projects</a>
+        <a href="#research">Research</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Nguyen Pham Dieu Hien</h1>
+      <div class="subtitle">This page is dedicated to sharing my practical experience in machine learning model development and engineering and sharing datasets as an alternative resource for research purposes.</div>
+      <div class="cta-buttons">
+        <a href="#books" class="btn btn-primary">Explore Notebooks</a>
+        <a href="#projects" class="btn btn-secondary">Featured Projects</a>
+        <a href="mailto:hiennguyen280696@gmail.com" class="btn btn-secondary">Get in Touch</a>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-number">2</div>
+        <div class="stat-label">Published</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">12+</div>
+        <div class="stat-label">ML Projects</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">100K+</div>
+        <div class="stat-label">Lines of Code</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">6+</div>
+        <div class="stat-label">Years Experience</div>
+      </div>
+    </div>
+
+    <!-- Books Section -->
+    <section class="section" id="books">
+      <div class="section-header">
+        <h2 class="section-title">Banking Application NoteBooks</h2>
+        <p class="section-subtitle">
+          Technical resources and it's application on banking domain.
+        </p>
+      </div>
+
+      <div class="grid">
+        <!-- Featured Book -->
+        <div class="card featured-card">
+          <div class="featured-content">
+            <div class="card-badge live">Published</div>
+            <h3>Machine Learning Mathematics</h3>
+            <!-- <p>
+              A comprehensive, interactive guide covering the mathematical foundations essential for machine learning.
+              From probability theory to advanced optimization techniques, with practical ML applications throughout.
+            </p> -->
+            <div class="card-tags">
+              <span class="tag">Mathematics</span>
+              <span class="tag">Probability</span>
+              <span class="tag">Linear Algebra</span>
+              <span class="tag">Calculus</span>
+              <span class="tag">Number Theory</span>
+            </div>
+            <div class="card-footer">
+              <a href="\ml-math\mlmaths.html" class="card-link card-link-primary">Read Online</a>
+              <!-- <a href="#" class="card-link card-link-secondary">Download PDF</a> -->
+            </div>
+          </div>
+          <div class="featured-visual">📚</div>
+        </div>
+
+        <!-- Other Books -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🌲</div>
+            <div class="card-badge live">Published</div>
+          </div>
+          <h3>ML Model Algorithms</h3>
+          <!-- <p>
+            Comprehensive guide to machine learning model algorithms including
+            Random Forest and XGBoost with practical implementations and detailed explanations.
+          </p> -->
+          <div class="card-tags">
+            <span class="tag">Random Forest</span>
+            <span class="tag">XGBoost</span>
+            <!-- <span class="tag">Tree Models</span> -->
+            <span class="tag">Ensemble</span>
+          </div>
+          <div class="card-footer">
+            <a href="learning/ml-algorithms/index.html" class="card-link card-link-primary">Read Online</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">📊</div>
+            <div class="card-badge beta">In Progress</div>
+          </div>
+          <h3>ML Models Engineering</h3>
+          <!-- <p>
+            Building robust data pipelines and infrastructure for machine learning at scale.
+            Real-world patterns and best practices.
+          </p> -->
+          <div class="card-tags">
+            <span class="tag">Data Engineering</span>
+            <span class="tag">Spark</span>
+            <span class="tag">Airflow</span>
+            <span class="tag">Pipelines</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="card-link card-link-secondary">Early Access</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="section" id="projects">
+      <div class="section-header">
+        <h2 class="section-title">Featured Projects</h2>
+        <p class="section-subtitle">
+          Production-grade machine learning systems and research implementations.
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🔍</div>
+            <div class="card-badge live">Production</div>
+          </div>
+          <h3>Financial AI Agent</h3>
+          <div class="card-meta">
+            <div class="card-meta-item">⚡ 50ms latency</div>
+            <div class="card-meta-item">📈 99.9% uptime</div>
+          </div>
+          <p>
+            An internal AI agent for historical financial reporting and analysis, enforcing role-based access control (RBAC) to ensure data-level security.
+            It ingests data from a centralized Data Warehouse and isolated files, delivering accurate, explainable financial insights within a secure private deployment.
+          </p>
+          <div class="card-tags">
+            <span class="tag">LLM Ops</span>
+            <span class="tag">AI Agent</span>
+          </div>
+          <div class="card-footer">
+            <a href="/agent_finance/front/index.html" class="card-link card-link-primary">Live Demo</a>
+            <a href="#" class="card-link card-link-secondary">GitHub</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">💹</div>
+            <div class="card-badge">Research</div>
+          </div>
+          <h3>Time Series Forecasting - VNINDEX </h3>
+          <div class="card-meta">
+            <div class="card-meta-item">📊 Multi-variate</div>
+            <div class="card-meta-item">🔮 Probabilistic</div>
+          </div>
+          <p>
+            Models forecasting for vnindex
+          </p>
+          <div class="card-tags">
+            <span class="tag">Time Series</span>
+            <span class="tag">TFT</span>
+            <span class="tag">Prophet</span>
+            <span class="tag">PyTorch</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="card-link card-link-primary">Live Demo</a>
+            <a href="#" class="card-link card-link-secondary">Code</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🧠</div>
+            <div class="card-badge beta">Beta</div>
+          </div>
+          <h3>Macro Economics Crawling Agent</h3>
+          <div class="card-meta">
+            <div class="card-meta-item">⚙️ Auto HPO</div>
+            <div class="card-meta-item">📊 Tracking</div>
+          </div>
+          <p>
+            Sharing technical document and resoures results as an input for other forecasting models
+          </p>
+          <div class="card-tags">
+            <span class="tag">WebCrawl</span>
+            <span class="tag">FeatureEngineering</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="card-link card-link-primary">Try It</a>
+            <a href="#" class="card-link card-link-secondary">Install</a>
+          </div>
+        </div>
+
+        <!-- <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🌐</div>
+            <div class="card-badge">Research</div>
+          </div>
+          <h3>Graph Neural Networks</h3>
+          <div class="card-meta">
+            <div class="card-meta-item">🔗 Relational</div>
+            <div class="card-meta-item">💡 Attention</div>
+          </div>
+          <p>
+            Graph-based deep learning for knowledge graphs and recommendation systems.
+            GAT, GraphSAGE implementations with PyTorch Geometric.
+          </p>
+          <div class="card-tags">
+            <span class="tag">GNN</span>
+            <span class="tag">PyG</span>
+            <span class="tag">Knowledge Graph</span>
+            <span class="tag">RecSys</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="card-link card-link-primary">Explore</a>
+            <a href="#" class="card-link card-link-secondary">Research</a>
+          </div>
+        </div> -->
+
+        <!-- <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🔐</div>
+            <div class="card-badge">Experimental</div>
+          </div>
+          <h3>Federated Learning System</h3>
+          <div class="card-meta">
+            <div class="card-meta-item">🛡️ Privacy</div>
+            <div class="card-meta-item">🌍 Distributed</div>
+          </div>
+          <p>
+            Privacy-preserving ML enabling collaborative training without data sharing.
+            Differential privacy, secure aggregation, PySyft implementation.
+          </p>
+          <div class="card-tags">
+            <span class="tag">Federated Learning</span>
+            <span class="tag">Privacy</span>
+            <span class="tag">PySyft</span>
+            <span class="tag">Cryptography</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="card-link card-link-primary">Learn More</a>
+            <a href="#" class="card-link card-link-secondary">GitHub</a>
+          </div>
+        </div> -->
+      </div>
+    </section>
+  
+    <!-- Partners Section -->
+    <section class="section" id="products">
+      <div class="section-header">
+        <h2 class="section-title">Deployed Products</h2>
+        <p class="section-subtitle">
+          Other products that have been deployed
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🔍</div>
+            <div class="card-badge live">Production</div>
+          </div>
+          <h3>Dat An Lanh Space</h3>
+          <!-- <div class="card-meta">
+            <div class="card-meta-item">⚡ 50ms latency</div>
+            <div class="card-meta-item">📈 99.9% uptime</div>
+          </div> -->
+          <p>
+            A Web Sys for P2P Real Estate Market 
+          </p>
+          <div class="card-tags">
+            <span class="tag">NLP</span>
+            <span class="tag">Transformers</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">Redis</span>
+          </div>
+          <div class="card-footer">
+            <a href="https://www.datanlanh.space/" class="card-link card-link-primary">Visit Web</a>
+            <!-- <a href="#" class="card-link card-link-secondary">GitHub</a> -->
+          </div>
+        </div>  
+      </div>
+    </section>
+
+  <!-- AI Finance Chat Section -->
+  <section id="ai-finance" style="min-height: 100vh; padding: 100px 0; background: var(--bg-primary); position: relative;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 40px;">
+      <div style="text-align: center; margin-bottom: 60px;">
+        <h2 style="font-size: 3em; font-weight: 800; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Fintel Agent</h2>
+        <p style="color: var(--text-secondary); font-size: 1.1em; max-width: 700px; margin: 0 auto; line-height: 1.8;">
+          An internal AI agent for historical financial reporting and analysis, built with RBAC, strong security controls, and high data accuracy. 
+          It ingests data from a centralized Data Warehouse and isolated files to deliver trusted, explainable financial insights in a private environment.
+        </p>
+      </div>
+
+      <!-- AI Chat Panel -->
+      <div class="glass rounded-2xl p-4 md:p-6 ai-panel flex flex-col" style="height: 600px; max-height: 80vh; background: var(--bg-card); border: 1px solid var(--border-color); backdrop-filter: blur(10px); position: relative;">
+
+        <!-- Toast Notification Container (inside AI panel) -->
+        <div id="toast-container" style="position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; flex-direction: column; gap: 10px; max-width: 300px;"></div>
+
+        <!-- User Info Header -->
+        <div class="flex-shrink-0 mb-4 pb-4" style="border-bottom: 1px solid var(--border-color);">
+          <div class="flex items-start gap-3">
+            <div class="flex-1">
+              <p style="color: var(--text-secondary); font-size: 0.875rem;">Account: <span id="umemail" style="color: var(--text-primary); font-weight: 600;">Guest</span></p>
+              <p style="color: var(--text-secondary); font-size: 0.875rem;">Role: <span id="umrole" style="color: var(--text-primary); font-weight: 600;">-</span></p>
+              <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 4px;">⚠️ Limited to ~10 questions/day due to AI quota</p>
+              <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px;">API: <span id="apiStatus" style="color: var(--text-secondary);">Checking...</span></p>
+            </div>
+            <div class="flex gap-2" style="position: relative;">
+              <!-- Quick Login Dropdown -->
+              <div id="quickLoginDropdown" style="position: relative;">
+                <button id="quickLoginBtn" style="padding: 10px 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                  <i class="fas fa-user mr-2"></i><span>Quick Login</span>
+                </button>
+                <div id="quickLoginMenu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; min-width: 250px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 9999 !important; overflow: hidden;">
+                  <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+                    <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem;">Select Account</p>
+                  </div>
+                  <div class="quick-login-option" data-email="emea_gm@example.com" data-password="emea123" style="padding: 14px 16px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color);">
+                    <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem; margin-bottom: 4px;">EMEA BUGM</p>
+                    <p style="color: var(--text-secondary); font-size: 0.75rem;">emea_gm@example.com</p>
+                  </div>
+                  <div class="quick-login-option" data-email="gceo@example.com" data-password="gceo123" style="padding: 14px 16px; cursor: pointer; transition: background 0.2s;">
+                    <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem; margin-bottom: 4px;">GCEO</p>
+                    <p style="color: var(--text-secondary); font-size: 0.75rem;">gceo@example.com</p>
+                  </div>
+                </div>
+              </div>
+              <button class="logoutBtn hidden" style="padding: 10px 20px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s;">
+                <i class="fas fa-sign-out-alt mr-2"></i><span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="aiChat" class="flex-1 overflow-y-auto rounded-xl p-3 md:p-4 mb-3 space-y-3 scroll-smooth" style="background: rgba(17, 17, 17, 0.5); border: 1px solid var(--border-color);">
+          <div class="glass rounded-2xl px-3 py-2 md:px-4 md:py-3" style="border-left: 4px solid var(--accent-primary); background: rgba(59, 130, 246, 0.1);">
+            <p style="color: #d8d8d8; font-size: 0.9375rem; line-height: 1.6; font-weight: 500;">👋 Hello! I'm Fintel. I can help you with your corporate financial performance, analyze data, and provide insights and forecast.</p>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex-shrink-0 space-y-3">
+          <div id="aiTyping" class="hidden flex items-center gap-2 text-xs px-2" style="color: var(--text-secondary);">
+            <div class="flex gap-1">
+              <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary);"></span>
+              <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary); animation-delay: 0.2s;"></span>
+              <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary); animation-delay: 0.4s;"></span>
+            </div>
+            <span>AI is thinking...</span>
+          </div>
+
+          <div id="uploadedFilesContainer" class="hidden">
+            <div class="rounded-xl p-3" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-primary);">
+              <div class="flex items-center justify-between mb-2">
+                <span style="font-size: 0.875rem; font-weight: 600; color: var(--accent-primary);"><i class="fas fa-paperclip mr-1"></i> Attached Files:</span>
+                <button onclick="clearUploadedFiles()" style="font-size: 0.75rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; text-decoration: underline;">Clear all</button>
+              </div>
+              <div id="uploadedFilesList" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+
+          <div class="rounded-xl p-2" style="border-top: 1px solid var(--border-color); background: rgba(26, 26, 26, 0.8); backdrop-filter: blur(10px);">
+            <form id="aiForm" class="flex items-end gap-2 w-full">
+              <label class="flex items-center justify-center w-11 h-11 rounded-xl cursor-pointer flex-shrink-0 transition" style="border: 1px solid var(--border-color); background: var(--bg-secondary);" title="Upload file" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                <i class="fas fa-upload" style="color: var(--accent-primary);"></i>
+                <input type="file" id="fileUploadInput" accept=".csv,.xlsx,.xls,.pdf" class="hidden" onchange="handleFileUpload(event)"/>
+              </label>
+
+              <button type="button" onclick="showUploadedFilesModal()" title="My files" class="flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0 transition" style="border: 1px solid var(--border-color); background: var(--bg-secondary);" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                <i class="fas fa-folder-open" style="color: var(--accent-primary);"></i>
+              </button>
+
+              <textarea id="aiInput" rows="1" placeholder="Ask me anything about finance..." class="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm md:text-base transition-colors min-h-[44px] max-h-[120px]" style="border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" onfocus="this.style.borderColor='var(--accent-primary)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+
+              <button type="submit" title="Send" class="flex items-center justify-center w-11 h-11 rounded-xl text-white shadow-lg transition-all flex-shrink-0" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Nguyen Pham Dieu Hien</h4>
+        <p style="color: var(--text-secondary); line-height: 1.8; margin-top: 10px;">
+          Machine Learning Model Developer and Engineer specializing in financial products
+        </p>
+      </div>
+
+      <div class="footer-section">
+        <h4>Connect</h4>
+        <div class="footer-links">
+          <a href="https://Hiienng.com">GitHub</a>
+          <a href="https://linkedin.com/in/hiennguyen280696">LinkedIn</a>
+          <a href="mailto:hiennguyen280696@gmail.com">Email</a>
+          <a href="https://nguyenphamdieuhien.online">Website</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- AI Finance JavaScript -->
+  <script type="text/javascript">
+    // API Configuration for Agent Finance Backend
+    // Auto-detect environment: production vs local development
+    window.API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://127.0.0.1:8000'  // Local development
+      : 'https://agent-finance-api.onrender.com';  // Production (update with your Render URL)
+
+    window.httpPost = async function(url, body){
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status} ${res.statusText}`;
+        try {
+          const j = await res.json();
+          if (j && j.detail) msg = j.detail;
+        } catch {}
+        throw new Error(msg);
+      }
+      return res.json();
+    };
+
+    // Toast Notification System
+    window.showToast = function(message, type = 'info', title = null, duration = 5000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+
+      const titles = {
+        success: title || 'Success',
+        error: title || 'Error',
+        warning: title || 'Warning',
+        info: title || 'Info'
+      };
+
+      toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || icons.info}</div>
+        <div class="toast-content">
+          <div class="toast-title">${titles[type]}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
+      `;
+
+      container.appendChild(toast);
+
+      if (duration > 0) {
+        setTimeout(() => {
+          toast.classList.add('removing');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+    };
+
+    // Helper Functions
+    function getToken() {
+      return localStorage.getItem("access_token") || '';
+    }
+
+    function updateUIAfterLogin(email){
+      document.querySelectorAll('.logoutBtn').forEach(btn => btn.classList.remove('hidden'));
+      const dropdown = document.getElementById('quickLoginDropdown');
+      if (dropdown) dropdown.style.display = 'none';
+    }
+
+    function doLogout(){
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('remember_me');
+      document.querySelectorAll('.logoutBtn').forEach(btn => btn.classList.add('hidden'));
+      const dropdown = document.getElementById('quickLoginDropdown');
+      if (dropdown) dropdown.style.display = 'block';
+      window.showToast('Logout successfully.', 'success');
+      setTimeout(() => location.reload(), 500);
+    }
+
+    // Simplified Login Function (for Quick Login)
+    async function doLogin(email, password){
+      try{
+        const payload = { email, password };
+        console.log('Sending login request:', { email, password: password ? '***' : 'missing' });
+        console.log('API endpoint:', `${window.API_BASE}/login`);
+
+        const res = await fetch(`${window.API_BASE}/login`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+
+        let data;
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Invalid response from server');
+        }
+
+        if(!res.ok) {
+          // Handle 422 validation errors
+          if (res.status === 422 && data.detail) {
+            const errorDetail = Array.isArray(data.detail)
+              ? data.detail.map(e => e.msg || e.message).join(', ')
+              : data.detail;
+            throw new Error(errorDetail);
+          }
+          throw new Error(data.detail || `Login failed (${res.status})`);
+        }
+
+        if (!data.access_token) throw new Error('No access token received');
+
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('user_email', data.email || email);
+
+        updateUIAfterLogin(data.email || email);
+        loadCurrentUserInfo();
+        window.showToast('Login successfully as ' + email, 'success');
+      }catch(err){
+        // Improved error handling for network issues
+        let errorMessage = err.message || 'Connection failed';
+
+        if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+          errorMessage = 'Cannot connect to backend at ' + window.API_BASE + '. Please ensure agent_finance backend is running:\n\ncd agent_finance\nuvicorn back.main:app --reload --port 8000';
+        }
+
+        console.error('Login error:', err);
+        window.showToast(errorMessage, 'error', 'Login Failed', 8000);
+        throw err;
+      }
+    }
+
+    document.querySelectorAll('.logoutBtn').forEach(btn => btn.addEventListener('click', doLogout));
+
+    // Load current user info
+    async function loadCurrentUserInfo() {
+      const emailEl = document.getElementById('umemail');
+      const roleEl  = document.getElementById('umrole');
+
+      if (!emailEl || !roleEl) return;
+
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        emailEl.textContent = 'Guest';
+        roleEl.textContent = '-';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${window.API_BASE.replace(/\/$/, '')}/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        emailEl.textContent = data.email || localStorage.getItem('user_email') || 'Unknown';
+
+        if (Array.isArray(data.roles)) {
+          roleEl.textContent = data.roles.join(', ');
+        } else {
+          roleEl.textContent = data.role || 'user';
+        }
+
+      } catch (err) {
+        console.warn('[loadCurrentUserInfo]', err);
+        emailEl.textContent = 'Guest';
+        roleEl.textContent = '-';
+        try { localStorage.removeItem('access_token'); } catch {}
+      }
+    }
+
+    // Check API health
+    async function checkAPIHealth() {
+      const statusEl = document.getElementById('apiStatus');
+      if (!statusEl) return;
+
+      try {
+        const res = await fetch(`${window.API_BASE}/health`, {
+          method: 'GET'
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          statusEl.textContent = 'Connected ✓';
+          statusEl.style.color = '#22c55e';
+          console.log('API Health:', data);
+        } else {
+          statusEl.textContent = `Error ${res.status}`;
+          statusEl.style.color = '#ef4444';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Not Running ✗';
+        statusEl.style.color = '#ef4444';
+        console.error('API health check failed:', err);
+        console.log('Please start backend: cd agent_finance && uvicorn back.main:app --reload --port 8000');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCurrentUserInfo();
+      checkAPIHealth();
+    });
+
+    // AI Chat Widget
+    (function initAIChat(){
+      const form = document.getElementById('aiForm');
+      const input = document.getElementById('aiInput');
+      const chat = document.getElementById('aiChat');
+      const typing = document.getElementById('aiTyping');
+
+      if (!form || !input || !chat) return;
+
+      function formatAIResponse(text) {
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold" style="color: #f0f0f0;">$1</strong>');
+        text = text.replace(/^# (.+)$/gm, '<h3 class="text-lg font-bold mt-3 mb-2" style="color: #e8e8e8;">$1</h3>');
+        text = text.replace(/^## (.+)$/gm, '<h4 class="text-base font-bold mt-2 mb-1" style="color: #e0e0e0;">$1</h4>');
+        text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<div class="ml-4 mb-1"><span class="font-semibold" style="color: #60a5fa;">$1.</span> <span style="color: #d0d0d0;">$2</span></div>');
+        text = text.replace(/^[-•]\s+(.+)$/gm, '<div class="ml-4 mb-1"><span style="color: #60a5fa;">•</span> <span style="color: #d0d0d0;">$1</span></div>');
+        text = text.replace(/\n\n/g, '<br/><br/>');
+        text = text.replace(/\n/g, '<br/>');
+        return text;
+      }
+
+      function addBubble(text, who){
+        const bubble = document.createElement('div');
+        if (who === 'user') {
+          bubble.className = 'glass rounded-2xl px-3 py-2 md:px-4 md:py-3 ml-auto max-w-[85%]';
+          bubble.style.cssText = 'background: rgba(59, 130, 246, 0.15); border-left: 4px solid var(--accent-primary);';
+          bubble.innerHTML = `<p style="color: #e0e0e0; font-size: 0.9375rem;">${text}</p>`;
+        } else {
+          bubble.className = 'glass rounded-2xl px-3 py-2 md:px-4 md:py-3 max-w-[95%]';
+          bubble.style.cssText = 'background: rgba(139, 92, 246, 0.15); border-left: 4px solid var(--accent-secondary);';
+          bubble.innerHTML = `<div style="color: #d0d0d0; font-size: 0.9375rem; line-height: 1.6;" class="ai-response">${formatAIResponse(text)}</div>`;
+        }
+        chat.appendChild(bubble);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      async function sendMessage(e){
+        e.preventDefault();
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        const token = localStorage.getItem('access_token') || '';
+        if (!token){
+          window.showToast('Please use Quick Login button to login first', 'warning');
+          return;
+        }
+
+        addBubble(msg, 'user');
+        input.value = '';
+        typing?.classList.remove('hidden');
+
+        try{
+          const file_ids = (window.uploadedFiles || []).map(f => f.file_id);
+          const payload = {
+            message: msg,
+            model: 'gemini-1.5-flash',
+            file_ids: file_ids.length > 0 ? file_ids : null
+          };
+
+          const res = await fetch((window.API_BASE||'').replace(/\/$/, '') + '/ai/chat', {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json().catch(()=>({}));
+
+          if (res.status === 401){
+            window.showToast('Session expired. Please use Quick Login to login again.', 'error');
+            try { localStorage.removeItem('access_token'); } catch{}
+            return;
+          }
+
+          if (!res.ok) throw new Error(data?.detail || ('HTTP '+res.status));
+
+          addBubble(String(data?.response || '').trim() || '', 'ai');
+
+          if (window.clearUploadedFiles) window.clearUploadedFiles();
+
+        }catch(err){
+          console.error('[AI chat]', err);
+          const msg = String(err?.message || '');
+          if (/AI service not configured|503/.test(msg)){
+            addBubble('AI not configured. Please set GOOGLE_API_KEY in backend.', 'ai');
+          } else {
+            addBubble('Error: ' + msg, 'ai');
+          }
+        }finally{
+          typing?.classList.add('hidden');
+        }
+      }
+
+      form.addEventListener('submit', sendMessage);
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit'));
+        }
+      });
+    })();
+
+    // File Upload Functionality
+    window.uploadedFiles = [];
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      if (!token) {
+        showToast('Please login to upload files', 'error');
+        return;
+      }
+
+      showToast(`Uploading ${file.name}...`, 'info', 'Upload', 0);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch(`${window.API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Upload failed');
+        }
+
+        const result = await response.json();
+
+        window.uploadedFiles.push({
+          file_id: result.file_id,
+          filename: result.filename,
+          file_type: result.file_type
+        });
+
+        updateUploadedFilesDisplay();
+        showToast(`${file.name} uploaded successfully!`, 'success');
+
+        event.target.value = '';
+
+      } catch (error) {
+        showToast(error.message, 'error', 'Upload Failed');
+      }
+    }
+
+    window.updateUploadedFilesDisplay = function() {
+      const container = document.getElementById('uploadedFilesContainer');
+      const list = document.getElementById('uploadedFilesList');
+
+      if (window.uploadedFiles.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      list.innerHTML = window.uploadedFiles.map((file, index) => `
+        <div class="bg-white rounded-lg px-3 py-2 text-sm flex items-center gap-2 border border-blue-300">
+          <i class="fas fa-file-${file.file_type === 'PDF' ? 'pdf text-red-500' : file.file_type === 'Excel' ? 'excel text-green-500' : 'csv text-blue-500'}"></i>
+          <span class="font-medium">${file.filename}</span>
+          <button onclick="removeUploadedFile(${index})" class="ml-2 text-red-500 hover:text-red-700">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    window.removeUploadedFile = function(index) {
+      window.uploadedFiles.splice(index, 1);
+      window.updateUploadedFilesDisplay();
+    }
+
+    window.clearUploadedFiles = function() {
+      window.uploadedFiles = [];
+      window.updateUploadedFilesDisplay();
+    }
+
+    async function showUploadedFilesModal() {
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+      if (!token) {
+        showToast('Please login to view files', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${window.API_BASE}/files`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to load files');
+
+        const data = await response.json();
+        const files = data.files || [];
+
+        if (files.length === 0) {
+          showToast('No files uploaded yet', 'info');
+          return;
+        }
+
+        const modalHTML = `
+          <div id="filesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+              <div class="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white flex justify-between items-center">
+                <h3 class="text-xl font-bold"><i class="fas fa-folder-open mr-2"></i>My Uploaded Files</h3>
+                <button onclick="closeFilesModal()" class="text-white hover:text-gray-200">
+                  <i class="fas fa-times text-2xl"></i>
+                </button>
+              </div>
+              <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div class="space-y-3">
+                  ${files.map(file => `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div class="flex items-start justify-between">
+                        <div class="flex items-start gap-3 flex-1">
+                          <i class="fas fa-file-${file.file_type === 'PDF' ? 'pdf text-red-500' : file.file_type === 'Excel' ? 'excel text-green-500' : 'csv text-blue-500'} text-2xl mt-1"></i>
+                          <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${file.filename}</h4>
+                            <p class="text-sm text-gray-500 mt-1">${file.file_type} • ${(file.file_size / 1024).toFixed(2)} KB</p>
+                            <p class="text-xs text-gray-400 mt-1">${new Date(file.uploaded_at).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <div class="flex gap-2">
+                          <button onclick="attachFile('${file.file_id}', '${file.filename}', '${file.file_type}')" class="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-paperclip mr-1"></i> Attach
+                          </button>
+                          <button onclick="deleteFile('${file.file_id}')" class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+      } catch (error) {
+        showToast('Failed to load files', 'error');
+      }
+    }
+
+    function closeFilesModal() {
+      const modal = document.getElementById('filesModal');
+      if (modal) modal.remove();
+    }
+
+    window.attachFile = function(file_id, filename, file_type) {
+      if (window.uploadedFiles.find(f => f.file_id === file_id)) {
+        showToast('File already attached', 'warning');
+        return;
+      }
+
+      window.uploadedFiles.push({ file_id, filename, file_type });
+      window.updateUploadedFilesDisplay();
+      showToast(`${filename} attached to chat`, 'success');
+      closeFilesModal();
+    }
+
+    window.deleteFile = async function(file_id) {
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+
+      try {
+        const response = await fetch(`${window.API_BASE}/files/${file_id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to delete file');
+
+        showToast('File deleted successfully', 'success');
+
+        window.uploadedFiles = window.uploadedFiles.filter(f => f.file_id !== file_id);
+        window.updateUploadedFilesDisplay();
+
+        closeFilesModal();
+        setTimeout(() => showUploadedFilesModal(), 300);
+
+      } catch (error) {
+        showToast('Failed to delete file', 'error');
+      }
+    };
+
+    // Quick Login Dropdown Handler
+    (function initQuickLogin() {
+      const quickLoginBtn = document.getElementById('quickLoginBtn');
+      const quickLoginMenu = document.getElementById('quickLoginMenu');
+      const quickLoginOptions = document.querySelectorAll('.quick-login-option');
+
+      if (!quickLoginBtn || !quickLoginMenu) {
+        console.error('Quick Login elements not found!', {quickLoginBtn, quickLoginMenu});
+        return;
+      }
+
+      console.log('Quick Login initialized successfully');
+
+      // Toggle dropdown
+      quickLoginBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = quickLoginMenu.style.display === 'block';
+        quickLoginMenu.style.display = isVisible ? 'none' : 'block';
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!quickLoginMenu.contains(e.target) && e.target !== quickLoginBtn) {
+          quickLoginMenu.style.display = 'none';
+        }
+      });
+
+      // Handle account selection
+      quickLoginOptions.forEach(option => {
+        // Hover effects
+        option.addEventListener('mouseenter', () => {
+          option.style.background = 'rgba(59, 130, 246, 0.1)';
+        });
+        option.addEventListener('mouseleave', () => {
+          option.style.background = 'transparent';
+        });
+
+        // Click to login
+        option.addEventListener('click', async () => {
+          const email = option.getAttribute('data-email');
+          const password = option.getAttribute('data-password');
+
+          console.log('Quick login attempt:', { email, password: '***' });
+
+          quickLoginMenu.style.display = 'none';
+          quickLoginBtn.disabled = true;
+          quickLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Logging in...</span>';
+
+          try {
+            await doLogin(email, password);
+          } catch (err) {
+            console.error('Quick login failed:', err);
+          } finally {
+            quickLoginBtn.disabled = false;
+            quickLoginBtn.innerHTML = '<i class="fas fa-user mr-2"></i><span>Quick Login</span>';
+          }
+        });
+      });
+
+      // Hide Quick Login button when logged in
+      function updateQuickLoginVisibility() {
+        const token = localStorage.getItem('access_token');
+        const dropdown = document.getElementById('quickLoginDropdown');
+        if (token && dropdown) {
+          dropdown.style.display = 'none';
+        } else if (dropdown) {
+          dropdown.style.display = 'block';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', updateQuickLoginVisibility);
+      window.addEventListener('storage', updateQuickLoginVisibility);
+
+      // Call immediately
+      updateQuickLoginVisibility();
+    })();
+
+    // CSS for Quick Login
+    const style = document.createElement('style');
+    style.textContent = `
+      .quick-login-option:hover {
+        background: rgba(59, 130, 246, 0.1) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
