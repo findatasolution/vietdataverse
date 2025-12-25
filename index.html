@@ -969,7 +969,7 @@
     // Auto-detect environment: production vs local development
     window.API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://127.0.0.1:8000'  // Local development
-      : 'https://agent-finance-api.onrender.com';  // Production (update with your Render URL)
+      : 'https://nguyenphamdieuhien-online.onrender.com';  // Production Render URL
 
     window.httpPost = async function(url, body){
       const res = await fetch(url, {
