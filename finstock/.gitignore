@@ -1,0 +1,41 @@
+# UAT folder
+uat/
+
+# Python virtual environments
+.venv/
+venv/
+finstockenv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment variables
+.env
+.env.local
+
+# Data files
+data/
+*.parquet
+*.csv
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
