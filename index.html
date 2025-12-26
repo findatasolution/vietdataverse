@@ -585,85 +585,6 @@
       </div>
     </div>
 
-    <!-- Books Section -->
-    <section class="section" id="books">
-      <div class="section-header">
-        <h2 class="section-title">Banking Application NoteBooks</h2>
-        <p class="section-subtitle">
-          Technical resources and it's application on banking domain.
-        </p>
-      </div>
-
-      <div class="grid">
-        <!-- Featured Book -->
-        <div class="card featured-card">
-          <div class="featured-content">
-            <div class="card-badge live">Published</div>
-            <h3>Machine Learning Mathematics</h3>
-            <!-- <p>
-              A comprehensive, interactive guide covering the mathematical foundations essential for machine learning.
-              From probability theory to advanced optimization techniques, with practical ML applications throughout.
-            </p> -->
-            <div class="card-tags">
-              <span class="tag">Mathematics</span>
-              <span class="tag">Probability</span>
-              <span class="tag">Linear Algebra</span>
-              <span class="tag">Calculus</span>
-              <span class="tag">Number Theory</span>
-            </div>
-            <div class="card-footer">
-              <a href="\ml-math\mlmaths.html" class="card-link card-link-primary">Read Online</a>
-              <!-- <a href="#" class="card-link card-link-secondary">Download PDF</a> -->
-            </div>
-          </div>
-          <div class="featured-visual">📚</div>
-        </div>
-
-        <!-- Other Books -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-icon">🌲</div>
-            <div class="card-badge live">Published</div>
-          </div>
-          <h3>ML Model Algorithms</h3>
-          <!-- <p>
-            Comprehensive guide to machine learning model algorithms including
-            Random Forest and XGBoost with practical implementations and detailed explanations.
-          </p> -->
-          <div class="card-tags">
-            <span class="tag">Random Forest</span>
-            <span class="tag">XGBoost</span>
-            <!-- <span class="tag">Tree Models</span> -->
-            <span class="tag">Ensemble</span>
-          </div>
-          <div class="card-footer">
-            <a href="learning/ml-algorithms/index.html" class="card-link card-link-primary">Read Online</a>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div class="card-icon">📊</div>
-            <div class="card-badge beta">In Progress</div>
-          </div>
-          <h3>ML Models Engineering</h3>
-          <!-- <p>
-            Building robust data pipelines and infrastructure for machine learning at scale.
-            Real-world patterns and best practices.
-          </p> -->
-          <div class="card-tags">
-            <span class="tag">Data Engineering</span>
-            <span class="tag">Spark</span>
-            <span class="tag">Airflow</span>
-            <span class="tag">Pipelines</span>
-          </div>
-          <div class="card-footer">
-            <a href="#" class="card-link card-link-secondary">Early Access</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Projects Section -->
     <section class="section" id="projects">
       <div class="section-header">
@@ -693,8 +614,8 @@
             <span class="tag">AI Agent</span>
           </div>
           <div class="card-footer">
-            <a href="/agent_finance/front/index.html" class="card-link card-link-primary">Live Demo</a>
-            <a href="#" class="card-link card-link-secondary">GitHub</a>
+            <a href="#ai-finance" id="liveDemoBtn" class="card-link card-link-primary">Live Demo</a>
+            <a href="/agent_finance/front/Technique_document.html" class="card-link card-link-secondary">Tech Document</a>
           </div>
         </div>
 
@@ -799,8 +720,117 @@
         </div> -->
       </div>
     </section>
-  
-    <!-- Partners Section -->
+
+    <!-- AI Finance Chat Section -->
+    <section id="ai-finance" style="display: none; min-height: 100vh; padding: 100px 0; background: var(--bg-primary); position: relative;">
+      <!-- Close Button -->
+      <button id="closeAiFinance" style="position: absolute; top: 20px; right: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5em; display: flex; align-items: center; justify-content: center; transition: all 0.3s; z-index: 10;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 40px;">
+        <div style="text-align: center; margin-bottom: 60px;">
+          <h2 style="font-size: 3em; font-weight: 800; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Fintel Agent</h2>
+          <p style="color: var(--text-secondary); font-size: 1.1em; max-width: 700px; margin: 0 auto; line-height: 1.8;">
+            An internal AI agent for historical financial reporting and analysis, built with RBAC, strong security controls, and high data accuracy. 
+            It ingests data from a centralized Data Warehouse and isolated files to deliver trusted, explainable financial insights in a private environment.
+          </p>
+        </div>
+
+        <!-- AI Chat Panel -->
+        <div class="glass rounded-2xl p-4 md:p-6 ai-panel flex flex-col" style="height: 600px; max-height: 80vh; background: var(--bg-card); border: 1px solid var(--border-color); backdrop-filter: blur(10px); position: relative;">
+
+          <!-- Toast Notification Container (inside AI panel) -->
+          <div id="toast-container" style="position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; flex-direction: column; gap: 10px; max-width: 300px;"></div>
+
+          <!-- User Info Header -->
+          <div class="flex-shrink-0 mb-4 pb-4" style="border-bottom: 1px solid var(--border-color);">
+            <div class="flex items-start gap-3">
+              <div class="flex-1">
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Account: <span id="umemail" style="color: var(--text-primary); font-weight: 600;">Guest</span></p>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Role: <span id="umrole" style="color: var(--text-primary); font-weight: 600;">-</span></p>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 4px;">⚠️ Limited to ~10 questions/day due to AI quota</p>
+                <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px;">API: <span id="apiStatus" style="color: var(--text-secondary);">Checking...</span></p>
+              </div>
+              <div class="flex gap-2" style="position: relative;">
+                <!-- Quick Login Dropdown -->
+                <div id="quickLoginDropdown" style="position: relative;">
+                  <button id="quickLoginBtn" style="padding: 10px 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                    <i class="fas fa-user mr-2"></i><span>Quick Login</span>
+                  </button>
+                  <div id="quickLoginMenu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; min-width: 250px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 9999 !important; overflow: hidden;">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+                      <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem;">Select Account</p>
+                    </div>
+                    <div class="quick-login-option" data-email="emea_gm@example.com" data-password="emea123" style="padding: 14px 16px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color);">
+                      <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem; margin-bottom: 4px;">EMEA BUGM</p>
+                      <p style="color: var(--text-secondary); font-size: 0.75rem;">emea_gm@example.com</p>
+                    </div>
+                    <div class="quick-login-option" data-email="gceo@example.com" data-password="gceo123" style="padding: 14px 16px; cursor: pointer; transition: background 0.2s;">
+                      <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem; margin-bottom: 4px;">GCEO</p>
+                      <p style="color: var(--text-secondary); font-size: 0.75rem;">gceo@example.com</p>
+                    </div>
+                  </div>
+                </div>
+                <button class="logoutBtn hidden" style="padding: 10px 20px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s;">
+                  <i class="fas fa-sign-out-alt mr-2"></i><span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Messages -->
+          <div id="aiChat" class="flex-1 overflow-y-auto rounded-xl p-3 md:p-4 mb-3 space-y-3 scroll-smooth" style="background: rgba(17, 17, 17, 0.5); border: 1px solid var(--border-color);">
+            <div class="glass rounded-2xl px-3 py-2 md:px-4 md:py-3" style="border-left: 4px solid var(--accent-primary); background: rgba(59, 130, 246, 0.1);">
+              <p style="color: #d8d8d8; font-size: 0.9375rem; line-height: 1.6; font-weight: 500;">👋 Hello! I'm Fintel. I can help you with your corporate financial performance, analyze data, and provide insights and forecast.</p>
+            </div>
+          </div>
+
+          <!-- Input Area -->
+          <div class="flex-shrink-0 space-y-3">
+            <div id="aiTyping" class="hidden flex items-center gap-2 text-xs px-2" style="color: var(--text-secondary);">
+              <div class="flex gap-1">
+                <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary);"></span>
+                <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary); animation-delay: 0.2s;"></span>
+                <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary); animation-delay: 0.4s;"></span>
+              </div>
+              <span>AI is thinking...</span>
+            </div>
+
+            <div id="uploadedFilesContainer" class="hidden">
+              <div class="rounded-xl p-3" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-primary);">
+                <div class="flex items-center justify-between mb-2">
+                  <span style="font-size: 0.875rem; font-weight: 600; color: var(--accent-primary);"><i class="fas fa-paperclip mr-1"></i> Attached Files:</span>
+                  <button onclick="clearUploadedFiles()" style="font-size: 0.75rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; text-decoration: underline;">Clear all</button>
+                </div>
+                <div id="uploadedFilesList" class="flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+
+            <div class="rounded-xl p-2" style="border-top: 1px solid var(--border-color); background: rgba(26, 26, 26, 0.8); backdrop-filter: blur(10px);">
+              <form id="aiForm" class="flex items-end gap-2 w-full">
+                <label class="flex items-center justify-center w-11 h-11 rounded-xl cursor-pointer flex-shrink-0 transition" style="border: 1px solid var(--border-color); background: var(--bg-secondary);" title="Upload file" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                  <i class="fas fa-upload" style="color: var(--accent-primary);"></i>
+                  <input type="file" id="fileUploadInput" accept=".csv,.xlsx,.xls,.pdf" class="hidden" onchange="handleFileUpload(event)"/>
+                </label>
+
+                <button type="button" onclick="showUploadedFilesModal()" title="My files" class="flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0 transition" style="border: 1px solid var(--border-color); background: var(--bg-secondary);" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                  <i class="fas fa-folder-open" style="color: var(--accent-primary);"></i>
+                </button>
+
+                <textarea id="aiInput" rows="1" placeholder="Ask me anything about finance..." class="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm md:text-base transition-colors min-h-[44px] max-h-[120px]" style="border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" onfocus="this.style.borderColor='var(--accent-primary)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+
+                <button type="submit" title="Send" class="flex items-center justify-center w-11 h-11 rounded-xl text-white shadow-lg transition-all flex-shrink-0" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deployed Section -->
     <section class="section" id="products">
       <div class="section-header">
         <h2 class="section-title">Deployed Products</h2>
@@ -837,109 +867,84 @@
       </div>
     </section>
 
-  <!-- AI Finance Chat Section -->
-  <section id="ai-finance" style="min-height: 100vh; padding: 100px 0; background: var(--bg-primary); position: relative;">
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 40px;">
-      <div style="text-align: center; margin-bottom: 60px;">
-        <h2 style="font-size: 3em; font-weight: 800; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Fintel Agent</h2>
-        <p style="color: var(--text-secondary); font-size: 1.1em; max-width: 700px; margin: 0 auto; line-height: 1.8;">
-          An internal AI agent for historical financial reporting and analysis, built with RBAC, strong security controls, and high data accuracy. 
-          It ingests data from a centralized Data Warehouse and isolated files to deliver trusted, explainable financial insights in a private environment.
+    <!-- Books Section -->
+    <section class="section" id="books">
+      <div class="section-header">
+        <h2 class="section-title">Banking Application NoteBooks</h2>
+        <p class="section-subtitle">
+          Technical resources and it's application on banking domain.
         </p>
       </div>
 
-      <!-- AI Chat Panel -->
-      <div class="glass rounded-2xl p-4 md:p-6 ai-panel flex flex-col" style="height: 600px; max-height: 80vh; background: var(--bg-card); border: 1px solid var(--border-color); backdrop-filter: blur(10px); position: relative;">
-
-        <!-- Toast Notification Container (inside AI panel) -->
-        <div id="toast-container" style="position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; flex-direction: column; gap: 10px; max-width: 300px;"></div>
-
-        <!-- User Info Header -->
-        <div class="flex-shrink-0 mb-4 pb-4" style="border-bottom: 1px solid var(--border-color);">
-          <div class="flex items-start gap-3">
-            <div class="flex-1">
-              <p style="color: var(--text-secondary); font-size: 0.875rem;">Account: <span id="umemail" style="color: var(--text-primary); font-weight: 600;">Guest</span></p>
-              <p style="color: var(--text-secondary); font-size: 0.875rem;">Role: <span id="umrole" style="color: var(--text-primary); font-weight: 600;">-</span></p>
-              <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 4px;">⚠️ Limited to ~10 questions/day due to AI quota</p>
-              <p style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px;">API: <span id="apiStatus" style="color: var(--text-secondary);">Checking...</span></p>
+      <div class="grid">
+        <!-- Featured Book -->
+        <div class="card featured-card">
+          <div class="featured-content">
+            <div class="card-badge live">Published</div>
+            <h3>Machine Learning Mathematics</h3>
+            <!-- <p>
+              A comprehensive, interactive guide covering the mathematical foundations essential for machine learning.
+              From probability theory to advanced optimization techniques, with practical ML applications throughout.
+            </p> -->
+            <div class="card-tags">
+              <span class="tag">Mathematics</span>
+              <span class="tag">Probability</span>
+              <span class="tag">Linear Algebra</span>
+              <span class="tag">Calculus</span>
+              <span class="tag">Number Theory</span>
             </div>
-            <div class="flex gap-2" style="position: relative;">
-              <!-- Quick Login Dropdown -->
-              <div id="quickLoginDropdown" style="position: relative;">
-                <button id="quickLoginBtn" style="padding: 10px 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-                  <i class="fas fa-user mr-2"></i><span>Quick Login</span>
-                </button>
-                <div id="quickLoginMenu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; min-width: 250px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 9999 !important; overflow: hidden;">
-                  <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
-                    <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem;">Select Account</p>
-                  </div>
-                  <div class="quick-login-option" data-email="emea_gm@example.com" data-password="emea123" style="padding: 14px 16px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color);">
-                    <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem; margin-bottom: 4px;">EMEA BUGM</p>
-                    <p style="color: var(--text-secondary); font-size: 0.75rem;">emea_gm@example.com</p>
-                  </div>
-                  <div class="quick-login-option" data-email="gceo@example.com" data-password="gceo123" style="padding: 14px 16px; cursor: pointer; transition: background 0.2s;">
-                    <p style="color: var(--text-primary); font-weight: 600; font-size: 0.875rem; margin-bottom: 4px;">GCEO</p>
-                    <p style="color: var(--text-secondary); font-size: 0.75rem;">gceo@example.com</p>
-                  </div>
-                </div>
-              </div>
-              <button class="logoutBtn hidden" style="padding: 10px 20px; background: transparent; border: 1px solid #ef4444; color: #ef4444; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.875rem; transition: all 0.3s;">
-                <i class="fas fa-sign-out-alt mr-2"></i><span>Logout</span>
-              </button>
+            <div class="card-footer">
+              <a href="\ml-math\mlmaths.html" class="card-link card-link-primary">Read Online</a>
+              <!-- <a href="#" class="card-link card-link-secondary">Download PDF</a> -->
             </div>
+          </div>
+          <div class="featured-visual">📚</div>
+        </div>
+
+        <!-- Other Books -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">🌲</div>
+            <div class="card-badge live">Published</div>
+          </div>
+          <h3>ML Model Algorithms</h3>
+          <!-- <p>
+            Comprehensive guide to machine learning model algorithms including
+            Random Forest and XGBoost with practical implementations and detailed explanations.
+          </p> -->
+          <div class="card-tags">
+            <span class="tag">Random Forest</span>
+            <span class="tag">XGBoost</span>
+            <!-- <span class="tag">Tree Models</span> -->
+            <span class="tag">Ensemble</span>
+          </div>
+          <div class="card-footer">
+            <a href="learning/ml-algorithms/index.html" class="card-link card-link-primary">Read Online</a>
           </div>
         </div>
 
-        <!-- Chat Messages -->
-        <div id="aiChat" class="flex-1 overflow-y-auto rounded-xl p-3 md:p-4 mb-3 space-y-3 scroll-smooth" style="background: rgba(17, 17, 17, 0.5); border: 1px solid var(--border-color);">
-          <div class="glass rounded-2xl px-3 py-2 md:px-4 md:py-3" style="border-left: 4px solid var(--accent-primary); background: rgba(59, 130, 246, 0.1);">
-            <p style="color: #d8d8d8; font-size: 0.9375rem; line-height: 1.6; font-weight: 500;">👋 Hello! I'm Fintel. I can help you with your corporate financial performance, analyze data, and provide insights and forecast.</p>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">📊</div>
+            <div class="card-badge beta">In Progress</div>
           </div>
-        </div>
-
-        <!-- Input Area -->
-        <div class="flex-shrink-0 space-y-3">
-          <div id="aiTyping" class="hidden flex items-center gap-2 text-xs px-2" style="color: var(--text-secondary);">
-            <div class="flex gap-1">
-              <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary);"></span>
-              <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary); animation-delay: 0.2s;"></span>
-              <span class="w-2 h-2 rounded-full animate-bounce" style="background: var(--accent-primary); animation-delay: 0.4s;"></span>
-            </div>
-            <span>AI is thinking...</span>
+          <h3>ML Models Engineering</h3>
+          <!-- <p>
+            Building robust data pipelines and infrastructure for machine learning at scale.
+            Real-world patterns and best practices.
+          </p> -->
+          <div class="card-tags">
+            <span class="tag">Data Engineering</span>
+            <span class="tag">Spark</span>
+            <span class="tag">Airflow</span>
+            <span class="tag">Pipelines</span>
           </div>
-
-          <div id="uploadedFilesContainer" class="hidden">
-            <div class="rounded-xl p-3" style="background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-primary);">
-              <div class="flex items-center justify-between mb-2">
-                <span style="font-size: 0.875rem; font-weight: 600; color: var(--accent-primary);"><i class="fas fa-paperclip mr-1"></i> Attached Files:</span>
-                <button onclick="clearUploadedFiles()" style="font-size: 0.75rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; text-decoration: underline;">Clear all</button>
-              </div>
-              <div id="uploadedFilesList" class="flex flex-wrap gap-2"></div>
-            </div>
-          </div>
-
-          <div class="rounded-xl p-2" style="border-top: 1px solid var(--border-color); background: rgba(26, 26, 26, 0.8); backdrop-filter: blur(10px);">
-            <form id="aiForm" class="flex items-end gap-2 w-full">
-              <label class="flex items-center justify-center w-11 h-11 rounded-xl cursor-pointer flex-shrink-0 transition" style="border: 1px solid var(--border-color); background: var(--bg-secondary);" title="Upload file" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
-                <i class="fas fa-upload" style="color: var(--accent-primary);"></i>
-                <input type="file" id="fileUploadInput" accept=".csv,.xlsx,.xls,.pdf" class="hidden" onchange="handleFileUpload(event)"/>
-              </label>
-
-              <button type="button" onclick="showUploadedFilesModal()" title="My files" class="flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0 transition" style="border: 1px solid var(--border-color); background: var(--bg-secondary);" onmouseover="this.style.borderColor='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
-                <i class="fas fa-folder-open" style="color: var(--accent-primary);"></i>
-              </button>
-
-              <textarea id="aiInput" rows="1" placeholder="Ask me anything about finance..." class="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm md:text-base transition-colors min-h-[44px] max-h-[120px]" style="border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" onfocus="this.style.borderColor='var(--accent-primary)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
-
-              <button type="submit" title="Send" class="flex items-center justify-center w-11 h-11 rounded-xl text-white shadow-lg transition-all flex-shrink-0" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </form>
+          <div class="card-footer">
+            <a href="#" class="card-link card-link-secondary">Early Access</a>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
   <!-- Footer -->
   <footer>
@@ -1561,6 +1566,45 @@
       }
     `;
     document.head.appendChild(style);
+
+    // AI Finance Section Toggle
+    (function initAiFinanceToggle() {
+      const liveDemoBtn = document.getElementById('liveDemoBtn');
+      const closeBtn = document.getElementById('closeAiFinance');
+      const aiFinanceSection = document.getElementById('ai-finance');
+
+      if (!liveDemoBtn || !closeBtn || !aiFinanceSection) {
+        console.warn('AI Finance toggle elements not found');
+        return;
+      }
+
+      // Show AI Finance section
+      liveDemoBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        aiFinanceSection.style.display = 'block';
+        // Smooth scroll to section
+        setTimeout(() => {
+          aiFinanceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      });
+
+      // Hide AI Finance section
+      closeBtn.addEventListener('click', () => {
+        aiFinanceSection.style.display = 'none';
+        // Scroll back to projects section
+        const projectsSection = document.getElementById('projects');
+        if (projectsSection) {
+          projectsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && aiFinanceSection.style.display === 'block') {
+          closeBtn.click();
+        }
+      });
+    })();
   </script>
 </body>
 </html>
