@@ -1,0 +1,33 @@
+name: Daily Data Crawl
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Chạy lúc 8h sáng VN (1 AM UTC)
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd crawl_tools
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4
+
+    - name: Run crawl bot
+      run: |
+        cd crawl_tools
+        python crawl_bot.py
+
+    - name: Show results
+      if: always()
+      run: echo "Crawl job completed"
