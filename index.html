@@ -379,6 +379,48 @@
       color: var(--accent-primary);
     }
 
+    /* Dataset download tags */
+    .dataset-tag {
+      cursor: pointer;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: var(--accent-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dataset-tag:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .dataset-tag:active {
+      transform: translateY(0);
+    }
+
+    .dataset-tag.loading {
+      opacity: 0.6;
+      cursor: wait;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .dataset-tag.loading i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.8; }
+    }
+
     .card-footer {
       display: flex;
       gap: 10px;
@@ -684,7 +726,7 @@
       <div class="logo">NPD Hien</div>
       <div class="nav-links">
         <a href="#products">Products</a>
-        <a href="#books">Databank</a>
+        <a href="#dataverse">Viet Dataverse</a>
         <a href="#books">Notebooks</a>
         <!-- <a href="#research">Research</a> -->
         <a href="#contact">Contact</a>
@@ -698,7 +740,7 @@
       <h1>Nguyen Pham Dieu Hien</h1>
       <div class="subtitle">This page is dedicated to sharing my practical experience in machine learning model development and engineering and sharing datasets as an alternative resource for research purposes.</div>
       <div class="cta-buttons">
-        <a href="#books" class="btn btn-primary">Data Bank</a>
+        <a href="#dataverse" class="btn btn-primary">Viet Dataverse</a>
         <a href="#products" class="btn btn-secondary">Featured Products</a>
         <a href="mailto:hiennguyen280696@gmail.com" class="btn btn-secondary">Request a custom product</a>
       </div>
@@ -996,40 +1038,53 @@
       </div>
     </section>
 
-    <!-- Books Section -->
-    <section class="section" id="books">
+    <!-- Dataverse Section -->
+    <section class="section" id="dataverse">
       <div class="section-header">
-        <h2 class="section-title">Data Bank and Books</h2>
+        <h2 class="section-title">Viet Dataverse</h2>
         <p class="section-subtitle">
           Technical resources and it's application on banking domain.
         </p>
       </div>
-
-      <div class="grid">
-        <!-- Featured Book -->
-        <div class="card featured-card">
+              <div class="card featured-card">
           <div class="featured-content">
             <div class="card-badge live">Published</div>
-            <h3>Data Bank</h3>
+            <h3>Viet Dataverse</h3>
             <p>
               Shared data for research purposes with transparent sources of data. Provided with download .csv and APIs
             </p>
             <div class="card-tags">
-              <span class="tag">VNGold</span>
-              <span class="tag">VNSilver</span>
-              <span class="tag">VNTermDeposit</span>
-              <span class="tag">VN30FSBS</span>
-              <span class="tag">VN30Sentiment</span>
-              <span class="tag">SBVInterbank</span>
+              <span class="tag dataset-tag" data-dataset="VNGold">
+                <i class="fas fa-download"></i> VNGold
+              </span>
+              <span class="tag dataset-tag" data-dataset="VNSilver">
+                <i class="fas fa-download"></i> VNSilver
+              </span>
+              <span class="tag dataset-tag" data-dataset="VNTermDeposit">
+                <i class="fas fa-download"></i> VNTermDeposit
+              </span>
+              <span class="tag dataset-tag" data-dataset="VN30FSBS">
+                <i class="fas fa-download"></i> VN30FSBS
+              </span>
+              <span class="tag dataset-tag" data-dataset="NewsSentiment">
+                <i class="fas fa-download"></i> NewsSentiment
+              </span>
+              <span class="tag dataset-tag" data-dataset="SBVInterbank">
+                <i class="fas fa-download"></i> SBVInterbank
+              </span>
             </div>
             <div class="card-footer">
-              <a href="\learning\ml-math\mlmaths.html" class="card-link card-link-primary">Access to download</a>
+              <a href="#ai-finance" id="liveDemoBtn" class="card-link card-link-primary">Sign in for APIs</a>
+              <a href="agent_finance/front/Technique_document.html" class="card-link card-link-secondary">Data Describtion</a>
             </div>
           </div>
           <div class="featured-visual">📚</div>
         </div>
-
-        <!-- Books -->
+    </section>
+    
+    <!-- Books Section -->
+    <section class="section" id="dataverse">  
+      <div class="grid">
         <div class="card">
           <div class="card-header">
             <div class="card-icon">🌲</div>
@@ -1752,6 +1807,190 @@
           closeBtn.click();
         }
       });
+    })();
+
+    // Dataset Download Functionality
+    (function initDatasetDownload() {
+      const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000/api/dataverse' : 'https://nguyenphamdieuhien.online/api/dataverse'; console.log('Dataverse API URL:', API_BASE_URL);
+
+      // Get all dataset tags
+      const datasetTags = document.querySelectorAll('.dataset-tag');
+
+      if (datasetTags.length === 0) {
+        console.warn('No dataset tags found');
+        return;
+      }
+
+      console.log(`Found ${datasetTags.length} dataset tags`);
+
+      // Show toast notification
+      function showToast(message, type = 'info') {
+        // Check if toast container exists
+        let toastContainer = document.getElementById('toast-container-dataverse');
+        if (!toastContainer) {
+          toastContainer = document.createElement('div');
+          toastContainer.id = 'toast-container-dataverse';
+          toastContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            max-width: 400px;
+            pointer-events: none;
+          `;
+          document.body.appendChild(toastContainer);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.style.cssText = `
+          background: white;
+          border-radius: 12px;
+          padding: 16px 20px;
+          margin-bottom: 12px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          animation: slideInRight 0.3s ease-out;
+          border-left: 4px solid;
+          pointer-events: auto;
+          border-left-color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        `;
+
+        const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+        const iconColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+
+        toast.innerHTML = `
+          <div style="font-size: 20px; color: ${iconColor}; flex-shrink: 0;">${icon}</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; margin-bottom: 4px; font-size: 14px; color: #1f2937;">${message}</div>
+          </div>
+          <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 0; width: 20px; height: 20px;">×</button>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          toast.style.animation = 'slideOutRight 0.3s ease-in forwards';
+          setTimeout(() => toast.remove(), 300);
+        }, 5000);
+      }
+
+      // Download CSV file
+      async function downloadDataset(datasetName, tagElement) {
+        try {
+          // Show loading state
+          tagElement.classList.add('loading');
+          const originalHTML = tagElement.innerHTML;
+          tagElement.innerHTML = '<i class="fas fa-spinner"></i> Downloading...';
+
+          showToast(`Preparing ${datasetName} dataset...`, 'info');
+
+          // Make API request
+          const response = await fetch(`${API_BASE_URL}/download/${datasetName}`);
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Download failed' }));
+            throw new Error(errorData.error || `Failed to download ${datasetName}`);
+          }
+
+          // Get filename from Content-Disposition header or use default
+          const contentDisposition = response.headers.get('Content-Disposition');
+          let filename = `${datasetName}.csv`;
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (filenameMatch) {
+              filename = filenameMatch[1];
+            }
+          }
+
+          // Download the file
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+
+          showToast(`Successfully downloaded ${datasetName}!`, 'success');
+
+          // Reset tag state
+          tagElement.classList.remove('loading');
+          tagElement.innerHTML = originalHTML;
+
+        } catch (error) {
+          console.error('Download error:', error);
+          showToast(error.message || 'Failed to download dataset', 'error');
+
+          // Reset tag state
+          tagElement.classList.remove('loading');
+          tagElement.innerHTML = `<i class="fas fa-download"></i> ${datasetName}`;
+        }
+      }
+
+      // Add click handlers to all dataset tags
+      datasetTags.forEach(tag => {
+        const datasetName = tag.getAttribute('data-dataset');
+
+        if (!datasetName) {
+          console.warn('Dataset tag missing data-dataset attribute:', tag);
+          return;
+        }
+
+        tag.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Prevent double-click while loading
+          if (tag.classList.contains('loading')) {
+            return;
+          }
+
+          console.log(`Downloading dataset: ${datasetName}`);
+          await downloadDataset(datasetName, tag);
+        });
+
+        // Add title attribute for tooltip
+        tag.setAttribute('title', `Click to download ${datasetName} dataset as CSV`);
+      });
+
+      console.log('Dataset download functionality initialized');
+
+      // Add slideInRight and slideOutRight animations if not already present
+      if (!document.querySelector('#toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+          @keyframes slideInRight {
+            from {
+              transform: translateX(400px);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+
+          @keyframes slideOutRight {
+            from {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            to {
+              transform: translateX(400px);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
     })();
   </script>
 </body>
