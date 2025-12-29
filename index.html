@@ -495,16 +495,44 @@
         padding: 0 20px;
       }
 
+      nav {
+        padding: 15px 0;
+        margin-bottom: 40px;
+      }
+
       nav .nav-content {
         padding: 0 20px;
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      nav .logo {
+        font-size: 1em;
+      }
+
+      nav .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        width: 100%;
+      }
+
+      nav a {
+        font-size: 0.85em;
+      }
+
+      .hero {
+        padding: 60px 0 80px 0;
       }
 
       .hero h1 {
-        font-size: 2.5em;
+        font-size: 2em;
+        letter-spacing: -1px;
       }
 
       .hero .subtitle {
-        font-size: 1.2em;
+        font-size: 1em;
       }
 
       .stats {
@@ -528,6 +556,116 @@
 
       .cta-buttons {
         flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .cta-buttons .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* AI Finance Section Mobile Fixes */
+      #ai-finance {
+        padding: 60px 0 !important;
+      }
+
+      #closeAiFinance {
+        top: 10px !important;
+        right: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.2em !important;
+      }
+
+      #ai-finance .container {
+        padding: 0 10px !important;
+      }
+
+      #ai-finance .glass {
+        margin: 0 !important;
+        border-radius: 16px !important;
+      }
+
+      /* Quick Login Dropdown - Mobile Fix */
+      #quickLoginMenu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 16px 16px 0 0 !important;
+        z-index: 99999 !important;
+      }
+
+      /* Quick Login Button - Mobile */
+      #quickLoginBtn {
+        padding: 8px 16px !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* Chat Panel Mobile */
+      .ai-panel {
+        height: 500px !important;
+        max-height: 70vh !important;
+      }
+
+      /* Toast Container Mobile */
+      #toast-container {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        max-width: none !important;
+        width: auto !important;
+      }
+
+      /* User info header mobile */
+      .ai-panel .flex-shrink-0 {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+      }
+
+      /* Account display mobile */
+      .ai-panel .flex-shrink-0 > div:first-child {
+        width: 100%;
+      }
+
+      /* Button group mobile */
+      .ai-panel .flex.gap-2 {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      nav .nav-content {
+        gap: 10px;
+      }
+
+      nav .nav-links {
+        gap: 10px;
+      }
+
+      .hero h1 {
+        font-size: 1.8em;
+      }
+
+      .hero .subtitle {
+        font-size: 0.95em;
+      }
+
+      .btn {
+        font-size: 0.9em;
+        padding: 12px 20px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
       }
     }
 
