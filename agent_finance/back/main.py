@@ -19,6 +19,7 @@ import uuid
 from back.database import get_db
 from back.models import User
 from back.auth import hash_password, verify_password, create_access_token, decode_access_token
+from back.dataverse import router as dataverse_router
 
 try:
     import google.generativeai as genai
@@ -144,6 +145,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(dataverse_router)
 
 # Frontend will be mounted after API routes are defined
 
