@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
+from sqlalchemy.pool import NullPool
 import pandas as pd
 import io
 from datetime import datetime
@@ -22,7 +23,8 @@ if not DATABASE_URL:
     logging.warning("DATABASE_URL not found, using default connection")
     DATABASE_URL = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
 
-engine = create_engine(DATABASE_URL)
+# Use NullPool to avoid connection state issues
+engine = create_engine(DATABASE_URL, poolclass=NullPool)
 
 # Dataset configuration
 DATASET_CONFIG = {
