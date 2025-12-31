@@ -137,7 +137,7 @@ except ImportError as e:
 app = FastAPI(title="Hien's Fin Agent")
 
 # CORS
-CORS_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+CORS_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5500,http://127.0.0.1:5500").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
