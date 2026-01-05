@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài liệu kỹ thuật - Macro Crawling System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .status-active {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .status-planned {
+            color: #e67e22;
+            font-weight: bold;
+        }
+        .code {
+            background-color: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .metadata {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Tài liệu kỹ thuật - Hệ thống Crawl dữ liệu vĩ mô (Macro Crawling System)</h1>
+
+    <div class="metadata">
+        <strong>Schema:</strong> <span class="code">macro_crawling</span> (sử dụng schema mặc định public)<br>
+        <strong>Database:</strong> PostgreSQL (Neon Tech)<br>
+        <strong>Automation:</strong> GitHub Actions - Daily scheduled at 8:00 AM VN (1:00 AM UTC)<br>
+        <strong>Last updated:</strong> 2026-01-05
+    </div>
+
+    <!-- CURRENT TABLES -->
+    <h2>🟢 Các bảng đang hoạt động (Production)</h2>
+
+    <div class="section">
+        <h3>1. vn_gold_24h_dojihn_hist</h3>
+        <p><strong>Mô tả:</strong> Giá vàng miếng SJC 24K từ DOJI Hà Nội (hàng ngày)</p>
+        <p><strong>Nguồn:</strong> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank">24h.com.vn</a> - Crawl từ bảng HTML</p>
+        <p><strong>Tần suất cập nhật:</strong> Hàng ngày lúc 8:00 AM</p>
+        <p><strong>Script crawl:</strong> <span class="code">crawl_bot.py</span> → <span class="code">utils.crawl_gold_price_24h()</span></p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên cột</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="code">date</td>
+                    <td>DATE (PK)</td>
+                    <td>Ngày giao dịch</td>
+                </tr>
+                <tr>
+                    <td class="code">buy_price</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Giá mua vào (VND/lượng)</td>
+                </tr>
+                <tr>
+                    <td class="code">sell_price</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Giá bán ra (VND/lượng)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info">
+            <strong>🔍 Chi tiết kỹ thuật:</strong>
+            <ul>
+                <li>URL pattern: <span class="code">https://www.24h.com.vn/gia-vang-hom-nay-c425.html?ngaythang=YYYY-MM-DD</span></li>
+                <li>Phương pháp: BeautifulSoup HTML parsing, tìm bảng chứa "DOJI" và "HN"</li>
+                <li>Đơn vị gốc: nghìn VND, nhân x1000 để lưu đơn vị VND đầy đủ</li>
+                <li>Duplicate check: Kiểm tra <span class="code">date</span> trước khi insert</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>2. vn_silver_phuquy_hist</h3>
+        <p><strong>Mô tả:</strong> Giá bạc miếng Phú Quý (hàng ngày)</p>
+        <p><strong>Nguồn:</strong> <a href="https://giabac.vn" target="_blank">giabac.vn</a> - API JSON endpoint</p>
+        <p><strong>Tần suất cập nhật:</strong> Hàng ngày lúc 8:00 AM</p>
+        <p><strong>Script crawl:</strong> <span class="code">crawl_bot.py</span> (line 18-47)</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên cột</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="code">id</td>
+                    <td>INTEGER (AUTO)</td>
+                    <td>Primary key tự động tăng</td>
+                </tr>
+                <tr>
+                    <td class="code">date</td>
+                    <td>DATE</td>
+                    <td>Ngày giao dịch</td>
+                </tr>
+                <tr>
+                    <td class="code">buy_price</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Giá mua vào (VND/lượng)</td>
+                </tr>
+                <tr>
+                    <td class="code">sell_price</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Giá bán ra (VND/lượng)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info">
+            <strong>🔍 Chi tiết kỹ thuật:</strong>
+            <ul>
+                <li>API endpoint: <span class="code">https://giabac.vn/SilverInfo/GetGoldPriceChartFromSQLData?days=7&type=L</span></li>
+                <li>Phương pháp: REST API JSON response</li>
+                <li>Dữ liệu trả về: 7 ngày gần nhất, script lấy ngày cuối cùng (tail(1))</li>
+                <li>Duplicate check: Kiểm tra <span class="code">date</span> trước khi insert</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>⚠️ Known Issue:</strong> API giabac.vn thỉnh thoảng chậm cập nhật dữ liệu ngày mới. Khi crawl lúc 8:00 AM, có thể chỉ lấy được dữ liệu của ngày hôm trước.
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>3. vn_sbv_interbankrate</h3>
+        <p><strong>Mô tả:</strong> Lãi suất thị trường liên ngân hàng do Ngân hàng Nhà nước (SBV) công bố</p>
+        <p><strong>Nguồn:</strong> <a href="https://sbv.gov.vn" target="_blank">sbv.gov.vn</a> - Headless CMS API</p>
+        <p><strong>Tần suất cập nhật:</strong> Kiểm tra hàng ngày, nhưng SBV chỉ công bố khi có thay đổi (thường vài tuần/tháng)</p>
+        <p><strong>Script crawl:</strong> <span class="code">crawl_bot.py</span> (line 74-178)</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên cột</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="code">date</td>
+                    <td>DATE (PK)</td>
+                    <td>Ngày áp dụng lãi suất</td>
+                </tr>
+                <tr>
+                    <td class="code">crawl_time</td>
+                    <td>TIMESTAMP</td>
+                    <td>Thời điểm crawl dữ liệu</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_quadem</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất qua đêm (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_1w</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất 1 tuần (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_2w</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất 2 tuần (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_1m</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất 1 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_3m</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất 3 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_6m</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất 6 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">ls_9m</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Lãi suất 9 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">doanhso_quadem</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Doanh số qua đêm (tỷ VND)</td>
+                </tr>
+                <tr>
+                    <td class="code">doanhso_1w ... doanhso_9m</td>
+                    <td>NUMERIC(18, 2)</td>
+                    <td>Doanh số tương ứng các kỳ hạn (tỷ VND)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info">
+            <strong>🔍 Chi tiết kỹ thuật:</strong>
+            <ul>
+                <li>API endpoint: <span class="code">https://sbv.gov.vn/o/headless-delivery/v1.0/content-structures/3450260/structured-contents?pageSize=1&sort=datePublished:desc</span></li>
+                <li>Phương pháp: REST API (Liferay Headless CMS), lấy bản ghi mới nhất</li>
+                <li>Timezone handling: UTC+7 (Vietnam time) conversion</li>
+                <li>Duplicate check: Kiểm tra <span class="code">date</span> trước khi insert</li>
+                <li>Logic: Chỉ insert khi ngày công bố mới khác với ngày hôm nay (tức SBV có thay đổi)</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>💡 Lưu ý:</strong> Lãi suất liên ngân hàng không thay đổi hàng ngày. SBV chỉ công bố khi có điều chỉnh chính sách tiền tệ. Việc không có dữ liệu mới mỗi ngày là hoàn toàn bình thường.
+        </div>
+    </div>
+
+    <!-- FUTURE PLANS -->
+    <h2>🔵 Kế hoạch phát triển (Planned)</h2>
+
+    <div class="section">
+        <h3>4. vn_bank_termdepo_rates (Planned)</h3>
+        <p class="status-planned">⏳ ĐANG LÊN KẾ HOẠCH</p>
+        <p><strong>Mô tả:</strong> Lãi suất tiết kiệm (term deposit) của các ngân hàng thương mại lớn tại Việt Nam</p>
+        <p><strong>Nguồn dự kiến:</strong></p>
+        <ul>
+            <li><a href="https://vietcombank.com.vn/lai-suat" target="_blank">Vietcombank</a> - Ngân hàng TMCP Ngoại thương Việt Nam</li>
+            <li><a href="https://www.vietinbank.vn/lai-suat" target="_blank">VietinBank</a> - Ngân hàng TMCP Công thương Việt Nam</li>
+            <li><a href="https://www.agribank.com.vn/lai-suat" target="_blank">Agribank</a> - Ngân hàng Nông nghiệp và Phát triển Nông thôn VN</li>
+            <li><a href="https://www.mbbank.com.vn/lai-suat" target="_blank">MB Bank</a> - Ngân hàng TMCP Quân đội</li>
+            <li><a href="https://www.techcombank.com.vn/lai-suat" target="_blank">Techcombank</a> - Ngân hàng TMCP Kỹ Thương Việt Nam</li>
+            <li><a href="https://www.acb.com.vn/lai-suat" target="_blank">ACB</a> - Ngân hàng TMCP Á Châu</li>
+            <li><a href="https://www.tpb.vn/lai-suat" target="_blank">TPBank</a> - Ngân hàng TMCP Tiên Phong</li>
+            <li><a href="https://www.vpbank.com.vn/lai-suat" target="_blank">VPBank</a> - Ngân hàng TMCP Việt Nam Thịnh Vượng</li>
+        </ul>
+        <p><strong>Tần suất cập nhật dự kiến:</strong> Hàng ngày hoặc 2 ngày/lần (lãi suất thường thay đổi ít)</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên cột (đề xuất)</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="code">id</td>
+                    <td>INTEGER (AUTO)</td>
+                    <td>Primary key</td>
+                </tr>
+                <tr>
+                    <td class="code">bank_code</td>
+                    <td>VARCHAR(20)</td>
+                    <td>Mã ngân hàng (VCB, VTB, AGR, MB, TCB, ACB, TPB, VPB)</td>
+                </tr>
+                <tr>
+                    <td class="code">date</td>
+                    <td>DATE</td>
+                    <td>Ngày áp dụng lãi suất</td>
+                </tr>
+                <tr>
+                    <td class="code">crawl_time</td>
+                    <td>TIMESTAMP</td>
+                    <td>Thời điểm crawl dữ liệu</td>
+                </tr>
+                <tr>
+                    <td class="code">term_1m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 1 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">term_3m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 3 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">term_6m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 6 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">term_9m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 9 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">term_12m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 12 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">term_18m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 18 tháng (%/năm)</td>
+                </tr>
+                <tr>
+                    <td class="code">term_24m</td>
+                    <td>NUMERIC(5, 2)</td>
+                    <td>Lãi suất kỳ hạn 24 tháng (%/năm)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- <div class="note">
+            <strong>🚧 Thách thức kỹ thuật:</strong>
+            <ul>
+                <li>Mỗi ngân hàng có cấu trúc website khác nhau → cần 8 parsers riêng biệt</li>
+                <li>Một số ngân hàng có thể dùng JavaScript rendering → cần Selenium/Playwright</li>
+                <li>Rate limiting và anti-bot detection</li>
+                <li>Tên kỳ hạn không thống nhất (1 tháng / 30 ngày / 1M)</li>
+            </ul>
+        </div> -->
+
+    </div>
+
+    <div class="section">
+        <h3>5. vn_news_sentiment (Planned)</h3>
+        <p class="status-planned">⏳ ĐANG LÊN KẾ HOẠCH</p>
+        <p><strong>Mô tả:</strong> Thu thập tin tức từ các báo lớn trong nước về vàng, bạc, VN-Index và các mã chứng khoán VN30, phục vụ phân tích sentiment</p>
+        <p><strong>Nguồn dự kiến:</strong></p>
+        <ul>
+            <li><a href="https://vnexpress.net/kinh-doanh" target="_blank">VnExpress Kinh doanh</a> - Báo điện tử lớn nhất VN</li>
+            <li><a href="https://cafef.vn" target="_blank">CafeF</a> - Chuyên về tài chính, chứng khoán</li>
+            <li><a href="https://baodautu.vn" target="_blank">Báo Đầu tư</a> - Chuyên về đầu tư, kinh tế</li>
+            <li><a href="https://cafebiz.vn" target="_blank">CafeBiz</a> - Tin tức kinh doanh</li>
+            <li><a href="https://dantri.com.vn/kinh-doanh.htm" target="_blank">Dân trí Kinh doanh</a></li>
+            <li><a href="https://vietstock.vn/tin-tuc" target="_blank">VietStock News</a> - Chuyên sâu về chứng khoán</li>
+        </ul>
+        <p><strong>Từ khóa crawl:</strong> "giá vàng", "giá bạc", "VN-Index", "VN30", + 30 mã chứng khoán VN30</p>
+        <p><strong>Tần suất cập nhật dự kiến:</strong> 2-4 lần/ngày (sáng, trưa, chiều, tối)</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên cột (đề xuất)</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="code">id</td>
+                    <td>INTEGER (AUTO)</td>
+                    <td>Primary key</td>
+                </tr>
+                <tr>
+                    <td class="code">source</td>
+                    <td>VARCHAR(50)</td>
+                    <td>Nguồn báo (vnexpress, cafef, baodautu, ...)</td>
+                </tr>
+                <tr>
+                    <td class="code">url</td>
+                    <td>TEXT (UNIQUE)</td>
+                    <td>URL bài viết (unique constraint)</td>
+                </tr>
+                <tr>
+                    <td class="code">title</td>
+                    <td>TEXT</td>
+                    <td>Tiêu đề bài viết</td>
+                </tr>
+                <tr>
+                    <td class="code">content</td>
+                    <td>TEXT</td>
+                    <td>Nội dung đầy đủ bài viết</td>
+                </tr>
+                <tr>
+                    <td class="code">published_date</td>
+                    <td>TIMESTAMP</td>
+                    <td>Ngày giờ xuất bản bài viết</td>
+                </tr>
+                <tr>
+                    <td class="code">crawl_time</td>
+                    <td>TIMESTAMP</td>
+                    <td>Thời điểm crawl</td>
+                </tr>
+                <tr>
+                    <td class="code">category</td>
+                    <td>VARCHAR(50)</td>
+                    <td>Danh mục (gold, silver, vnindex, stock_vn30)</td>
+                </tr>
+                <tr>
+                    <td class="code">keywords</td>
+                    <td>TEXT[]</td>
+                    <td>Mảng từ khóa được phát hiện trong bài</td>
+                </tr>
+                <tr>
+                    <td class="code">sentiment_score</td>
+                    <td>NUMERIC(3, 2)</td>
+                    <td>Điểm sentiment (-1.0 đến 1.0), phân tích sau</td>
+                </tr>
+                <tr>
+                    <td class="code">sentiment_label</td>
+                    <td>VARCHAR(20)</td>
+                    <td>Nhãn sentiment (positive, negative, neutral)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info">
+            <strong>🔍 Danh sách VN30 (30 mã chứng khoán vốn hóa lớn nhất):</strong>
+            <p style="font-family: monospace; font-size: 0.9em; background-color: #f8f9fa; padding: 10px; border-radius: 3px;">
+                VCB, VHM, VIC, VNM, GAS, MSN, HPG, BID, MBB, CTG, TCB, VPB, FPT, ACB, PLX, SAB, STB, NVL, VRE, MWG, GVR, POW, HDB, TPB, PDR, BCM, SSI, VJC, HVN, KDH
+            </p>
+        </div>
+<!-- 
+        <div class="note">
+            <strong>🚧 Thách thức kỹ thuật:</strong>
+            <ul>
+                <li>Anti-scraping mechanisms: Cloudflare, rate limiting, IP blocking</li>
+                <li>JavaScript-heavy websites → cần headless browser (Selenium/Playwright)</li>
+                <li>Dữ liệu lớn: hàng trăm bài viết mỗi ngày → cần optimize storage và indexing</li>
+                <li>Duplicate detection: cùng bài viết có thể xuất hiện trên nhiều nguồn</li>
+                <li>Sentiment analysis: cần model NLP cho tiếng Việt (PhoBERT, ViSoBERT)</li>
+            </ul> -->
+        </div>
+
+        <!-- <div class="info">
+            <strong>💡 Đề xuất triển khai:</strong>
+            <ul>
+                <li><strong>Phase 1:</strong> Crawl title + URL only từ 2-3 nguồn (VnExpress, CafeF) cho keyword "giá vàng", "VN-Index"</li>
+                <li><strong>Phase 2:</strong> Crawl full content và mở rộng nguồn</li>
+                <li><strong>Phase 3:</strong> Tích hợp sentiment analysis model (PhoBERT-based)</li>
+                <li><strong>Phase 4:</strong> Real-time crawling với Redis queue và Celery workers</li>
+                <li><strong>Công cụ:</strong>
+                    <ul>
+                        <li>Crawling: Scrapy framework (scalable) hoặc Playwright (anti-detection)</li>
+                        <li>Sentiment: Hugging Face Transformers + PhoBERT</li>
+                        <li>Queue: Redis + Celery cho async processing</li>
+                    </ul>
+                </li>
+            </ul>
+        </div> -->
+    </div>
+
+    <!-- TECHNICAL INFRASTRUCTURE -->
+    <h2>⚙️ Hạ tầng kỹ thuật</h2>
+
+    <div class="section">
+        <h3>Automation Workflow (GitHub Actions)</h3>
+        <p><strong>File config:</strong> <span class="code">.github/workflows/daily-crawl.yml</span></p>
+        <p><strong>Trigger:</strong> Cron schedule <span class="code">0 1 * * *</span> (8:00 AM VN time)</p>
+        <p><strong>Workflow steps:</strong></p>
+        <ol>
+            <li>Checkout code từ repository</li>
+            <li>Setup Python 3.11 environment</li>
+            <li>Install dependencies: pandas, requests, sqlalchemy, psycopg2-binary, beautifulsoup4</li>
+            <li>Run <span class="code">crawl_tools/crawl_bot.py</span></li>
+            <li>Show results (success/failure)</li>
+        </ol>
+
+        <div class="info">
+            <strong>📊 Monitoring:</strong>
+            <ul>
+                <li>Logs được lưu trữ trên GitHub Actions (retention: 90 days)</li>
+                <li>Email notification khi workflow fails (GitHub setting)</li>
+                <li>Duplicate detection prevents data corruption</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Database Schema</h3>
+        <p><strong>Provider:</strong> Neon Tech (Serverless PostgreSQL)</p>
+        <p><strong>Connection:</strong> Pooler mode (connection pooling enabled)</p>
+        <p><strong>Current schema:</strong> <span class="code">public</span> (default)</p>
+        <p><strong>Planned migration:</strong> Move to dedicated schema <span class="code">macro_crawling</span></p>
+
+        <div class="note">
+            <strong>💡 Migration plan to <span class="code">macro_crawling</span> schema:</strong>
+            <pre style="background-color: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto;">
+-- Create new schema
+CREATE SCHEMA IF NOT EXISTS macro_crawling;
+
+-- Move existing tables
+ALTER TABLE vn_gold_24h_dojihn_hist SET SCHEMA macro_crawling;
+ALTER TABLE vn_silver_phuquy_hist SET SCHEMA macro_crawling;
+ALTER TABLE vn_sbv_interbankrate SET SCHEMA macro_crawling;
+
+-- Update application connection string to include schema
+-- postgresql://user:pass@host/db?options=-c%20search_path=macro_crawling,public
+            </pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Codebase Structure</h3>
+        <pre style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db;">
+crawl_tools/
+├── crawl_bot.py              # Main crawl script (production)
+├── utils.py                  # Helper functions (crawl_gold_price_24h)
+├── crawl_historical_backup.py # One-time historical data backfill
+└── crawl_technical_document.html # This documentation file
+
+.github/
+└── workflows/
+    └── daily-crawl.yml       # GitHub Actions automation config
+        </pre>
+    </div>
+
+    <!-- CONTACT & CHANGELOG -->
+    <h2>📝 Changelog & Roadmap</h2>
+    <div class="section">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Sự kiện</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2025-12-29</td>
+                    <td>Triển khai GitHub Actions daily crawl automation</td>
+                    <td class="status-active">✅ HOÀN THÀNH</td>
+                </tr>
+                <tr>
+                    <td>2025-12-XX</td>
+                    <td>Khởi tạo 3 bảng: gold, silver, SBV interbank rate</td>
+                    <td class="status-active">✅ HOÀN THÀNH</td>
+                </tr>
+                <tr>
+                    <td>2026-01-05</td>
+                    <td>Tạo tài liệu kỹ thuật (document này)</td>
+                    <td class="status-active">✅ HOÀN THÀNH</td>
+                </tr>
+                <tr>
+                    <td>2026-Q1</td>
+                    <td>Triển khai vn_bank_termdepo_rates (Phase 1: 4 ngân hàng)</td>
+                    <td class="status-planned">⏳ KẾ HOẠCH</td>
+                </tr>
+                <tr>
+                    <td>2026-Q1</td>
+                    <td>Triển khai vn_news_sentiment (Phase 1: title crawl)</td>
+                    <td class="status-planned">⏳ KẾ HOẠCH</td>
+                </tr>
+                <tr>
+                    <td>2026-Q2</td>
+                    <td>Migration sang schema macro_crawling</td>
+                    <td class="status-planned">⏳ KẾ HOẠCH</td>
+                </tr>
+                <tr>
+                    <td>2026-Q2</td>
+                    <td>Mở rộng vn_bank_termdepo_rates (Phase 2: 4 ngân hàng còn lại)</td>
+                    <td class="status-planned">⏳ KẾ HOẠCH</td>
+                </tr>
+                <tr>
+                    <td>2026-Q2</td>
+                    <td>Tích hợp sentiment analysis cho news data</td>
+                    <td class="status-planned">⏳ KẾ HOẠCH</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <hr style="margin: 40px 0; border: none; border-top: 2px solid #3498db;">
+
+    <div style="text-align: center; color: #7f8c8d; font-size: 0.9em;">
+        <p><strong>Macro Crawling System</strong> - Phát triển bởi nguyenphamdieuhien.online</p>
+        <p>Last updated: 2026-01-05 | Version: 1.0.0</p>
+    </div>
+</body>
+</html>
