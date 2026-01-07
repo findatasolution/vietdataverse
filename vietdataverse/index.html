@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viet Dataverse - Economic Intelligence Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold-primary: #C9A55B;
+            --gold-accent: #E4C78A;
+            --gold-dark: #8B7355;
+            --silver: #B8B8B8;
+            --silver-light: #D4D4D4;
+            --bg-dark: #0A0A0A;
+            --bg-secondary: #141414;
+            --bg-elevated: #1C1C1C;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+            --text-tertiary: #707070;
+            --border-color: rgba(201, 165, 91, 0.15);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 80px 1fr;
+            min-height: 100vh;
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.625rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+        }
+
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 199;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-overlay.active {
+            opacity: 1;
+        }
+
+        /* Header */
+        .app-header {
+            grid-column: 1 / -1;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-dark) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-accent) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.3);
+        }
+
+        .brand-text h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.125rem;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            padding: 0.625rem 1.25rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .header-btn:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+        }
+
+        .header-btn.primary {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            border: none;
+            color: var(--bg-dark);
+        }
+
+        .header-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.4);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .sidebar-heading {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: 1rem;
+            padding: 0 0.75rem;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.375rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--gold-primary);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(201, 165, 91, 0.08);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active::before {
+            height: 60%;
+        }
+
+        .nav-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link.active .nav-icon {
+            background: linear-gradient(135deg, rgba(201, 165, 91, 0.2), rgba(228, 199, 138, 0.2));
+        }
+
+        .nav-content {
+            flex: 1;
+        }
+
+        .nav-content h4 {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+        }
+
+        .nav-meta {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        /* Subnav for articles */
+        .subnav-list {
+            list-style: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-left: 1rem;
+        }
+
+        .subnav-list.expanded {
+            max-height: 1000px;
+        }
+
+        .subnav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .subnav-item .nav-link {
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .subnav-item .nav-link::before {
+            display: none;
+        }
+
+        .subnav-item .nav-content h4 {
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Article View */
+        .article-featured {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .article-header {
+            padding: 2.5rem 3rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .article-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(201, 165, 91, 0.1);
+            border: 1px solid rgba(201, 165, 91, 0.2);
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gold-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.75rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meta-item i {
+            color: var(--gold-primary);
+            font-size: 0.875rem;
+        }
+
+        .article-body {
+            padding: 2.5rem 3rem;
+        }
+
+        .article-text {
+            font-size: 1.0625rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .article-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .article-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Live Indicators View */
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .indicator-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-card:hover {
+            border-color: rgba(201, 165, 91, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .indicator-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .indicator-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .indicator-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .indicator-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--gold-accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .indicator-change {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .indicator-change.positive {
+            color: #22C55E;
+        }
+
+        .indicator-change.negative {
+            color: #EF4444;
+        }
+
+        .indicator-meta {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Data Portal View */
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.0625rem;
+            color: var(--text-tertiary);
+            max-width: 720px;
+        }
+
+        .datasets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .dataset-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dataset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .dataset-card:hover {
+            border-color: rgba(201, 165, 91, 0.3);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dataset-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .dataset-card.disabled {
+            opacity: 0.5;
+        }
+
+        .dataset-card.disabled:hover {
+            transform: none;
+            border-color: var(--border-color);
+        }
+
+        .dataset-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .dataset-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            flex-shrink: 0;
+        }
+
+        .dataset-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .dataset-desc {
+            font-size: 0.9375rem;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .dataset-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .stat-item i {
+            color: var(--gold-primary);
+            font-size: 0.875rem;
+        }
+
+        .dataset-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 165, 91, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+            background: rgba(201, 165, 91, 0.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .api-section {
+            background: rgba(201, 165, 91, 0.05);
+            border: 1px solid rgba(201, 165, 91, 0.15);
+            border-radius: 12px;
+            padding: 2.5rem;
+        }
+
+        .api-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .api-description {
+            color: var(--text-tertiary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .api-endpoints {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-endpoint {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            color: var(--gold-accent);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .method {
+            color: #22C55E;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .api-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .api-footer a {
+            color: var(--gold-accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .api-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold-dark);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .datasets-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+
+            .indicators-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 968px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 1fr;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .mobile-overlay {
+                display: block;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 280px;
+                height: calc(100vh - 70px);
+                background-color: var(--bg-secondary);
+                border-right: 1px solid var(--border-color);
+                padding: 1.5rem;
+                transition: left 0.3s ease;
+                z-index: 200;
+                overflow-y: auto;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .app-header {
+                padding: 0 1rem;
+                height: 70px;
+            }
+
+            .brand-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.25rem;
+            }
+
+            .brand-text h1 {
+                font-size: 1.25rem;
+            }
+
+            .brand-subtitle {
+                font-size: 0.65rem;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+
+            .header-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8125rem;
+            }
+
+            .header-btn span {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1.5rem 1rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .section-subtitle {
+                font-size: 0.9375rem;
+            }
+
+            .article-title {
+                font-size: 1.75rem;
+            }
+
+            .article-text {
+                font-size: 1rem;
+            }
+
+            .datasets-grid,
+            .indicators-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .dataset-card,
+            .indicator-card {
+                padding: 1.5rem;
+            }
+
+            .article-header,
+            .article-body {
+                padding: 1.5rem 1rem;
+            }
+
+            .article-meta {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .api-section {
+                padding: 1.5rem;
+            }
+
+            .api-endpoint {
+                font-size: 0.75rem;
+                padding: 0.875rem 1rem;
+                flex-wrap: wrap;
+            }
+
+            .dataset-stats {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .brand {
+                gap: 0.75rem;
+            }
+
+            .brand-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 1.125rem;
+            }
+
+            .brand-text h1 {
+                font-size: 1.125rem;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
+
+            .header-btn:not(.mobile-menu-btn) {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .section-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .article-title {
+                font-size: 1.5rem;
+                line-height: 1.3;
+            }
+
+            .article-tag {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+
+            .dataset-top {
+                gap: 1rem;
+            }
+
+            .dataset-icon,
+            .indicator-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+
+            .dataset-info h3,
+            .indicator-title {
+                font-size: 1.0625rem;
+            }
+
+            .indicator-value {
+                font-size: 1.875rem;
+            }
+
+            .dataset-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .api-endpoints {
+                gap: 0.5rem;
+            }
+
+            .api-endpoint {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <button class="mobile-menu-btn" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="brand-icon">📊</div>
+                <div class="brand-text">
+                    <h1>Viet Dataverse</h1>
+                    <p class="brand-subtitle">Economic Intelligence</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn">
+                    <i class="far fa-bookmark"></i> <span>Saved</span>
+                </button>
+                <button class="header-btn primary">
+                    <i class="fas fa-key"></i> <span>API Access</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h2 class="sidebar-heading">Navigation</h2>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="data-portal">
+                            <div class="nav-icon">📊</div>
+                            <div class="nav-content">
+                                <h4>Open Economic Data</h4>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="live-indicators">
+                            <div class="nav-icon">💰</div>
+                            <div class="nav-content">
+                                <h4>Live Indicators</h4>
+                                <span class="nav-meta">Real-time data</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="flash-news" id="flash-news-toggle">
+                            <div class="nav-icon">📰</div>
+                            <div class="nav-content">
+                                <h4>Flash News</h4>
+                                <span class="nav-meta">Latest updates</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Subnav for articles -->
+                <ul class="subnav-list" id="articles-subnav">
+                    <li class="subnav-item">
+                        <a class="nav-link" data-article="article-1">
+                            <div class="nav-content">
+                                <h4>Gold Prices Surge to Record High of 80 Million VND</h4>
+                                <span class="nav-meta">Jan 5, 2026 • 14:30</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="subnav-item">
+                        <a class="nav-link" data-article="article-2">
+                            <div class="nav-content">
+                                <h4>VN-Index Falls 1.2% Amid Banking Sector Pressure</h4>
+                                <span class="nav-meta">Jan 5, 2026 • 12:15</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="subnav-item">
+                        <a class="nav-link" data-article="article-3">
+                            <div class="nav-content">
+                                <h4>State Bank Maintains Interbank Rate at 4.5%</h4>
+                                <span class="nav-meta">Jan 4, 2026 • 16:45</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="subnav-item">
+                        <a class="nav-link" data-article="article-4">
+                            <div class="nav-content">
+                                <h4>Foreign Investors Net Buy VN30 Stocks Worth $12M</h4>
+                                <span class="nav-meta">Jan 4, 2026 • 09:30</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tab 1: Data Portal -->
+            <div class="tab-content active" id="data-portal">
+                <div class="section-header">
+                    <h2 class="section-title">Open Economic Data</h2>
+                    <p class="section-subtitle">
+                        Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis.
+                        All data sources are publicly documented and freely accessible.
+                    </p>
+                    <a href="../crawl_tools/data_describtion.html" class="card-link card-link-secondary">Data Describtion</a>
+                </div>
+
+                <div class="datasets-grid">
+                    <!-- Gold Dataset -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-icon">🏆</div>
+                            <div class="dataset-info">
+                                <h3>VN Gold Price</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Daily SJC 24K gold bar prices at DOJI Hanoi, sourced from 24h.com.vn with complete historical records since 2023.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="far fa-calendar"></i>
+                                2023 - Present
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-database"></i>
+                                580+ records
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-download"></i>
+                                CSV
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-code"></i>
+                                API
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Silver Dataset -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-icon">🥈</div>
+                            <div class="dataset-info">
+                                <h3>VN Silver Price</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Phu Quy silver bar prices collected from giabac.vn API, updated daily with automated quality checks.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="far fa-calendar"></i>
+                                2023 - Present
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-database"></i>
+                                560+ records
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-download"></i>
+                                CSV
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-code"></i>
+                                API
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SBV Interbank -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-icon">🏦</div>
+                            <div class="dataset-info">
+                                <h3>SBV Interbank Rate</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Official interbank interest rates published by State Bank of Vietnam (SBV), covering tenors from overnight to 9 months.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="far fa-calendar"></i>
+                                2023 - Present
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-database"></i>
+                                45+ updates
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-download"></i>
+                                CSV
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-code"></i>
+                                API
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Term Deposit -->
+                    <div class="dataset-card disabled">
+                        <div class="dataset-top">
+                            <div class="dataset-icon">💳</div>
+                            <div class="dataset-info">
+                                <h3>Bank Term Deposit Rates</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Savings interest rates from Vietnam's 8 largest commercial banks (VCB, VTB, TCB, MB, ACB, TPB, VPB, AGR).
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="far fa-calendar"></i>
+                                In Development
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-flask"></i>
+                                Q1 2026
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-clock"></i>
+                                Coming Soon
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- VN30 Financials -->
+                    <div class="dataset-card disabled">
+                        <div class="dataset-top">
+                            <div class="dataset-icon">📈</div>
+                            <div class="dataset-info">
+                                <h3>VN30 Financial Statements</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Fundamental financial data for Vietnam's top 30 stocks by market cap, including balance sheets and key ratios.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="far fa-calendar"></i>
+                                In Development
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-flask"></i>
+                                Q2 2026
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-clock"></i>
+                                Coming Soon
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- News Sentiment -->
+                    <div class="dataset-card disabled">
+                        <div class="dataset-top">
+                            <div class="dataset-icon">📰</div>
+                            <div class="dataset-info">
+                                <h3>News Sentiment Indicators</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Economic news from 6 major outlets with AI-powered sentiment analysis on gold, silver, VN-Index and VN30 stocks.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="far fa-calendar"></i>
+                                In Development
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-flask"></i>
+                                Q2 2026
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-clock"></i>
+                                Coming Soon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Section -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <i class="fas fa-plug" style="color: var(--gold-primary); font-size: 1.5rem;"></i>
+                        <h3>RESTful API Access</h3>
+                    </div>
+                    <p class="api-description">
+                        Access datasets programmatically via our RESTful API. No authentication required for public datasets.
+                        All endpoints return JSON formatted data with comprehensive metadata.
+                    </p>
+                    <div class="api-endpoints">
+                        <div class="api-endpoint">
+                            <span class="method">GET</span>
+                            <span>https://nguyenphamdieuhien.online/api/v1/datasets/vn-gold</span>
+                        </div>
+                        <div class="api-endpoint">
+                            <span class="method">GET</span>
+                            <span>https://nguyenphamdieuhien.online/api/v1/datasets/vn-silver</span>
+                        </div>
+                        <div class="api-endpoint">
+                            <span class="method">GET</span>
+                            <span>https://nguyenphamdieuhien.online/api/v1/datasets/sbv-interbank</span>
+                        </div>
+                    </div>
+                    <p class="api-footer">
+                        <i class="fas fa-book"></i>
+                        View complete <a href="../crawl_tools/data_describtion.html">API documentation</a> for schemas, parameters, and data sources.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab 2: Live Indicators -->
+            <div class="tab-content" id="live-indicators">
+                <div class="section-header">
+                    <h2 class="section-title">Live Economic Indicators</h2>
+                    <p class="section-subtitle">
+                        Real-time macroeconomic data from official sources, updated continuously.
+                    </p>
+                </div>
+
+                <div class="indicators-grid">
+                    <!-- Gold Price Indicator -->
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-icon">🏆</div>
+                            <div class="indicator-title">Gold Price (SJC)</div>
+                        </div>
+                        <div class="indicator-value">80.2M VND</div>
+                        <div class="indicator-change positive">
+                            <i class="fas fa-arrow-up"></i> +0.6% (+500K VND)
+                        </div>
+                        <div class="indicator-meta">
+                            Last updated: Jan 5, 2026 • 14:30 | Source: DOJI HN
+                        </div>
+                    </div>
+
+                    <!-- Silver Price Indicator -->
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-icon">🥈</div>
+                            <div class="indicator-title">Silver Price (Phú Quý)</div>
+                        </div>
+                        <div class="indicator-value">1.02M VND</div>
+                        <div class="indicator-change positive">
+                            <i class="fas fa-arrow-up"></i> +2.0% (+20K VND)
+                        </div>
+                        <div class="indicator-meta">
+                            Last updated: Jan 5, 2026 • 14:30 | Source: giabac.vn
+                        </div>
+                    </div>
+
+                    <!-- VN-Index -->
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-icon">📉</div>
+                            <div class="indicator-title">VN-Index</div>
+                        </div>
+                        <div class="indicator-value">1,235.4</div>
+                        <div class="indicator-change negative">
+                            <i class="fas fa-arrow-down"></i> -1.2% (-15.2 pts)
+                        </div>
+                        <div class="indicator-meta">
+                            Last updated: Jan 5, 2026 • 15:00 | Source: HOSE
+                        </div>
+                    </div>
+
+                    <!-- USD/VND Exchange Rate -->
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-icon">💵</div>
+                            <div class="indicator-title">USD/VND Exchange Rate</div>
+                        </div>
+                        <div class="indicator-value">24,850</div>
+                        <div class="indicator-change positive">
+                            <i class="fas fa-arrow-up"></i> +0.1% (+20 VND)
+                        </div>
+                        <div class="indicator-meta">
+                            Last updated: Jan 5, 2026 • 14:45 | Source: Vietcombank
+                        </div>
+                    </div>
+
+                    <!-- SBV Interbank Rate -->
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-icon">🏦</div>
+                            <div class="indicator-title">Interbank Rate (Overnight)</div>
+                        </div>
+                        <div class="indicator-value">4.50%</div>
+                        <div class="indicator-change">
+                            <i class="fas fa-minus"></i> No change
+                        </div>
+                        <div class="indicator-meta">
+                            Last updated: Dec 30, 2025 | Source: State Bank of Vietnam
+                        </div>
+                    </div>
+
+                    <!-- CPI Inflation -->
+                    <div class="indicator-card">
+                        <div class="indicator-header">
+                            <div class="indicator-icon">📊</div>
+                            <div class="indicator-title">CPI Inflation (YoY)</div>
+                        </div>
+                        <div class="indicator-value">3.25%</div>
+                        <div class="indicator-change positive">
+                            <i class="fas fa-arrow-up"></i> +0.15% vs prev month
+                        </div>
+                        <div class="indicator-meta">
+                            Last updated: Dec 2025 | Source: General Statistics Office
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Flash News (Articles) -->
+            <div class="tab-content" id="flash-news">
+                <!-- Article 1 -->
+                <article class="article-featured" id="article-1">
+                    <div class="article-header">
+                        <span class="article-tag">
+                            <i class="fas fa-chart-line"></i>
+                            Macroeconomic Trends
+                        </span>
+                        <h1 class="article-title">Gold Prices Surge to Record High of 80 Million VND per Tael</h1>
+                        <div class="article-meta">
+                            <span class="meta-item">
+                                <i class="far fa-newspaper"></i>
+                                VnExpress
+                            </span>
+                            <span class="meta-item">
+                                <i class="far fa-clock"></i>
+                                Jan 5, 2026 • 14:30
+                            </span>
+                            <span class="meta-item">
+                                <i class="far fa-user"></i>
+                                Hồng Chiêu
+                            </span>
+                        </div>
+                    </div>
+                    <div class="article-body">
+                        <div class="article-text">
+                            <p>
+                                <strong>SJC gold bars</strong> traded in Hanoi today (Jan 5) increased by 500,000 VND compared to the previous session,
+                                reaching 79.8 - 80.2 million VND/tael (buy - sell), according to data from DOJI Gold, Silver and Gemstones Company.
+                            </p>
+                            <p>
+                                This price represents a 0.6% increase compared to last weekend's trading session and marks the highest level in the past three months.
+                                According to experts, the primary driver stems from rising global gold prices as the USD weakens and
+                                concerns about global inflation intensify.
+                            </p>
+                            <p>
+                                Meanwhile, <strong>Phu Quy silver bars</strong> also showed an upward trend, reaching 980,000 - 1,020,000 VND/tael,
+                                up approximately 20,000 VND from last week. Investors are actively seeking precious metals as a safe-haven investment channel
+                                amid volatile stock market conditions.
+                            </p>
+                            <p>
+                                The <strong>VN-Index</strong> closed today at 1,235 points, down 1.2% from the previous session.
+                                Banking and real estate stocks faced the strongest selling pressure. However,
+                                gold-related stocks such as PNJ and SJC showed positive gains.
+                            </p>
+                            <p>
+                                According to expert forecasts, gold prices may continue to rise next week if the U.S. Federal Reserve (Fed)
+                                maintains interest rates at current levels without signaling monetary policy tightening.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Article 2 -->
+                <article class="article-featured" id="article-2" style="display: none;">
+                    <div class="article-header">
+                        <span class="article-tag">
+                            <i class="fas fa-chart-bar"></i>
+                            Stock Market
+                        </span>
+                        <h1 class="article-title">VN-Index Falls 1.2% Amid Banking Sector Pressure</h1>
+                        <div class="article-meta">
+                            <span class="meta-item">
+                                <i class="far fa-newspaper"></i>
+                                CafeF
+                            </span>
+                            <span class="meta-item">
+                                <i class="far fa-clock"></i>
+                                Jan 5, 2026 • 12:15
+                            </span>
+                            <span class="meta-item">
+                                <i class="far fa-user"></i>
+                                Minh Tuấn
+                            </span>
+                        </div>
+                    </div>
+                    <div class="article-body">
+                        <div class="article-text">
+                            <p>
+                                The <strong>VN-Index</strong> closed at 1,235.4 points on January 5, down 15.2 points (-1.2%) from the previous session,
+                                marking the steepest single-day decline in nearly two weeks. Trading volume reached 850 million shares worth VND 18.5 trillion.
+                            </p>
+                            <p>
+                                Banking stocks led the downturn, with <strong>VCB</strong> falling 2.1%, <strong>TCB</strong> down 1.8%, and
+                                <strong>MBB</strong> declining 1.5%. Analysts attribute the sell-off to profit-taking following recent gains and
+                                concerns over potential credit growth restrictions in 2026.
+                            </p>
+                            <p>
+                                Real estate stocks also faced significant pressure. <strong>VHM</strong> dropped 2.3% while <strong>VIC</strong>
+                                shed 1.9%. However, the precious metals segment bucked the trend, with <strong>PNJ</strong> gaining 1.8%
+                                on the back of surging gold prices.
+                            </p>
+                            <p>
+                                Foreign investors were net sellers for the third consecutive session, offloading VND 420 billion worth of Vietnamese stocks.
+                                Market experts recommend caution in the near term while monitoring corporate earnings reports due later this month.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Article 3 -->
+                <article class="article-featured" id="article-3" style="display: none;">
+                    <div class="article-header">
+                        <span class="article-tag">
+                            <i class="fas fa-university"></i>
+                            Monetary Policy
+                        </span>
+                        <h1 class="article-title">State Bank Maintains Interbank Rate at 4.5%</h1>
+                        <div class="article-meta">
+                            <span class="meta-item">
+                                <i class="far fa-newspaper"></i>
+                                VietStock
+                            </span>
+                            <span class="meta-item">
+                                <i class="far fa-clock"></i>
+                                Jan 4, 2026 • 16:45
+                            </span>
+                        </div>
+                    </div>
+                    <div class="article-body">
+                        <div class="article-text">
+                            <p>
+                                The <strong>State Bank of Vietnam (SBV)</strong> announced it will maintain the overnight interbank interest rate
+                                at 4.5% for the foreseeable future, citing stable inflation and steady economic growth as key factors in the decision.
+                            </p>
+                            <p>
+                                This marks the fourth consecutive month without a rate adjustment, signaling the central bank's confidence
+                                in the current monetary policy stance. The rate has remained unchanged since September 2025.
+                            </p>
+                            <p>
+                                SBV Governor emphasized that Vietnam's inflation rate of 3.25% year-on-year remains well within the government's
+                                target of 4-4.5% for 2026. GDP growth is projected at 6.5-7% this year, supporting the case for policy stability.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Article 4 -->
+                <article class="article-featured" id="article-4" style="display: none;">
+                    <div class="article-header">
+                        <span class="article-tag">
+                            <i class="fas fa-globe-asia"></i>
+                            Foreign Investment
+                        </span>
+                        <h1 class="article-title">Foreign Investors Net Buy VN30 Stocks Worth $12M</h1>
+                        <div class="article-meta">
+                            <span class="meta-item">
+                                <i class="far fa-newspaper"></i>
+                                Báo Đầu tư
+                            </span>
+                            <span class="meta-item">
+                                <i class="far fa-clock"></i>
+                                Jan 4, 2026 • 09:30
+                            </span>
+                        </div>
+                    </div>
+                    <div class="article-body">
+                        <div class="article-text">
+                            <p>
+                                Foreign investors returned as net buyers of Vietnamese stocks yesterday, purchasing a net $12 million worth
+                                of <strong>VN30</strong> blue-chip stocks, breaking a three-day selling streak.
+                            </p>
+                            <p>
+                                The buying focus centered on banking and consumer goods sectors, with <strong>VCB</strong> receiving
+                                $5.2 million in net foreign inflows, followed by <strong>VNM</strong> at $3.8 million and <strong>MSN</strong> at $2.1 million.
+                            </p>
+                            <p>
+                                This renewed foreign interest comes amid improving sentiment towards Vietnamese equities following
+                                positive Q4 2025 earnings previews and the government's pro-business policy announcements.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const sidebar = document.querySelector('.sidebar');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+        }
+
+        mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+        mobileOverlay.addEventListener('click', toggleMobileMenu);
+
+        // Tab switching
+        const navLinks = document.querySelectorAll('.nav-link[data-tab]');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Remove active from all nav links
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                // Hide all tab contents
+                tabContents.forEach(tab => tab.classList.remove('active'));
+
+                // Show selected tab
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                // Collapse subnav if switching away from flash news
+                if (tabId !== 'flash-news') {
+                    document.getElementById('articles-subnav').classList.remove('expanded');
+                }
+
+                // Close mobile menu after selection on mobile
+                if (window.innerWidth <= 968) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // Flash news toggle with subnav
+        const flashNewsToggle = document.getElementById('flash-news-toggle');
+        const articlesSubnav = document.getElementById('articles-subnav');
+
+        flashNewsToggle.addEventListener('click', function(e) {
+            // Toggle subnav expansion
+            articlesSubnav.classList.toggle('expanded');
+        });
+
+        // Article navigation
+        const articleLinks = document.querySelectorAll('.nav-link[data-article]');
+        const allArticles = document.querySelectorAll('.article-featured');
+
+        articleLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Remove active from article links
+                articleLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                // Show flash news tab
+                tabContents.forEach(tab => tab.classList.remove('active'));
+                document.getElementById('flash-news').classList.add('active');
+
+                // Activate flash news nav
+                navLinks.forEach(l => l.classList.remove('active'));
+                flashNewsToggle.classList.add('active');
+
+                // Hide all articles
+                allArticles.forEach(article => {
+                    article.style.display = 'none';
+                });
+
+                // Show selected article
+                const articleId = this.getAttribute('data-article');
+                document.getElementById(articleId).style.display = 'block';
+
+                // Scroll to top of article
+                document.querySelector('.main-content').scrollTop = 0;
+
+                // Close mobile menu after selection on mobile
+                if (window.innerWidth <= 968) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
