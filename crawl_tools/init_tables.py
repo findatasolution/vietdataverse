@@ -39,6 +39,25 @@ tables = [
         ls_9m FLOAT,
         doanhso_9m FLOAT
     )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS vn_bank_termdepo (
+        id SERIAL PRIMARY KEY,
+        bank_code VARCHAR(20) NOT NULL,
+        date DATE NOT NULL,
+        crawl_time TIMESTAMP NOT NULL,
+        term_1m FLOAT,
+        term_2m FLOAT,
+        term_3m FLOAT,
+        term_6m FLOAT,
+        term_9m FLOAT,
+        term_12m FLOAT,
+        term_13m FLOAT,
+        term_18m FLOAT,
+        term_24m FLOAT,
+        term_36m FLOAT,
+        UNIQUE(bank_code, date)
+    )
     """
 ]
 

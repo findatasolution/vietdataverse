@@ -1,3 +1,7 @@
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 import pandas as pd
 import requests
 import json
@@ -176,3 +180,105 @@ try:
 
 except Exception as e:
     print(f"❌ Error crawling SBV interbank rate: {e}")
+
+############## Bank Term Deposit Rates
+# Note: Vietcombank website requires JavaScript rendering,
+# skipped for now (would need Selenium/Playwright)
+
+# ACB
+try:
+    acb_url = 'https://acb.com.vn/lai-suat-tien-gui'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    response = requests.get(acb_url, headers=headers, timeout=10)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    acb_data = {
+        'bank_code': 'ACB',
+        'date': date_str,
+        'crawl_time': datetime.now()
+    }
+
+    tables = soup.find_all('table')
+
+    # ACB uses Table 2 for term deposit rates (based on website structure analysis)
+    if len(tables) >= 3:
+        table = tables[2]
+        rows = table.find_all('tr')
+
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) >= 3:
+                term_text = str(cols[0].get_text(strip=True)).upper()
+
+                # Skip header rows
+                if 'THÁNG' in term_text.upper() and 'TRUYỀN' in term_text.upper():
+                    continue
+                if 'LÃI' in term_text.upper() and 'KỲ' in term_text.upper():
+                    continue
+
+                # Get VND rate from column 2 onwards (skip USD column)
+                rate_text = None
+                for col_idx in range(2, len(cols)):
+                    text_content = str(cols[col_idx].get_text(strip=True))
+                    # Skip headers and empty cells
+                    if text_content and text_content not in ['', '-', 'VND', 'USD', 'Lãicuối kỳ', 'Lãiquý', 'Lãitháng', 'Lãi trả trước', 'Tích LũyTương Lai']:
+                        rate_text = text_content
+                        break
+
+                if not rate_text:
+                    continue
+
+                try:
+                    # Remove asterisks and special characters before parsing
+                    clean_rate = rate_text.replace('*', '').replace(',', '.').replace('%', '').strip()
+                    rate = float(clean_rate)
+
+                    # ACB uses format: 1T, 2T, 3T, 6T, 9T, 12T, etc.
+                    if term_text == '1T':
+                        acb_data['term_1m'] = rate
+                    elif term_text == '2T':
+                        acb_data['term_2m'] = rate
+                    elif term_text == '3T':
+                        acb_data['term_3m'] = rate
+                    elif term_text == '6T':
+                        acb_data['term_6m'] = rate
+                    elif term_text == '9T':
+                        acb_data['term_9m'] = rate
+                    elif term_text == '12T':
+                        acb_data['term_12m'] = rate
+                    elif term_text == '13T':
+                        acb_data['term_13m'] = rate
+                    elif term_text in ['15T', '18T']:
+                        acb_data['term_18m'] = rate
+                    elif term_text == '24T':
+                        acb_data['term_24m'] = rate
+                    elif term_text == '36T':
+                        acb_data['term_36m'] = rate
+
+                except (ValueError, AttributeError, TypeError):
+                    continue
+
+    has_data = any(key.startswith('term_') for key in acb_data.keys())
+
+    if has_data:
+        with engine.connect() as conn:
+            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'ACB' AND date = '{date_str}'"))
+            exists = result.scalar() > 0
+
+        if exists:
+            print(f"⚠️  ACB term deposit data for {date_str} already exists, skipping insert")
+        else:
+            acb_df = pd.DataFrame([acb_data])
+            acb_df['date'] = pd.to_datetime(acb_df['date'])
+            acb_df.to_sql('vn_bank_termdepo', engine, if_exists='append', index=False)
+            print(f"✅ Pushed ACB term deposit rates for {date_str}")
+            rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in acb_data.items() if k.startswith('term_')]
+            print(f"   Rates: {rates_list}")
+    else:
+        print(f"⚠️  No ACB term deposit data found (website may have changed structure)")
+
+except Exception as e:
+    print(f"❌ Error crawling ACB term deposit: {e}")
