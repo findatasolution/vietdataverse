@@ -604,6 +604,22 @@ def get_gold_data(period: str = '1m'):
         with engine.connect() as conn:
             df = pd.read_sql(query, conn, params={'start_date': start_date})
 
+        # Check if DataFrame is empty
+        if df.empty:
+            return {
+                'success': True,
+                'data': {
+                    'dates': [],
+                    'buy_prices': [],
+                    'sell_prices': [],
+                    'count': 0
+                },
+                'period': period
+            }
+
+        # Convert date column to datetime
+        df['date'] = pd.to_datetime(df['date'])
+
         # Convert to JSON-friendly format
         data = {
             'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
@@ -645,6 +661,22 @@ def get_silver_data(period: str = '1m'):
         with engine.connect() as conn:
             df = pd.read_sql(query, conn, params={'start_date': start_date})
 
+        # Check if DataFrame is empty
+        if df.empty:
+            return {
+                'success': True,
+                'data': {
+                    'dates': [],
+                    'buy_prices': [],
+                    'sell_prices': [],
+                    'count': 0
+                },
+                'period': period
+            }
+
+        # Convert date column to datetime
+        df['date'] = pd.to_datetime(df['date'])
+
         data = {
             'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
             'buy_prices': df['buy_price'].tolist(),
@@ -684,6 +716,27 @@ def get_sbv_data(period: str = '1m'):
 
         with engine.connect() as conn:
             df = pd.read_sql(query, conn, params={'start_date': start_date})
+
+        # Check if DataFrame is empty
+        if df.empty:
+            return {
+                'success': True,
+                'data': {
+                    'dates': [],
+                    'overnight': [],
+                    'week_1': [],
+                    'week_2': [],
+                    'month_1': [],
+                    'month_3': [],
+                    'month_6': [],
+                    'month_9': [],
+                    'count': 0
+                },
+                'period': period
+            }
+
+        # Convert date column to datetime
+        df['date'] = pd.to_datetime(df['date'])
 
         data = {
             'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
@@ -730,6 +783,25 @@ def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
 
         with engine.connect() as conn:
             df = pd.read_sql(query, conn, params={'start_date': start_date, 'bank_code': bank})
+
+        # Check if DataFrame is empty
+        if df.empty:
+            return {
+                'success': True,
+                'data': {
+                    'dates': [],
+                    'term_1m': [],
+                    'term_3m': [],
+                    'term_6m': [],
+                    'term_12m': [],
+                    'count': 0
+                },
+                'period': period,
+                'bank': bank
+            }
+
+        # Convert date column to datetime
+        df['date'] = pd.to_datetime(df['date'])
 
         data = {
             'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
