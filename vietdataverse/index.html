@@ -1065,8 +1065,8 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button class="header-btn">
-                    <span>Saved</span>
+                <button class="header-btn" id="lang-toggle">
+                    <span id="lang-text">En/Vie</span>
                 </button>
                 <button class="header-btn primary">
                     <span>API Access</span>
@@ -1572,6 +1572,28 @@
     </div>
 
     <script>
+        // Language toggle (Vietnamese is primary)
+        let currentLang = 'vi'; // Default to Vietnamese
+        const langToggle = document.getElementById('lang-toggle');
+        const langText = document.getElementById('lang-text');
+
+        langToggle.addEventListener('click', function() {
+            currentLang = currentLang === 'vi' ? 'en' : 'vi';
+            langText.textContent = currentLang === 'vi' ? 'En/Vie' : 'Vie/En';
+            document.documentElement.lang = currentLang;
+
+            // Visual feedback
+            if (currentLang === 'vi') {
+                langToggle.style.borderColor = 'var(--gold-primary)';
+            } else {
+                langToggle.style.borderColor = 'var(--silver)';
+            }
+        });
+
+        // Set initial state
+        document.documentElement.lang = 'vi';
+        langToggle.style.borderColor = 'var(--gold-primary)';
+
         // Mobile menu toggle
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         const mobileOverlay = document.getElementById('mobile-overlay');
