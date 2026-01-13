@@ -881,6 +881,67 @@ def get_global_macro_data(period: str = '1m'):
         logger.error(f"Global macro data error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/gold-analysis")
+def get_gold_analysis(date: str = None):
+    """Get AI-generated gold market analysis
+
+    Args:
+        date (str, optional): Date in YYYY-MM-DD format. Defaults to latest.
+
+    Returns:
+        JSON with analysis content and metadata
+    """
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        if date:
+            # Get specific date
+            query = text("""
+                SELECT date, generated_at, content, global_data_points, vietnam_data_points
+                FROM gold_analysis
+                WHERE date = :date
+            """)
+            params = {'date': date}
+        else:
+            # Get latest
+            query = text("""
+                SELECT date, generated_at, content, global_data_points, vietnam_data_points
+                FROM gold_analysis
+                ORDER BY date DESC
+                LIMIT 1
+            """)
+            params = {}
+
+        with engine.connect() as conn:
+            result = conn.execute(query, params)
+            row = result.fetchone()
+
+            if not row:
+                return {
+                    'success': False,
+                    'message': 'No analysis found',
+                    'data': None
+                }
+
+            data = {
+                'date': row[0].strftime('%Y-%m-%d') if row[0] else None,
+                'generated_at': row[1].strftime('%Y-%m-%d %H:%M:%S') if row[1] else None,
+                'content': row[2],
+                'global_data_points': row[3],
+                'vietnam_data_points': row[4]
+            }
+
+            return {
+                'success': True,
+                'data': data
+            }
+
+    except Exception as e:
+        logger.error(f"Gold analysis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # =========================
 # Serve Frontend (mounted last to not interfere with API routes)
 # =========================

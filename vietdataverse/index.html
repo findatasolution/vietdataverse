@@ -1104,7 +1104,7 @@
                     <li class="subnav-item">
                         <a class="nav-link" data-article="article-1">
                             <div class="nav-content">
-                                <h4>Gold Prices Surge to Record High of 80 Million VND</h4>
+                                <h4>Gold Prices Today</h4>
                                 <span class="nav-meta">Jan 5, 2026 • 14:30</span>
                             </div>
                         </a>
@@ -1420,7 +1420,7 @@
                                 13/01/2026 • 08:00
                             </span>
                             <span class="meta-item">
-                                Argus by Fintel
+                                Automated Analysis by Fintel
                             </span>
                         </div>
                     </div>
@@ -2176,12 +2176,54 @@
             });
         });
 
-        // Initialize charts on page load
+        // Load AI-generated gold analysis
+        async function loadGoldAnalysis() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gold-analysis`);
+                if (!response.ok) {
+                    console.error('Failed to fetch gold analysis');
+                    return;
+                }
+
+                const result = await response.json();
+                if (result.success && result.data) {
+                    // Update article content
+                    const articleBody = document.querySelector('#article-1 .article-text');
+                    if (articleBody) {
+                        articleBody.innerHTML = result.data.content;
+                    }
+
+                    // Update article date
+                    const articleDate = document.querySelector('#article-1 .article-meta .meta-item:nth-child(2)');
+                    if (articleDate && result.data.generated_at) {
+                        const date = new Date(result.data.generated_at);
+                        const formatted = date.toLocaleString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        articleDate.textContent = formatted;
+                    }
+
+                    console.log('✅ Gold analysis loaded successfully');
+                } else {
+                    console.warn('No gold analysis available, using static content');
+                }
+            } catch (error) {
+                console.error('Error loading gold analysis:', error);
+                // Keep static content as fallback
+            }
+        }
+
+        // Initialize charts and analysis on page load
         window.addEventListener('load', function() {
             updateGoldChart('1m');
             updateSilverChart('1m');
             updateSBVChart('1m');
             updateGlobalChart('1m');
+            loadGoldAnalysis();
         });
     </script>
 
@@ -2201,7 +2243,7 @@
     {
       "@context": "https://schema.org",
       "@type": "NewsArticle",
-      "headline": "Gold Prices Surge to Record High of 80 Million VND per Tael",
+      "headline": "Gold Prices Today",
       "datePublished": "2026-01-05T14:30:00+07:00",
       "dateModified": "2026-01-05T14:30:00+07:00",
       "author": {
