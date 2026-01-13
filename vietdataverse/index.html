@@ -1572,27 +1572,95 @@
     </div>
 
     <script>
-        // Language toggle (Vietnamese is primary)
-        let currentLang = 'vi'; // Default to Vietnamese
-        const langToggle = document.getElementById('lang-toggle');
-        const langText = document.getElementById('lang-text');
+        // Language toggle with translations (Vietnamese is primary)
+        let currentLang = 'vi';
 
-        langToggle.addEventListener('click', function() {
-            currentLang = currentLang === 'vi' ? 'en' : 'vi';
-            langText.textContent = currentLang === 'vi' ? 'En/Vie' : 'Vie/En';
-            document.documentElement.lang = currentLang;
-
-            // Visual feedback
-            if (currentLang === 'vi') {
-                langToggle.style.borderColor = 'var(--gold-primary)';
-            } else {
-                langToggle.style.borderColor = 'var(--silver)';
+        const translations = {
+            vi: {
+                langBtn: 'En',
+                subtitle: 'Thông tin Kinh tế',
+                navDataPortal: 'Dữ Liệu Kinh Tế Mở',
+                navFlashNews: 'Tin Tức Nhanh',
+                navFlashNewsMeta: 'Cập nhật mới nhất',
+                sectionTitle: 'Dữ Liệu Kinh Tế Mở',
+                sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam minh bạch, chất lượng cao cho nghiên cứu và phân tích. Tất cả nguồn dữ liệu được ghi chép công khai và truy cập miễn phí.',
+                goldChart: 'Lịch Sử Giá Vàng (DOJI HN)',
+                silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
+                sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng SBV',
+                downloadTitle: 'Tải Xuống Bộ Dữ Liệu',
+                downloadSubtitle: 'Tải xuống bộ dữ liệu lịch sử đầy đủ ở định dạng CSV hoặc truy cập qua API.',
+                apiBtn: 'Truy Cập API'
+            },
+            en: {
+                langBtn: 'Vie',
+                subtitle: 'Economic Intelligence',
+                navDataPortal: 'Open Economic Data',
+                navFlashNews: 'Flash News',
+                navFlashNewsMeta: 'Latest updates',
+                sectionTitle: 'Open Economic Data',
+                sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible.',
+                goldChart: 'Gold Price History (DOJI HN)',
+                silverChart: 'Silver Price History (Phú Quý)',
+                sbvChart: 'SBV Interbank Rates History',
+                downloadTitle: 'Download Datasets',
+                downloadSubtitle: 'Download complete historical datasets in CSV format or access via API.',
+                apiBtn: 'API Access'
             }
-        });
+        };
 
-        // Set initial state
-        document.documentElement.lang = 'vi';
-        langToggle.style.borderColor = 'var(--gold-primary)';
+        function updateLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            // Update button
+            document.getElementById('lang-text').textContent = t.langBtn;
+            document.querySelector('.brand-subtitle').textContent = t.subtitle;
+
+            // Update navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-tab') === 'data-portal') {
+                    link.querySelector('h4').textContent = t.navDataPortal;
+                } else if (link.getAttribute('data-tab') === 'flash-news') {
+                    link.querySelector('h4').textContent = t.navFlashNews;
+                    const meta = link.querySelector('.nav-meta');
+                    if (meta) meta.textContent = t.navFlashNewsMeta;
+                }
+            });
+
+            // Update sections
+            const sectionHeaders = document.querySelectorAll('.section-header');
+            if (sectionHeaders[0]) {
+                sectionHeaders[0].querySelector('.section-title').textContent = t.sectionTitle;
+                sectionHeaders[0].querySelector('.section-subtitle').textContent = t.sectionSubtitle;
+            }
+            if (sectionHeaders[1]) {
+                sectionHeaders[1].querySelector('.section-title').textContent = t.downloadTitle;
+                sectionHeaders[1].querySelector('.section-subtitle').textContent = t.downloadSubtitle;
+            }
+
+            // Update charts
+            const chartTitles = document.querySelectorAll('.chart-title');
+            if (chartTitles[0]) chartTitles[0].textContent = t.goldChart;
+            if (chartTitles[1]) chartTitles[1].textContent = t.silverChart;
+            if (chartTitles[2]) chartTitles[2].textContent = t.sbvChart;
+
+            // Update API button
+            document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
+
+            // Set HTML lang and visual feedback
+            document.documentElement.lang = lang;
+            document.getElementById('lang-toggle').style.borderColor =
+                lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
+        }
+
+        // Initialize with Vietnamese
+        updateLanguage('vi');
+
+        // Toggle event
+        document.getElementById('lang-toggle').addEventListener('click', function() {
+            updateLanguage(currentLang === 'vi' ? 'en' : 'vi');
+        });
 
         // Mobile menu toggle
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
