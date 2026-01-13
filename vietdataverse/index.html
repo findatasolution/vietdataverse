@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viet Dataverse - Economic Intelligence Platform</title>
+    <title>Viet Dataverse - Vietnam Economic Data & Market News</title>
+    <meta name="description" content="Real-time Vietnamese economic data, market analysis, and financial news. Gold prices, stock market indices, interbank rates, and comprehensive economic intelligence.">
+    <meta name="keywords" content="Vietnam economy, gold price Vietnam, VN-Index, stock market, SBV rates, economic data, financial news">
+    <meta name="author" content="Viet Dataverse">
     <link rel="icon" type="image/jpg" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
+
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="Viet Dataverse - Vietnam Economic Intelligence">
+    <meta property="og:description" content="Real-time Vietnamese economic data and market analysis">
+    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Viet Dataverse">
+    <meta name="twitter:description" content="Vietnam Economic Data & Market News">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
@@ -283,17 +297,13 @@
             font-weight: 400;
         }
 
-        /* Subnav for articles */
+        /* Subnav for articles - Always visible */
         .subnav-list {
             list-style: none;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
+            max-height: none;
+            overflow: visible;
             margin-left: 1rem;
-        }
-
-        .subnav-list.expanded {
-            max-height: 1000px;
+            margin-top: 0.5rem;
         }
 
         .subnav-item {
@@ -558,17 +568,7 @@
             margin-bottom: 1.5rem;
         }
 
-        .dataset-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            flex-shrink: 0;
-        }
+        /* Dataset icon removed for cleaner design */
 
         .dataset-info h3 {
             font-size: 1.25rem;
@@ -1055,8 +1055,7 @@
         <header class="app-header">
             <div class="brand">
                 <button class="mobile-menu-btn" id="mobile-menu-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+                    </button>
                 <div class="brand-icon">
                     <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png" alt="Viet Dataverse Logo">
                 </div>
@@ -1067,10 +1066,10 @@
             </div>
             <div class="header-actions">
                 <button class="header-btn">
-                    <i class="far fa-bookmark"></i> <span>Saved</span>
+                    <span>Saved</span>
                 </button>
                 <button class="header-btn primary">
-                    <i class="fas fa-key"></i> <span>API Access</span>
+                    <span>API Access</span>
                 </button>
             </div>
         </header>
@@ -1085,7 +1084,6 @@
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a class="nav-link active" data-tab="data-portal">
-                            <div class="nav-icon">📊</div>
                             <div class="nav-content">
                                 <h4>Open Economic Data</h4>
                             </div>
@@ -1093,7 +1091,6 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-tab="flash-news" id="flash-news-toggle">
-                            <div class="nav-icon">📰</div>
                             <div class="nav-content">
                                 <h4>Flash News</h4>
                                 <span class="nav-meta">Latest updates</span>
@@ -1158,7 +1155,6 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title">
-                                <span>🏆</span>
                                 Gold Price History (DOJI HN)
                             </h3>
                             <div class="chart-filters">
@@ -1178,7 +1174,6 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title">
-                                <span>🥈</span>
                                 Silver Price History (Phú Quý)
                             </h3>
                             <div class="chart-filters">
@@ -1198,7 +1193,6 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title">
-                                <span>🏦</span>
                                 SBV Interbank Rates History
                             </h3>
                             <div class="chart-filters">
@@ -1226,7 +1220,6 @@
                     <!-- Gold Dataset -->
                     <div class="dataset-card">
                         <div class="dataset-top">
-                            <div class="dataset-icon">🏆</div>
                             <div class="dataset-info">
                                 <h3>VN Gold Price</h3>
                             </div>
@@ -1236,21 +1229,17 @@
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
-                                <i class="far fa-calendar"></i>
                                 2023 - Present
                             </span>
                             <span class="stat-item">
-                                <i class="fas fa-database"></i>
                                 580+ records
                             </span>
                         </div>
                         <div class="dataset-actions">
                             <button class="btn btn-primary">
-                                <i class="fas fa-download"></i>
                                 CSV
                             </button>
                             <button class="btn btn-secondary">
-                                <i class="fas fa-code"></i>
                                 API
                             </button>
                         </div>
@@ -1259,7 +1248,6 @@
                     <!-- Silver Dataset -->
                     <div class="dataset-card">
                         <div class="dataset-top">
-                            <div class="dataset-icon">🥈</div>
                             <div class="dataset-info">
                                 <h3>VN Silver Price</h3>
                             </div>
@@ -1269,21 +1257,17 @@
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
-                                <i class="far fa-calendar"></i>
                                 2023 - Present
                             </span>
                             <span class="stat-item">
-                                <i class="fas fa-database"></i>
                                 560+ records
                             </span>
                         </div>
                         <div class="dataset-actions">
                             <button class="btn btn-primary">
-                                <i class="fas fa-download"></i>
                                 CSV
                             </button>
                             <button class="btn btn-secondary">
-                                <i class="fas fa-code"></i>
                                 API
                             </button>
                         </div>
@@ -1292,7 +1276,6 @@
                     <!-- SBV Interbank -->
                     <div class="dataset-card">
                         <div class="dataset-top">
-                            <div class="dataset-icon">🏦</div>
                             <div class="dataset-info">
                                 <h3>SBV Interbank Rate</h3>
                             </div>
@@ -1302,21 +1285,17 @@
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
-                                <i class="far fa-calendar"></i>
                                 2023 - Present
                             </span>
                             <span class="stat-item">
-                                <i class="fas fa-database"></i>
                                 45+ updates
                             </span>
                         </div>
                         <div class="dataset-actions">
                             <button class="btn btn-primary">
-                                <i class="fas fa-download"></i>
                                 CSV
                             </button>
                             <button class="btn btn-secondary">
-                                <i class="fas fa-code"></i>
                                 API
                             </button>
                         </div>
@@ -1325,7 +1304,6 @@
                     <!-- Term Deposit -->
                     <div class="dataset-card disabled">
                         <div class="dataset-top">
-                            <div class="dataset-icon">💳</div>
                             <div class="dataset-info">
                                 <h3>Bank Term Deposit Rates</h3>
                             </div>
@@ -1335,17 +1313,14 @@
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
-                                <i class="far fa-calendar"></i>
                                 In Development
                             </span>
                             <span class="stat-item">
-                                <i class="fas fa-flask"></i>
                                 Q1 2026
                             </span>
                         </div>
                         <div class="dataset-actions">
                             <button class="btn btn-primary" disabled>
-                                <i class="fas fa-clock"></i>
                                 Coming Soon
                             </button>
                         </div>
@@ -1354,7 +1329,6 @@
                     <!-- VN30 Financials -->
                     <div class="dataset-card disabled">
                         <div class="dataset-top">
-                            <div class="dataset-icon">📈</div>
                             <div class="dataset-info">
                                 <h3>VN30 Financial Statements</h3>
                             </div>
@@ -1364,17 +1338,14 @@
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
-                                <i class="far fa-calendar"></i>
                                 In Development
                             </span>
                             <span class="stat-item">
-                                <i class="fas fa-flask"></i>
                                 Q2 2026
                             </span>
                         </div>
                         <div class="dataset-actions">
                             <button class="btn btn-primary" disabled>
-                                <i class="fas fa-clock"></i>
                                 Coming Soon
                             </button>
                         </div>
@@ -1383,7 +1354,6 @@
                     <!-- News Sentiment -->
                     <div class="dataset-card disabled">
                         <div class="dataset-top">
-                            <div class="dataset-icon">📰</div>
                             <div class="dataset-info">
                                 <h3>News Sentiment Indicators</h3>
                             </div>
@@ -1393,17 +1363,14 @@
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
-                                <i class="far fa-calendar"></i>
                                 In Development
                             </span>
                             <span class="stat-item">
-                                <i class="fas fa-flask"></i>
                                 Q2 2026
                             </span>
                         </div>
                         <div class="dataset-actions">
                             <button class="btn btn-primary" disabled>
-                                <i class="fas fa-clock"></i>
                                 Coming Soon
                             </button>
                         </div>
@@ -1435,7 +1402,6 @@
                         </div>
                     </div>
                     <p class="api-footer">
-                        <i class="fas fa-book"></i>
                         View complete <a href="../crawl_tools/data_describtion.html">API documentation</a> for schemas, parameters, and data sources.
                     </p>
                 </div>
@@ -1447,21 +1413,17 @@
                 <article class="article-featured" id="article-1">
                     <div class="article-header">
                         <span class="article-tag">
-                            <i class="fas fa-chart-line"></i>
                             Macroeconomic Trends
                         </span>
                         <h1 class="article-title">Gold Prices Surge to Record High of 80 Million VND per Tael</h1>
                         <div class="article-meta">
                             <span class="meta-item">
-                                <i class="far fa-newspaper"></i>
                                 VnExpress
                             </span>
                             <span class="meta-item">
-                                <i class="far fa-clock"></i>
                                 Jan 5, 2026 • 14:30
                             </span>
                             <span class="meta-item">
-                                <i class="far fa-user"></i>
                                 Hồng Chiêu
                             </span>
                         </div>
@@ -1499,21 +1461,17 @@
                 <article class="article-featured" id="article-2" style="display: none;">
                     <div class="article-header">
                         <span class="article-tag">
-                            <i class="fas fa-chart-bar"></i>
                             Stock Market
                         </span>
                         <h1 class="article-title">VN-Index Falls 1.2% Amid Banking Sector Pressure</h1>
                         <div class="article-meta">
                             <span class="meta-item">
-                                <i class="far fa-newspaper"></i>
                                 CafeF
                             </span>
                             <span class="meta-item">
-                                <i class="far fa-clock"></i>
                                 Jan 5, 2026 • 12:15
                             </span>
                             <span class="meta-item">
-                                <i class="far fa-user"></i>
                                 Minh Tuấn
                             </span>
                         </div>
@@ -1546,17 +1504,14 @@
                 <article class="article-featured" id="article-3" style="display: none;">
                     <div class="article-header">
                         <span class="article-tag">
-                            <i class="fas fa-university"></i>
                             Monetary Policy
                         </span>
                         <h1 class="article-title">State Bank Maintains Interbank Rate at 4.5%</h1>
                         <div class="article-meta">
                             <span class="meta-item">
-                                <i class="far fa-newspaper"></i>
                                 VietStock
                             </span>
                             <span class="meta-item">
-                                <i class="far fa-clock"></i>
                                 Jan 4, 2026 • 16:45
                             </span>
                         </div>
@@ -1583,17 +1538,14 @@
                 <article class="article-featured" id="article-4" style="display: none;">
                     <div class="article-header">
                         <span class="article-tag">
-                            <i class="fas fa-globe-asia"></i>
                             Foreign Investment
                         </span>
                         <h1 class="article-title">Foreign Investors Net Buy VN30 Stocks Worth $12M</h1>
                         <div class="article-meta">
                             <span class="meta-item">
-                                <i class="far fa-newspaper"></i>
                                 Báo Đầu tư
                             </span>
                             <span class="meta-item">
-                                <i class="far fa-clock"></i>
                                 Jan 4, 2026 • 09:30
                             </span>
                         </div>
@@ -1652,11 +1604,6 @@
                 const tabId = this.getAttribute('data-tab');
                 document.getElementById(tabId).classList.add('active');
 
-                // Collapse subnav if switching away from flash news
-                if (tabId !== 'flash-news') {
-                    document.getElementById('articles-subnav').classList.remove('expanded');
-                }
-
                 // Close mobile menu after selection on mobile
                 if (window.innerWidth <= 968) {
                     toggleMobileMenu();
@@ -1664,14 +1611,9 @@
             });
         });
 
-        // Flash news toggle with subnav
+        // Flash news navigation (subnav always visible)
         const flashNewsToggle = document.getElementById('flash-news-toggle');
         const articlesSubnav = document.getElementById('articles-subnav');
-
-        flashNewsToggle.addEventListener('click', function(e) {
-            // Toggle subnav expansion
-            articlesSubnav.classList.toggle('expanded');
-        });
 
         // Article navigation
         const articleLinks = document.querySelectorAll('.nav-link[data-article]');
@@ -2092,6 +2034,97 @@
             updateSilverChart('1m');
             updateSBVChart('1m');
         });
+    </script>
+
+    <!-- Structured Data for SEO (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Viet Dataverse",
+      "description": "Vietnamese economic data and market analysis platform",
+      "url": "https://nguyenphamdieuhien.online/vietdataverse/"
+    }
+    </script>
+
+    <!-- Article 1 Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": "Gold Prices Surge to Record High of 80 Million VND per Tael",
+      "datePublished": "2026-01-05T14:30:00+07:00",
+      "dateModified": "2026-01-05T14:30:00+07:00",
+      "author": {
+        "@type": "Person",
+        "name": "Hồng Chiêu"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VnExpress"
+      },
+      "articleSection": "Macroeconomic Trends",
+      "keywords": "gold price, Vietnam, SJC gold, DOJI, precious metals",
+      "articleBody": "SJC gold bars traded in Hanoi today increased by 500,000 VND, reaching 79.8 - 80.2 million VND/tael. This represents a 0.6% increase and marks the highest level in the past three months."
+    }
+    </script>
+
+    <!-- Article 2 Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": "VN-Index Falls 1.2% Amid Banking Sector Pressure",
+      "datePublished": "2026-01-05T12:15:00+07:00",
+      "dateModified": "2026-01-05T12:15:00+07:00",
+      "author": {
+        "@type": "Person",
+        "name": "Minh Tuấn"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "CafeF"
+      },
+      "articleSection": "Stock Market",
+      "keywords": "VN-Index, stock market, Vietnam, banking stocks, VCB, TCB, MBB",
+      "articleBody": "The VN-Index closed at 1,235.4 points on January 5, down 15.2 points (-1.2%) from the previous session, marking the steepest single-day decline in nearly two weeks."
+    }
+    </script>
+
+    <!-- Article 3 Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": "State Bank Maintains Interbank Rate at 4.5%",
+      "datePublished": "2026-01-04T16:45:00+07:00",
+      "dateModified": "2026-01-04T16:45:00+07:00",
+      "publisher": {
+        "@type": "Organization",
+        "name": "VietStock"
+      },
+      "articleSection": "Monetary Policy",
+      "keywords": "State Bank of Vietnam, SBV, interbank rate, monetary policy, interest rates",
+      "articleBody": "The State Bank of Vietnam announced it will maintain the overnight interbank interest rate at 4.5% for the foreseeable future, citing stable inflation and steady economic growth."
+    }
+    </script>
+
+    <!-- Article 4 Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": "Foreign Investors Net Buy VN30 Stocks Worth $12M",
+      "datePublished": "2026-01-04T09:30:00+07:00",
+      "dateModified": "2026-01-04T09:30:00+07:00",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Báo Đầu tư"
+      },
+      "articleSection": "Foreign Investment",
+      "keywords": "foreign investment, VN30, Vietnam stock market, VCB, VNM, MSN",
+      "articleBody": "Foreign investors returned as net buyers of Vietnamese stocks yesterday, purchasing a net $12 million worth of VN30 blue-chip stocks, breaking a three-day selling streak."
+    }
     </script>
 </body>
 </html>
