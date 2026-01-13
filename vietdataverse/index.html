@@ -1713,7 +1713,8 @@
         });
 
         // ==================== CHARTS FUNCTIONALITY ====================
-        const API_BASE_URL = 'http://localhost:5000/api/v1';  // Change to your deployed URL
+        // Use relative path so it works on both localhost and production
+        const API_BASE_URL = window.location.origin + '/api/v1';
 
         // Chart instances
         let goldChart = null;
