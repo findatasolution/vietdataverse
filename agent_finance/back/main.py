@@ -565,6 +565,193 @@ def startup():
         logger.error(f"Database connection failed: {e}")
 
 # =========================
+# Historical Data API Endpoints for Charts
+# =========================
+from datetime import timedelta
+
+def get_date_filter(period: str):
+    """Calculate start date based on period filter"""
+    today = datetime.now()
+    if period == '7d':
+        return today - timedelta(days=7)
+    elif period == '1m':
+        return today - timedelta(days=30)
+    elif period == '1y':
+        return today - timedelta(days=365)
+    else:  # 'all'
+        return datetime(2000, 1, 1)
+
+@app.get("/api/v1/gold")
+def get_gold_data(period: str = '1m'):
+    """Get gold price historical data"""
+    if pd is None:
+        raise HTTPException(status_code=503, detail="Pandas not available")
+
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        start_date = get_date_filter(period)
+
+        query = text("""
+            SELECT date, buy_price, sell_price
+            FROM vn_gold_24h_dojihn_hist
+            WHERE date >= :start_date
+            ORDER BY date ASC
+        """)
+
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn, params={'start_date': start_date})
+
+        # Convert to JSON-friendly format
+        data = {
+            'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
+            'buy_prices': df['buy_price'].tolist(),
+            'sell_prices': df['sell_price'].tolist(),
+            'count': len(df)
+        }
+
+        return {
+            'success': True,
+            'data': data,
+            'period': period
+        }
+
+    except Exception as e:
+        logger.error(f"Gold data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/silver")
+def get_silver_data(period: str = '1m'):
+    """Get silver price historical data"""
+    if pd is None:
+        raise HTTPException(status_code=503, detail="Pandas not available")
+
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        start_date = get_date_filter(period)
+
+        query = text("""
+            SELECT date, buy_price, sell_price
+            FROM vn_silver_phuquy_hist
+            WHERE date >= :start_date
+            ORDER BY date ASC
+        """)
+
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn, params={'start_date': start_date})
+
+        data = {
+            'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
+            'buy_prices': df['buy_price'].tolist(),
+            'sell_prices': df['sell_price'].tolist(),
+            'count': len(df)
+        }
+
+        return {
+            'success': True,
+            'data': data,
+            'period': period
+        }
+
+    except Exception as e:
+        logger.error(f"Silver data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/sbv-interbank")
+def get_sbv_data(period: str = '1m'):
+    """Get SBV interbank rate historical data"""
+    if pd is None:
+        raise HTTPException(status_code=503, detail="Pandas not available")
+
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        start_date = get_date_filter(period)
+
+        query = text("""
+            SELECT date, ls_quadem, ls_1w, ls_2w, ls_1m, ls_3m, ls_6m, ls_9m
+            FROM vn_sbv_interbankrate
+            WHERE date >= :start_date
+            ORDER BY date ASC
+        """)
+
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn, params={'start_date': start_date})
+
+        data = {
+            'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
+            'overnight': df['ls_quadem'].tolist(),
+            'week_1': df['ls_1w'].tolist(),
+            'week_2': df['ls_2w'].tolist(),
+            'month_1': df['ls_1m'].tolist(),
+            'month_3': df['ls_3m'].tolist(),
+            'month_6': df['ls_6m'].tolist(),
+            'month_9': df['ls_9m'].tolist(),
+            'count': len(df)
+        }
+
+        return {
+            'success': True,
+            'data': data,
+            'period': period
+        }
+
+    except Exception as e:
+        logger.error(f"SBV data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/bank-termdepo")
+def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
+    """Get bank term deposit rates historical data"""
+    if pd is None:
+        raise HTTPException(status_code=503, detail="Pandas not available")
+
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        start_date = get_date_filter(period)
+
+        query = text("""
+            SELECT date, term_1m, term_2m, term_3m, term_6m, term_9m,
+                   term_12m, term_13m, term_18m, term_24m, term_36m
+            FROM vn_bank_termdepo
+            WHERE date >= :start_date AND bank_code = :bank_code
+            ORDER BY date ASC
+        """)
+
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn, params={'start_date': start_date, 'bank_code': bank})
+
+        data = {
+            'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
+            'term_1m': df['term_1m'].tolist(),
+            'term_3m': df['term_3m'].tolist(),
+            'term_6m': df['term_6m'].tolist(),
+            'term_12m': df['term_12m'].tolist(),
+            'count': len(df)
+        }
+
+        return {
+            'success': True,
+            'data': data,
+            'period': period,
+            'bank': bank
+        }
+
+    except Exception as e:
+        logger.error(f"Term deposit data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =========================
 # Serve Frontend (mounted last to not interfere with API routes)
 # =========================
 try:
