@@ -1184,6 +1184,25 @@
                             <div class="chart-loading" id="sbvLoading">Loading data...</div>
                         </div>
                     </div>
+
+                    <!-- Global Macro Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                Global Market Trends (Gold, Silver, NASDAQ)
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="global" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="globalChart"></canvas>
+                            <div class="chart-loading" id="globalLoading">Loading data...</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Download Portal -->
@@ -1401,7 +1420,7 @@
                                 13/01/2026 • 08:00
                             </span>
                             <span class="meta-item">
-                                Fintel
+                                Argus by Fintel
                             </span>
                         </div>
                     </div>
@@ -1464,6 +1483,7 @@
                 goldChart: 'Lịch Sử Giá Vàng (DOJI HN)',
                 silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
                 sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng SBV',
+                globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
                 downloadTitle: 'Tải Xuống Bộ Dữ Liệu',
                 downloadSubtitle: 'Tải xuống bộ dữ liệu lịch sử đầy đủ ở định dạng CSV hoặc truy cập qua API.',
                 apiBtn: 'Đăng nhập'
@@ -1479,6 +1499,7 @@
                 goldChart: 'Gold Price History (DOJI HN)',
                 silverChart: 'Silver Price History (Phú Quý)',
                 sbvChart: 'SBV Interbank Rates History',
+                globalChart: 'Global Market Trends (Gold, Silver, NASDAQ)',
                 downloadTitle: 'Download Datasets',
                 downloadSubtitle: 'Download complete historical datasets in CSV format or access via API.',
                 apiBtn: 'Login'
@@ -1521,6 +1542,7 @@
             if (chartTitles[0]) chartTitles[0].textContent = t.goldChart;
             if (chartTitles[1]) chartTitles[1].textContent = t.silverChart;
             if (chartTitles[2]) chartTitles[2].textContent = t.sbvChart;
+            if (chartTitles[3]) chartTitles[3].textContent = t.globalChart;
 
             // Update API button
             document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
@@ -1631,6 +1653,7 @@
         let goldChart = null;
         let silverChart = null;
         let sbvChart = null;
+        let globalChart = null;
 
         // Chart.js default configuration
         Chart.defaults.color = '#A0A0A0';
@@ -1974,6 +1997,160 @@
             }
         }
 
+        // Create/Update Global Macro Chart
+        async function updateGlobalChart(period = '1m') {
+            const loading = document.getElementById('globalLoading');
+            const canvas = document.getElementById('globalChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('global-macro', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Gold ($/oz)',
+                            data: data.gold_prices,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y-gold'
+                        },
+                        {
+                            label: 'Silver ($/oz)',
+                            data: data.silver_prices,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y-silver'
+                        },
+                        {
+                            label: 'NASDAQ',
+                            data: data.nasdaq_prices,
+                            borderColor: '#4A90E2',
+                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y-nasdaq'
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label;
+                                        const value = context.parsed.y;
+                                        if (label.includes('NASDAQ')) {
+                                            return label + ': ' + value.toLocaleString('en-US', {maximumFractionDigits: 2});
+                                        } else {
+                                            return label + ': $' + value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            'y-gold': {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Gold/Silver ($/oz)',
+                                    color: '#C9A55B'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString('en-US');
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            'y-silver': {
+                                type: 'linear',
+                                display: false,
+                                position: 'left',
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            'y-nasdaq': {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'NASDAQ',
+                                    color: '#4A90E2'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('en-US');
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (globalChart) {
+                    globalChart.destroy();
+                }
+                globalChart = new Chart(canvas, config);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
         // Filter button functionality
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1993,6 +2170,8 @@
                     updateSilverChart(period);
                 } else if (chart === 'sbv') {
                     updateSBVChart(period);
+                } else if (chart === 'global') {
+                    updateGlobalChart(period);
                 }
             });
         });
@@ -2002,6 +2181,7 @@
             updateGoldChart('1m');
             updateSilverChart('1m');
             updateSBVChart('1m');
+            updateGlobalChart('1m');
         });
     </script>
 
