@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viet Dataverse - Economic Intelligence Platform</title>
-    <link rel="icon" type="image/png" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
+    <link rel="icon" type="image/jpg" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -720,6 +721,91 @@
             text-decoration: underline;
         }
 
+        /* Charts Section */
+        .charts-section {
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(201, 165, 91, 0.05);
+            padding: 0.375rem;
+            border-radius: 8px;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(201, 165, 91, 0.1);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: var(--bg-dark);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        .chart-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .chart-error {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-tertiary);
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -1006,15 +1092,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-tab="live-indicators">
-                            <div class="nav-icon">💰</div>
-                            <div class="nav-content">
-                                <h4>Live Indicators</h4>
-                                <span class="nav-meta">Real-time data</span>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" data-tab="flash-news" id="flash-news-toggle">
                             <div class="nav-icon">📰</div>
                             <div class="nav-content">
@@ -1065,7 +1142,6 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Tab 1: Data Portal -->
             <div class="tab-content active" id="data-portal">
                 <div class="section-header">
                     <h2 class="section-title">Open Economic Data</h2>
@@ -1076,6 +1152,76 @@
                     <a href="../crawl_tools/data_describtion.html" class="card-link card-link-secondary">Data Describtion</a>
                 </div>
 
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <!-- Gold Price Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <span>🏆</span>
+                                Gold Price History (DOJI HN)
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="goldChart"></canvas>
+                            <div class="chart-loading" id="goldLoading">Loading data...</div>
+                        </div>
+                    </div>
+
+                    <!-- Silver Price Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <span>🥈</span>
+                                Silver Price History (Phú Quý)
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="silver" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="silverChart"></canvas>
+                            <div class="chart-loading" id="silverLoading">Loading data...</div>
+                        </div>
+                    </div>
+
+                    <!-- SBV Interbank Rate Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <span>🏦</span>
+                                SBV Interbank Rates History
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="sbvChart"></canvas>
+                            <div class="chart-loading" id="sbvLoading">Loading data...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Portal -->
+                <div class="section-header" style="margin-top: 4rem;">
+                    <h2 class="section-title">Download Datasets</h2>
+                    <p class="section-subtitle">
+                        Download complete historical datasets in CSV format or access via API.
+                    </p>
+                </div>
                 <div class="datasets-grid">
                     <!-- Gold Dataset -->
                     <div class="dataset-card">
@@ -1292,108 +1438,6 @@
                         <i class="fas fa-book"></i>
                         View complete <a href="../crawl_tools/data_describtion.html">API documentation</a> for schemas, parameters, and data sources.
                     </p>
-                </div>
-            </div>
-
-            <!-- Tab 2: Live Indicators -->
-            <div class="tab-content" id="live-indicators">
-                <div class="section-header">
-                    <h2 class="section-title">Live Economic Indicators</h2>
-                    <p class="section-subtitle">
-                        Real-time macroeconomic data from official sources, updated continuously.
-                    </p>
-                </div>
-
-                <div class="indicators-grid">
-                    <!-- Gold Price Indicator -->
-                    <div class="indicator-card">
-                        <div class="indicator-header">
-                            <div class="indicator-icon">🏆</div>
-                            <div class="indicator-title">Gold Price (SJC)</div>
-                        </div>
-                        <div class="indicator-value">80.2M VND</div>
-                        <div class="indicator-change positive">
-                            <i class="fas fa-arrow-up"></i> +0.6% (+500K VND)
-                        </div>
-                        <div class="indicator-meta">
-                            Last updated: Jan 5, 2026 • 14:30 | Source: DOJI HN
-                        </div>
-                    </div>
-
-                    <!-- Silver Price Indicator -->
-                    <div class="indicator-card">
-                        <div class="indicator-header">
-                            <div class="indicator-icon">🥈</div>
-                            <div class="indicator-title">Silver Price (Phú Quý)</div>
-                        </div>
-                        <div class="indicator-value">1.02M VND</div>
-                        <div class="indicator-change positive">
-                            <i class="fas fa-arrow-up"></i> +2.0% (+20K VND)
-                        </div>
-                        <div class="indicator-meta">
-                            Last updated: Jan 5, 2026 • 14:30 | Source: giabac.vn
-                        </div>
-                    </div>
-
-                    <!-- VN-Index -->
-                    <div class="indicator-card">
-                        <div class="indicator-header">
-                            <div class="indicator-icon">📉</div>
-                            <div class="indicator-title">VN-Index</div>
-                        </div>
-                        <div class="indicator-value">1,235.4</div>
-                        <div class="indicator-change negative">
-                            <i class="fas fa-arrow-down"></i> -1.2% (-15.2 pts)
-                        </div>
-                        <div class="indicator-meta">
-                            Last updated: Jan 5, 2026 • 15:00 | Source: HOSE
-                        </div>
-                    </div>
-
-                    <!-- USD/VND Exchange Rate -->
-                    <div class="indicator-card">
-                        <div class="indicator-header">
-                            <div class="indicator-icon">💵</div>
-                            <div class="indicator-title">USD/VND Exchange Rate</div>
-                        </div>
-                        <div class="indicator-value">24,850</div>
-                        <div class="indicator-change positive">
-                            <i class="fas fa-arrow-up"></i> +0.1% (+20 VND)
-                        </div>
-                        <div class="indicator-meta">
-                            Last updated: Jan 5, 2026 • 14:45 | Source: Vietcombank
-                        </div>
-                    </div>
-
-                    <!-- SBV Interbank Rate -->
-                    <div class="indicator-card">
-                        <div class="indicator-header">
-                            <div class="indicator-icon">🏦</div>
-                            <div class="indicator-title">Interbank Rate (Overnight)</div>
-                        </div>
-                        <div class="indicator-value">4.50%</div>
-                        <div class="indicator-change">
-                            <i class="fas fa-minus"></i> No change
-                        </div>
-                        <div class="indicator-meta">
-                            Last updated: Dec 30, 2025 | Source: State Bank of Vietnam
-                        </div>
-                    </div>
-
-                    <!-- CPI Inflation -->
-                    <div class="indicator-card">
-                        <div class="indicator-header">
-                            <div class="indicator-icon">📊</div>
-                            <div class="indicator-title">CPI Inflation (YoY)</div>
-                        </div>
-                        <div class="indicator-value">3.25%</div>
-                        <div class="indicator-change positive">
-                            <i class="fas fa-arrow-up"></i> +0.15% vs prev month
-                        </div>
-                        <div class="indicator-meta">
-                            Last updated: Dec 2025 | Source: General Statistics Office
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -1666,6 +1710,386 @@
                     toggleMobileMenu();
                 }
             });
+        });
+
+        // ==================== CHARTS FUNCTIONALITY ====================
+        const API_BASE_URL = 'http://localhost:5000/api/v1';  // Change to your deployed URL
+
+        // Chart instances
+        let goldChart = null;
+        let silverChart = null;
+        let sbvChart = null;
+
+        // Chart.js default configuration
+        Chart.defaults.color = '#A0A0A0';
+        Chart.defaults.borderColor = 'rgba(201, 165, 91, 0.15)';
+        Chart.defaults.font.family = 'Inter, sans-serif';
+
+        // Fetch data from API
+        async function fetchData(endpoint, period) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${endpoint}?period=${period}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const result = await response.json();
+                return result.data;
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                throw error;
+            }
+        }
+
+        // Create/Update Gold Chart
+        async function updateGoldChart(period = '1m') {
+            const loading = document.getElementById('goldLoading');
+            const canvas = document.getElementById('goldChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('gold', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Buy Price',
+                            data: data.buy_prices,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Sell Price',
+                            data: data.sell_prices,
+                            borderColor: '#E4C78A',
+                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: true,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' +
+                                               context.parsed.y.toLocaleString('vi-VN') + ' VND';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return (value / 1000000).toFixed(1) + 'M';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (goldChart) {
+                    goldChart.destroy();
+                }
+                goldChart = new Chart(canvas, config);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Create/Update Silver Chart
+        async function updateSilverChart(period = '1m') {
+            const loading = document.getElementById('silverLoading');
+            const canvas = document.getElementById('silverChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('silver', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Buy Price',
+                            data: data.buy_prices,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Sell Price',
+                            data: data.sell_prices,
+                            borderColor: '#D4D4D4',
+                            backgroundColor: 'rgba(212, 212, 212, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(184, 184, 184, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' +
+                                               context.parsed.y.toLocaleString('vi-VN') + ' VND';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return (value / 1000).toFixed(0) + 'K';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(184, 184, 184, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (silverChart) {
+                    silverChart.destroy();
+                }
+                silverChart = new Chart(canvas, config);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Create/Update SBV Chart
+        async function updateSBVChart(period = '1m') {
+            const loading = document.getElementById('sbvLoading');
+            const canvas = document.getElementById('sbvChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('sbv-interbank', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Overnight',
+                            data: data.overnight,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '1 Month',
+                            data: data.month_1,
+                            borderColor: '#E4C78A',
+                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '3 Months',
+                            data: data.month_3,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + '%';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (sbvChart) {
+                    sbvChart.destroy();
+                }
+                sbvChart = new Chart(canvas, config);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Filter button functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const chart = this.dataset.chart;
+                const period = this.dataset.period;
+
+                // Update active state for buttons in same group
+                document.querySelectorAll(`.filter-btn[data-chart="${chart}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // Update respective chart
+                if (chart === 'gold') {
+                    updateGoldChart(period);
+                } else if (chart === 'silver') {
+                    updateSilverChart(period);
+                } else if (chart === 'sbv') {
+                    updateSBVChart(period);
+                }
+            });
+        });
+
+        // Initialize charts on page load
+        window.addEventListener('load', function() {
+            updateGoldChart('1m');
+            updateSilverChart('1m');
+            updateSBVChart('1m');
         });
     </script>
 </body>
