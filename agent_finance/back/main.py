@@ -823,6 +823,64 @@ def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
         logger.error(f"Term deposit data error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/global-macro")
+def get_global_macro_data(period: str = '1m'):
+    """Get global macro data (Gold, Silver, NASDAQ) from Yahoo Finance"""
+    if pd is None:
+        raise HTTPException(status_code=503, detail="Pandas not available")
+
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        start_date = get_date_filter(period)
+
+        query = text("""
+            SELECT date, gold_price, silver_price, nasdaq_price
+            FROM global_macro
+            WHERE date >= :start_date
+            ORDER BY date ASC
+        """)
+
+        with engine.connect() as conn:
+            df = pd.read_sql(query, conn, params={'start_date': start_date})
+
+        # Check if DataFrame is empty
+        if df.empty:
+            return {
+                'success': True,
+                'data': {
+                    'dates': [],
+                    'gold_prices': [],
+                    'silver_prices': [],
+                    'nasdaq_prices': [],
+                    'count': 0
+                },
+                'period': period
+            }
+
+        # Convert date column to datetime
+        df['date'] = pd.to_datetime(df['date'])
+
+        data = {
+            'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
+            'gold_prices': df['gold_price'].tolist(),
+            'silver_prices': df['silver_price'].tolist(),
+            'nasdaq_prices': df['nasdaq_price'].tolist(),
+            'count': len(df)
+        }
+
+        return {
+            'success': True,
+            'data': data,
+            'period': period
+        }
+
+    except Exception as e:
+        logger.error(f"Global macro data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # =========================
 # Serve Frontend (mounted last to not interfere with API routes)
 # =========================

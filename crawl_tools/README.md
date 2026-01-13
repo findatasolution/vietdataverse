@@ -136,7 +136,7 @@
 
 ## 📁 Other Files
 
-### **data_describtion.html**
+### **data_description.html**
 **Purpose:** Technical documentation for macro crawling system
 
 **What it contains:**
