@@ -282,3 +282,122 @@ try:
 
 except Exception as e:
     print(f"❌ Error crawling ACB term deposit: {e}")
+
+
+############## Global Macro Data from Yahoo Finance
+print("\n" + "="*60)
+print("Crawling Global Macro Data from Yahoo Finance")
+print("="*60)
+
+try:
+    import yfinance as yf
+
+    # Define tickers
+    # GC=F: Gold Futures ($/oz)
+    # SI=F: Silver Futures ($/oz)
+    # ^IXIC: NASDAQ Composite Index
+    tickers = {
+        'gold': 'GC=F',      # Gold Futures
+        'silver': 'SI=F',    # Silver Futures
+        'nasdaq': '^IXIC'    # NASDAQ Composite
+    }
+
+    global_macro_data = {
+        'date': date_str,
+        'crawl_time': datetime.now(),
+        'gold_price': None,
+        'silver_price': None,
+        'nasdaq_price': None
+    }
+
+    # Helper function to fetch with retry logic
+    def fetch_with_retry(ticker_symbol, max_retries=3, initial_delay=2):
+        """Fetch ticker data with exponential backoff retry"""
+        for attempt in range(max_retries):
+            try:
+                ticker = yf.Ticker(ticker_symbol)
+                hist = ticker.history(period='1d')
+                if not hist.empty:
+                    return float(hist['Close'].iloc[-1])
+                else:
+                    print(f"    Attempt {attempt + 1}/{max_retries}: No data returned for {ticker_symbol}")
+            except Exception as e:
+                error_msg = str(e)
+                if "Rate limited" in error_msg or "Too Many Requests" in error_msg:
+                    if attempt < max_retries - 1:
+                        delay = initial_delay * (2 ** attempt)  # Exponential backoff
+                        print(f"    Rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}...")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        raise Exception(f"Rate limited after {max_retries} attempts")
+                else:
+                    raise e
+        return None
+
+    # Fetch gold price with retry
+    try:
+        print("  Fetching Gold Futures (GC=F)...")
+        gold_price = fetch_with_retry(tickers['gold'])
+        if gold_price:
+            global_macro_data['gold_price'] = gold_price
+            print(f"  ✅ Gold (GC=F): ${global_macro_data['gold_price']:.2f}/oz")
+        else:
+            print(f"  ⚠️  No gold price data available")
+    except Exception as e:
+        print(f"  ❌ Failed to fetch gold price: {e}")
+
+    # Wait between requests to avoid rate limiting
+    time.sleep(1)
+
+    # Fetch silver price with retry
+    try:
+        print("  Fetching Silver Futures (SI=F)...")
+        silver_price = fetch_with_retry(tickers['silver'])
+        if silver_price:
+            global_macro_data['silver_price'] = silver_price
+            print(f"  ✅ Silver (SI=F): ${global_macro_data['silver_price']:.2f}/oz")
+        else:
+            print(f"  ⚠️  No silver price data available")
+    except Exception as e:
+        print(f"  ❌ Failed to fetch silver price: {e}")
+
+    # Wait between requests to avoid rate limiting
+    time.sleep(1)
+
+    # Fetch NASDAQ price with retry
+    try:
+        print("  Fetching NASDAQ Composite (^IXIC)...")
+        nasdaq_price = fetch_with_retry(tickers['nasdaq'])
+        if nasdaq_price:
+            global_macro_data['nasdaq_price'] = nasdaq_price
+            print(f"  ✅ NASDAQ (^IXIC): {global_macro_data['nasdaq_price']:,.2f}")
+        else:
+            print(f"  ⚠️  No NASDAQ price data available")
+    except Exception as e:
+        print(f"  ❌ Failed to fetch NASDAQ price: {e}")
+
+    # Check if we have at least one data point
+    has_data = any(global_macro_data[key] is not None for key in ['gold_price', 'silver_price', 'nasdaq_price'])
+
+    if has_data:
+        # Check if data already exists for today
+        with engine.connect() as conn:
+            result = conn.execute(text(f"SELECT COUNT(*) FROM global_macro WHERE date = '{date_str}'"))
+            exists = result.scalar() > 0
+
+        if exists:
+            print(f"⚠️  Global macro data for {date_str} already exists, skipping insert")
+        else:
+            # Insert into database
+            macro_df = pd.DataFrame([global_macro_data])
+            macro_df['date'] = pd.to_datetime(macro_df['date'])
+            macro_df.to_sql('global_macro', engine, if_exists='append', index=False)
+            print(f"✅ Pushed global macro data for {date_str}")
+    else:
+        print(f"⚠️  No global macro data fetched")
+
+except ImportError:
+    print("❌ yfinance library not installed. Run: pip install yfinance")
+except Exception as e:
+    print(f"❌ Error crawling global macro data: {e}")
