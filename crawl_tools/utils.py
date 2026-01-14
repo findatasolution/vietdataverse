@@ -36,14 +36,14 @@ def crawl_gold_price_24h(date_str):
                                 continue
 
                             # Remove thousand separators (dots and commas) and convert
-                            # Website shows prices in thousands VND (e.g., "157.700" = 157,700 thousand VND)
+                            # Website shows prices in full VND (e.g., "160.000.000" = 160,000,000 VND)
                             buy_price = buy_price_text.replace('.', '').replace(',', '')
                             sell_price = sell_price_text.replace('.', '').replace(',', '')
 
-                            # Convert to float and multiply by 1000 to get full VND
-                            # Example: "157.700" → "157700" → 157700 * 1000 = 157,700,000 VND
-                            buy_price = float(buy_price) * 1000
-                            sell_price = float(sell_price) * 1000
+                            # Convert to float - no multiplication needed as prices are already in full VND
+                            # Example: "160.000.000" → "160000000" → 160,000,000 VND
+                            buy_price = float(buy_price)
+                            sell_price = float(sell_price)
 
                             return {
                                 'date': date_str,
