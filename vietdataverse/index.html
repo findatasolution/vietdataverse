@@ -1135,6 +1135,9 @@
                                 Gold Price History (DOJI HN)
                             </h3>
                             <div class="chart-filters">
+                                <select id="goldTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                    <option value="DOJI HN">DOJI HN</option>
+                                </select>
                                 <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
                                 <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
                                 <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
@@ -1673,15 +1676,38 @@
             }
         }
 
+        // Load gold types
+        async function loadGoldTypes() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gold/types`);
+                const result = await response.json();
+                if (result.success && result.types) {
+                    const select = document.getElementById('goldTypeSelect');
+                    select.innerHTML = result.types.map(type =>
+                        `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading gold types:', error);
+            }
+        }
+
         // Create/Update Gold Chart
-        async function updateGoldChart(period = '1m') {
+        async function updateGoldChart(period = '1m', type = null) {
             const loading = document.getElementById('goldLoading');
             const canvas = document.getElementById('goldChart');
+
+            if (!type) {
+                const select = document.getElementById('goldTypeSelect');
+                type = select ? select.value : 'DOJI HN';
+            }
 
             loading.style.display = 'block';
 
             try {
-                const data = await fetchData('gold', period);
+                const response = await fetch(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`);
+                const result = await response.json();
+                const data = result.data;
                 loading.style.display = 'none';
 
                 const chartData = {
@@ -2219,7 +2245,16 @@
 
         // Initialize charts and analysis on page load
         window.addEventListener('load', function() {
-            updateGoldChart('1m');
+            loadGoldTypes().then(() => {
+                updateGoldChart('1m');
+
+                // Add type selector change event
+                document.getElementById('goldTypeSelect').addEventListener('change', function() {
+                    const period = document.querySelector('.filter-btn[data-chart="gold"].active').dataset.period;
+                    updateGoldChart(period, this.value);
+                });
+            });
+
             updateSilverChart('1m');
             updateSBVChart('1m');
             updateGlobalChart('1m');

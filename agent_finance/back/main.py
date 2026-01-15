@@ -582,8 +582,8 @@ def get_date_filter(period: str):
         return datetime(2000, 1, 1)
 
 @app.get("/api/v1/gold")
-def get_gold_data(period: str = '1m'):
-    """Get gold price historical data"""
+def get_gold_data(period: str = '1m', type: str = 'DOJI HN'):
+    """Get gold price historical data with type filter"""
     if pd is None:
         raise HTTPException(status_code=503, detail="Pandas not available")
 
@@ -596,13 +596,13 @@ def get_gold_data(period: str = '1m'):
 
         query = text("""
             SELECT date, buy_price, sell_price
-            FROM vn_gold_24h_dojihn_hist
-            WHERE date >= :start_date
+            FROM vn_gold_24h_hist
+            WHERE date >= :start_date AND type = :type
             ORDER BY date ASC
         """)
 
         with engine.connect() as conn:
-            df = pd.read_sql(query, conn, params={'start_date': start_date})
+            df = pd.read_sql(query, conn, params={'start_date': start_date, 'type': type})
 
         # Check if DataFrame is empty
         if df.empty:
@@ -614,7 +614,8 @@ def get_gold_data(period: str = '1m'):
                     'sell_prices': [],
                     'count': 0
                 },
-                'period': period
+                'period': period,
+                'type': type
             }
 
         # Convert date column to datetime
@@ -631,11 +632,35 @@ def get_gold_data(period: str = '1m'):
         return {
             'success': True,
             'data': data,
-            'period': period
+            'period': period,
+            'type': type
         }
 
     except Exception as e:
         logger.error(f"Gold data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/gold/types")
+def get_gold_types():
+    """Get available gold types"""
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        query = text("SELECT DISTINCT type FROM vn_gold_24h_hist ORDER BY type")
+
+        with engine.connect() as conn:
+            result = conn.execute(query)
+            types = [row[0] for row in result.fetchall()]
+
+        return {
+            'success': True,
+            'types': types
+        }
+
+    except Exception as e:
+        logger.error(f"Gold types error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/silver")
