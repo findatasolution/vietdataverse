@@ -17,34 +17,63 @@ date_str = current_date.strftime('%Y-%m-%d')
 conn_str = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
 engine = create_engine(conn_str)
 
-############## Domestic Silver Prices - only current day
-url = "https://giabac.vn/SilverInfo/GetGoldPriceChartFromSQLData?days=7&type=L"
-response = requests.get(url)
-data = response.json()
-
+############## Domestic Silver Prices - crawl from HTML
 try:
-    # Create domestic_silver DataFrame with all 7 days
-    domestic_silver = pd.DataFrame({
-        'date': pd.to_datetime(data['Dates']),
-        'buy_price': data['LastBuyPrices'],
-        'sell_price': data['LastSellPrices']
-    })
-    domestic_silver = domestic_silver.sort_values(by='date').reset_index(drop=True)
+    url_silver = "https://giabac.vn/"
+    response_silver = requests.get(url_silver, timeout=10)
+    response_silver.raise_for_status()
+    soup_silver = BeautifulSoup(response_silver.content, 'html.parser')
 
-    # Get only the last day (most recent)
-    domestic_silver = domestic_silver.tail(1).reset_index(drop=True)
+    # Find price table
+    buy_price = None
+    sell_price = None
 
-    # Check if date already exists before inserting
-    check_date = domestic_silver['date'].iloc[0].strftime('%Y-%m-%d')
-    with engine.connect() as conn:
-        result = conn.execute(text(f"SELECT COUNT(*) FROM vn_silver_phuquy_hist WHERE date = '{check_date}'"))
-        exists = result.scalar() > 0
+    # Look for "Bạc miếng Phú Quý 999" row
+    rows = soup_silver.find_all('tr')
+    for row in rows:
+        cells = row.find_all('td')
+        if len(cells) >= 3:
+            product = cells[0].get_text(strip=True)
+            if 'Bạc miếng Phú Quý 999' in product and '1 lượng' in product:
+                try:
+                    buy_text = cells[1].get_text(strip=True).replace(',', '').replace('.', '')
+                    sell_text = cells[2].get_text(strip=True).replace(',', '').replace('.', '')
+                    buy_price = float(buy_text)
+                    sell_price = float(sell_text)
+                    break
+                except (ValueError, IndexError):
+                    continue
 
-    if exists:
-        print(f"⚠️  Silver data for {check_date} already exists, skipping insert")
+    if buy_price and sell_price:
+        silver_record = {
+            'date': date_str,
+            'buy_price': buy_price,
+            'sell_price': sell_price
+        }
+
+        # Check if exists
+        with engine.connect() as conn:
+            result = conn.execute(
+                text("SELECT COUNT(*) FROM vn_silver_phuquy_hist WHERE date = :date"),
+                {'date': date_str}
+            )
+            exists = result.scalar() > 0
+
+        if exists:
+            print(f"⚠️  Silver data for {date_str} already exists, skipping insert")
+        else:
+            with engine.connect() as conn:
+                conn.execute(
+                    text("""
+                        INSERT INTO vn_silver_phuquy_hist (date, buy_price, sell_price)
+                        VALUES (:date, :buy_price, :sell_price)
+                    """),
+                    silver_record
+                )
+                conn.commit()
+            print(f"✅ Pushed silver record: Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
     else:
-        domestic_silver.to_sql('vn_silver_phuquy_hist', engine, if_exists='append', index=False)
-        print(f"✅ Pushed {len(domestic_silver)} silver record(s) for {check_date}")
+        print(f"❌ No silver price found on HTML")
 
 except Exception as e:
     print(f"❌ Error crawling Silver: {e}")
