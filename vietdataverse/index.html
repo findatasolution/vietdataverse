@@ -1650,7 +1650,7 @@
         // API Base URL - use port 8000 for local dev, dynamic for production
         const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://127.0.0.1:8000/api/v1'  // Local development
-            : window.location.origin + '/api/v1';  // Production
+            : 'https://api.nguyenphamdieuhien.online/api/v1';  // Production
 
         // Chart instances
         let goldChart = null;
