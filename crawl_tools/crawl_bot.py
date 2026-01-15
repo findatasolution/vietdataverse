@@ -10,6 +10,11 @@ from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 from sqlalchemy import text
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
@@ -17,28 +22,46 @@ date_str = current_date.strftime('%Y-%m-%d')
 conn_str = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
 engine = create_engine(conn_str)
 
-############## Domestic Silver Prices - crawl from HTML
+############## Domestic Silver Prices - crawl with Selenium
 try:
-    url_silver = "https://giabac.vn/"
-    response_silver = requests.get(url_silver, timeout=10)
-    response_silver.raise_for_status()
-    soup_silver = BeautifulSoup(response_silver.content, 'html.parser')
+    # Setup headless Chrome
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.binary_location = '/usr/bin/chromium-browser' if sys.platform == 'linux' else None
 
-    # Find div#priceDiv (for "Lượng" unit filter)
-    price_div = soup_silver.find('div', id='priceDiv')
+    driver = webdriver.Chrome(options=chrome_options)
     buy_price = None
     sell_price = None
 
-    if price_div:
-        prices = price_div.find_all('p', class_=['text-24px', 'text-red', 'text-green'])
-        if len(prices) >= 2:
-            try:
-                buy_text = prices[0].get_text(strip=True).replace(',', '').replace('.', '')
-                sell_text = prices[1].get_text(strip=True).replace(',', '').replace('.', '')
-                buy_price = float(buy_text)
-                sell_price = float(sell_text)
-            except (ValueError, IndexError):
-                pass
+    try:
+        driver.get("https://giabac.vn/")
+        time.sleep(2)  # Wait for page load
+
+        # Click "Lượng" button to filter by unit
+        buttons = driver.find_elements(By.TAG_NAME, "button")
+        for btn in buttons:
+            if "Lượng" in btn.text or "luong" in btn.text.lower():
+                btn.click()
+                time.sleep(2)  # Wait for price update
+                break
+
+        # Get price from priceDiv
+        price_div = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "priceDiv"))
+        )
+        price_elements = price_div.find_elements(By.CSS_SELECTOR, "p.text-24px")
+
+        if len(price_elements) >= 2:
+            buy_text = price_elements[0].text.strip().replace(',', '').replace('.', '')
+            sell_text = price_elements[1].text.strip().replace(',', '').replace('.', '')
+            buy_price = float(buy_text)
+            sell_price = float(sell_text)
+
+    finally:
+        driver.quit()
 
     if buy_price and sell_price:
         crawl_time = datetime.now()
