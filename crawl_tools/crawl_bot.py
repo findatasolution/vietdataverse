@@ -30,7 +30,8 @@ try:
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument('--disable-gpu')
-    chrome_options.binary_location = '/usr/bin/chromium-browser' if sys.platform == 'linux' else None
+    if sys.platform == 'linux':
+        chrome_options.binary_location = '/usr/bin/chromium-browser'
 
     driver = webdriver.Chrome(options=chrome_options)
     buy_price = None
