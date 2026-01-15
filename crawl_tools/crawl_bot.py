@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 from sqlalchemy import text
-from utils import crawl_gold_price_24h
 
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
@@ -50,30 +49,82 @@ try:
 except Exception as e:
     print(f"❌ Error crawling Silver: {e}")
 
-############## Domestic Gold Price
-gold_data = crawl_gold_price_24h(date_str)
+############## Domestic Gold Price - All brands
+url_gold = f'https://www.24h.com.vn/gia-vang-hom-nay-c425.html?ngaythang={date_str}'
 
-if gold_data:
-    print(f"✅ Successfully crawled DOJI HN gold price for {date_str}")
+try:
+    response_gold = requests.get(url_gold, timeout=10)
+    response_gold.raise_for_status()
+    soup_gold = BeautifulSoup(response_gold.content, 'html.parser')
 
-    # Create domestic_gold DataFrame (single row)
-    domestic_gold = pd.DataFrame([gold_data])
-    domestic_gold['date'] = pd.to_datetime(domestic_gold['date'])
+    gold_records = []
+    tables_gold = soup_gold.find_all('table')
 
-    # Check if record already exists for this date
-    from sqlalchemy import text
-    check_date = date_str
-    with engine.connect() as conn:
-        result = conn.execute(text(f"SELECT COUNT(*) FROM vn_gold_24h_dojihn_hist WHERE date = '{check_date}'"))
-        exists = result.scalar() > 0
+    for table in tables_gold:
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) >= 3:
+                brand_td = cols[0].find('h2')
+                if not brand_td:
+                    continue
+                brand_type = brand_td.get_text(strip=True)
 
-    if exists:
-        print(f"⚠️  DOJI HN gold data for {check_date} already exists, skipping insert")
+                try:
+                    buy_span = cols[1].find('span', class_='fixW')
+                    sell_span = cols[2].find('span', class_='fixW')
+
+                    if not buy_span or not sell_span:
+                        continue
+
+                    buy_price = buy_span.get_text(strip=True).replace('.', '').replace(',', '')
+                    sell_price = sell_span.get_text(strip=True).replace('.', '').replace(',', '')
+
+                    buy_price = float(buy_price) * 1000
+                    sell_price = float(sell_price) * 1000
+
+                    gold_records.append({
+                        'date': date_str,
+                        'type': brand_type,
+                        'buy_price': buy_price,
+                        'sell_price': sell_price
+                    })
+                except (ValueError, AttributeError):
+                    continue
+
+    if gold_records:
+        print(f"✅ Crawled {len(gold_records)} gold brands for {date_str}")
+
+        inserted = 0
+        skipped = 0
+
+        for record in gold_records:
+            with engine.connect() as conn:
+                result = conn.execute(
+                    text("SELECT COUNT(*) FROM vn_gold_24h_hist WHERE date = :date AND type = :type"),
+                    {'date': record['date'], 'type': record['type']}
+                )
+
+                if result.scalar() > 0:
+                    skipped += 1
+                    continue
+
+                conn.execute(
+                    text("""
+                        INSERT INTO vn_gold_24h_hist (date, type, buy_price, sell_price)
+                        VALUES (:date, :type, :buy_price, :sell_price)
+                    """),
+                    record
+                )
+                conn.commit()
+                inserted += 1
+
+        print(f"✅ Pushed {inserted} gold records, skipped {skipped}")
     else:
-        domestic_gold.to_sql('vn_gold_24h_dojihn_hist', engine, if_exists='append', index=False)
-        print(f"✅ Pushed DOJI HN gold record for {check_date}")
-else:
-    print(f"❌ Failed to crawl DOJI HN gold data for {date_str}")
+        print(f"❌ No gold data found for {date_str}")
+
+except Exception as e:
+    print(f"❌ Error crawling gold prices: {e}")
 
 ############## SBV interbank
 api_url = 'https://sbv.gov.vn/o/headless-delivery/v1.0/content-structures/3450260/structured-contents?pageSize=1&sort=datePublished:desc'
