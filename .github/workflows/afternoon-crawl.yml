@@ -1,0 +1,65 @@
+name: Afternoon Silver Crawl
+
+on:
+  schedule:
+    - cron: '30 6 * * *'  # 1:30 PM VN (6:30 AM UTC)
+  workflow_dispatch:
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd crawl_tools
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4
+
+    - name: Run silver crawler only
+      run: |
+        cd crawl_tools
+        python -c "
+from bs4 import BeautifulSoup
+import requests
+from datetime import datetime
+from sqlalchemy import create_engine, text
+
+conn_str = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+engine = create_engine(conn_str)
+
+url = 'https://giabac.vn/'
+resp = requests.get(url, timeout=10)
+soup = BeautifulSoup(resp.content, 'html.parser')
+
+price_div = soup.find('div', id='priceDiv')
+if price_div:
+    prices = price_div.find_all('p', class_=['text-24px', 'text-red', 'text-green'])
+    if len(prices) >= 2:
+        buy = float(prices[0].get_text(strip=True).replace(',', '').replace('.', ''))
+        sell = float(prices[1].get_text(strip=True).replace(',', '').replace('.', ''))
+
+        now = datetime.now()
+        date_str = now.strftime('%Y-%m-%d')
+
+        with engine.connect() as conn:
+            conn.execute(text('''
+                INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price)
+                VALUES (:date, :crawl_time, :buy_price, :sell_price)
+                ON CONFLICT (date, crawl_time) DO NOTHING
+            '''), {'date': date_str, 'crawl_time': now, 'buy_price': buy, 'sell_price': sell})
+            conn.commit()
+
+        print(f'✅ Silver crawled: {now.strftime(\"%H:%M\")} | Buy {buy:,.0f} | Sell {sell:,.0f}')
+"
+
+    - name: Show results
+      if: always()
+      run: echo "Afternoon silver crawl completed"

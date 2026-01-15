@@ -24,56 +24,63 @@ try:
     response_silver.raise_for_status()
     soup_silver = BeautifulSoup(response_silver.content, 'html.parser')
 
-    # Find price table
+    # Find div#priceDiv (for "Lượng" unit filter)
+    price_div = soup_silver.find('div', id='priceDiv')
     buy_price = None
     sell_price = None
 
-    # Look for "Bạc miếng Phú Quý 999" row
-    rows = soup_silver.find_all('tr')
-    for row in rows:
-        cells = row.find_all('td')
-        if len(cells) >= 3:
-            product = cells[0].get_text(strip=True)
-            if 'Bạc miếng Phú Quý 999' in product and '1 lượng' in product:
-                try:
-                    buy_text = cells[1].get_text(strip=True).replace(',', '').replace('.', '')
-                    sell_text = cells[2].get_text(strip=True).replace(',', '').replace('.', '')
-                    buy_price = float(buy_text)
-                    sell_price = float(sell_text)
-                    break
-                except (ValueError, IndexError):
-                    continue
+    if price_div:
+        prices = price_div.find_all('p', class_=['text-24px', 'text-red', 'text-green'])
+        if len(prices) >= 2:
+            try:
+                buy_text = prices[0].get_text(strip=True).replace(',', '').replace('.', '')
+                sell_text = prices[1].get_text(strip=True).replace(',', '').replace('.', '')
+                buy_price = float(buy_text)
+                sell_price = float(sell_text)
+            except (ValueError, IndexError):
+                pass
 
     if buy_price and sell_price:
+        crawl_time = datetime.now()
         silver_record = {
             'date': date_str,
+            'crawl_time': crawl_time,
             'buy_price': buy_price,
             'sell_price': sell_price
         }
 
-        # Check if exists
+        # Check if exists in same hour
         with engine.connect() as conn:
             result = conn.execute(
-                text("SELECT COUNT(*) FROM vn_silver_phuquy_hist WHERE date = :date"),
-                {'date': date_str}
+                text("""
+                    SELECT COUNT(*) FROM vn_silver_phuquy_hist
+                    WHERE date = :date
+                    AND crawl_time >= :start_time
+                    AND crawl_time < :end_time
+                """),
+                {
+                    'date': date_str,
+                    'start_time': crawl_time.replace(minute=0, second=0, microsecond=0),
+                    'end_time': crawl_time.replace(minute=59, second=59, microsecond=999999)
+                }
             )
             exists = result.scalar() > 0
 
         if exists:
-            print(f"⚠️  Silver data for {date_str} already exists, skipping insert")
+            print(f"⚠️  Silver data for {date_str} {crawl_time.strftime('%H:%M')} already exists")
         else:
             with engine.connect() as conn:
                 conn.execute(
                     text("""
-                        INSERT INTO vn_silver_phuquy_hist (date, buy_price, sell_price)
-                        VALUES (:date, :buy_price, :sell_price)
+                        INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price)
+                        VALUES (:date, :crawl_time, :buy_price, :sell_price)
                     """),
                     silver_record
                 )
                 conn.commit()
-            print(f"✅ Pushed silver record: Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
+            print(f"✅ Pushed silver: {crawl_time.strftime('%H:%M')} | Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
     else:
-        print(f"❌ No silver price found on HTML")
+        print(f"❌ No silver price found in div#priceDiv")
 
 except Exception as e:
     print(f"❌ Error crawling Silver: {e}")
