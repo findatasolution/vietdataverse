@@ -677,9 +677,13 @@ def get_silver_data(period: str = '1m'):
         start_date = get_date_filter(period)
 
         query = text("""
-            SELECT date, buy_price, sell_price
+            SELECT
+                date,
+                AVG(buy_price) as buy_price,
+                AVG(sell_price) as sell_price
             FROM vn_silver_phuquy_hist
             WHERE date >= :start_date
+            GROUP BY date
             ORDER BY date ASC
         """)
 
