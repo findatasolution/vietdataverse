@@ -18,10 +18,15 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Install Chrome for Selenium
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser chromium-chromedriver
+
     - name: Install crawl dependencies
       run: |
         cd crawl_tools
-        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 yfinance
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 yfinance selenium
 
     - name: Run crawl bot
       run: |
