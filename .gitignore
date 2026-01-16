@@ -1,12 +1,7 @@
-# Ignore folders
-ignore/
-git_ignore/
-
-# Environment variables - NEVER commit sensitive data
-.env
-.env.local
-.env.production
-*.env
+# Temporary files
+*-cwd
+tmpclaude-*
+*.tmp
 
 # Python
 __pycache__/
@@ -14,35 +9,16 @@ __pycache__/
 *$py.class
 *.so
 .Python
-venv/
-.venv/
-ENV/
-env/
-agent_finance/.venv/
+*.egg-info/
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
+
+# Debug files
+*_debug*.html
+vcb_*.html
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-app.log
-
-# Uploads
-uploads/*
-!uploads/.gitkeep
-
-# Database
-*.db
-*.sqlite3
-
-# Temporary files
-*.tmp
-.cache/
