@@ -23,7 +23,7 @@ if not GEMINI_API_KEY or GEMINI_API_KEY == 'your_gemini_api_key_here':
     raise ValueError("Please set GEMINI_API_KEY in .env file. Get your key from https://makersuite.google.com/app/apikey")
 
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Database connection
 DATABASE_URL = os.getenv('DATABASE_URL')
