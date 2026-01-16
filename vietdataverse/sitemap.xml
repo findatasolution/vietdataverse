@@ -1,105 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
-    <!-- Main Page -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/</loc>
-        <lastmod>2026-01-13</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
-    </url>
+  <!-- Viet Dataverse - Main Data Portal -->
+  <url>
+    <loc>https://nguyenphamdieuhien.online/vietdataverse/</loc>
+    <lastmod>2026-01-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://nguyenphamdieuhien.online/vietdataverse/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nguyenphamdieuhien.online/vietdataverse/" />
+  </url>
 
-    <!-- Data Portal -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/#data-portal</loc>
-        <lastmod>2026-01-13</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.9</priority>
-    </url>
-
-    <!-- Flash News -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/#flash-news</loc>
-        <lastmod>2026-01-05</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
-    </url>
-
-    <!-- Article 1: Gold Prices -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/#article-1</loc>
-        <lastmod>2026-01-05</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-        <news:news>
-            <news:publication>
-                <news:name>Viet Dataverse</news:name>
-                <news:language>vi</news:language>
-            </news:publication>
-            <news:publication_date>2026-01-05</news:publication_date>
-            <news:title>Gold Prices Surge to Record High of 80 Million VND per Tael</news:title>
-            <news:keywords>gold price, Vietnam, SJC gold, DOJI, precious metals</news:keywords>
-        </news:news>
-    </url>
-
-    <!-- Article 2: VN-Index -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/#article-2</loc>
-        <lastmod>2026-01-05</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-        <news:news>
-            <news:publication>
-                <news:name>Viet Dataverse</news:name>
-                <news:language>vi</news:language>
-            </news:publication>
-            <news:publication_date>2026-01-05</news:publication_date>
-            <news:title>VN-Index Falls 1.2% Amid Banking Sector Pressure</news:title>
-            <news:keywords>VN-Index, stock market, Vietnam, banking stocks</news:keywords>
-        </news:news>
-    </url>
-
-    <!-- Article 3: SBV Rates -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/#article-3</loc>
-        <lastmod>2026-01-04</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-        <news:news>
-            <news:publication>
-                <news:name>Viet Dataverse</news:name>
-                <news:language>vi</news:language>
-            </news:publication>
-            <news:publication_date>2026-01-04</news:publication_date>
-            <news:title>State Bank Maintains Interbank Rate at 4.5%</news:title>
-            <news:keywords>State Bank of Vietnam, SBV, interbank rate, monetary policy</news:keywords>
-        </news:news>
-    </url>
-
-    <!-- Article 4: Foreign Investment -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/vietdataverse/#article-4</loc>
-        <lastmod>2026-01-04</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-        <news:news>
-            <news:publication>
-                <news:name>Viet Dataverse</news:name>
-                <news:language>vi</news:language>
-            </news:publication>
-            <news:publication_date>2026-01-04</news:publication_date>
-            <news:title>Foreign Investors Net Buy VN30 Stocks Worth $12M</news:title>
-            <news:keywords>foreign investment, VN30, Vietnam stock market</news:keywords>
-        </news:news>
-    </url>
-
-    <!-- Data Description -->
-    <url>
-        <loc>https://nguyenphamdieuhien.online/crawl_tools/data_description.html</loc>
-        <lastmod>2026-01-13</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-    </url>
+  <!-- Viet Dataverse - Index page -->
+  <url>
+    <loc>https://nguyenphamdieuhien.online/vietdataverse/index.html</loc>
+    <lastmod>2026-01-16</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
 
 </urlset>
