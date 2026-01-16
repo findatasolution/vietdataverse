@@ -15,9 +15,11 @@ tables = [
     """,
     """
     CREATE TABLE IF NOT EXISTS vn_silver_phuquy_hist (
-        date DATE PRIMARY KEY,
+        date DATE NOT NULL,
+        crawl_time TIMESTAMP NOT NULL,
         buy_price FLOAT,
-        sell_price FLOAT
+        sell_price FLOAT,
+        PRIMARY KEY (date, crawl_time)
     )
     """,
     """
@@ -70,17 +72,55 @@ with engine.connect() as conn:
         except Exception as e:
             print(f"Error: {e}")
 
-# Migration: Add term_noterm column for VCB (no-term deposit rate)
-migration_sql = """
+# Migration 1: Add term_noterm column for VCB (no-term deposit rate)
+migration_sql_1 = """
 ALTER TABLE vn_bank_termdepo ADD COLUMN IF NOT EXISTS term_noterm FLOAT;
 """
 
 with engine.connect() as conn:
     try:
-        conn.execute(text(migration_sql))
+        conn.execute(text(migration_sql_1))
         conn.commit()
-        print("✅ Added term_noterm column for VCB")
+        print("✅ Migration 1: Added term_noterm column for VCB")
     except Exception as e:
-        print(f"Migration note: {e}")
+        print(f"Migration 1 note: {e}")
+
+# Migration 2: Fix vn_silver_phuquy_hist to support multiple crawls per day
+migration_sql_2 = """
+-- Check if crawl_time column exists
+DO $$
+BEGIN
+    -- Add crawl_time if it doesn't exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'vn_silver_phuquy_hist' AND column_name = 'crawl_time'
+    ) THEN
+        -- Add crawl_time column with default value
+        ALTER TABLE vn_silver_phuquy_hist ADD COLUMN crawl_time TIMESTAMP;
+
+        -- Update existing rows to set crawl_time = date at 08:30:00
+        UPDATE vn_silver_phuquy_hist
+        SET crawl_time = date + INTERVAL '8 hours 30 minutes'
+        WHERE crawl_time IS NULL;
+
+        -- Make crawl_time NOT NULL
+        ALTER TABLE vn_silver_phuquy_hist ALTER COLUMN crawl_time SET NOT NULL;
+
+        -- Drop old primary key and create new one
+        ALTER TABLE vn_silver_phuquy_hist DROP CONSTRAINT vn_silver_phuquy_hist_pkey;
+        ALTER TABLE vn_silver_phuquy_hist ADD PRIMARY KEY (date, crawl_time);
+
+        RAISE NOTICE 'Migration 2: Silver table updated to support multiple crawls per day';
+    END IF;
+END $$;
+"""
+
+with engine.connect() as conn:
+    try:
+        conn.execute(text(migration_sql_2))
+        conn.commit()
+        print("✅ Migration 2: Fixed silver table schema")
+    except Exception as e:
+        print(f"Migration 2 note: {e}")
 
 print("Database initialization complete!")
