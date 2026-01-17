@@ -87,7 +87,7 @@
       "@context": "https://schema.org",
       "@type": "Dataset",
       "name": "Dữ Liệu Giá Bạc Phú Quý Việt Nam",
-      "description": "Lịch sử giá bạc thỏi Phú Quý, thu thập từ giabac.vn, cập nhật 2 lần mỗi ngày",
+      "description": "Lịch sử giá bạc thỏi Phú Quý tại thị trường Việt Nam, cập nhật 2 lần mỗi ngày từ nguồn công khai",
       "url": "https://nguyenphamdieuhien.online/vietdataverse/",
       "keywords": ["giá bạc", "giá bạc hôm nay", "bạc Phú Quý", "giá bạc thỏi"],
       "creator": {
@@ -112,7 +112,7 @@
           "name": "Giá vàng SJC hôm nay là bao nhiêu?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Viet Dataverse cung cấp giá vàng SJC 24K tại DOJI Hà Nội được cập nhật hàng ngày. Bạn có thể xem biểu đồ lịch sử và tải dữ liệu CSV miễn phí."
+            "text": "Viet Dataverse cung cấp giá vàng trong nước được cập nhật hàng ngày. Bạn có thể xem biểu đồ lịch sử và tải dữ liệu CSV miễn phí."
           }
         },
         {
@@ -1278,19 +1278,6 @@
                         </a>
                     </li>
                 </ul>
-
-                <!-- Subnav for articles -->
-                <ul class="subnav-list" id="articles-subnav">
-                    <li class="subnav-item">
-                        <a class="nav-link" data-article="article-1">
-                            <div class="nav-content">
-                                <h4>Gold Prices Today</h4>
-                                <span class="nav-meta">Jan 5, 2026 • 14:30</span>
-                            </div>
-                        </a>
-                    </li>
- 
-                </ul>
             </div>
         </aside>
 
@@ -1310,22 +1297,27 @@
                         <h3 style="color: var(--gold-accent); font-size: 1.25rem; margin-bottom: 1rem;">Về Viet Dataverse</h3>
                         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
                             <strong>Viet Dataverse</strong> là nền tảng dữ liệu kinh tế Việt Nam miễn phí, cung cấp thông tin <strong>giá vàng</strong>,
-                            <strong>giá bạc</strong>, và <strong>lãi suất ngân hàng</strong> được cập nhật hàng ngày từ các nguồn chính thức.
+                            <strong>giá bạc</strong>, và <strong>lãi suất ngân hàng</strong> được thu thập tự động từ các nguồn công khai uy tín.
                         </p>
                         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                            <strong>Giá vàng SJC 24K</strong> tại DOJI Hà Nội được thu thập từ 24h.com.vn với lịch sử đầy đủ từ năm 2023 đến nay.
-                            <strong>Giá bạc thỏi Phú Quý</strong> được cập nhật 2 lần mỗi ngày (8:30 sáng và 1:30 chiều) từ giabac.vn.
-                            <strong>Lãi suất liên ngân hàng</strong> do Ngân hàng Nhà nước Việt Nam (SBV) công bố hàng ngày.
+                            <strong>Giá vàng trong nước</strong> (SJC, DOJI) với dữ liệu lịch sử từ năm 2015 đến nay.
+                            <strong>Giá bạc trong nước</strong> (Phú Quý) được cập nhật 2 lần mỗi ngày (8:30 sáng, 1:30 chiều).
+                            <strong>Lãi suất liên ngân hàng</strong> do Ngân hàng Nhà nước Việt Nam (SBV) công bố.
+                            <strong>Lãi suất gửi tiết kiệm</strong> từ các ngân hàng thương mại lớn.
                         </p>
-                        <p style="color: var(--text-secondary);">
-                            Bạn có thể <strong>tải dữ liệu lịch sử</strong> định dạng CSV hoàn toàn miễn phí để phục vụ nghiên cứu,
-                            phân tích xu hướng thị trường vàng Việt Nam, hoặc xây dựng ứng dụng tài chính.
-                            Tất cả dữ liệu đều có thể truy cập qua <strong>RESTful API</strong> với documentation đầy đủ.
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Dữ liệu được <strong>làm sạch, chuẩn hóa</strong> và lưu trữ lịch sử dài hạn để phục vụ <strong>mục đích nghiên cứu và phân tích</strong>.
+                            Bạn có thể tải dữ liệu định dạng CSV hoàn toàn miễn phí hoặc truy cập qua <strong>API</strong>.
+                        </p>
+                        <p style="color: #888; font-size: 0.9em; border-top: 1px solid rgba(201, 165, 91, 0.2); padding-top: 1rem; margin-top: 1rem;">
+                            <strong>Lưu ý quan trọng:</strong> Dữ liệu chỉ mang tính chất tham khảo, không phải lời khuyên đầu tư.
+                            Viet Dataverse không chịu trách nhiệm về các quyết định tài chính dựa trên dữ liệu này.
+                            Người dùng cần tự kiểm tra và chịu trách nhiệm với quyết định của mình.
                         </p>
                     </div>
 
                     <p class="api-footer">
-                        Xem đầy đủ <a href="../crawl_tools/data_description.html">tài liệu API</a> để biết chi tiết về schemas, parameters, và nguồn dữ liệu.
+                        Xem đầy đủ <a href="../crawl_tools/data_description.html">mô tả dữ liệu</a> để biết chi tiết về schemas, parameters, và nguồn dữ liệu.
                     </p>
                 </div>
 
@@ -1335,7 +1327,7 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title">
-                                Lịch Sử Giá Vàng SJC
+                                Lịch Sử Giá Vàng Việt Nam
                             </h3>
                             <div class="chart-filters">
                                 <select id="goldTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
@@ -1357,7 +1349,7 @@
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title">
-                                Lịch Sử Giá Bạc Phú Quý
+                                Lịch Sử Giá Bạc Việt Nam - Phú Quý
                             </h3>
                             <div class="chart-filters">
                                 <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
@@ -1427,7 +1419,7 @@
                             </div>
                         </div>
                         <p class="dataset-desc">
-                            Giá vàng SJC 24K tại DOJI Hà Nội, thu thập từ 24h.com.vn với dữ liệu lịch sử đầy đủ từ năm 2015. Cập nhật hàng ngày giá mua vào và giá bán ra.
+                            Giá vàng SJC 24K tại thị trường Hà Nội, với dữ liệu lịch sử đầy đủ từ năm 2015 đến nay. Cập nhật hàng ngày giá mua vào và giá bán ra từ các nguồn công khai uy tín.
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
@@ -1455,7 +1447,7 @@
                             </div>
                         </div>
                         <p class="dataset-desc">
-                            Giá bạc thỏi Phú Quý thu thập từ giabac.vn, cập nhật 2 lần mỗi ngày (8:30 sáng và 1:30 chiều) với kiểm tra chất lượng tự động.
+                            Giá bạc thỏi Phú Quý tại thị trường trong nước, cập nhật 2 lần mỗi ngày (8:30 sáng và 1:30 chiều) với kiểm tra chất lượng tự động từ nguồn công khai.
                         </p>
                         <div class="dataset-stats">
                             <span class="stat-item">
@@ -1583,13 +1575,12 @@
                 <div class="api-section">
                     <div class="api-header">
                         <i class="fas fa-plug" style="color: var(--gold-primary); font-size: 1.5rem;"></i>
-                        <h3>RESTful API Access</h3>
+                        <h3>API Access</h3>
                     </div>
                     <p class="api-description">
-                        Access datasets programmatically via our RESTful API. No authentication required for public datasets.
-                        All endpoints return JSON formatted data with comprehensive metadata.
+                        Access datasets programmatically via our API. Processing...
                     </p>
-                    <div class="api-endpoints">
+                    <!-- <div class="api-endpoints">
                         <div class="api-endpoint">
                             <span class="method">GET</span>
                             <span>https://nguyenphamdieuhien.online/api/v1/datasets/vn-gold</span>
@@ -1602,9 +1593,12 @@
                             <span class="method">GET</span>
                             <span>https://nguyenphamdieuhien.online/api/v1/datasets/sbv-interbank</span>
                         </div>
-                    </div>
-                    <p class="api-footer">
+                    </div> -->
+                    <!-- <p class="api-footer">
                         View complete <a href="../crawl_tools/data_description.html">API documentation</a> for schemas, parameters, and data sources.
+                    </p> -->
+                    <p class="api-footer">
+                        <a href="../crawl_tools/data_description.html">Sign in</a> to receive notification when it available.
                     </p>
                 </div>
             </div>
@@ -2497,6 +2491,32 @@
       "articleBody": "SJC gold bars traded in Hanoi today increased by 500,000 VND, reaching 79.8 - 80.2 million VND/tael. This represents a 0.6% increase and marks the highest level in the past three months."
     }
     </script>
+
+    <!-- Data Source & Legal Disclaimer -->
+    <div style="max-width: 1200px; margin: 4rem auto 2rem; padding: 2rem; background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2);">
+        <h3 style="color: var(--gold-accent); font-size: 1.1rem; margin-bottom: 1rem;">Về Nguồn Dữ Liệu & Phương Pháp Thu Thập</h3>
+        <p style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+            Dữ liệu trên Viet Dataverse được thu thập tự động từ <strong>các nguồn công khai, miễn phí</strong> bao gồm website của các tổ chức tài chính, công ty vàng bạc uy tín, và cơ quan nhà nước.
+            Tất cả dữ liệu đều là <strong>thông tin công khai</strong> mà bất kỳ ai cũng có thể truy cập.
+        </p>
+        <p style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+            Giá trị gia tăng của Viet Dataverse nằm ở việc <strong>làm sạch, chuẩn hóa, lưu trữ lịch sử dài hạn</strong> và cung cấp API miễn phí để phục vụ cộng đồng nghiên cứu.
+            Chúng tôi không sở hữu dữ liệu gốc, chỉ cung cấp dịch vụ tổng hợp và phân phối.
+        </p>
+
+        <h3 style="color: var(--gold-accent); font-size: 1.1rem; margin: 1.5rem 0 1rem; border-top: 1px solid rgba(201, 165, 91, 0.2); padding-top: 1.5rem;">Điều Khoản Sử Dụng</h3>
+        <ul style="color: #A0A0A0; line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
+            <li><strong>Mục đích:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, học thuật, và phân tích cá nhân. Không dùng cho mục đích thương mại trừ khi có thỏa thuận.</li>
+            <li><strong>Không phải lời khuyên tài chính:</strong> Viet Dataverse không cung cấp lời khuyên đầu tư. Mọi quyết định tài chính là trách nhiệm của người dùng.</li>
+            <li><strong>Độ chính xác:</strong> Chúng tôi nỗ lực đảm bảo độ chính xác nhưng không chịu trách nhiệm về sai sót từ nguồn gốc hoặc quá trình thu thập.</li>
+            <li><strong>Bảo vệ nguồn:</strong> Người dùng cam kết không crawl ngược lại dữ liệu từ Viet Dataverse để tạo dịch vụ cạnh tranh.</li>
+        </ul>
+
+        <p style="color: #666; font-size: 0.85rem; margin-top: 1.5rem; font-style: italic;">
+            © 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở.
+            <a href="mailto:contact@nguyenphamdieuhien.online" style="color: var(--gold-primary); text-decoration: none;">Liên hệ</a>
+        </p>
+    </div>
 
 </body>
 </html>
