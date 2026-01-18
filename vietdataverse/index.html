@@ -1324,7 +1324,7 @@
         <main class="main-content">
             <div class="tab-content active" id="data-portal">
                 <div class="section-header">
-                    <h1 class="section-title" style="font-size: 2.5rem;">Tải Lịch Sử Giá Vàng Việt Nam | Download Vietnam Historical Gold Price CSV</h1>
+                    <h1 class="section-title" style="font-size: 2.5rem;">Dữ Liệu Kinh Tế Mở</h1>
                     <p class="section-subtitle" style="font-size: 1.125rem;">
                         <strong>Tải lịch sử giá vàng</strong> SJC, DOJI, PNJ từ 2015 định dạng CSV miễn phí.
                         <strong>Download Vietnam historical gold price data</strong>, giá bạc Phú Quý, lãi suất SBV cập nhật 2 lần/ngày.
@@ -1444,10 +1444,10 @@
                             </span>
                         </div>
                         <div class="dataset-actions">
-                            <button class="btn btn-primary" title="Tải lịch sử giá vàng">
+                            <button class="btn btn-primary" data-download="gold" title="Tải lịch sử giá vàng CSV">
                                 <i class="fas fa-download"></i> Download
                             </button>
-                            <button class="btn btn-secondary" title="Vietnam gold price API">
+                            <button class="btn btn-secondary" data-api="gold" title="Vietnam gold price API">
                                 <i class="fas fa-code"></i> API
                             </button>
                         </div>
@@ -1472,11 +1472,11 @@
                             </span>
                         </div>
                         <div class="dataset-actions">
-                            <button class="btn btn-primary">
-                                CSV
+                            <button class="btn btn-primary" data-download="silver">
+                                <i class="fas fa-download"></i> CSV
                             </button>
-                            <button class="btn btn-secondary">
-                                API
+                            <button class="btn btn-secondary" data-api="silver">
+                                <i class="fas fa-code"></i> API
                             </button>
                         </div>
                     </div>
@@ -1500,11 +1500,11 @@
                             </span>
                         </div>
                         <div class="dataset-actions">
-                            <button class="btn btn-primary">
-                                CSV
+                            <button class="btn btn-primary" data-download="sbv">
+                                <i class="fas fa-download"></i> CSV
                             </button>
-                            <button class="btn btn-secondary">
-                                API
+                            <button class="btn btn-secondary" data-api="sbv">
+                                <i class="fas fa-code"></i> API
                             </button>
                         </div>
                     </div>
@@ -1752,36 +1752,52 @@
                 langBtn: 'En',
                 subtitle: 'Thông tin Kinh tế',
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
-                navFlashNews: 'Tin Tức Nhanh',
+                navFlashNews: 'Dự Báo Giá Vàng',
                 navFlashNewsMeta: 'Cập nhật mới nhất',
-                navAboutTerms: 'About & Terms',
+                navAboutTerms: 'Giới thiệu Viet Dataverse',
                 navAboutTermsMeta: 'Về dự án & Điều khoản',
+                mainTitle: 'Dữ Liệu Kinh Tế Mở',
+                mainSubtitle: '<strong>Tải lịch sử giá vàng</strong> SJC, DOJI, PNJ từ 2015 định dạng CSV miễn phí. <strong>Download Vietnam historical gold price data</strong>, giá bạc Phú Quý, lãi suất SBV cập nhật 2 lần/ngày. API & CSV export hoàn toàn miễn phí cho phân tích và nghiên cứu kinh tế.',
                 sectionTitle: 'Dữ Liệu Kinh Tế Mở',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch Sử Giá Vàng Trong Nước',
                 silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
                 sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng SBV',
                 globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
-                downloadTitle: 'Tải Xuống Bộ Dữ Liệu',
-                downloadSubtitle: 'Tải xuống bộ dữ liệu lịch sử đầy đủ hoặc truy cập qua API.',
+                downloadTitle: 'Tải Lịch Sử Giá Vàng CSV - Download Vietnam Gold Price Data',
+                downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng SJC, DOJI, PNJ, giá bạc, lãi suất ngân hàng định dạng CSV miễn phí. Download Vietnam historical gold price từ 2015 đến nay hoặc truy cập qua RESTful API.',
+                goldDatasetTitle: 'Tải Lịch Sử Giá Vàng SJC - Download Vietnam Gold Price CSV',
+                goldDatasetDesc: 'Tải lịch sử giá vàng SJC, DOJI, PNJ 24K từ 2015 đến nay. Download Vietnam historical gold price định dạng CSV miễn phí với giá mua/bán cập nhật 2 lần mỗi ngày từ nguồn uy tín.',
+                silverDatasetTitle: 'Giá Bạc Phú Quý',
+                silverDatasetDesc: 'Giá bạc giao ngay tại thị trường Hà Nội (Phú Quý), dữ liệu lịch sử từ 2015. Cập nhật hàng ngày giá mua và bán từ nhà phân phối bạc uy tín.',
+                sbvDatasetTitle: 'Lãi Suất Liên Ngân Hàng SBV',
+                sbvDatasetDesc: 'Lãi suất liên ngân hàng VND (qua đêm, 1 tuần, 2 tuần, 1-9 tháng) công bố bởi Ngân hàng Nhà nước Việt Nam.',
                 apiBtn: 'Đăng nhập'
             },
             en: {
                 langBtn: 'Vie',
                 subtitle: 'Economic Intelligence',
                 navDataPortal: 'Open Economic Data',
-                navFlashNews: 'Flash News',
+                navFlashNews: 'VN Gold Price Prediction',
                 navFlashNewsMeta: 'Latest updates',
                 navAboutTerms: 'About & Terms',
                 navAboutTermsMeta: 'About project & Terms',
+                mainTitle: 'Open Economic Data',
+                mainSubtitle: '<strong>Download Vietnam historical gold price data</strong> (SJC, DOJI, PNJ) from 2015 in CSV format for free. Access silver prices, SBV interest rates updated twice daily. Free API & CSV export for economic research and analysis.',
                 sectionTitle: 'Open Economic Data',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
-                goldChart: 'Gold Price History (Viet Nam)',
-                silverChart: 'Silver Price History (Viet Nam)',
+                goldChart: 'Gold Price History (Vietnam)',
+                silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
                 globalChart: 'Global Market Trends (Gold, Silver, NASDAQ)',
-                downloadTitle: 'Download Datasets',
-                downloadSubtitle: 'Download complete historical datasets or access via API.',
+                downloadTitle: 'Download Vietnam Historical Gold Price CSV',
+                downloadSubtitle: 'Download historical gold price data (SJC, DOJI, PNJ), silver prices, bank interest rates in CSV format for free. Access Vietnam gold price data from 2015 onwards via RESTful API.',
+                goldDatasetTitle: 'Download Vietnam Historical Gold Price - SJC, DOJI, PNJ CSV',
+                goldDatasetDesc: 'Download Vietnam historical gold price data (SJC, DOJI, PNJ 24K) from 2015 to present in CSV format for free. Buy/sell prices updated twice daily from reliable sources.',
+                silverDatasetTitle: 'Silver Price (Phu Quy)',
+                silverDatasetDesc: 'Spot silver prices in Hanoi market (Phu Quy), historical data from 2015. Daily buy/sell prices from trusted silver distributors.',
+                sbvDatasetTitle: 'SBV Interbank Rates',
+                sbvDatasetDesc: 'VND interbank interest rates (overnight, 1 week, 2 weeks, 1-9 months) published by State Bank of Vietnam.',
                 apiBtn: 'Login'
             }
         };
@@ -1806,15 +1822,47 @@
                 }
             });
 
-            // Update sections
-            const sectionHeaders = document.querySelectorAll('.section-header');
-            if (sectionHeaders[0]) {
-                sectionHeaders[0].querySelector('.section-title').textContent = t.sectionTitle;
-                sectionHeaders[0].querySelector('.section-subtitle').textContent = t.sectionSubtitle;
+            // Update main title & subtitle (SEO optimized)
+            const mainSection = document.querySelector('#data-portal .section-header');
+            if (mainSection) {
+                const mainTitle = mainSection.querySelector('.section-title');
+                const mainSubtitle = mainSection.querySelector('.section-subtitle');
+                if (mainTitle) mainTitle.textContent = t.mainTitle;
+                if (mainSubtitle) {
+                    // Remove <strong> tags and set text content
+                    mainSubtitle.innerHTML = t.mainSubtitle;
+                }
             }
+
+            // Update download section
+            const sectionHeaders = document.querySelectorAll('.section-header');
             if (sectionHeaders[1]) {
                 sectionHeaders[1].querySelector('.section-title').textContent = t.downloadTitle;
-                sectionHeaders[1].querySelector('.section-subtitle').textContent = t.downloadSubtitle;
+                const downloadSubtitle = sectionHeaders[1].querySelector('.section-subtitle');
+                if (downloadSubtitle) {
+                    downloadSubtitle.innerHTML = t.downloadSubtitle;
+                }
+            }
+
+            // Update dataset cards
+            const datasetCards = document.querySelectorAll('.dataset-card');
+            if (datasetCards[0]) {
+                const h3 = datasetCards[0].querySelector('h3');
+                const desc = datasetCards[0].querySelector('.dataset-desc');
+                if (h3) h3.textContent = t.goldDatasetTitle;
+                if (desc) desc.innerHTML = t.goldDatasetDesc;
+            }
+            if (datasetCards[1]) {
+                const h3 = datasetCards[1].querySelector('h3');
+                const desc = datasetCards[1].querySelector('.dataset-desc');
+                if (h3) h3.textContent = t.silverDatasetTitle;
+                if (desc) desc.innerHTML = t.silverDatasetDesc;
+            }
+            if (datasetCards[2]) {
+                const h3 = datasetCards[2].querySelector('h3');
+                const desc = datasetCards[2].querySelector('.dataset-desc');
+                if (h3) h3.textContent = t.sbvDatasetTitle;
+                if (desc) desc.innerHTML = t.sbvDatasetDesc;
             }
 
             // Update charts
@@ -2657,6 +2705,116 @@
             }
         }
 
+        // CSV Download functionality
+        function convertToCSV(data, headers) {
+            const rows = [headers.join(',')];
+
+            for (let i = 0; i < data.dates.length; i++) {
+                const row = [data.dates[i]];
+                Object.keys(data).forEach(key => {
+                    if (key !== 'dates' && key !== 'count') {
+                        row.push(data[key][i] || '');
+                    }
+                });
+                rows.push(row.join(','));
+            }
+
+            return rows.join('\n');
+        }
+
+        function downloadCSV(filename, csvContent) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function handleDownloadCSV(dataset) {
+            try {
+                let endpoint, headers, filename;
+
+                switch(dataset) {
+                    case 'gold':
+                        const goldType = document.getElementById('goldTypeSelect').value || 'DOJI HN';
+                        endpoint = `gold?period=all&type=${encodeURIComponent(goldType)}`;
+                        headers = ['Date', 'Buy Price (VND)', 'Sell Price (VND)'];
+                        filename = `vietnam_gold_price_${goldType.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+                        break;
+                    case 'silver':
+                        endpoint = 'silver?period=all';
+                        headers = ['Date', 'Buy Price (VND)', 'Sell Price (VND)'];
+                        filename = `vietnam_silver_price_${new Date().toISOString().split('T')[0]}.csv`;
+                        break;
+                    case 'sbv':
+                        endpoint = 'sbv-interbank?period=all';
+                        headers = ['Date', 'Overnight', '1 Week', '2 Weeks', '1 Month', '3 Months', '6 Months', '9 Months'];
+                        filename = `sbv_interbank_rates_${new Date().toISOString().split('T')[0]}.csv`;
+                        break;
+                    default:
+                        console.error('Unknown dataset:', dataset);
+                        return;
+                }
+
+                // Show loading
+                const button = document.querySelector(`[data-download="${dataset}"]`);
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+                button.disabled = true;
+
+                // Fetch data
+                const response = await fetch(`${API_BASE_URL}/${endpoint}`);
+                if (!response.ok) throw new Error('Failed to fetch data');
+
+                const result = await response.json();
+                const csvContent = convertToCSV(result.data, headers);
+
+                // Download
+                downloadCSV(filename, csvContent);
+
+                // Reset button
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+
+                console.log(`✅ Downloaded ${filename}`);
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download CSV. Please try again.');
+
+                // Reset button
+                const button = document.querySelector(`[data-download="${dataset}"]`);
+                button.innerHTML = '<i class="fas fa-download"></i> Download';
+                button.disabled = false;
+            }
+        }
+
+        // API Info functionality
+        function showAPIInfo(dataset) {
+            let apiUrl, example;
+
+            switch(dataset) {
+                case 'gold':
+                    apiUrl = `${API_BASE_URL}/gold?period=1m&type=DOJI%20HN`;
+                    example = 'GET /api/v1/gold?period=1m&type=DOJI HN';
+                    break;
+                case 'silver':
+                    apiUrl = `${API_BASE_URL}/silver?period=1m`;
+                    example = 'GET /api/v1/silver?period=1m';
+                    break;
+                case 'sbv':
+                    apiUrl = `${API_BASE_URL}/sbv-interbank?period=1m`;
+                    example = 'GET /api/v1/sbv-interbank?period=1m';
+                    break;
+            }
+
+            alert(`API Endpoint:\n\n${example}\n\nFull URL:\n${apiUrl}\n\nPeriods: 7d, 1m, 1y, all`);
+        }
+
         // Initialize charts and analysis on page load
         window.addEventListener('load', function() {
             loadGoldTypes().then(() => {
@@ -2673,6 +2831,22 @@
             updateSBVChart('1m');
             updateGlobalChart('1m');
             loadGoldAnalysis();
+
+            // Add download button listeners
+            document.querySelectorAll('[data-download]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const dataset = this.getAttribute('data-download');
+                    handleDownloadCSV(dataset);
+                });
+            });
+
+            // Add API button listeners
+            document.querySelectorAll('[data-api]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const dataset = this.getAttribute('data-api');
+                    showAPIInfo(dataset);
+                });
+            });
         });
     </script>
 

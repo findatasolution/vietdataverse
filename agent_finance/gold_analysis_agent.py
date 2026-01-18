@@ -168,15 +168,6 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
 [3 câu dự báo với lý do cụ thể và mức giá dự kiến]
 </p>
 
-<h3>Tin tức quốc tế liên quan</h3>
-<ul>
-    <li><a href="https://www.reuters.com/markets/commodities/gold-prices/" target="_blank" rel="noopener">Reuters: Gold climbs on Fed rate cut bets, softer dollar</a></li>
-    <li><a href="https://www.bloomberg.com/quote/XAUUSD:CUR" target="_blank" rel="noopener">Bloomberg: Gold Rises as Traders Weigh Fed Policy Path</a></li>
-    <li><a href="https://www.cnbc.com/quotes/@GC.1" target="_blank" rel="noopener">CNBC: Gold Futures - Latest Price & Chart</a></li>
-    <li><a href="https://www.kitco.com/news/gold/" target="_blank" rel="noopener">Kitco: Gold News & Analysis</a></li>
-    <li><a href="https://www.ft.com/commodities" target="_blank" rel="noopener">Financial Times: Commodities Market Data</a></li>
-</ul>
-
 <p class="disclaimer" style="font-size: 0.9em; color: #888; margin-top: 1.5rem;">
     <strong>Lưu ý:</strong> Phân tích này chỉ mang tính chất tham khảo, không phải lời khuyên đầu tư.
     Nhà đầu tư cần tự nghiên cứu và chịu trách nhiệm với quyết định của mình.
