@@ -312,6 +312,83 @@ try:
 except Exception as e:
     print(f"❌ Error crawling SBV interbank rate: {e}")
 
+############## SBV Policy Rates (Rediscount & Refinancing)
+try:
+    sbv_rates_url = 'https://sbv.gov.vn/en/l%C3%A3i-su%E1%BA%A5t1'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    response = requests.get(sbv_rates_url, headers=headers, timeout=15)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    # Initialize rates
+    rediscount_rate = None
+    refinancing_rate = None
+
+    # Find the table containing policy rates
+    tables = soup.find_all('table')
+
+    for table in tables:
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) >= 2:
+                rate_type = cols[0].get_text(strip=True)
+                rate_value_text = cols[1].get_text(strip=True)
+
+                # Extract numeric value (e.g., "3.000%" -> 3.0)
+                try:
+                    rate_value = float(rate_value_text.replace('%', '').replace(',', '.').strip())
+                except (ValueError, AttributeError):
+                    continue
+
+                # Check for rediscount rate
+                if 'tái chiết khấu' in rate_type.lower() or 'rediscount' in rate_type.lower():
+                    rediscount_rate = rate_value
+                    print(f"Found Rediscount Rate: {rediscount_rate}%")
+
+                # Check for refinancing rate
+                if 'tái cấp vốn' in rate_type.lower() or 'refinancing' in rate_type.lower():
+                    refinancing_rate = rate_value
+                    print(f"Found Refinancing Rate: {refinancing_rate}%")
+
+    if rediscount_rate is not None or refinancing_rate is not None:
+        # Update ALL bank records for today with these rates
+        # Since these are policy rates that apply to all banks
+
+        with engine.connect() as conn:
+            # Get all bank_code entries for today
+            result = conn.execute(text(f"SELECT DISTINCT bank_code FROM vn_bank_termdepo WHERE date = '{date_str}'"))
+            banks = [row[0] for row in result.fetchall()]
+
+            if banks:
+                for bank_code in banks:
+                    update_query = text("""
+                        UPDATE vn_bank_termdepo
+                        SET rediscount_rate = :rediscount_rate,
+                            refinancing_rate = :refinancing_rate
+                        WHERE date = :date AND bank_code = :bank_code
+                    """)
+                    conn.execute(update_query, {
+                        'rediscount_rate': rediscount_rate,
+                        'refinancing_rate': refinancing_rate,
+                        'date': date_str,
+                        'bank_code': bank_code
+                    })
+                    conn.commit()
+
+                print(f"✅ Updated SBV policy rates for {len(banks)} banks on {date_str}")
+            else:
+                print(f"⚠️  No bank records found for {date_str}, cannot update SBV policy rates")
+    else:
+        print("❌ Could not find rediscount or refinancing rates on SBV page")
+
+except Exception as e:
+    print(f"❌ Error crawling SBV policy rates: {e}")
+    import traceback
+    traceback.print_exc()
+
 ############## Bank Term Deposit Rates
 # Note: Vietcombank website requires JavaScript rendering,
 # skipped for now (would need Selenium/Playwright)
