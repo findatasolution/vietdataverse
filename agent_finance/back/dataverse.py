@@ -18,13 +18,13 @@ import os
 router = APIRouter(prefix="/api/dataverse", tags=["dataverse"])
 
 # Get database connection from environment
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    logging.warning("DATABASE_URL not found, using default connection")
-    DATABASE_URL = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+if not CRAWLING_BOT_DB:
+    logging.warning("CRAWLING_BOT_DB not found, using default connection")
+    CRAWLING_BOT_DB = 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 
 # Use NullPool to avoid connection state issues
-engine = create_engine(DATABASE_URL, poolclass=NullPool)
+engine = create_engine(CRAWLING_BOT_DB, poolclass=NullPool)
 
 # Dataset configuration
 DATASET_CONFIG = {

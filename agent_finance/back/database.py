@@ -27,11 +27,11 @@ Base = declarative_base()
 # Schema handling - SIMPLIFIED
 SCHEMA = (os.getenv("DB_SCHEMA") or "public").strip() or None
 
-raw_url = (os.getenv("DATABASE_URL") or "").strip().strip('"').strip("'")
+raw_url = (os.getenv("CRAWLING_BOT_DB") or "").strip().strip('"').strip("'")
 if raw_url.startswith("//"):
     raw_url = "postgresql+psycopg:" + raw_url
 if not raw_url:
-    raise RuntimeError("DATABASE_URL is empty or invalid")
+    raise RuntimeError("CRAWLING_BOT_DB is empty or invalid")
 
 if SCHEMA and SCHEMA.lower() != "public":
     _resolved_search_path = f"{SCHEMA},public"

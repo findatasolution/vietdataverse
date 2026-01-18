@@ -9,7 +9,7 @@ services:
     envVars:
       - key: GEMINI_API_KEY
         sync: false
-      - key: DATABASE_URL
+      - key: CRAWLING_BOT_DB
         sync: false
       - key: GLOBAL_INDICATOR_DB
         sync: false

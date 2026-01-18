@@ -28,12 +28,12 @@ from pathlib import Path
 root_dir = Path(__file__).resolve().parent.parent.parent
 load_dotenv(dotenv_path=root_dir / '.env')
 
-# Old DB for domestic data (gold, silver, SBV, bank deposits)
-DATABASE_URL = os.getenv('DATABASE_URL')
-if not DATABASE_URL:
+# Crawling bot DB for domestic data (gold, silver, SBV, bank deposits)
+CRAWLING_BOT_DB = os.getenv('CRAWLING_BOT_DB')
+if not CRAWLING_BOT_DB:
     # Fallback for GitHub Actions which may not have .env
-    DATABASE_URL = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
-engine = create_engine(DATABASE_URL)
+    CRAWLING_BOT_DB = 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+engine = create_engine(CRAWLING_BOT_DB)
 
 # New DB for global macro data
 GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
@@ -354,33 +354,29 @@ try:
                     print(f"Found Refinancing Rate: {refinancing_rate}%")
 
     if rediscount_rate is not None or refinancing_rate is not None:
-        # Update ALL bank records for today with these rates
-        # Since these are policy rates that apply to all banks
-
+        # Update vn_sbv_interbankrate table with policy rates
         with engine.connect() as conn:
-            # Get all bank_code entries for today
-            result = conn.execute(text(f"SELECT DISTINCT bank_code FROM vn_bank_termdepo WHERE date = '{date_str}'"))
-            banks = [row[0] for row in result.fetchall()]
+            # Check if record exists for sbv_date
+            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_sbv_interbankrate WHERE date = '{sbv_date}'"))
+            exists = result.scalar() > 0
 
-            if banks:
-                for bank_code in banks:
-                    update_query = text("""
-                        UPDATE vn_bank_termdepo
-                        SET rediscount_rate = :rediscount_rate,
-                            refinancing_rate = :refinancing_rate
-                        WHERE date = :date AND bank_code = :bank_code
-                    """)
-                    conn.execute(update_query, {
-                        'rediscount_rate': rediscount_rate,
-                        'refinancing_rate': refinancing_rate,
-                        'date': date_str,
-                        'bank_code': bank_code
-                    })
-                    conn.commit()
-
-                print(f"✅ Updated SBV policy rates for {len(banks)} banks on {date_str}")
+            if exists:
+                # Update existing record with policy rates
+                update_query = text("""
+                    UPDATE vn_sbv_interbankrate
+                    SET rediscount_rate = :rediscount_rate,
+                        refinancing_rate = :refinancing_rate
+                    WHERE date = :date
+                """)
+                conn.execute(update_query, {
+                    'rediscount_rate': rediscount_rate,
+                    'refinancing_rate': refinancing_rate,
+                    'date': sbv_date
+                })
+                conn.commit()
+                print(f"✅ Updated SBV policy rates (rediscount: {rediscount_rate}%, refinancing: {refinancing_rate}%) for {sbv_date}")
             else:
-                print(f"⚠️  No bank records found for {date_str}, cannot update SBV policy rates")
+                print(f"⚠️  No SBV interbank record found for {sbv_date}, policy rates not updated")
     else:
         print("❌ Could not find rediscount or refinancing rates on SBV page")
 

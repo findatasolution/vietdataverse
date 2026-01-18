@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 
 def get_db_engine():
     """Get SQLAlchemy engine for database queries"""
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
+    CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+    if not CRAWLING_BOT_DB:
         return None
-    return create_engine(DATABASE_URL)
+    return create_engine(CRAWLING_BOT_DB)
 
 
 def query_historical_pl(role: str, user_email: str = None):

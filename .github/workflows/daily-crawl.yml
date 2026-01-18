@@ -40,7 +40,7 @@ jobs:
 
     - name: Run gold analysis agent
       env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
         GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
         ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

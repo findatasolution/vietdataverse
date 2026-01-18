@@ -85,10 +85,10 @@ uploaded_files_store = {}
 def get_db_engine():
     """Get SQLAlchemy engine for database queries"""
     from sqlalchemy import create_engine
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
+    CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+    if not CRAWLING_BOT_DB:
         return None
-    return create_engine(DATABASE_URL)
+    return create_engine(CRAWLING_BOT_DB)
 
 def query_historical_data(query: str):
     """Query historical financial data from database"""
@@ -97,7 +97,7 @@ def query_historical_data(query: str):
     try:
         engine = get_db_engine()
         if not engine:
-            logger.warning("DATABASE_URL not configured")
+            logger.warning("CRAWLING_BOT_DB not configured")
             return None
         df = pd.read_sql(query, engine)
         return df
