@@ -3,1002 +3,2686 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viet Dataverse - AI-Powered Economic Data Platform</title>
+    <title>Viet Dataverse - Giá Vàng Hôm Nay, Giá Bạc, Lãi Suất Ngân Hàng Vietnam | Tải Dữ Liệu Miễn Phí</title>
+    <meta name="description" content="Viet Dataverse: Nền tảng dữ liệu kinh tế Việt Nam. Theo dõi giá vàng SJC hôm nay, giá bạc Phú Quý, lãi suất liên ngân hàng SBV cập nhật realtime. Tải dữ liệu lịch sử giá vàng, giá bạc định dạng CSV miễn phí. Vietnam gold price, silver price data.">
+    <meta name="keywords" content="Viet Dataverse, vietdataverse, giá vàng, giá vàng hôm nay, giá vàng SJC, vietnam gold price, giá bạc, giá bạc hôm nay, silver price vietnam, lãi suất ngân hàng, lãi suất SBV, tải giá vàng lịch sử, download gold price data, dữ liệu kinh tế Việt Nam, DOJI, Phú Quý, vàng 24k, economic data vietnam">
+    <meta name="author" content="Viet Dataverse">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="Vietnamese">
+    <meta name="geo.region" content="VN">
+    <meta name="geo.placename" content="Vietnam">
+    <link rel="icon" type="image/png" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
+    <link rel="canonical" href="https://nguyenphamdieuhien.online/vietdataverse/">
+    <link rel="alternate" hreflang="vi" href="https://nguyenphamdieuhien.online/vietdataverse/">
+    <link rel="alternate" hreflang="en" href="https://nguyenphamdieuhien.online/vietdataverse/">
+    <link rel="alternate" hreflang="x-default" href="https://nguyenphamdieuhien.online/vietdataverse/">
 
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Viet Dataverse: AI-powered Vietnamese economic data platform. Real-time gold prices (SJC, DOJI), silver prices, interest rates with free API access.">
-    <meta name="keywords" content="Viet Dataverse, AI data, giá vàng, SJC, DOJI, giá bạc, Phú Quý, lãi suất, Vietnam economic data, API">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="Viet Dataverse - AI Economic Data Platform">
-    <meta property="og:description" content="Real-time Vietnamese economic data with AI-powered analytics">
-    <meta property="og:url" content="https://nguyenphamdieuhien.online/vietdataverse/">
+    <!-- Open Graph for social sharing -->
+    <meta property="og:site_name" content="Viet Dataverse">
+    <meta property="og:title" content="Viet Dataverse - Giá Vàng Hôm Nay, Giá Bạc, Lãi Suất Ngân Hàng Vietnam">
+    <meta property="og:description" content="Nền tảng dữ liệu kinh tế Việt Nam. Theo dõi giá vàng SJC, giá bạc Phú Quý, lãi suất SBV realtime. Tải dữ liệu lịch sử CSV miễn phí.">
+    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Viet Dataverse - Vietnam Economic Data Platform">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nguyenphamdieuhien.online/vietdataverse/">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
 
-    <!-- Fonts -->
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@VietDataverse">
+    <meta name="twitter:creator" content="@VietDataverse">
+    <meta name="twitter:title" content="Viet Dataverse - Giá Vàng Hôm Nay, Giá Bạc Vietnam">
+    <meta name="twitter:description" content="Giá vàng SJC, giá bạc Phú Quý, lãi suất SBV cập nhật realtime. Tải dữ liệu lịch sử CSV miễn phí.">
+    <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png">
+    <meta name="twitter:image:alt" content="Viet Dataverse Logo">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Viet Dataverse",
+      "alternateName": "Giá Vàng Hôm Nay - Dữ Liệu Kinh Tế Việt Nam",
+      "url": "https://nguyenphamdieuhien.online/vietdataverse/",
+      "description": "Theo dõi giá vàng SJC hôm nay, giá bạc Phú Quý, lãi suất ngân hàng SBV. Tải dữ liệu lịch sử miễn phí.",
+      "inLanguage": "vi-VN",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://nguyenphamdieuhien.online/vietdataverse/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Dữ Liệu Giá Vàng SJC Việt Nam",
+      "description": "Lịch sử giá vàng các thương hiệu từ năm 2015, cập nhật hàng ngày",
+      "url": "https://nguyenphamdieuhien.online/vietdataverse/",
+      "keywords": ["giá vàng", "giá vàng SJC", "vàng DOJI", "giá vàng hôm nay", "vàng 24k"],
+      "creator": {
+        "@type": "Organization",
+        "name": "Viet Dataverse"
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "CSV",
+        "contentUrl": "https://api.nguyenphamdieuhien.online/api/v1/gold"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Dữ Liệu Giá Bạc Phú Quý Việt Nam",
+      "description": "Lịch sử giá bạc thỏi Phú Quý tại thị trường Việt Nam, cập nhật 2 lần mỗi ngày từ nguồn công khai",
+      "url": "https://nguyenphamdieuhien.online/vietdataverse/",
+      "keywords": ["giá bạc", "giá bạc hôm nay", "bạc Phú Quý", "giá bạc thỏi"],
+      "creator": {
+        "@type": "Organization",
+        "name": "Viet Dataverse"
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "CSV",
+        "contentUrl": "https://api.nguyenphamdieuhien.online/api/v1/silver"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Giá vàng SJC hôm nay là bao nhiêu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Viet Dataverse cung cấp giá vàng trong nước được cập nhật hàng ngày. Bạn có thể xem biểu đồ lịch sử và tải dữ liệu CSV miễn phí."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Tải dữ liệu giá vàng lịch sử ở đâu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tại Viet Dataverse, bạn có thể tải dữ liệu giá vàng lịch sử định dạng CSV hoàn toàn miễn phí từ mục Download Datasets hoặc truy cập qua API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Lãi suất liên ngân hàng SBV là gì?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Lãi suất liên ngân hàng SBV là lãi suất mà các ngân hàng thương mại cho vay lẫn nhau, được Ngân hàng Nhà nước Việt Nam công bố. Dữ liệu cập nhật hàng ngày tại Viet Dataverse."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Trang chủ",
+          "item": "https://nguyenphamdieuhien.online/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Dữ Liệu Kinh Tế Việt Nam",
+          "item": "https://nguyenphamdieuhien.online/vietdataverse/"
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Viet Dataverse",
+      "url": "https://nguyenphamdieuhien.online/vietdataverse/",
+      "logo": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png",
+      "description": "Nền tảng dữ liệu kinh tế Việt Nam minh bạch, cung cấp giá vàng, giá bạc, lãi suất ngân hàng và các chỉ số thị trường",
+      "sameAs": [
+        "https://github.com/Hiienng/nguyenphamdieuhien.online"
+      ]
+    }
+    </script>
 
     <style>
-        :root {
-            --cyber-blue: #00F0FF;
-            --cyber-purple: #8B5CF6;
-            --cyber-pink: #EC4899;
-            --dark-bg: #0B0E1A;
-            --card-bg: #161B2E;
-            --text-primary: #FFFFFF;
-            --text-secondary: #94A3B8;
-            --gold: #FFD700;
-            --silver: #C0C0C0;
-            --success: #10B981;
-            --danger: #EF4444;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        :root {
+            --gold-primary: #C9A55B;
+            --gold-accent: #E4C78A;
+            --gold-dark: #8B7355;
+            --silver: #B8B8B8;
+            --silver-light: #D4D4D4;
+            --bg-dark: #0A0A0A;
+            --bg-secondary: #141414;
+            --bg-elevated: #1C1C1C;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+            --text-tertiary: #707070;
+            --border-color: rgba(201, 165, 91, 0.15);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--dark-bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
             color: var(--text-primary);
-            overflow-x: hidden;
-            position: relative;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Animated Background */
-        .animated-bg {
+        .app-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 80px 1fr;
+            min-height: 100vh;
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.625rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+        }
+
+        .mobile-overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
-        }
-
-        .stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .grid-bg {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridPan 20s linear infinite;
-            transform: perspective(500px) rotateX(60deg);
-        }
-
-        @keyframes gridPan {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
-        }
-
-        /* Floating Orbs */
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.3;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .orb1 {
-            width: 400px;
-            height: 400px;
-            background: var(--cyber-blue);
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .orb2 {
-            width: 300px;
-            height: 300px;
-            background: var(--cyber-purple);
-            top: 60%;
-            right: 10%;
-            animation-delay: 5s;
-        }
-
-        .orb3 {
-            width: 350px;
-            height: 350px;
-            background: var(--cyber-pink);
-            bottom: 10%;
-            left: 50%;
-            animation-delay: 10s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(50px, -50px) scale(1.1); }
-            66% { transform: translate(-50px, 50px) scale(0.9); }
-        }
-
-        /* Floating 3D Geometric Shapes */
-        .shapes-container {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 2;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 199;
+            opacity: 0;
+            transition: opacity 0.3s ease;
             pointer-events: none;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Header */
+        .app-header {
+            grid-column: 1 / -1;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-dark) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-accent) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.3);
             overflow: hidden;
         }
 
-        .shape {
+        .brand-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 4px;
+        }
+
+        .brand-text h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.125rem;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            padding: 0.625rem 1.25rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .header-btn:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+        }
+
+        .header-btn.primary {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            border: none;
+            color: var(--bg-dark);
+        }
+
+        .header-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.4);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .sidebar-heading {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: 1rem;
+            padding: 0 0.75rem;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.375rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .nav-link::before {
+            content: '';
             position: absolute;
-            opacity: 0.15;
-            animation: float-complex 30s infinite ease-in-out;
-        }
-
-        .cube {
-            width: 100px;
-            height: 100px;
-            border: 2px solid var(--cyber-blue);
-            transform-style: preserve-3d;
-            animation: rotate3d 20s infinite linear;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-        }
-
-        .sphere {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 2px solid var(--cyber-purple);
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
-        }
-
-        .pyramid {
-            width: 0;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
             height: 0;
-            border-left: 50px solid transparent;
-            border-right: 50px solid transparent;
-            border-bottom: 100px solid rgba(236, 72, 153, 0.3);
-            box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+            background: var(--gold-primary);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
         }
 
-        @keyframes float-complex {
-            0%, 100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            25% {
-                transform: translate(100px, -100px) rotate(90deg);
-            }
-            50% {
-                transform: translate(50px, 50px) rotate(180deg);
-            }
-            75% {
-                transform: translate(-50px, 0) rotate(270deg);
-            }
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(201, 165, 91, 0.08);
+            color: var(--text-primary);
         }
 
-        @keyframes rotate3d {
-            from {
-                transform: rotateX(0deg) rotateY(0deg);
-            }
-            to {
-                transform: rotateX(360deg) rotateY(360deg);
-            }
+        .nav-link.active::before {
+            height: 60%;
+        }
+
+        .nav-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link.active .nav-icon {
+            background: linear-gradient(135deg, rgba(201, 165, 91, 0.2), rgba(228, 199, 138, 0.2));
+        }
+
+        .nav-content {
+            flex: 1;
+        }
+
+        .nav-content h4 {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+        }
+
+        .nav-meta {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        /* Subnav for articles - Always visible */
+        .subnav-list {
+            list-style: none;
+            max-height: none;
+            overflow: visible;
+            margin-left: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .subnav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .subnav-item .nav-link {
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .subnav-item .nav-link::before {
+            display: none;
+        }
+
+        .subnav-item .nav-content h4 {
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.4;
         }
 
         /* Main Content */
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+        .main-content {
+            padding: 3rem;
+            overflow-y: auto;
         }
 
-        /* Scroll Progress Bar */
-        .scroll-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--cyber-blue), var(--cyber-purple), var(--cyber-pink));
-            z-index: 1000;
-            transition: width 0.1s;
+        .tab-content {
+            display: none;
         }
 
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 6rem 2rem;
-            position: relative;
+        .tab-content.active {
+            display: block;
         }
 
-        .badge {
+        /* Article View */
+        .article-featured {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .article-header {
+            padding: 2.5rem 3rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .article-tag {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(139, 92, 246, 0.1));
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            border-radius: 50px;
-            font-size: 0.9rem;
-            color: var(--cyber-blue);
-            margin-bottom: 2rem;
-            animation: glow 2s ease-in-out infinite;
-        }
-
-        @keyframes glow {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(0, 240, 255, 0.6);
-            }
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.5;
-                transform: scale(1.2);
-            }
-        }
-
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2.5rem, 8vw, 5rem);
-            font-weight: 900;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple), var(--cyber-pink));
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientFlow 5s ease infinite;
-        }
-
-        @keyframes gradientFlow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .hero-subtitle {
-            font-size: clamp(1rem, 2vw, 1.3rem);
-            color: var(--text-secondary);
-            max-width: 700px;
-            margin: 0 auto 3rem;
-            line-height: 1.6;
-        }
-
-        .cta-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(201, 165, 91, 0.1);
+            border: 1px solid rgba(201, 165, 91, 0.2);
+            border-radius: 6px;
+            font-size: 0.8125rem;
             font-weight: 600;
-            cursor: pointer;
-            border: none;
+            color: var(--gold-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.75rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meta-item i {
+            color: var(--gold-primary);
+            font-size: 0.875rem;
+        }
+
+        .article-body {
+            padding: 2.5rem 3rem;
+        }
+
+        .article-text {
+            font-size: 1.0625rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .article-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .article-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Live Indicators View */
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .indicator-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-card:hover {
+            border-color: rgba(201, 165, 91, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .indicator-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .indicator-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .indicator-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .indicator-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--gold-accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .indicator-change {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .indicator-change.positive {
+            color: #22C55E;
+        }
+
+        .indicator-change.negative {
+            color: #EF4444;
+        }
+
+        .indicator-meta {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Data Portal View */
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.0625rem;
+            color: var(--text-tertiary);
+            max-width: 720px;
+        }
+
+        .datasets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .dataset-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            display: inline-block;
             position: relative;
             overflow: hidden;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple));
-            color: white;
+        .dataset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 240, 255, 0.4);
+        .dataset-card:hover {
+            border-color: rgba(201, 165, 91, 0.3);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dataset-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .dataset-card.disabled {
+            opacity: 0.5;
+        }
+
+        .dataset-card.disabled:hover {
+            transform: none;
+            border-color: var(--border-color);
+        }
+
+        .dataset-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Dataset icon removed for cleaner design */
+
+        .dataset-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .dataset-desc {
+            font-size: 0.9375rem;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .dataset-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .stat-item i {
+            color: var(--gold-primary);
+            font-size: 0.875rem;
+        }
+
+        .dataset-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 165, 91, 0.4);
         }
 
         .btn-secondary {
             background: transparent;
-            border: 2px solid var(--cyber-blue);
-            color: var(--cyber-blue);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
         }
 
         .btn-secondary:hover {
-            background: rgba(0, 240, 255, 0.1);
-            transform: translateY(-5px);
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+            background: rgba(201, 165, 91, 0.05);
         }
 
-        /* Stats Grid */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin: 4rem 0;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .stat-card {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 20px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            border-color: var(--cyber-blue);
-            box-shadow: 0 25px 50px rgba(0, 240, 255, 0.2);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(0, 240, 255, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        .stat-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            filter: drop-shadow(0 0 15px currentColor);
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--cyber-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        /* Data Cards */
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin: 4rem 0 3rem;
-            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-
-        .data-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 2rem;
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .data-card:hover {
-            border-color: var(--cyber-blue);
-            box-shadow: 0 20px 60px rgba(0, 240, 255, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.25rem 0.75rem;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid var(--success);
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: var(--success);
-        }
-
-        .live-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--success); }
-            50% { opacity: 0.3; }
-        }
-
-        .price-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .price-item {
-            background: rgba(0, 240, 255, 0.05);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border-left: 3px solid var(--cyber-blue);
-        }
-
-        .price-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .price-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--cyber-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .trend {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .trend-up { color: var(--success); }
-        .trend-down { color: var(--danger); }
-
-        .chart-wrapper {
-            height: 300px;
-            margin: 2rem 0;
-        }
-
-        .download-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple));
-            border: none;
+        .api-section {
+            background: rgba(201, 165, 91, 0.05);
+            border: 1px solid rgba(201, 165, 91, 0.15);
             border-radius: 12px;
-            color: white;
+            padding: 2.5rem;
+        }
+
+        .api-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-header h3 {
+            font-size: 1.5rem;
             font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
+            color: var(--text-primary);
         }
 
-        .download-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(0, 240, 255, 0.4);
+        .api-description {
+            color: var(--text-tertiary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
-        /* AI Analysis */
-        .ai-section {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0, 240, 255, 0.1));
-            border-radius: 20px;
-            padding: 3rem;
-            margin: 4rem 0;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            position: relative;
-            overflow: hidden;
+        .api-endpoints {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
         }
 
-        .ai-section::before {
-            content: '🤖';
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            font-size: 5rem;
-            opacity: 0.1;
-            animation: spin 20s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .ai-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+        .api-endpoint {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            color: var(--gold-accent);
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
-        .ai-content {
-            background: rgba(10, 14, 26, 0.5);
-            padding: 2rem;
-            border-radius: 15px;
-            margin-top: 1.5rem;
-            line-height: 1.8;
+        .method {
+            color: #22C55E;
+            font-weight: 700;
+            font-size: 0.75rem;
         }
 
-        /* Footer */
-        .footer {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 3rem;
-            margin-top: 6rem;
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            text-align: center;
+        .api-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
         }
 
-        .footer-title {
-            font-size: 1.5rem;
-            color: var(--cyber-blue);
-            margin-bottom: 1.5rem;
-        }
-
-        .disclaimer {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .disclaimer p {
-            margin-bottom: 1rem;
-        }
-
-        .footer-links {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(0, 240, 255, 0.2);
-        }
-
-        .footer-links a {
-            color: var(--cyber-blue);
+        .api-footer a {
+            color: var(--gold-accent);
             text-decoration: none;
-            margin: 0 1rem;
-            transition: color 0.3s;
+            font-weight: 500;
         }
 
-        .footer-links a:hover {
-            color: var(--cyber-purple);
+        .api-footer a:hover {
+            text-decoration: underline;
         }
 
-        /* Loading Spinner */
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0, 240, 255, 0.3);
-            border-top-color: var(--cyber-blue);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        /* Charts Section */
+        .charts-section {
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(201, 165, 91, 0.05);
+            padding: 0.375rem;
+            border-radius: 8px;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(201, 165, 91, 0.1);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: var(--bg-dark);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+            touch-action: pan-y;
+            user-select: none;
+        }
+
+        .chart-container canvas {
+            cursor: pointer;
+        }
+
+        .chart-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .chart-error {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-tertiary);
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold-dark);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-primary);
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .hero { padding: 3rem 1rem; }
-            .stats { grid-template-columns: 1fr; }
-            .data-grid { grid-template-columns: 1fr; }
-            .price-box { grid-template-columns: 1fr; }
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .datasets-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+
+            .indicators-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 968px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 1fr;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 280px;
+                height: calc(100vh - 70px);
+                background-color: var(--bg-secondary);
+                border-right: 1px solid var(--border-color);
+                padding: 1.5rem;
+                transition: left 0.3s ease;
+                z-index: 200;
+                overflow-y: auto;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .app-header {
+                padding: 0 1rem;
+                height: 70px;
+            }
+
+            .brand-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.25rem;
+            }
+
+            .brand-text h1 {
+                font-size: 1.25rem;
+            }
+
+            .brand-subtitle {
+                font-size: 0.65rem;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+
+            .header-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8125rem;
+            }
+
+            .header-btn span {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1.5rem 1rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .section-subtitle {
+                font-size: 0.9375rem;
+            }
+
+            .article-title {
+                font-size: 1.75rem;
+            }
+
+            .article-text {
+                font-size: 1rem;
+            }
+
+            .datasets-grid,
+            .indicators-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .dataset-card,
+            .indicator-card {
+                padding: 1.5rem;
+            }
+
+            .article-header,
+            .article-body {
+                padding: 1.5rem 1rem;
+            }
+
+            .article-meta {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .api-section {
+                padding: 1.5rem;
+            }
+
+            .api-endpoint {
+                font-size: 0.75rem;
+                padding: 0.875rem 1rem;
+                flex-wrap: wrap;
+            }
+
+            .dataset-stats {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .brand {
+                gap: 0.75rem;
+            }
+
+            .brand-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 1.125rem;
+            }
+
+            .brand-text h1 {
+                font-size: 1.125rem;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
+
+            .header-btn:not(.mobile-menu-btn) {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .section-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .article-title {
+                font-size: 1.5rem;
+                line-height: 1.3;
+            }
+
+            .chart-container {
+                height: 320px;
+                margin-top: 0.75rem;
+                overflow: visible;
+            }
+
+            .chart-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+                overflow-x: hidden;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .chart-title {
+                font-size: 1.125rem;
+            }
+
+            .chart-filters {
+                width: 100%;
+                flex-wrap: wrap;
+                padding: 0.5rem;
+            }
+
+            .filter-btn {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .type-select {
+                font-size: 0.875rem !important;
+                padding: 0.5rem !important;
+                margin-right: 0.5rem !important;
+            }
+
+            .article-tag {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+
+            .dataset-top {
+                gap: 1rem;
+            }
+
+            .dataset-icon,
+            .indicator-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.5rem;
+            }
+
+            .dataset-info h3,
+            .indicator-title {
+                font-size: 1.0625rem;
+            }
+
+            .indicator-value {
+                font-size: 1.875rem;
+            }
+
+            .dataset-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .api-endpoints {
+                gap: 0.5rem;
+            }
+
+            .api-endpoint {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Scroll Progress -->
-    <div class="scroll-progress" id="scrollProgress"></div>
-
-    <!-- Particles Background -->
-    <div id="particles-js" style="position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 0;"></div>
-
-    <!-- Floating 3D Geometric Shapes -->
-    <div class="shapes-container">
-        <div class="shape cube" style="top: 10%; left: 5%;"></div>
-        <div class="shape sphere" style="top: 60%; right: 10%;"></div>
-        <div class="shape pyramid" style="bottom: 15%; left: 20%;"></div>
-        <div class="shape cube" style="top: 80%; right: 25%; animation-delay: 5s;"></div>
-        <div class="shape sphere" style="top: 30%; left: 70%; animation-delay: 8s;"></div>
-    </div>
-
-    <!-- Animated Background -->
-    <div class="animated-bg">
-        <div class="stars" id="stars"></div>
-        <div class="grid-bg"></div>
-        <div class="orb orb1"></div>
-        <div class="orb orb2"></div>
-        <div class="orb orb3"></div>
-    </div>
-
-    <!-- Main Container -->
-    <div class="container">
-        <!-- Hero -->
-        <section class="hero">
-            <div class="badge">
-                <div class="pulse-dot"></div>
-                AI-Powered Data Platform
-            </div>
-            <h1>Viet Dataverse</h1>
-            <p class="hero-subtitle">
-                Nền tảng dữ liệu kinh tế Việt Nam thế hệ mới.
-                Real-time analytics, AI-powered insights, và API miễn phí cho nghiên cứu.
-            </p>
-            <div class="cta-group">
-                <a href="#data" class="btn btn-primary">🚀 Khám Phá Dữ Liệu</a>
-                <a href="#api" class="btn btn-secondary">📚 API Docs</a>
-            </div>
-        </section>
-
-        <!-- Stats -->
-        <section class="stats">
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-value" id="goldCount">...</div>
-                <div class="stat-label">Gold Data Points (2015-Now)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🥈</div>
-                <div class="stat-value">2x</div>
-                <div class="stat-label">Silver Updates Daily</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏦</div>
-                <div class="stat-value">4+</div>
-                <div class="stat-label">Major Banks Tracked</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🤖</div>
-                <div class="stat-value">Daily</div>
-                <div class="stat-label">AI Market Analysis</div>
-            </div>
-        </section>
-
-        <!-- Data Section -->
-        <h2 class="section-title" id="data">📊 Live Market Data</h2>
-
-        <div class="data-grid">
-            <!-- Gold Card -->
-            <div class="data-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        💰 Giá Vàng SJC
-                    </div>
-                    <div class="live-badge">
-                        <div class="live-dot"></div>
-                        LIVE
-                    </div>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <button class="mobile-menu-btn" id="mobile-menu-toggle">
+                    </button>
+                <div class="brand-icon">
+                    <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/logo2.png" alt="Viet Dataverse Logo">
                 </div>
-
-                <div class="price-box">
-                    <div class="price-item">
-                        <div class="price-label">Mua vào</div>
-                        <div class="price-value" id="goldBuy">--</div>
-                        <div class="trend" id="goldBuyTrend">--</div>
-                    </div>
-                    <div class="price-item">
-                        <div class="price-label">Bán ra</div>
-                        <div class="price-value" id="goldSell">--</div>
-                        <div class="trend" id="goldSellTrend">--</div>
-                    </div>
+                <div class="brand-text">
+                    <div style="font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-primary) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.125rem;">Viet Dataverse</div>
+                    <p class="brand-subtitle">Economic Intelligence</p>
                 </div>
-
-                <div class="chart-wrapper">
-                    <canvas id="goldChart"></canvas>
-                </div>
-
-                <button class="download-btn" onclick="downloadData('gold')">
-                    📥 Download CSV (Historical Data)
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" id="lang-toggle">
+                    <span id="lang-text">En/Vie</span>
+                </button>
+                <button class="header-btn primary">
+                    <span>API Access</span>
                 </button>
             </div>
+        </header>
 
-            <!-- Silver Card -->
-            <div class="data-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        🥈 Giá Bạc Phú Quý
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h2 class="sidebar-heading">Navigation</h2>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="data-portal">
+                            <div class="nav-content">
+                                <h4>Open Economic Data</h4>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="flash-news" id="flash-news-toggle">
+                            <div class="nav-content">
+                                <h4>Flash News</h4>
+                                <span class="nav-meta">Latest updates</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="about-terms">
+                            <div class="nav-content">
+                                <h4>About & Terms</h4>
+                                <span class="nav-meta">Về dự án & Điều khoản</span>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="tab-content active" id="data-portal">
+                <div class="section-header">
+                    <h1 class="section-title" style="font-size: 2.5rem;">Viet Dataverse - Dữ Liệu Kinh Tế Việt Nam</h1>
+                    <p class="section-subtitle" style="font-size: 1.125rem;">
+                        Theo dõi <strong>giá vàng SJC hôm nay</strong>, <strong>giá bạc Phú Quý</strong>, <strong>lãi suất liên ngân hàng SBV</strong> cập nhật realtime.
+                        Tải xuống dữ liệu lịch sử định dạng CSV miễn phí cho phân tích và nghiên cứu kinh tế.
+                        Tất cả nguồn dữ liệu được ghi chép công khai và truy cập hoàn toàn miễn phí.
+                    </p>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <!-- Gold Price Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                Lịch Sử Giá Vàng Việt Nam
+                            </h3>
+                            <div class="chart-filters">
+                                <select id="goldTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                    <option value="DOJI HN">DOJI HN</option>
+                                </select>
+                                <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="goldChart"></canvas>
+                            <div class="chart-loading" id="goldLoading">Loading data...</div>
+                        </div>
                     </div>
-                    <div class="live-badge">
-                        <div class="live-dot"></div>
-                        LIVE
+
+                    <!-- Silver Price Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                Lịch Sử Giá Bạc Việt Nam - Phú Quý
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="silver" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="silverChart"></canvas>
+                            <div class="chart-loading" id="silverLoading">Loading data...</div>
+                        </div>
+                    </div>
+
+                    <!-- SBV Interbank Rate Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                Lịch Sử Lãi Suất Liên Ngân Hàng SBV
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="sbvChart"></canvas>
+                            <div class="chart-loading" id="sbvLoading">Loading data...</div>
+                        </div>
+                    </div>
+
+                    <!-- Global Macro Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)
+                            </h3>
+                            <div class="chart-filters">
+                                <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="global" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="globalChart"></canvas>
+                            <div class="chart-loading" id="globalLoading">Loading data...</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="price-box">
-                    <div class="price-item">
-                        <div class="price-label">Mua vào</div>
-                        <div class="price-value" id="silverBuy">--</div>
-                        <div class="trend" id="silverBuyTrend">--</div>
+                <!-- Download Portal -->
+                <div class="section-header" style="margin-top: 4rem;">
+                    <h2 class="section-title">Tải Xuống Dữ Liệu Lịch Sử</h2>
+                    <p class="section-subtitle">
+                        Tải xuống bộ dữ liệu giá vàng lịch sử, giá bạc, lãi suất ngân hàng định dạng CSV hoàn toàn miễn phí hoặc truy cập qua API.
+                    </p>
+                </div>
+                <div class="datasets-grid">
+                    <!-- Gold Dataset -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>Giá Vàng SJC Việt Nam</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Giá vàng SJC 24K tại thị trường Hà Nội, với dữ liệu lịch sử đầy đủ từ năm 2015 đến nay. Cập nhật hàng ngày giá mua vào và giá bán ra từ các nguồn công khai uy tín.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                2015 - Present
+                            </span>
+                            <span class="stat-item">
+                                30+ records
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary">
+                                CSV
+                            </button>
+                            <button class="btn btn-secondary">
+                                API
+                            </button>
+                        </div>
                     </div>
-                    <div class="price-item">
-                        <div class="price-label">Bán ra</div>
-                        <div class="price-value" id="silverSell">--</div>
-                        <div class="trend" id="silverSellTrend">--</div>
+
+                    <!-- Silver Dataset -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>Giá Bạc Phú Quý</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Giá bạc thỏi Phú Quý tại thị trường trong nước, cập nhật 2 lần mỗi ngày (8:30 sáng và 1:30 chiều) với kiểm tra chất lượng tự động từ nguồn công khai.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                2023 - Present
+                            </span>
+                            <span class="stat-item">
+                                560 records
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary">
+                                CSV
+                            </button>
+                            <button class="btn btn-secondary">
+                                API
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SBV Interbank -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>Lãi Suất Liên Ngân Hàng SBV</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Lãi suất liên ngân hàng chính thức được Ngân hàng Nhà nước Việt Nam (SBV) công bố, bao gồm các kỳ hạn từ overnight đến 9 tháng.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                2025 - Present
+                            </span>
+                            <span class="stat-item">
+                                45+ updates
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary">
+                                CSV
+                            </button>
+                            <button class="btn btn-secondary">
+                                API
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Term Deposit -->
+                    <div class="dataset-card disabled">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>Bank Term Deposit Rates</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Savings interest rates from Vietnam's 8 largest commercial banks (VCB, VTB, TCB, MB, ACB, TPB, VPB, AGR).
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                In Development
+                            </span>
+                            <span class="stat-item">
+                                Q1 2026
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary" disabled>
+                                Coming Soon
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- VN30 Financials -->
+                    <div class="dataset-card disabled">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>VN30 Financial Statements</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Fundamental financial data for Vietnam's top 30 stocks by market cap, including balance sheets and key ratios.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                In Development
+                            </span>
+                            <span class="stat-item">
+                                Q2 2026
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary" disabled>
+                                Coming Soon
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- News Sentiment -->
+                    <div class="dataset-card disabled">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>News Sentiment Indicators</h3>
+                            </div>
+                        </div>
+                        <p class="dataset-desc">
+                            Economic news from 6 major outlets with AI-powered sentiment analysis on gold, silver, VN-Index and VN30 stocks.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                In Development
+                            </span>
+                            <span class="stat-item">
+                                Q2 2026
+                            </span>
+                        </div>
+                        <div class="dataset-actions">
+                            <button class="btn btn-primary" disabled>
+                                Coming Soon
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="chart-wrapper">
-                    <canvas id="silverChart"></canvas>
+                <!-- API Section -->
+                <div class="api-section">
+                    <div class="api-header">
+                        <i class="fas fa-plug" style="color: var(--gold-primary); font-size: 1.5rem;"></i>
+                        <h3>API Access</h3>
+                    </div>
+                    <p class="api-description">
+                        Access datasets programmatically via our API. Processing...
+                    </p>
+                    <!-- <div class="api-endpoints">
+                        <div class="api-endpoint">
+                            <span class="method">GET</span>
+                            <span>https://nguyenphamdieuhien.online/api/v1/datasets/vn-gold</span>
+                        </div>
+                        <div class="api-endpoint">
+                            <span class="method">GET</span>
+                            <span>https://nguyenphamdieuhien.online/api/v1/datasets/vn-silver</span>
+                        </div>
+                        <div class="api-endpoint">
+                            <span class="method">GET</span>
+                            <span>https://nguyenphamdieuhien.online/api/v1/datasets/sbv-interbank</span>
+                        </div>
+                    </div> -->
+                    <!-- <p class="api-footer">
+                        View complete <a href="../crawl_tools/data_description.html">API documentation</a> for schemas, parameters, and data sources.
+                    </p> -->
+                    <p class="api-footer">
+                        <a href="../crawl_tools/data_description.html">Sign in</a> to receive notification when it available.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab 3: Flash News (Articles) -->
+            <div class="tab-content" id="flash-news">
+                <!-- Article 1 -->
+                <article class="article-featured" id="article-1">
+                    <div class="article-header">
+                        <span class="article-tag">
+                            Phân Tích Thị Trường Vàng
+                        </span>
+                        <h1 class="article-title">Phân Tích Giá Vàng Hôm Nay: Xu Hướng Tăng Mạnh Theo Thị Trường Toàn Cầu</h1>
+                        <div class="article-meta">
+                            <span class="meta-item">
+                                Viet Dataverse
+                            </span>
+                            <span class="meta-item">
+                                13/01/2026 • 08:00
+                            </span>
+                            <span class="meta-item">
+                                Automated Analysis by Fintel
+                            </span>
+                        </div>
+                    </div>
+                    <div class="article-body">
+                        <div class="article-text">
+                            <h3>Diễn biến thị trường vàng toàn cầu</h3>
+                            <p>
+                                Giá vàng tương lai trên sàn COMEX đạt <strong>$2,690/oz</strong>, tăng 1.2% so với phiên giao dịch trước đó, phản ánh tâm lý lo ngại về lạm phát toàn cầu và căng thẳng địa chính trị gia tăng.
+                                Chỉ số NASDAQ Composite ghi nhận mức <strong>19,630 điểm</strong>, giảm 0.8% trong tuần qua, khiến dòng vốn chuyển hướng sang tài sản trú ẩn an toàn như vàng và trái phiếu chính phủ.
+                                Giá bạc giao ngay tại thị trường quốc tế đạt <strong>$31.2/oz</strong>, tăng 2.1% theo xu hướng của vàng, cho thấy kim loại quý đang được ưa chuộng trong bối cảnh bất ổn kinh tế.
+                            </p>
+
+                            <h3>Thị trường vàng trong nước</h3>
+                            <p>
+                                Vàng SJC tại Hà Nội hôm nay giao dịch ở mức <strong>160.0 - 160.0 triệu đồng/lượng</strong> (mua vào - bán ra), tăng 2.2 triệu đồng (+1.4%) so với phiên trước, đạt mức cao nhất trong 3 tháng qua theo dữ liệu từ DOJI.
+                                Chênh lệch giá mua-bán thu hẹp xuống còn 0 đồng, phản ánh thanh khoản tốt và nhu cầu mua vào mạnh mẽ từ nhà đầu tư cá nhân và tổ chức.
+                                Khối lượng giao dịch vàng miếng SJC tăng 35% so với tuần trước, cho thấy dòng tiền đang đổ mạnh vào kênh đầu tư vàng vật chất khi thị trường chứng khoán biến động.
+                            </p>
+
+                            <h3>Dự báo tuần tới (13-19/01/2026)</h3>
+                            <p>
+                                Giá vàng trong nước dự kiến <strong>tiếp tục xu hướng tăng</strong> trong tuần tới với biên độ 1-3 triệu đồng/lượng, chạm mốc 162-163 triệu đồng, do áp lực từ giá vàng thế giới tăng mạnh và tâm lý trú ẩn an toàn tăng cao.
+                                Yếu tố chính hỗ trợ đà tăng là cuộc họp Fed ngày 29/01 sắp tới, thị trường kỳ vọng Fed sẽ giữ nguyên lãi suất ở mức 5.25-5.50%, tạo áp lực giảm lên đồng USD và đẩy giá vàng lên cao.
+                                Rủi ro điều chỉnh giảm có thể xảy ra nếu số liệu CPI tháng 1 của Mỹ (công bố 15/01) thấp hơn dự báo, làm giảm kỳ vọng lạm phát và giảm sức hấp dẫn của vàng như công cụ phòng ngừa rủi ro.
+                            </p>
+
+                            <h3>Tin tức quốc tế liên quan</h3>
+                            <ul>
+                                <li><a href="https://www.reuters.com/markets/commodities/gold-prices/" target="_blank">Reuters: Gold climbs as Middle East tensions fuel safe-haven demand</a></li>
+                                <li><a href="https://www.bloomberg.com/quote/XAUUSD:CUR" target="_blank">Bloomberg: Gold Rises on Fed Rate-Cut Speculation, Dollar Weakness</a></li>
+                                <li><a href="https://www.cnbc.com/quotes/@GC.1" target="_blank">CNBC: Gold futures hit 3-month high amid inflation concerns</a></li>
+                                <li><a href="https://www.kitco.com/news/" target="_blank">Kitco: Central banks increase gold reserves for 15th consecutive month</a></li>
+                                <li><a href="https://www.ft.com/commodities" target="_blank">Financial Times: Precious metals rally as investors seek inflation hedge</a></li>
+                            </ul>
+
+                            <p class="article-disclaimer">
+                                <em>Lưu ý: Đây là phân tích dựa trên dữ liệu lịch sử và xu hướng thị trường. Nhà đầu tư nên tham khảo ý kiến chuyên gia trước khi đưa ra quyết định đầu tư.</em>
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- About & Terms Tab -->
+            <div class="tab-content" id="about-terms">
+                <div class="section-header">
+                    <h1 class="section-title">About & Terms</h1>
+                    <p class="section-subtitle">Về Viet Dataverse, Nguồn Dữ Liệu & Điều Khoản Sử Dụng</p>
                 </div>
 
-                <button class="download-btn" onclick="downloadData('silver')">
-                    📥 Download CSV (Historical Data)
-                </button>
-            </div>
-        </div>
+                <!-- Về Viet Dataverse -->
+                <div style="background: rgba(201, 165, 91, 0.05); border-left: 3px solid var(--gold-primary); padding: 1.5rem; margin: 2rem 0; border-radius: 8px; line-height: 1.8;">
+                    <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Viet Dataverse</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        <strong>Viet Dataverse</strong> là nền tảng dữ liệu kinh tế Việt Nam miễn phí, cung cấp thông tin <strong>giá vàng</strong>,
+                        <strong>giá bạc</strong>, và <strong>lãi suất ngân hàng</strong> được thu thập tự động từ các nguồn công khai uy tín.
+                    </p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        <strong>Giá vàng trong nước</strong> (SJC, DOJI) với dữ liệu lịch sử từ năm 2015 đến nay.
+                        <strong>Giá bạc trong nước</strong> (Phú Quý) được cập nhật 2 lần mỗi ngày (8:30 sáng, 1:30 chiều).
+                        <strong>Lãi suất liên ngân hàng</strong> do Ngân hàng Nhà nước Việt Nam (SBV) công bố.
+                        <strong>Lãi suất gửi tiết kiệm</strong> từ các ngân hàng thương mại lớn.
+                    </p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Dữ liệu được <strong>làm sạch, chuẩn hóa</strong> và lưu trữ lịch sử dài hạn để phục vụ <strong>mục đích nghiên cứu và phân tích</strong>.
+                        Bạn có thể tải dữ liệu định dạng CSV hoàn toàn miễn phí hoặc truy cập qua <strong>API</strong>.
+                    </p>
+                    <p style="color: #888; font-size: 0.9em; border-top: 1px solid rgba(201, 165, 91, 0.2); padding-top: 1rem; margin-top: 1rem;">
+                        <strong>Lưu ý quan trọng:</strong> Dữ liệu chỉ mang tính chất tham khảo, không phải lời khuyên đầu tư.
+                        Viet Dataverse không chịu trách nhiệm về các quyết định tài chính dựa trên dữ liệu này.
+                        Người dùng cần tự kiểm tra và chịu trách nhiệm với quyết định của mình.
+                    </p>
+                    <p class="api-footer" style="margin-top: 1rem;">
+                        Xem đầy đủ <a href="../crawl_tools/data_description.html" style="color: var(--gold-primary);">mô tả dữ liệu</a> để biết chi tiết về schemas, parameters, và nguồn dữ liệu.
+                    </p>
+                </div>
 
-        <!-- AI Analysis -->
-        <section class="ai-section" id="ai">
-            <h3 class="ai-title">
-                🤖 AI Market Analysis
-                <span style="font-size: 1rem; color: var(--text-secondary); font-weight: 400;">
-                    Powered by Gemini 2.5 Flash
-                </span>
-            </h3>
-            <div class="ai-content" id="aiAnalysis">
-                <div class="spinner"></div> Đang tải phân tích AI...
-            </div>
-        </section>
+                <!-- Về Nguồn Dữ Liệu & Phương Pháp Thu Thập -->
+                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
+                    <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Nguồn Dữ Liệu & Phương Pháp Thu Thập</h2>
+                    <p style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Dữ liệu trên Viet Dataverse được thu thập tự động từ <strong>các nguồn công khai, miễn phí</strong> bao gồm website của các tổ chức tài chính, công ty vàng bạc uy tín, và cơ quan nhà nước.
+                        Tất cả dữ liệu đều là <strong>thông tin công khai</strong> mà bất kỳ ai cũng có thể truy cập.
+                    </p>
+                    <p style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Giá trị gia tăng của Viet Dataverse nằm ở việc <strong>làm sạch, chuẩn hóa, lưu trữ lịch sử dài hạn</strong> và cung cấp API miễn phí để phục vụ cộng đồng nghiên cứu.
+                        Chúng tôi không sở hữu dữ liệu gốc, chỉ cung cấp dịch vụ tổng hợp và phân phối.
+                    </p>
+                </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <h3 class="footer-title">Về Viet Dataverse</h3>
-            <div class="disclaimer">
-                <p>
-                    Dữ liệu được thu thập tự động từ <strong>các nguồn công khai uy tín</strong> bao gồm tổ chức tài chính,
-                    công ty vàng bạc, và cơ quan nhà nước. Viet Dataverse cung cấp giá trị gia tăng thông qua
-                    <strong>làm sạch, chuẩn hóa, AI analysis</strong> và lưu trữ lịch sử dài hạn.
-                </p>
-                <p>
-                    <strong>⚠️ Disclaimer:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, không phải lời khuyên đầu tư.
-                    Viet Dataverse không chịu trách nhiệm về quyết định tài chính dựa trên dữ liệu này.
-                </p>
+                <!-- Điều Khoản Sử Dụng -->
+                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
+                    <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Điều Khoản Sử Dụng</h2>
+                    <ul style="color: #A0A0A0; line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
+                        <li><strong>Mục đích:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, học thuật, và phân tích cá nhân. Không dùng cho mục đích thương mại trừ khi có thỏa thuận.</li>
+                        <li><strong>Không phải lời khuyên tài chính:</strong> Viet Dataverse không cung cấp lời khuyên đầu tư. Mọi quyết định tài chính là trách nhiệm của người dùng.</li>
+                        <li><strong>Độ chính xác:</strong> Chúng tôi nỗ lực đảm bảo độ chính xác nhưng không chịu trách nhiệm về sai sót từ nguồn gốc hoặc quá trình thu thập.</li>
+                        <li><strong>Bảo vệ nguồn:</strong> Người dùng cam kết không crawl ngược lại dữ liệu từ Viet Dataverse để tạo dịch vụ cạnh tranh.</li>
+                    </ul>
+
+                    <p style="color: #666; font-size: 0.85rem; margin-top: 1.5rem; font-style: italic;">
+                        © 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở.
+                        <a href="mailto:contact@nguyenphamdieuhien.online" style="color: var(--gold-primary); text-decoration: none;">Liên hệ</a>
+                    </p>
+                </div>
             </div>
-            <div class="footer-links">
-                © 2026 Viet Dataverse
-                <a href="mailto:contact@nguyenphamdieuhien.online">Contact</a>
-                <a href="../crawl_tools/data_description.html">API Docs</a>
-            </div>
-        </footer>
+        </main>
     </div>
 
     <script>
-        // Create stars
-        function createStars() {
-            const container = document.getElementById('stars');
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 3 + 's';
-                container.appendChild(star);
+        // Language toggle with translations (Vietnamese is primary)
+        let currentLang = 'vi';
+
+        const translations = {
+            vi: {
+                langBtn: 'En',
+                subtitle: 'Thông tin Kinh tế',
+                navDataPortal: 'Dữ Liệu Kinh Tế Mở',
+                navFlashNews: 'Tin Tức Nhanh',
+                navFlashNewsMeta: 'Cập nhật mới nhất',
+                navAboutTerms: 'About & Terms',
+                navAboutTermsMeta: 'Về dự án & Điều khoản',
+                sectionTitle: 'Dữ Liệu Kinh Tế Mở',
+                sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu.',
+                goldChart: 'Lịch Sử Giá Vàng',
+                silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
+                sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng SBV',
+                globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
+                downloadTitle: 'Tải Xuống Bộ Dữ Liệu',
+                downloadSubtitle: 'Tải xuống bộ dữ liệu lịch sử đầy đủ ở định dạng CSV hoặc truy cập qua API.',
+                apiBtn: 'Đăng nhập'
+            },
+            en: {
+                langBtn: 'Vie',
+                subtitle: 'Economic Intelligence',
+                navDataPortal: 'Open Economic Data',
+                navFlashNews: 'Flash News',
+                navFlashNewsMeta: 'Latest updates',
+                navAboutTerms: 'About & Terms',
+                navAboutTermsMeta: 'About project & Terms',
+                sectionTitle: 'Open Economic Data',
+                sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible.',
+                goldChart: 'Gold Price History',
+                silverChart: 'Silver Price History (Phú Quý)',
+                sbvChart: 'SBV Interbank Rates History',
+                globalChart: 'Global Market Trends (Gold, Silver, NASDAQ)',
+                downloadTitle: 'Download Datasets',
+                downloadSubtitle: 'Download complete historical datasets in CSV format or access via API.',
+                apiBtn: 'Login'
             }
-        }
+        };
 
-        // Scroll progress
-        window.addEventListener('scroll', () => {
-            const scrollTop = window.pageYOffset;
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = (scrollTop / docHeight) * 100;
-            document.getElementById('scrollProgress').style.width = scrollPercent + '%';
-        });
+        function updateLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
 
-        // Fetch Gold Data
-        async function fetchGold() {
-            try {
-                const res = await fetch('https://nguyenphamdieuhien.online/crawl_tools/api/gold_24h_dojihn_hist.php?days=30');
-                const data = await res.json();
+            // Update button
+            document.getElementById('lang-text').textContent = t.langBtn;
+            document.querySelector('.brand-subtitle').textContent = t.subtitle;
 
-                if (data.success && data.data.length > 0) {
-                    const latest = data.data[0];
-                    const prev = data.data[1] || latest;
-
-                    document.getElementById('goldBuy').textContent = (latest.buy_price / 1000000).toFixed(1) + 'M';
-                    document.getElementById('goldSell').textContent = (latest.sell_price / 1000000).toFixed(1) + 'M';
-                    document.getElementById('goldCount').textContent = data.data.length;
-
-                    const buyChange = ((latest.buy_price - prev.buy_price) / prev.buy_price * 100).toFixed(2);
-                    const sellChange = ((latest.sell_price - prev.sell_price) / prev.sell_price * 100).toFixed(2);
-
-                    document.getElementById('goldBuyTrend').innerHTML = buyChange >= 0 ? `↗ +${buyChange}%` : `↘ ${buyChange}%`;
-                    document.getElementById('goldBuyTrend').className = buyChange >= 0 ? 'trend trend-up' : 'trend trend-down';
-
-                    document.getElementById('goldSellTrend').innerHTML = sellChange >= 0 ? `↗ +${sellChange}%` : `↘ ${sellChange}%`;
-                    document.getElementById('goldSellTrend').className = sellChange >= 0 ? 'trend trend-up' : 'trend trend-down';
-
-                    createChart('goldChart', data.data.reverse(), '#FFD700');
-                }
-            } catch (e) {
-                console.error('Gold fetch error:', e);
-            }
-        }
-
-        // Fetch Silver Data
-        async function fetchSilver() {
-            try {
-                const res = await fetch('https://nguyenphamdieuhien.online/crawl_tools/api/silver_phuquy_hist.php?days=7');
-                const data = await res.json();
-
-                if (data.success && data.data.length > 0) {
-                    const latest = data.data[0];
-                    const prev = data.data[1] || latest;
-
-                    document.getElementById('silverBuy').textContent = (latest.buy_price / 1000).toFixed(0) + 'K';
-                    document.getElementById('silverSell').textContent = (latest.sell_price / 1000).toFixed(0) + 'K';
-
-                    const buyChange = ((latest.buy_price - prev.buy_price) / prev.buy_price * 100).toFixed(2);
-                    const sellChange = ((latest.sell_price - prev.sell_price) / prev.sell_price * 100).toFixed(2);
-
-                    document.getElementById('silverBuyTrend').innerHTML = buyChange >= 0 ? `↗ +${buyChange}%` : `↘ ${buyChange}%`;
-                    document.getElementById('silverBuyTrend').className = buyChange >= 0 ? 'trend trend-up' : 'trend trend-down';
-
-                    document.getElementById('silverSellTrend').innerHTML = sellChange >= 0 ? `↗ +${sellChange}%` : `↘ ${sellChange}%`;
-                    document.getElementById('silverSellTrend').className = sellChange >= 0 ? 'trend trend-up' : 'trend trend-down';
-
-                    createChart('silverChart', data.data.reverse(), '#C0C0C0');
-                }
-            } catch (e) {
-                console.error('Silver fetch error:', e);
-            }
-        }
-
-        // Fetch AI Analysis
-        async function fetchAI() {
-            try {
-                const res = await fetch('https://nguyenphamdieuhien.online/crawl_tools/api/gold_analysis.php');
-                const data = await res.json();
-
-                if (data.success && data.data.length > 0) {
-                    document.getElementById('aiAnalysis').innerHTML = data.data[0].content;
-                } else {
-                    document.getElementById('aiAnalysis').innerHTML = '<p style="color: var(--text-secondary);">Chưa có phân tích AI. Vui lòng quay lại sau.</p>';
-                }
-            } catch (e) {
-                console.error('AI fetch error:', e);
-                document.getElementById('aiAnalysis').innerHTML = '<p style="color: var(--text-secondary);">Không thể tải phân tích AI.</p>';
-            }
-        }
-
-        // Create Chart
-        function createChart(id, data, color) {
-            const ctx = document.getElementById(id).getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.date),
-                    datasets: [{
-                        data: data.map(d => d.sell_price / (id === 'goldChart' ? 1000000 : 1000)),
-                        borderColor: color,
-                        backgroundColor: color + '20',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 0,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: {
-                            ticks: { color: '#94A3B8', font: { size: 11 } },
-                            grid: { color: 'rgba(0, 240, 255, 0.1)' }
-                        },
-                        x: {
-                            ticks: { color: '#94A3B8', maxTicksLimit: 6, font: { size: 11 } },
-                            grid: { display: false }
-                        }
-                    }
+            // Update navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-tab') === 'data-portal') {
+                    link.querySelector('h4').textContent = t.navDataPortal;
+                } else if (link.getAttribute('data-tab') === 'flash-news') {
+                    link.querySelector('h4').textContent = t.navFlashNews;
+                    const meta = link.querySelector('.nav-meta');
+                    if (meta) meta.textContent = t.navFlashNewsMeta;
                 }
             });
+
+            // Update sections
+            const sectionHeaders = document.querySelectorAll('.section-header');
+            if (sectionHeaders[0]) {
+                sectionHeaders[0].querySelector('.section-title').textContent = t.sectionTitle;
+                sectionHeaders[0].querySelector('.section-subtitle').textContent = t.sectionSubtitle;
+            }
+            if (sectionHeaders[1]) {
+                sectionHeaders[1].querySelector('.section-title').textContent = t.downloadTitle;
+                sectionHeaders[1].querySelector('.section-subtitle').textContent = t.downloadSubtitle;
+            }
+
+            // Update charts
+            const chartTitles = document.querySelectorAll('.chart-title');
+            if (chartTitles[0]) chartTitles[0].textContent = t.goldChart;
+            if (chartTitles[1]) chartTitles[1].textContent = t.silverChart;
+            if (chartTitles[2]) chartTitles[2].textContent = t.sbvChart;
+            if (chartTitles[3]) chartTitles[3].textContent = t.globalChart;
+
+            // Update API button
+            document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
+
+            // Set HTML lang and visual feedback
+            document.documentElement.lang = lang;
+            document.getElementById('lang-toggle').style.borderColor =
+                lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
         }
 
-        // Download Data
-        function downloadData(type) {
-            if (type === 'gold') {
-                window.location.href = 'https://nguyenphamdieuhien.online/crawl_tools/api/gold_24h_dojihn_hist.php?format=csv&days=all';
-            } else {
-                window.location.href = 'https://nguyenphamdieuhien.online/crawl_tools/api/silver_phuquy_hist.php?format=csv&days=all';
-            }
-        }
+        // Initialize with Vietnamese
+        updateLanguage('vi');
 
-        // Initialize Particles.js
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: '#00F0FF' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.5, random: true },
-                size: { value: 3, random: true },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: '#00F0FF',
-                    opacity: 0.2,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 2,
-                    direction: 'none',
-                    random: true,
-                    out_mode: 'out'
-                }
-            }
+        // Toggle event
+        document.getElementById('lang-toggle').addEventListener('click', function() {
+            updateLanguage(currentLang === 'vi' ? 'en' : 'vi');
         });
 
-        // Initialize
-        window.addEventListener('DOMContentLoaded', () => {
-            createStars();
-            fetchGold();
-            fetchSilver();
-            fetchAI();
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const sidebar = document.querySelector('.sidebar');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+        }
+
+        mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+        mobileOverlay.addEventListener('click', toggleMobileMenu);
+
+        // Tab switching
+        const navLinks = document.querySelectorAll('.nav-link[data-tab]');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Remove active from all nav links
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                // Hide all tab contents
+                tabContents.forEach(tab => tab.classList.remove('active'));
+
+                // Show selected tab
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                // Close mobile menu after selection on mobile
+                if (window.innerWidth <= 968) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // Flash news navigation (subnav always visible)
+        const flashNewsToggle = document.getElementById('flash-news-toggle');
+        const articlesSubnav = document.getElementById('articles-subnav');
+
+        // Article navigation
+        const articleLinks = document.querySelectorAll('.nav-link[data-article]');
+        const allArticles = document.querySelectorAll('.article-featured');
+
+        articleLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Remove active from article links
+                articleLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+
+                // Show flash news tab
+                tabContents.forEach(tab => tab.classList.remove('active'));
+                document.getElementById('flash-news').classList.add('active');
+
+                // Activate flash news nav
+                navLinks.forEach(l => l.classList.remove('active'));
+                flashNewsToggle.classList.add('active');
+
+                // Hide all articles
+                allArticles.forEach(article => {
+                    article.style.display = 'none';
+                });
+
+                // Show selected article
+                const articleId = this.getAttribute('data-article');
+                document.getElementById(articleId).style.display = 'block';
+
+                // Scroll to top of article
+                document.querySelector('.main-content').scrollTop = 0;
+
+                // Close mobile menu after selection on mobile
+                if (window.innerWidth <= 968) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // ==================== CHARTS FUNCTIONALITY ====================
+        // API Base URL - use port 8000 for local dev, dynamic for production
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000/api/v1'  // Local development
+            : 'https://api.nguyenphamdieuhien.online/api/v1';  // Production
+
+        // Chart instances
+        let goldChart = null;
+        let silverChart = null;
+        let sbvChart = null;
+        let globalChart = null;
+
+        // Chart.js default configuration
+        Chart.defaults.color = '#A0A0A0';
+        Chart.defaults.borderColor = 'rgba(201, 165, 91, 0.15)';
+        Chart.defaults.font.family = 'Inter, sans-serif';
+
+        // Helper function to get responsive font size
+        function getResponsiveFontSize() {
+            return window.innerWidth <= 640 ? 9 : 11;
+        }
+
+        // Helper function to get responsive tick limit
+        function getResponsiveTickLimit() {
+            return window.innerWidth <= 640 ? 6 : 8;
+        }
+
+        // Helper function to hide tooltip when clicking outside chart
+        function setupTooltipHideOnClickOutside(chart, canvas) {
+            const hideTooltip = (event) => {
+                const rect = canvas.getBoundingClientRect();
+                const isInside = event.clientX >= rect.left &&
+                                event.clientX <= rect.right &&
+                                event.clientY >= rect.top &&
+                                event.clientY <= rect.bottom;
+
+                if (!isInside && chart.tooltip && chart.tooltip.getActiveElements().length > 0) {
+                    chart.tooltip.setActiveElements([], {x: 0, y: 0});
+                    chart.update();
+                }
+            };
+
+            // Remove existing listener if any
+            if (canvas._hideTooltipListener) {
+                document.removeEventListener('click', canvas._hideTooltipListener);
+                document.removeEventListener('touchstart', canvas._hideTooltipListener);
+            }
+
+            // Add new listener
+            canvas._hideTooltipListener = hideTooltip;
+            document.addEventListener('click', hideTooltip);
+            document.addEventListener('touchstart', hideTooltip);
+        }
+
+        // Fetch data from API
+        async function fetchData(endpoint, period) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${endpoint}?period=${period}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const result = await response.json();
+                return result.data;
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                throw error;
+            }
+        }
+
+        // Load gold types
+        async function loadGoldTypes() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gold/types`);
+                const result = await response.json();
+                if (result.success && result.types) {
+                    const select = document.getElementById('goldTypeSelect');
+                    select.innerHTML = result.types.map(type =>
+                        `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading gold types:', error);
+            }
+        }
+
+        // Create/Update Gold Chart
+        async function updateGoldChart(period = '1m', type = null) {
+            const loading = document.getElementById('goldLoading');
+            const canvas = document.getElementById('goldChart');
+
+            if (!type) {
+                const select = document.getElementById('goldTypeSelect');
+                type = select ? select.value : 'DOJI HN';
+            }
+
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`);
+                const result = await response.json();
+                const data = result.data;
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Buy Price',
+                            data: data.buy_prices,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Sell Price',
+                            data: data.sell_prices,
+                            borderColor: '#E4C78A',
+                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: true,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' +
+                                               context.parsed.y.toLocaleString('vi-VN') + ' VND';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return (value / 1000000).toFixed(1) + 'M';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070',
+                                    autoSkip: true,
+                                    maxTicksLimit: getResponsiveTickLimit(),
+                                    autoSkipPadding: 15,
+                                    padding: 8,
+                                    font: {
+                                        size: getResponsiveFontSize()
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        // Format date consistently to avoid jumping
+                                        const label = this.getLabelForValue(value);
+                                        if (!label) return '';
+
+                                        // Try to parse and format consistently
+                                        const parts = label.split('-');
+                                        if (parts.length === 3) {
+                                            // Format: MM-DD or YYYY-MM-DD
+                                            const month = parts[1];
+                                            const day = parts[2];
+                                            return month + '-' + day;
+                                        }
+                                        return label;
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (goldChart) {
+                    goldChart.destroy();
+                }
+                goldChart = new Chart(canvas, config);
+
+                // Setup tooltip hide on click outside
+                setupTooltipHideOnClickOutside(goldChart, canvas);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Create/Update Silver Chart
+        async function updateSilverChart(period = '1m') {
+            const loading = document.getElementById('silverLoading');
+            const canvas = document.getElementById('silverChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('silver', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Buy Price',
+                            data: data.buy_prices,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Sell Price',
+                            data: data.sell_prices,
+                            borderColor: '#D4D4D4',
+                            backgroundColor: 'rgba(212, 212, 212, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(184, 184, 184, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' +
+                                               context.parsed.y.toLocaleString('vi-VN') + ' VND';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return (value / 1000).toFixed(0) + 'K';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(184, 184, 184, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070',
+                                    autoSkip: true,
+                                    maxTicksLimit: getResponsiveTickLimit(),
+                                    autoSkipPadding: 15,
+                                    padding: 8,
+                                    font: {
+                                        size: getResponsiveFontSize()
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        // Format date consistently to avoid jumping
+                                        const label = this.getLabelForValue(value);
+                                        if (!label) return '';
+
+                                        // Try to parse and format consistently
+                                        const parts = label.split('-');
+                                        if (parts.length === 3) {
+                                            // Format: MM-DD or YYYY-MM-DD
+                                            const month = parts[1];
+                                            const day = parts[2];
+                                            return month + '-' + day;
+                                        }
+                                        return label;
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (silverChart) {
+                    silverChart.destroy();
+                }
+                silverChart = new Chart(canvas, config);
+
+                // Setup tooltip hide on click outside
+                setupTooltipHideOnClickOutside(silverChart, canvas);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Create/Update SBV Chart
+        async function updateSBVChart(period = '1m') {
+            const loading = document.getElementById('sbvLoading');
+            const canvas = document.getElementById('sbvChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('sbv-interbank', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Overnight',
+                            data: data.overnight,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '1 Month',
+                            data: data.month_1,
+                            borderColor: '#E4C78A',
+                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '3 Months',
+                            data: data.month_3,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + '%';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070',
+                                    autoSkip: true,
+                                    maxTicksLimit: getResponsiveTickLimit(),
+                                    autoSkipPadding: 15,
+                                    padding: 8,
+                                    font: {
+                                        size: getResponsiveFontSize()
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        // Format date consistently to avoid jumping
+                                        const label = this.getLabelForValue(value);
+                                        if (!label) return '';
+
+                                        // Try to parse and format consistently
+                                        const parts = label.split('-');
+                                        if (parts.length === 3) {
+                                            // Format: MM-DD or YYYY-MM-DD
+                                            const month = parts[1];
+                                            const day = parts[2];
+                                            return month + '-' + day;
+                                        }
+                                        return label;
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (sbvChart) {
+                    sbvChart.destroy();
+                }
+                sbvChart = new Chart(canvas, config);
+
+                // Setup tooltip hide on click outside
+                setupTooltipHideOnClickOutside(sbvChart, canvas);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Create/Update Global Macro Chart
+        async function updateGlobalChart(period = '1m') {
+            const loading = document.getElementById('globalLoading');
+            const canvas = document.getElementById('globalChart');
+
+            loading.style.display = 'block';
+
+            try {
+                const data = await fetchData('global-macro', period);
+                loading.style.display = 'none';
+
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: 'Gold ($/oz)',
+                            data: data.gold_prices,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y-gold'
+                        },
+                        {
+                            label: 'Silver ($/oz)',
+                            data: data.silver_prices,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y-silver'
+                        },
+                        {
+                            label: 'NASDAQ',
+                            data: data.nasdaq_prices,
+                            borderColor: '#4A90E2',
+                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y-nasdaq'
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label;
+                                        const value = context.parsed.y;
+                                        if (label.includes('NASDAQ')) {
+                                            return label + ': ' + value.toLocaleString('en-US', {maximumFractionDigits: 2});
+                                        } else {
+                                            return label + ': $' + value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            'y-gold': {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Gold/Silver ($/oz)',
+                                    color: '#C9A55B'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString('en-US');
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            'y-silver': {
+                                type: 'linear',
+                                display: false,
+                                position: 'left',
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            'y-nasdaq': {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'NASDAQ',
+                                    color: '#4A90E2'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('en-US');
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070',
+                                    autoSkip: true,
+                                    maxTicksLimit: getResponsiveTickLimit(),
+                                    autoSkipPadding: 15,
+                                    padding: 8,
+                                    font: {
+                                        size: getResponsiveFontSize()
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        // Format date consistently to avoid jumping
+                                        const label = this.getLabelForValue(value);
+                                        if (!label) return '';
+
+                                        // Try to parse and format consistently
+                                        const parts = label.split('-');
+                                        if (parts.length === 3) {
+                                            // Format: MM-DD or YYYY-MM-DD
+                                            const month = parts[1];
+                                            const day = parts[2];
+                                            return month + '-' + day;
+                                        }
+                                        return label;
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (globalChart) {
+                    globalChart.destroy();
+                }
+                globalChart = new Chart(canvas, config);
+
+                // Setup tooltip hide on click outside
+                setupTooltipHideOnClickOutside(globalChart, canvas);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Filter button functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const chart = this.dataset.chart;
+                const period = this.dataset.period;
+
+                // Update active state for buttons in same group
+                document.querySelectorAll(`.filter-btn[data-chart="${chart}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // Update respective chart
+                if (chart === 'gold') {
+                    updateGoldChart(period);
+                } else if (chart === 'silver') {
+                    updateSilverChart(period);
+                } else if (chart === 'sbv') {
+                    updateSBVChart(period);
+                } else if (chart === 'global') {
+                    updateGlobalChart(period);
+                }
+            });
+        });
+
+        // Load AI-generated gold analysis
+        async function loadGoldAnalysis() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gold-analysis`);
+                if (!response.ok) {
+                    console.error('Failed to fetch gold analysis');
+                    return;
+                }
+
+                const result = await response.json();
+                if (result.success && result.data) {
+                    // Update article content
+                    const articleBody = document.querySelector('#article-1 .article-text');
+                    if (articleBody) {
+                        articleBody.innerHTML = result.data.content;
+                    }
+
+                    // Update article date
+                    const articleDate = document.querySelector('#article-1 .article-meta .meta-item:nth-child(2)');
+                    if (articleDate && result.data.generated_at) {
+                        const date = new Date(result.data.generated_at);
+                        const formatted = date.toLocaleString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        articleDate.textContent = formatted;
+                    }
+
+                    console.log('✅ Gold analysis loaded successfully');
+                } else {
+                    console.warn('No gold analysis available, using static content');
+                }
+            } catch (error) {
+                console.error('Error loading gold analysis:', error);
+                // Keep static content as fallback
+            }
+        }
+
+        // Initialize charts and analysis on page load
+        window.addEventListener('load', function() {
+            loadGoldTypes().then(() => {
+                updateGoldChart('1m');
+
+                // Add type selector change event
+                document.getElementById('goldTypeSelect').addEventListener('change', function() {
+                    const period = document.querySelector('.filter-btn[data-chart="gold"].active').dataset.period;
+                    updateGoldChart(period, this.value);
+                });
+            });
+
+            updateSilverChart('1m');
+            updateSBVChart('1m');
+            updateGlobalChart('1m');
+            loadGoldAnalysis();
         });
     </script>
+
+    <!-- Structured Data for SEO (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Viet Dataverse",
+      "description": "Vietnamese economic data and market analysis platform",
+      "url": "https://nguyenphamdieuhien.online/vietdataverse/"
+    }
+    </script>
+
+    <!-- Article 1 Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": "Gold Prices Today",
+      "datePublished": "2026-01-05T14:30:00+07:00",
+      "dateModified": "2026-01-05T14:30:00+07:00",
+      "author": {
+        "@type": "Person",
+        "name": "Hồng Chiêu"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "VnExpress"
+      },
+      "articleSection": "Macroeconomic Trends",
+      "keywords": "gold price, Vietnam, SJC gold, DOJI, precious metals",
+      "articleBody": "SJC gold bars traded in Hanoi today increased by 500,000 VND, reaching 79.8 - 80.2 million VND/tael. This represents a 0.6% increase and marks the highest level in the past three months."
+    }
+    </script>
+
 </body>
 </html>

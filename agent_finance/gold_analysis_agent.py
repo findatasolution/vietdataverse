@@ -10,6 +10,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 import os
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import google.generativeai as genai
@@ -87,6 +88,9 @@ def fetch_vietnam_gold_data(days=7):
 def generate_analysis_prompt(global_data, vietnam_data):
     """Generate prompt for Gemini AI"""
 
+    # Get current time in Vietnam timezone
+    vn_now = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
+
     # Latest data
     latest_global = global_data[0] if global_data else {}
     latest_vietnam = vietnam_data[0] if vietnam_data else {}
@@ -128,7 +132,7 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
    - Câu 2: Chênh lệch mua-bán và thanh khoản thị trường
    - Câu 3: So sánh với giá vàng thế giới (tính theo tỷ giá)
 
-3. Viết đúng 3 câu dự báo tuần tới (từ {(datetime.now() + timedelta(days=1)).strftime('%d/%m')} đến {(datetime.now() + timedelta(days=7)).strftime('%d/%m/%Y')}):
+3. Viết đúng 3 câu dự báo tuần tới (từ {(vn_now + timedelta(days=1)).strftime('%d/%m')} đến {(vn_now + timedelta(days=7)).strftime('%d/%m/%Y')}):
    - Câu 1: Xu hướng giá dự kiến (tăng/giảm/đi ngang) với mức giá cụ thể
    - Câu 2: Yếu tố chính hỗ trợ xu hướng (Fed, lạm phát, địa chính trị, v.v.)
    - Câu 3: Rủi ro cần lưu ý và khuyến nghị
@@ -145,7 +149,7 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
 [3 câu phân tích, mỗi câu có <strong>con số chính xác</strong> từ dữ liệu]
 </p>
 
-<h3>Dự báo tuần tới ({(datetime.now() + timedelta(days=1)).strftime('%d/%m')} - {(datetime.now() + timedelta(days=7)).strftime('%d/%m/%Y')})</h3>
+<h3>Dự báo tuần tới ({(vn_now + timedelta(days=1)).strftime('%d/%m')} - {(vn_now + timedelta(days=7)).strftime('%d/%m/%Y')})</h3>
 <p>
 [3 câu dự báo với lý do cụ thể và mức giá dự kiến]
 </p>
@@ -215,9 +219,12 @@ def generate_analysis():
         print("✅ Analysis generated successfully")
         print(f"   Length: {len(analysis_html)} characters")
 
+        # Get current time in Vietnam timezone
+        vn_now = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
+
         return {
-            'date': datetime.now().strftime('%Y-%m-%d'),
-            'generated_at': datetime.now(),
+            'date': vn_now.strftime('%Y-%m-%d'),
+            'generated_at': vn_now,
             'content': analysis_html,
             'global_data_points': len(global_data),
             'vietnam_data_points': len(vietnam_data)
