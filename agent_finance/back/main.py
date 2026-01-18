@@ -45,7 +45,9 @@ except ImportError as e:
     FILE_UPLOAD_AVAILABLE = False
     logging.warning(f"File upload features not available: {e}")
 
-load_dotenv()
+# Load environment variables from root directory
+root_dir = Path(__file__).resolve().parent.parent.parent.parent
+load_dotenv(dotenv_path=root_dir / '.env')
 
 # =========================
 # Logging
@@ -854,14 +856,17 @@ def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
 
 @app.get("/api/v1/global-macro")
 def get_global_macro_data(period: str = '1m'):
-    """Get global macro data (Gold, Silver, NASDAQ) from Yahoo Finance"""
+    """Get global macro data (Gold, Silver, NASDAQ) from global_indicator DB"""
     if pd is None:
         raise HTTPException(status_code=503, detail="Pandas not available")
 
     try:
-        engine = get_db_engine()
-        if not engine:
-            raise HTTPException(status_code=503, detail="Database not configured")
+        # Connect to GLOBAL_INDICATOR DB
+        from sqlalchemy import create_engine
+        GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
+        if not GLOBAL_INDICATOR_DB:
+            raise HTTPException(status_code=503, detail="GLOBAL_INDICATOR_DB not configured")
+        global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
 
         start_date = get_date_filter(period)
 
@@ -872,7 +877,7 @@ def get_global_macro_data(period: str = '1m'):
             ORDER BY date ASC
         """)
 
-        with engine.connect() as conn:
+        with global_indicator_engine.connect() as conn:
             df = pd.read_sql(query, conn, params={'start_date': start_date})
 
         # Check if DataFrame is empty
@@ -912,7 +917,7 @@ def get_global_macro_data(period: str = '1m'):
 
 @app.get("/api/v1/gold-analysis")
 def get_gold_analysis(date: str = None):
-    """Get AI-generated gold market analysis
+    """Get AI-generated gold market analysis from argus_fintel DB
 
     Args:
         date (str, optional): Date in YYYY-MM-DD format. Defaults to latest.
@@ -921,9 +926,12 @@ def get_gold_analysis(date: str = None):
         JSON with analysis content and metadata
     """
     try:
-        engine = get_db_engine()
-        if not engine:
-            raise HTTPException(status_code=503, detail="Database not configured")
+        # Connect to ARGUS_FINTEL DB
+        from sqlalchemy import create_engine
+        ARGUS_FINTEL_DB = os.getenv('ARGUS_FINTEL_DB')
+        if not ARGUS_FINTEL_DB:
+            raise HTTPException(status_code=503, detail="ARGUS_FINTEL_DB not configured")
+        argus_fintel_engine = create_engine(ARGUS_FINTEL_DB)
 
         if date:
             # Get specific date
@@ -943,7 +951,7 @@ def get_gold_analysis(date: str = None):
             """)
             params = {}
 
-        with engine.connect() as conn:
+        with argus_fintel_engine.connect() as conn:
             result = conn.execute(query, params)
             row = result.fetchone()
 

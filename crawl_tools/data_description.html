@@ -113,7 +113,7 @@
     <h2>🟢 Các bảng đang hoạt động (Production)</h2>
 
     <div class="section">
-        <h3>1. vn_gold_24h_dojihn_hist</h3>
+        <h3>1. vn_gold_24h_hist</h3>
         <p><strong>Mô tả:</strong> Giá vàng miếng SJC 24K từ DOJI Hà Nội (hàng ngày)</p>
         <p><strong>Nguồn:</strong> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank">24h.com.vn</a> - Crawl từ bảng HTML</p>
         <p><strong>Tần suất cập nhật:</strong> Hàng ngày lúc 8:00 AM</p>
@@ -559,7 +559,7 @@
 CREATE SCHEMA IF NOT EXISTS macro_crawling;
 
 -- Move existing tables
-ALTER TABLE vn_gold_24h_dojihn_hist SET SCHEMA macro_crawling;
+ALTER TABLE vn_gold_24h_hist SET SCHEMA macro_crawling;
 ALTER TABLE vn_silver_phuquy_hist SET SCHEMA macro_crawling;
 ALTER TABLE vn_sbv_interbankrate SET SCHEMA macro_crawling;
 

@@ -15,8 +15,10 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import google.generativeai as genai
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from root directory
+from pathlib import Path
+root_dir = Path(__file__).resolve().parent.parent.parent
+load_dotenv(dotenv_path=root_dir / '.env')
 
 # Configure Gemini AI
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
@@ -26,15 +28,27 @@ if not GEMINI_API_KEY or GEMINI_API_KEY == 'your_gemini_api_key_here':
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-# Database connection
+# Database connections
+# Global Indicator DB - for reading global_macro data
+GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
+if not GLOBAL_INDICATOR_DB:
+    raise ValueError("GLOBAL_INDICATOR_DB not found in .env file")
+global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
+
+# Argus Fintel DB - for saving/reading gold_analysis data
+ARGUS_FINTEL_DB = os.getenv('ARGUS_FINTEL_DB')
+if not ARGUS_FINTEL_DB:
+    raise ValueError("ARGUS_FINTEL_DB not found in .env file")
+argus_fintel_engine = create_engine(ARGUS_FINTEL_DB)
+
+# Old DB connection for vn_gold_24h_hist (still in old DB)
 DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL not found in .env file")
-
-engine = create_engine(DATABASE_URL)
+old_engine = create_engine(DATABASE_URL)
 
 def fetch_global_macro_data(days=7):
-    """Fetch recent global macro data"""
+    """Fetch recent global macro data from GLOBAL_INDICATOR DB"""
     query = text("""
         SELECT date, gold_price, silver_price, nasdaq_price
         FROM global_macro
@@ -42,7 +56,7 @@ def fetch_global_macro_data(days=7):
         LIMIT :days
     """)
 
-    with engine.connect() as conn:
+    with global_indicator_engine.connect() as conn:
         result = conn.execute(query, {'days': days})
         rows = result.fetchall()
 
@@ -60,7 +74,7 @@ def fetch_global_macro_data(days=7):
         return data
 
 def fetch_vietnam_gold_data(days=7):
-    """Fetch recent Vietnam gold prices"""
+    """Fetch recent Vietnam gold prices from OLD DB"""
     query = text("""
         SELECT date, buy_price, sell_price
         FROM vn_gold_24h_hist
@@ -69,7 +83,7 @@ def fetch_vietnam_gold_data(days=7):
         LIMIT :days
     """)
 
-    with engine.connect() as conn:
+    with old_engine.connect() as conn:
         result = conn.execute(query, {'days': days})
         rows = result.fetchall()
 
@@ -235,7 +249,7 @@ def generate_analysis():
         return None
 
 def save_analysis_to_db(analysis):
-    """Save analysis to database"""
+    """Save analysis to ARGUS_FINTEL database"""
 
     # Create table if not exists
     create_table_query = text("""
@@ -261,7 +275,7 @@ def save_analysis_to_db(analysis):
     """)
 
     try:
-        with engine.connect() as conn:
+        with argus_fintel_engine.connect() as conn:
             # Create table
             conn.execute(create_table_query)
             conn.commit()
@@ -270,7 +284,7 @@ def save_analysis_to_db(analysis):
             conn.execute(upsert_query, analysis)
             conn.commit()
 
-        print(f"\n✅ Analysis saved to database for {analysis['date']}")
+        print(f"\n✅ Analysis saved to argus_fintel DB for {analysis['date']}")
         return True
 
     except Exception as e:

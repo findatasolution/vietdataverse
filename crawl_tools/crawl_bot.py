@@ -19,8 +19,28 @@ from selenium.webdriver.chrome.options import Options
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
 
-conn_str = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
-engine = create_engine(conn_str)
+# Import os for environment variables
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from root directory
+from pathlib import Path
+root_dir = Path(__file__).resolve().parent.parent.parent
+load_dotenv(dotenv_path=root_dir / '.env')
+
+# Old DB for domestic data (gold, silver, SBV, bank deposits)
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    # Fallback for GitHub Actions which may not have .env
+    DATABASE_URL = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+engine = create_engine(DATABASE_URL)
+
+# New DB for global macro data
+GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
+if not GLOBAL_INDICATOR_DB:
+    # Fallback for GitHub Actions
+    GLOBAL_INDICATOR_DB = 'postgresql://neondb_owner:npg_DTMVHjWIy21J@ep-frosty-forest-a19clsva-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
 
 ############## Domestic Silver Prices - crawl with Selenium
 try:
@@ -492,19 +512,19 @@ try:
     has_data = any(global_macro_data[key] is not None for key in ['gold_price', 'silver_price', 'nasdaq_price'])
 
     if has_data:
-        # Check if data already exists for today
-        with engine.connect() as conn:
+        # Check if data already exists for today in NEW DB
+        with global_indicator_engine.connect() as conn:
             result = conn.execute(text(f"SELECT COUNT(*) FROM global_macro WHERE date = '{date_str}'"))
             exists = result.scalar() > 0
 
         if exists:
             print(f"⚠️  Global macro data for {date_str} already exists, skipping insert")
         else:
-            # Insert into database
+            # Insert into NEW database (global_indicator)
             macro_df = pd.DataFrame([global_macro_data])
             macro_df['date'] = pd.to_datetime(macro_df['date'])
-            macro_df.to_sql('global_macro', engine, if_exists='append', index=False)
-            print(f"✅ Pushed global macro data for {date_str}")
+            macro_df.to_sql('global_macro', global_indicator_engine, if_exists='append', index=False)
+            print(f"✅ Pushed global macro data to global_indicator DB for {date_str}")
     else:
         print(f"⚠️  No global macro data fetched")
 

@@ -11,6 +11,10 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: GLOBAL_INDICATOR_DB
+        sync: false
+      - key: ARGUS_FINTEL_DB
+        sync: false
       - key: DB_SCHEMA
         value: public
       - key: SECRET_KEY

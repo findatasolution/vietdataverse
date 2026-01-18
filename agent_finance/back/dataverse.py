@@ -29,8 +29,8 @@ engine = create_engine(DATABASE_URL, poolclass=NullPool)
 # Dataset configuration
 DATASET_CONFIG = {
     'VNGold': {
-        'table': 'vn_gold_24h_dojihn_hist',
-        'query': 'SELECT * FROM vn_gold_24h_dojihn_hist ORDER BY date DESC',
+        'table': 'vn_gold_24h_hist',
+        'query': 'SELECT * FROM vn_gold_24h_hist ORDER BY date DESC',
         'filename': 'vn_gold_prices.csv',
         'description': 'Vietnamese Gold Prices (DOJI HN 24k)'
     },
