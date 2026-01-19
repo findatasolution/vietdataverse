@@ -16,8 +16,17 @@ from sqlalchemy import create_engine, text
 import time
 
 # Database connection
-conn_str = 'postgresql://neondb_owner:npg_DX5hbAHqgif1@ep-autumn-meadow-a1xklzwk-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
-engine = create_engine(conn_str)
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+root_dir = Path(__file__).resolve().parent.parent.parent
+load_dotenv(dotenv_path=root_dir / '.env')
+
+CRAWLING_BOT_DB = os.getenv('CRAWLING_BOT_DB')
+if not CRAWLING_BOT_DB:
+    CRAWLING_BOT_DB = 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+engine = create_engine(CRAWLING_BOT_DB)
 
 # Setup Chrome
 chrome_options = Options()
