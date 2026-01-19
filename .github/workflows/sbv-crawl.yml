@@ -1,0 +1,35 @@
+name: SBV Rates Crawl (Daily)
+
+on:
+  schedule:
+    # Once daily: 9:30 AM VN (2:30 AM UTC)
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  crawl-sbv:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 python-dotenv
+
+    - name: Run SBV crawler
+      env:
+        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+      run: |
+        cd crawl_tools
+        python crawl_sbv.py
+
+    - name: Show results
+      if: always()
+      run: echo "SBV rates crawl completed at $(date)"

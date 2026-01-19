@@ -488,6 +488,295 @@ except Exception as e:
     print(f"❌ Error crawling ACB term deposit: {e}")
 
 
+############## Techcombank, MB Bank, VPBank - DISABLED
+# These banks use React/Angular SPA with complex client-side rendering
+# that cannot be easily scraped. Testing confirmed no rates can be extracted.
+# TODO: Research API endpoints or use third-party data aggregators
+print("\n" + "="*60)
+print("Skipping TCB, MBB, VPB (React/Angular SPA - needs API research)")
+print("="*60)
+print("  Techcombank (TCB): React SPA - no public API found")
+print("  MB Bank (MBB): AngularJS with dynamic content")
+print("  VPBank (VPB): React SPA - no public API found")
+
+
+############## VietinBank Term Deposit Rates (HTTP - may work without Selenium)
+print("\n" + "="*60)
+print("Crawling VietinBank Term Deposit Rates")
+print("="*60)
+
+try:
+    ctg_url = 'https://www.vietinbank.vn/ca-nhan/cong-cu-tien-ich/lai-suat-khcn'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+
+    # Try HTTP first, fallback to Selenium if needed
+    response = requests.get(ctg_url, headers=headers, timeout=15)
+    response.raise_for_status()
+    soup_ctg = BeautifulSoup(response.content, 'html.parser')
+
+    ctg_data = {
+        'bank_code': 'CTG',  # VietinBank stock code
+        'date': date_str,
+        'crawl_time': datetime.now()
+    }
+
+    tables = soup_ctg.find_all('table')
+    print(f"  Found {len(tables)} tables (HTTP)")
+
+    # If no tables found via HTTP, try Selenium
+    if len(tables) == 0:
+        print("  No tables found via HTTP, trying Selenium...")
+        chrome_options_ctg = Options()
+        chrome_options_ctg.add_argument('--headless')
+        chrome_options_ctg.add_argument('--no-sandbox')
+        chrome_options_ctg.add_argument('--disable-dev-shm-usage')
+        chrome_options_ctg.add_argument('--disable-gpu')
+        if sys.platform == 'linux':
+            chrome_options_ctg.binary_location = '/usr/bin/chromium-browser'
+
+        driver_ctg = webdriver.Chrome(options=chrome_options_ctg)
+        try:
+            driver_ctg.get(ctg_url)
+            time.sleep(10)
+            soup_ctg = BeautifulSoup(driver_ctg.page_source, 'html.parser')
+            tables = soup_ctg.find_all('table')
+            print(f"  Found {len(tables)} tables (Selenium)")
+        finally:
+            driver_ctg.quit()
+
+    import re
+    text_content = soup_ctg.get_text()
+
+    # Pattern matching for VietinBank rates
+    term_patterns = {
+        'term_1m': r'1\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_2m': r'2\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_3m': r'3\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_6m': r'6\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_9m': r'9\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_12m': r'12\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_18m': r'18\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_24m': r'24\s*tháng[^\d]*(\d+[.,]\d+)',
+        'term_36m': r'36\s*tháng[^\d]*(\d+[.,]\d+)',
+    }
+
+    for key, pattern in term_patterns.items():
+        match = re.search(pattern, text_content, re.IGNORECASE)
+        if match:
+            try:
+                rate = float(match.group(1).replace(',', '.'))
+                if 0 < rate < 20:
+                    ctg_data[key] = rate
+                    print(f"    Found {key}: {rate}%")
+            except ValueError:
+                pass
+
+    # Parse tables
+    for table in tables:
+        rows = table.find_all('tr')
+        for row in rows:
+            cols = row.find_all(['td', 'th'])
+            if len(cols) >= 2:
+                term_text = cols[0].get_text(strip=True).upper()
+
+                for col in cols[1:]:
+                    rate_text = col.get_text(strip=True)
+                    try:
+                        rate = float(rate_text.replace('%', '').replace(',', '.').strip())
+                        if 0 < rate < 20:
+                            if '1 THÁNG' in term_text and ctg_data.get('term_1m') is None:
+                                ctg_data['term_1m'] = rate
+                            elif '3 THÁNG' in term_text and ctg_data.get('term_3m') is None:
+                                ctg_data['term_3m'] = rate
+                            elif '6 THÁNG' in term_text and ctg_data.get('term_6m') is None:
+                                ctg_data['term_6m'] = rate
+                            elif '12 THÁNG' in term_text and ctg_data.get('term_12m') is None:
+                                ctg_data['term_12m'] = rate
+                            elif '24 THÁNG' in term_text and ctg_data.get('term_24m') is None:
+                                ctg_data['term_24m'] = rate
+                            break
+                    except ValueError:
+                        continue
+
+    has_ctg_data = any(key.startswith('term_') for key in ctg_data.keys())
+
+    if has_ctg_data:
+        with engine.connect() as conn:
+            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'CTG' AND date = '{date_str}'"))
+            exists = result.scalar() > 0
+
+        if exists:
+            print(f"⚠️  VietinBank term deposit data for {date_str} already exists, skipping insert")
+        else:
+            ctg_df = pd.DataFrame([ctg_data])
+            ctg_df['date'] = pd.to_datetime(ctg_df['date'])
+            ctg_df.to_sql('vn_bank_termdepo', engine, if_exists='append', index=False)
+            print(f"✅ Pushed VietinBank term deposit rates for {date_str}")
+            rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in ctg_data.items() if k.startswith('term_')]
+            print(f"   Rates: {rates_list}")
+    else:
+        print(f"⚠️  No VietinBank term deposit data found")
+
+except Exception as e:
+    print(f"❌ Error crawling VietinBank term deposit: {e}")
+
+
+############## Vietcombank Term Deposit Rates (Selenium required - slow website)
+print("\n" + "="*60)
+print("Crawling Vietcombank Term Deposit Rates")
+print("="*60)
+
+try:
+    # Setup headless Chrome for VCB
+    chrome_options_vcb = Options()
+    chrome_options_vcb.add_argument('--headless')
+    chrome_options_vcb.add_argument('--no-sandbox')
+    chrome_options_vcb.add_argument('--disable-dev-shm-usage')
+    chrome_options_vcb.add_argument('--disable-gpu')
+    if sys.platform == 'linux':
+        chrome_options_vcb.binary_location = '/usr/bin/chromium-browser'
+
+    driver_vcb = webdriver.Chrome(options=chrome_options_vcb)
+
+    vcb_data = {
+        'bank_code': 'VCB',
+        'date': date_str,
+        'crawl_time': datetime.now(),
+        'term_noterm': None,
+        'term_1m': None,
+        'term_2m': None,
+        'term_3m': None,
+        'term_6m': None,
+        'term_9m': None,
+        'term_12m': None,
+        'term_13m': None,
+        'term_18m': None,
+        'term_24m': None,
+        'term_36m': None
+    }
+
+    try:
+        print("  Loading Vietcombank interest rates page...")
+        driver_vcb.get("https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat")
+        print("  Waiting for page to render (20 seconds - VCB is slow)...")
+        time.sleep(20)  # VCB needs longer wait
+
+        soup_vcb = BeautifulSoup(driver_vcb.page_source, 'html.parser')
+
+        tables = soup_vcb.find_all('table')
+        print(f"  Found {len(tables)} tables")
+
+        import re
+        text_content = soup_vcb.get_text()
+
+        # Pattern matching for VCB rates
+        # VCB pattern: "Không kỳ hạn" followed by rate
+        noterm_match = re.search(r'Không kỳ hạn.*?(\d+[.,]\d+)\s*%?', text_content, re.IGNORECASE)
+        if noterm_match:
+            try:
+                rate = float(noterm_match.group(1).replace(',', '.'))
+                if 0 < rate < 20:
+                    vcb_data['term_noterm'] = rate
+                    print(f"    Found term_noterm: {rate}%")
+            except ValueError:
+                pass
+
+        term_patterns = {
+            'term_1m': r'1\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_2m': r'2\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_3m': r'3\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_6m': r'6\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_9m': r'9\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_12m': r'12\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_13m': r'13\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_18m': r'18\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_24m': r'24\s*tháng[^\d]*(\d+[.,]\d+)',
+            'term_36m': r'36\s*tháng[^\d]*(\d+[.,]\d+)',
+        }
+
+        for key, pattern in term_patterns.items():
+            match = re.search(pattern, text_content, re.IGNORECASE)
+            if match:
+                try:
+                    rate = float(match.group(1).replace(',', '.'))
+                    if 0 < rate < 20:
+                        vcb_data[key] = rate
+                        print(f"    Found {key}: {rate}%")
+                except ValueError:
+                    pass
+
+        # Parse tables for more accurate data
+        for table in tables:
+            rows = table.find_all('tr')
+            for row in rows:
+                cols = row.find_all(['td', 'th'])
+                if len(cols) >= 2:
+                    term_text = cols[0].get_text(strip=True).upper()
+
+                    # Skip headers
+                    if 'KỲ HẠN' in term_text or 'LÃI SUẤT' in term_text:
+                        continue
+
+                    # Find VND rate
+                    for col in cols[1:]:
+                        col_text = col.get_text(strip=True)
+                        try:
+                            rate = float(col_text.replace('%', '').replace(',', '.').replace('*', '').strip())
+                            if 0 < rate < 20:
+                                if 'KHÔNG KỲ HẠN' in term_text and vcb_data.get('term_noterm') is None:
+                                    vcb_data['term_noterm'] = rate
+                                elif '1 THÁNG' in term_text and vcb_data.get('term_1m') is None:
+                                    vcb_data['term_1m'] = rate
+                                elif '2 THÁNG' in term_text and vcb_data.get('term_2m') is None:
+                                    vcb_data['term_2m'] = rate
+                                elif '3 THÁNG' in term_text and vcb_data.get('term_3m') is None:
+                                    vcb_data['term_3m'] = rate
+                                elif '6 THÁNG' in term_text and vcb_data.get('term_6m') is None:
+                                    vcb_data['term_6m'] = rate
+                                elif '9 THÁNG' in term_text and vcb_data.get('term_9m') is None:
+                                    vcb_data['term_9m'] = rate
+                                elif '12 THÁNG' in term_text and vcb_data.get('term_12m') is None:
+                                    vcb_data['term_12m'] = rate
+                                elif '13 THÁNG' in term_text and vcb_data.get('term_13m') is None:
+                                    vcb_data['term_13m'] = rate
+                                elif '18 THÁNG' in term_text and vcb_data.get('term_18m') is None:
+                                    vcb_data['term_18m'] = rate
+                                elif '24 THÁNG' in term_text and vcb_data.get('term_24m') is None:
+                                    vcb_data['term_24m'] = rate
+                                elif '36 THÁNG' in term_text and vcb_data.get('term_36m') is None:
+                                    vcb_data['term_36m'] = rate
+                                break
+                        except ValueError:
+                            continue
+
+    finally:
+        driver_vcb.quit()
+
+    has_vcb_data = any(value is not None for key, value in vcb_data.items() if key.startswith('term_'))
+
+    if has_vcb_data:
+        with engine.connect() as conn:
+            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'VCB' AND date = '{date_str}'"))
+            exists = result.scalar() > 0
+
+        if exists:
+            print(f"⚠️  VCB term deposit data for {date_str} already exists, skipping insert")
+        else:
+            vcb_df = pd.DataFrame([vcb_data])
+            vcb_df['date'] = pd.to_datetime(vcb_df['date'])
+            vcb_df.to_sql('vn_bank_termdepo', engine, if_exists='append', index=False)
+            print(f"✅ Pushed Vietcombank term deposit rates for {date_str}")
+            rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in vcb_data.items() if k.startswith('term_') and v is not None]
+            print(f"   Rates: {rates_list}")
+    else:
+        print(f"⚠️  No Vietcombank term deposit data found")
+
+except Exception as e:
+    print(f"❌ Error crawling Vietcombank term deposit: {e}")
+
+
 ############## Global Macro Data from Yahoo Finance
 print("\n" + "="*60)
 print("Crawling Global Macro Data from Yahoo Finance")

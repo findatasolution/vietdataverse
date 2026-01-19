@@ -105,7 +105,11 @@
 
     <div class="metadata">
         <strong>Database Provider:</strong> PostgreSQL (Neon Serverless)<br>
-        <strong>Update Frequency:</strong> Daily at 8:30 AM Vietnam Time (UTC+7)<br>
+        <strong>Update Schedule:</strong><br>
+        &nbsp;&nbsp;• Gold/Silver prices: 2x daily (8:30 AM + 2:30 PM VN)<br>
+        &nbsp;&nbsp;• Gold analysis: 2x daily (9:00 AM + 3:00 PM VN)<br>
+        &nbsp;&nbsp;• SBV rates: Daily (9:30 AM VN)<br>
+        &nbsp;&nbsp;• Bank term deposits: Weekly (Monday 9:00 AM VN)<br>
         <strong>Last updated:</strong> 2026-01-19
     </div>
 
@@ -147,9 +151,9 @@
                 <tr>
                     <td>CRAWLING_BOT_DB</td>
                     <td class="code">vn_bank_termdepo</td>
-                    <td>Bank term deposit rates (ACB)</td>
-                    <td>~15+</td>
-                    <td><a href="https://acb.com.vn" target="_blank">acb.com.vn</a></td>
+                    <td>Bank term deposit rates (ACB, TCB, MBB, VPB, CTG, VCB)</td>
+                    <td>~100+</td>
+                    <td>Multiple banks</td>
                 </tr>
                 <tr>
                     <td>GLOBAL_INDICATOR_DB</td>
@@ -371,7 +375,18 @@
     <div class="section">
         <h3>4. vn_bank_termdepo <span class="db-badge">CRAWLING_BOT_DB</span></h3>
         <p><strong>Description:</strong> Term deposit interest rates from Vietnamese commercial banks</p>
-        <p><strong>Source:</strong> <a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank">acb.com.vn</a></p>
+        <p><strong>Active banks (crawling enabled):</strong></p>
+        <ul>
+            <li><strong>ACB</strong> - Asia Commercial Bank (<a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank">acb.com.vn</a>) - HTTP</li>
+            <li><strong>CTG</strong> - VietinBank (<a href="https://www.vietinbank.vn/ca-nhan/cong-cu-tien-ich/lai-suat-khcn" target="_blank">vietinbank.vn</a>) - HTTP</li>
+            <li><strong>VCB</strong> - Vietcombank (<a href="https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat" target="_blank">vietcombank.com.vn</a>) - Selenium</li>
+        </ul>
+        <p><strong>Disabled banks (React/Angular SPA - no public API):</strong></p>
+        <ul style="color: #888;">
+            <li><strong>TCB</strong> - Techcombank (<a href="https://techcombank.com/cong-cu-tien-ich/lai-suat" target="_blank">techcombank.com</a>) - React SPA</li>
+            <li><strong>MBB</strong> - MB Bank (<a href="https://www.mbbank.com.vn/Fee" target="_blank">mbbank.com.vn</a>) - AngularJS</li>
+            <li><strong>VPB</strong> - VPBank (<a href="https://www.vpbank.com.vn/ca-nhan/tiet-kiem" target="_blank">vpbank.com.vn</a>) - React SPA</li>
+        </ul>
 
         <table>
             <thead>
@@ -384,22 +399,16 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="code">id</td>
-                    <td>SERIAL (PK)</td>
-                    <td>Auto-increment primary key</td>
-                    <td>1</td>
-                </tr>
-                <tr>
                     <td class="code">date</td>
                     <td>DATE</td>
                     <td>Effective date</td>
                     <td>2026-01-19</td>
                 </tr>
                 <tr>
-                    <td class="code">bank</td>
+                    <td class="code">bank_code</td>
                     <td>VARCHAR</td>
-                    <td>Bank name</td>
-                    <td>ACB</td>
+                    <td>Bank stock code</td>
+                    <td>ACB, TCB, MBB, VPB, CTG, VCB</td>
                 </tr>
                 <tr>
                     <td class="code">crawl_time</td>
@@ -408,10 +417,22 @@
                     <td>2026-01-19 08:30:00</td>
                 </tr>
                 <tr>
+                    <td class="code">term_noterm</td>
+                    <td>NUMERIC</td>
+                    <td>No-term/demand deposit rate (%/year)</td>
+                    <td>0.2</td>
+                </tr>
+                <tr>
                     <td class="code">term_1m</td>
                     <td>NUMERIC</td>
                     <td>1-month term rate (%/year)</td>
                     <td>2.9</td>
+                </tr>
+                <tr>
+                    <td class="code">term_2m</td>
+                    <td>NUMERIC</td>
+                    <td>2-month term rate (%/year)</td>
+                    <td>3.0</td>
                 </tr>
                 <tr>
                     <td class="code">term_3m</td>
@@ -438,6 +459,12 @@
                     <td>4.8</td>
                 </tr>
                 <tr>
+                    <td class="code">term_13m</td>
+                    <td>NUMERIC</td>
+                    <td>13-month term rate (%/year)</td>
+                    <td>4.85</td>
+                </tr>
+                <tr>
                     <td class="code">term_18m</td>
                     <td>NUMERIC</td>
                     <td>18-month term rate (%/year)</td>
@@ -447,10 +474,20 @@
                     <td class="code">term_24m</td>
                     <td>NUMERIC</td>
                     <td>24-month term rate (%/year)</td>
-                    <td>4.8</td>
+                    <td>5.0</td>
+                </tr>
+                <tr>
+                    <td class="code">term_36m</td>
+                    <td>NUMERIC</td>
+                    <td>36-month term rate (%/year)</td>
+                    <td>5.0</td>
                 </tr>
             </tbody>
         </table>
+
+        <div class="info">
+            <strong>Note:</strong> Data is crawled daily. Some banks may not have all term options. Rates shown are for VND deposits with standard interest at maturity.
+        </div>
     </div>
 
     <!-- 5. global_macro -->
@@ -599,6 +636,36 @@
                     <td><a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank">acb.com.vn</a></td>
                     <td>Term deposit rates</td>
                     <td>HTML parsing (BeautifulSoup)</td>
+                </tr>
+                <tr>
+                    <td>Techcombank</td>
+                    <td><a href="https://techcombank.com/cong-cu-tien-ich/lai-suat" target="_blank">techcombank.com</a></td>
+                    <td>Term deposit rates</td>
+                    <td>Selenium (JavaScript rendering)</td>
+                </tr>
+                <tr>
+                    <td>MB Bank</td>
+                    <td><a href="https://www.mbbank.com.vn/Fee" target="_blank">mbbank.com.vn</a></td>
+                    <td>Term deposit rates</td>
+                    <td>Selenium (JavaScript rendering)</td>
+                </tr>
+                <tr>
+                    <td>VPBank</td>
+                    <td><a href="https://www.vpbank.com.vn/ca-nhan/tiet-kiem" target="_blank">vpbank.com.vn</a></td>
+                    <td>Term deposit rates</td>
+                    <td>Selenium (JavaScript rendering)</td>
+                </tr>
+                <tr>
+                    <td>VietinBank</td>
+                    <td><a href="https://www.vietinbank.vn/ca-nhan/cong-cu-tien-ich/lai-suat-khcn" target="_blank">vietinbank.vn</a></td>
+                    <td>Term deposit rates</td>
+                    <td>Selenium/HTTP (fallback)</td>
+                </tr>
+                <tr>
+                    <td>Vietcombank</td>
+                    <td><a href="https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat" target="_blank">vietcombank.com.vn</a></td>
+                    <td>Term deposit rates</td>
+                    <td>Selenium (separate script)</td>
                 </tr>
                 <tr>
                     <td>Yahoo Finance</td>
