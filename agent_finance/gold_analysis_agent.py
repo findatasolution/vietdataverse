@@ -41,11 +41,11 @@ if not ARGUS_FINTEL_DB:
     raise ValueError("ARGUS_FINTEL_DB not found in .env file")
 argus_fintel_engine = create_engine(ARGUS_FINTEL_DB)
 
-# Old DB connection for vn_gold_24h_hist (still in old DB)
-DATABASE_URL = os.getenv('DATABASE_URL')
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL not found in .env file")
-old_engine = create_engine(DATABASE_URL)
+# Crawling Bot DB - for reading vn_gold_24h_hist data
+CRAWLING_BOT_DB = os.getenv('CRAWLING_BOT_DB')
+if not CRAWLING_BOT_DB:
+    raise ValueError("CRAWLING_BOT_DB not found in .env file")
+crawling_bot_engine = create_engine(CRAWLING_BOT_DB)
 
 def fetch_global_macro_data(days=7):
     """Fetch recent global macro data from GLOBAL_INDICATOR DB"""
@@ -74,7 +74,7 @@ def fetch_global_macro_data(days=7):
         return data
 
 def fetch_vietnam_gold_data(days=7):
-    """Fetch recent Vietnam gold prices from OLD DB"""
+    """Fetch recent Vietnam gold prices from CRAWLING_BOT_DB"""
     query = text("""
         SELECT date, buy_price, sell_price
         FROM vn_gold_24h_hist
@@ -83,7 +83,7 @@ def fetch_vietnam_gold_data(days=7):
         LIMIT :days
     """)
 
-    with old_engine.connect() as conn:
+    with crawling_bot_engine.connect() as conn:
         result = conn.execute(query, {'days': days})
         rows = result.fetchall()
 
