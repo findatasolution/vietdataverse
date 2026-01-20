@@ -139,14 +139,110 @@ except Exception as e:
     print(f"  Error crawling ACB: {e}")
 
 
-############## 2. Disabled banks notice
-print(f"\n--- TCB, MBB, VPB: DISABLED ---")
+############## 2. SHB Bank (HTTP - table works directly)
+print(f"\n--- Crawling SHB Term Deposit Rates ---")
+
+try:
+    shb_url = 'https://ibanking.shb.com.vn/Rate/TideRate'
+    response = requests.get(shb_url, headers=headers, timeout=15)
+    response.raise_for_status()
+    soup_shb = BeautifulSoup(response.content, 'html.parser')
+
+    shb_data = {
+        'bank_code': 'SHB',
+        'date': date_str,
+        'crawl_time': datetime.now()
+    }
+
+    tables = soup_shb.find_all('table')
+    print(f"  Found {len(tables)} tables")
+
+    if tables:
+        table = tables[0]
+        rows = table.find_all('tr')
+
+        for row in rows:
+            cols = row.find_all(['td', 'th'])
+            if len(cols) >= 2:
+                # Normalize and clean term text (format: "1 \r\nTháng")
+                term_text = unicodedata.normalize('NFC', cols[0].get_text(strip=True)).replace('\xa0', ' ').replace('\r', '').replace('\n', ' ').lower()
+                term_text = ' '.join(term_text.split())  # Normalize whitespace
+                rate_text = cols[1].get_text(strip=True)  # VND column
+
+                try:
+                    rate = float(rate_text.replace('%', '').replace(',', '.').strip())
+                except (ValueError, AttributeError):
+                    continue
+
+                if rate <= 0 or rate > 20:
+                    continue
+
+                # Map term text to database columns
+                # SHB format: "1 tháng", "2 tháng", "12 tháng", etc.
+                if term_text == '1 tháng':
+                    shb_data['term_1m'] = rate
+                    print(f"    term_1m: {rate}%")
+                elif term_text == '2 tháng':
+                    shb_data['term_2m'] = rate
+                    print(f"    term_2m: {rate}%")
+                elif term_text == '3 tháng':
+                    shb_data['term_3m'] = rate
+                    print(f"    term_3m: {rate}%")
+                elif term_text == '6 tháng':
+                    shb_data['term_6m'] = rate
+                    print(f"    term_6m: {rate}%")
+                elif term_text == '9 tháng':
+                    shb_data['term_9m'] = rate
+                    print(f"    term_9m: {rate}%")
+                elif term_text == '12 tháng':
+                    shb_data['term_12m'] = rate
+                    print(f"    term_12m: {rate}%")
+                elif term_text == '13 tháng':
+                    shb_data['term_13m'] = rate
+                    print(f"    term_13m: {rate}%")
+                elif term_text == '18 tháng':
+                    shb_data['term_18m'] = rate
+                    print(f"    term_18m: {rate}%")
+                elif term_text == '24 tháng':
+                    shb_data['term_24m'] = rate
+                    print(f"    term_24m: {rate}%")
+                elif term_text == '36 tháng':
+                    shb_data['term_36m'] = rate
+                    print(f"    term_36m: {rate}%")
+
+    has_shb_data = any(key.startswith('term_') for key in shb_data.keys())
+
+    if has_shb_data:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'SHB' AND date = :date"), {'date': date_str})
+            exists = result.scalar() > 0
+
+            if exists:
+                print(f"  SHB data for {date_str} already exists, skipping")
+            else:
+                columns = ['bank_code', 'date', 'crawl_time'] + [k for k in shb_data.keys() if k.startswith('term_')]
+                placeholders = ', '.join([f':{c}' for c in columns])
+                col_names = ', '.join(columns)
+                conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), shb_data)
+                conn.commit()
+                rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in shb_data.items() if k.startswith('term_')]
+                print(f"  Pushed SHB rates: {rates_list}")
+    else:
+        print(f"  No SHB term deposit data found")
+
+except Exception as e:
+    print(f"  Error crawling SHB: {e}")
+
+
+############## Disabled banks notice
+print(f"\n--- TCB, MBB, VPB, TPB: DISABLED ---")
 print("  Techcombank (TCB): React SPA - no public API")
 print("  MB Bank (MBB): AngularJS with dynamic content")
 print("  VPBank (VPB): React SPA - no public API")
+print("  TPBank (TPB): SPA with dynamic content")
 
 
-############## 3. VietinBank/CTG (HTTP - parse table directly)
+############## 3. VietinBank/CTG (HTTP)
 print(f"\n--- Crawling VietinBank Term Deposit Rates ---")
 
 try:
@@ -257,7 +353,7 @@ except Exception as e:
     print(f"  Error crawling VietinBank: {e}")
 
 
-############## 4. Vietcombank/VCB (Selenium required)
+############## 4. Vietcombank/VCB (Selenium - DISABLED due to HTTP2 issues)
 print(f"\n--- Crawling Vietcombank Term Deposit Rates ---")
 
 try:
