@@ -1386,6 +1386,29 @@
                         </div>
                     </div>
 
+                    <!-- TD Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                Lãi Suất Gửi Tiết Kiệm
+                            </h3>
+                            <div class="chart-filters">
+                                <select id="bankTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                    <option value="ACB">ACB</option>
+                                </select>
+                                <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
+                                <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button>
+                                <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
+                                <button class="filter-btn" data-chart="td" data-period="all">All</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="silverChart"></canvas>
+                            <div class="chart-loading" id="silverLoading">Loading data...</div>
+                        </div>
+                    </div>
+
+
                     <!-- SBV Interbank Rate Chart -->
                     <div class="chart-card">
                         <div class="chart-header">
@@ -1774,6 +1797,7 @@
                 goldChart: 'Lịch Sử Giá Vàng Trong Nước',
                 silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
                 sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng',
+                tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm',
                 globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
                 downloadTitle: 'Tải Dữ liệu Lịch Sử',
                 downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng SJC, DOJI, PNJ, giá bạc, lãi suất ngân hàng miễn phí. Download Vietnam historical gold price từ 2015 đến nay hoặc truy cập qua RESTful API.',
@@ -1783,6 +1807,7 @@
                 silverDatasetDesc: 'Giá Bạc tại thị trường Hà Nội (Phú Quý), dữ liệu lịch sử từ 2015. Cập nhật hàng ngày giá mua và bán từ nhà phân phối bạc uy tín.',
                 sbvDatasetTitle: 'Lãi Suất Liên Ngân Hàng SBV',
                 sbvDatasetDesc: 'Lãi suất liên ngân hàng VND (qua đêm, 1 tuần, 2 tuần, 1-9 tháng) công bố bởi Ngân hàng Nhà nước Việt Nam.',
+                tdDatasetTitle: 'Lãi Suất Gửi Tiết Kiệm',
                 apiBtn: 'Đăng nhập'
             },
             en: {
@@ -1800,6 +1825,7 @@
                 goldChart: 'Gold Price History (Vietnam)',
                 silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
+                tdChart: 'Commercial Banks Term Deposit History',
                 globalChart: 'Global Market Trends (Gold, Silver, NASDAQ)',
                 downloadTitle: 'Download Vietnam Historical Index',
                 downloadSubtitle: 'Download historical gold price data (SJC, DOJI, PNJ), silver prices, bank interest rates for free. Access Vietnam gold price data from 2015 onwards via RESTful API.',
@@ -1809,6 +1835,7 @@
                 silverDatasetDesc: 'Spot silver prices (Phu Quy), historical data from 2015. Daily buy/sell prices from trusted silver distributors.',
                 sbvDatasetTitle: 'SBV Interbank Rates',
                 sbvDatasetDesc: 'VND interbank interest rates (overnight, 1 week, 2 weeks, 1-9 months) published by State Bank of Vietnam.',
+                tdDatasetTitle: 'Term Deposit Rates',
                 apiBtn: 'Login'
             }
         };
@@ -1875,12 +1902,19 @@
                 if (h3) h3.textContent = t.sbvDatasetTitle;
                 if (desc) desc.innerHTML = t.sbvDatasetDesc;
             }
+            if (datasetCards[3]) {
+                const h3 = datasetCards[3].querySelector('h3');
+                const desc = datasetCards[3].querySelector('.dataset-desc');
+                if (h3) h3.textContent = t.tdDatasetTitle;
+                if (desc) desc.innerHTML = t.tdDatasetDesc;
+            }
 
             // Update charts
             const chartTitles = document.querySelectorAll('.chart-title');
             if (chartTitles[0]) chartTitles[0].textContent = t.goldChart;
             if (chartTitles[1]) chartTitles[1].textContent = t.silverChart;
             if (chartTitles[2]) chartTitles[2].textContent = t.sbvChart;
+            if (chartTitles[2]) chartTitles[2].textContent = t.tdChart;
             if (chartTitles[3]) chartTitles[3].textContent = t.globalChart;
 
             // Update API button
@@ -1992,6 +2026,7 @@
         let goldChart = null;
         let silverChart = null;
         let sbvChart = null;
+        let tbChart = null;
         let globalChart = null;
 
         // Chart.js default configuration
@@ -2064,6 +2099,23 @@
                 console.error('Error loading gold types:', error);
             }
         }
+        
+        // Load bank types
+        async function loadBankTypes() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gold/types`);
+                const result = await response.json();
+                if (result.success && result.types) {
+                    const select = document.getElementById('bankTypeSelect');
+                    select.innerHTML = result.types.map(type =>
+                        `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading gold types:', error);
+            }
+        }
+
 
         // Create/Update Gold Chart
         async function updateGoldChart(period = '1m', type = null) {
