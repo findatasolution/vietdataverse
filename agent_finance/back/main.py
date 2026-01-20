@@ -791,9 +791,32 @@ def get_sbv_data(period: str = '1m'):
         logger.error(f"SBV data error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/v1/bank-termdepo")
+@app.get("/api/v1/termdepo/banks")
+def get_termdepo_banks():
+    """Get available bank codes for term deposit"""
+    try:
+        engine = get_db_engine()
+        if not engine:
+            raise HTTPException(status_code=503, detail="Database not configured")
+
+        query = text("SELECT DISTINCT bank_code FROM vn_bank_termdepo ORDER BY bank_code")
+
+        with engine.connect() as conn:
+            result = conn.execute(query)
+            banks = [row[0] for row in result.fetchall()]
+
+        return {
+            'success': True,
+            'banks': banks
+        }
+
+    except Exception as e:
+        logger.error(f"Term deposit banks error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/termdepo")
 def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
-    """Get bank term deposit rates historical data"""
+    """Get bank term deposit rates historical data with average by date"""
     if pd is None:
         raise HTTPException(status_code=503, detail="Pandas not available")
 
@@ -804,11 +827,22 @@ def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
 
         start_date = get_date_filter(period)
 
+        # Use AVG to handle duplicate entries per date
         query = text("""
-            SELECT date, term_1m, term_2m, term_3m, term_6m, term_9m,
-                   term_12m, term_13m, term_18m, term_24m, term_36m
+            SELECT date,
+                   AVG(term_1m) as term_1m,
+                   AVG(term_2m) as term_2m,
+                   AVG(term_3m) as term_3m,
+                   AVG(term_6m) as term_6m,
+                   AVG(term_9m) as term_9m,
+                   AVG(term_12m) as term_12m,
+                   AVG(term_13m) as term_13m,
+                   AVG(term_18m) as term_18m,
+                   AVG(term_24m) as term_24m,
+                   AVG(term_36m) as term_36m
             FROM vn_bank_termdepo
             WHERE date >= :start_date AND bank_code = :bank_code
+            GROUP BY date
             ORDER BY date ASC
         """)
 
@@ -825,6 +859,7 @@ def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
                     'term_3m': [],
                     'term_6m': [],
                     'term_12m': [],
+                    'term_24m': [],
                     'count': 0
                 },
                 'period': period,
@@ -840,6 +875,7 @@ def get_termdepo_data(period: str = '1m', bank: str = 'ACB'):
             'term_3m': df['term_3m'].tolist(),
             'term_6m': df['term_6m'].tolist(),
             'term_12m': df['term_12m'].tolist(),
+            'term_24m': df['term_24m'].tolist(),
             'count': len(df)
         }
 
