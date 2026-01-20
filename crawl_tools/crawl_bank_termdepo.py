@@ -16,6 +16,7 @@ from sqlalchemy import create_engine, text
 from bs4 import BeautifulSoup
 import time
 import re
+import unicodedata
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -145,7 +146,7 @@ print("  MB Bank (MBB): AngularJS with dynamic content")
 print("  VPBank (VPB): React SPA - no public API")
 
 
-############## 3. VietinBank/CTG (HTTP with Selenium fallback)
+############## 3. VietinBank/CTG (HTTP - parse table directly)
 print(f"\n--- Crawling VietinBank Term Deposit Rates ---")
 
 try:
@@ -162,53 +163,74 @@ try:
     }
 
     tables = soup_ctg.find_all('table')
-    print(f"  Found {len(tables)} tables (HTTP)")
+    print(f"  Found {len(tables)} tables")
 
-    # Fallback to Selenium if no tables
-    if len(tables) == 0:
-        print("  No tables via HTTP, trying Selenium...")
-        chrome_options_ctg = Options()
-        chrome_options_ctg.add_argument('--headless')
-        chrome_options_ctg.add_argument('--no-sandbox')
-        chrome_options_ctg.add_argument('--disable-dev-shm-usage')
-        chrome_options_ctg.add_argument('--disable-gpu')
-        if sys.platform == 'linux':
-            chrome_options_ctg.binary_location = '/usr/bin/chromium-browser'
+    # Parse first table (interest rate table)
+    if tables:
+        table = tables[0]
+        rows = table.find_all('tr')
 
-        driver_ctg = webdriver.Chrome(options=chrome_options_ctg)
-        try:
-            driver_ctg.get(ctg_url)
-            time.sleep(10)
-            soup_ctg = BeautifulSoup(driver_ctg.page_source, 'html.parser')
-            tables = soup_ctg.find_all('table')
-            print(f"  Found {len(tables)} tables (Selenium)")
-        finally:
-            driver_ctg.quit()
+        for row in rows:
+            cols = row.find_all(['td', 'th'])
+            if len(cols) >= 2:
+                # Normalize text: Unicode NFC, replace non-breaking space, lowercase
+                term_text = unicodedata.normalize('NFC', cols[0].get_text(strip=True)).replace('\xa0', ' ').lower()
+                rate_text = cols[1].get_text(strip=True)  # VND column
 
-    text_content = soup_ctg.get_text()
+                # Extract rate value
+                try:
+                    rate = float(rate_text.replace('%', '').replace(',', '.').strip())
+                except (ValueError, AttributeError):
+                    continue
 
-    # Pattern matching
-    term_patterns = {
-        'term_1m': r'1\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_2m': r'2\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_3m': r'3\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_6m': r'6\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_9m': r'9\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_12m': r'12\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_18m': r'18\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_24m': r'24\s*tháng[^\d]*(\d+[.,]\d+)',
-        'term_36m': r'36\s*tháng[^\d]*(\d+[.,]\d+)',
-    }
+                if rate <= 0 or rate > 20:
+                    continue
 
-    for key, pattern in term_patterns.items():
-        match = re.search(pattern, text_content, re.IGNORECASE)
-        if match:
-            try:
-                rate = float(match.group(1).replace(',', '.'))
-                if 0 < rate < 20:
-                    ctg_data[key] = rate
-            except ValueError:
-                pass
+                # Map term text to database columns using exact patterns
+                # Row 1: "Không kỳ hạn" -> term_noterm
+                if term_text == 'không kỳ hạn':
+                    ctg_data['term_noterm'] = rate
+                    print(f"    term_noterm: {rate}%")
+                # Row 3: "Từ 1 tháng đến dưới 2 tháng" -> term_1m
+                elif term_text.startswith('từ 1 tháng') and 'dưới 2 tháng' in term_text:
+                    ctg_data['term_1m'] = rate
+                    print(f"    term_1m: {rate}%")
+                # Row 4: "Từ 2 tháng đến dưới 3 tháng" -> term_2m
+                elif term_text.startswith('từ 2 tháng') and 'dưới 3 tháng' in term_text:
+                    ctg_data['term_2m'] = rate
+                    print(f"    term_2m: {rate}%")
+                # Row 5: "Từ 3 tháng đến dưới 4 tháng" -> term_3m
+                elif term_text.startswith('từ 3 tháng') and 'dưới 4 tháng' in term_text:
+                    ctg_data['term_3m'] = rate
+                    print(f"    term_3m: {rate}%")
+                # Row 8: "Từ 6 tháng đến dưới 7 tháng" -> term_6m
+                elif term_text.startswith('từ 6 tháng') and 'dưới 7 tháng' in term_text:
+                    ctg_data['term_6m'] = rate
+                    print(f"    term_6m: {rate}%")
+                # Row 11: "Từ 9 tháng đến dưới 10 tháng" -> term_9m
+                elif term_text.startswith('từ 9 tháng') and 'dưới 10 tháng' in term_text:
+                    ctg_data['term_9m'] = rate
+                    print(f"    term_9m: {rate}%")
+                # Row 14: "12 tháng" (exact) -> term_12m
+                elif term_text == '12 tháng':
+                    ctg_data['term_12m'] = rate
+                    print(f"    term_12m: {rate}%")
+                # Row 15: "Trên 12 tháng đến 13 tháng" -> term_13m
+                elif term_text.startswith('trên 12 tháng') and '13 tháng' in term_text:
+                    ctg_data['term_13m'] = rate
+                    print(f"    term_13m: {rate}%")
+                # Row 17: "Từ 18 tháng đến dưới 24 tháng" -> term_18m
+                elif term_text.startswith('từ 18 tháng'):
+                    ctg_data['term_18m'] = rate
+                    print(f"    term_18m: {rate}%")
+                # Row 18: "Từ 24 tháng đến dưới 36 tháng" -> term_24m
+                elif term_text.startswith('từ 24 tháng'):
+                    ctg_data['term_24m'] = rate
+                    print(f"    term_24m: {rate}%")
+                # Row 19: "36 tháng" (exact) -> term_36m
+                elif term_text == '36 tháng':
+                    ctg_data['term_36m'] = rate
+                    print(f"    term_36m: {rate}%")
 
     has_ctg_data = any(key.startswith('term_') for key in ctg_data.keys())
 
