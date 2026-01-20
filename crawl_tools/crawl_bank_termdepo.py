@@ -11,7 +11,6 @@ import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-import pandas as pd
 import requests
 from sqlalchemy import create_engine, text
 from bs4 import BeautifulSoup
@@ -119,17 +118,19 @@ try:
 
     if has_data:
         with engine.connect() as conn:
-            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'ACB' AND date = '{date_str}'"))
+            result = conn.execute(text("SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'ACB' AND date = :date"), {'date': date_str})
             exists = result.scalar() > 0
 
-        if exists:
-            print(f"  ACB term deposit data for {date_str} already exists, skipping")
-        else:
-            acb_df = pd.DataFrame([acb_data])
-            acb_df['date'] = pd.to_datetime(acb_df['date'])
-            acb_df.to_sql('vn_bank_termdepo', engine, if_exists='append', index=False)
-            rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in acb_data.items() if k.startswith('term_')]
-            print(f"  Pushed ACB rates: {rates_list}")
+            if exists:
+                print(f"  ACB term deposit data for {date_str} already exists, skipping")
+            else:
+                conn.execute(text("""
+                    INSERT INTO vn_bank_termdepo (bank_code, date, crawl_time, term_1m, term_2m, term_3m, term_6m, term_9m, term_12m, term_13m, term_18m, term_24m, term_36m)
+                    VALUES (:bank_code, :date, :crawl_time, :term_1m, :term_2m, :term_3m, :term_6m, :term_9m, :term_12m, :term_13m, :term_18m, :term_24m, :term_36m)
+                """), acb_data)
+                conn.commit()
+                rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in acb_data.items() if k.startswith('term_')]
+                print(f"  Pushed ACB rates: {rates_list}")
     else:
         print(f"  No ACB term deposit data found")
 
@@ -213,17 +214,20 @@ try:
 
     if has_ctg_data:
         with engine.connect() as conn:
-            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'CTG' AND date = '{date_str}'"))
+            result = conn.execute(text("SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'CTG' AND date = :date"), {'date': date_str})
             exists = result.scalar() > 0
 
-        if exists:
-            print(f"  VietinBank data for {date_str} already exists, skipping")
-        else:
-            ctg_df = pd.DataFrame([ctg_data])
-            ctg_df['date'] = pd.to_datetime(ctg_df['date'])
-            ctg_df.to_sql('vn_bank_termdepo', engine, if_exists='append', index=False)
-            rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in ctg_data.items() if k.startswith('term_')]
-            print(f"  Pushed VietinBank rates: {rates_list}")
+            if exists:
+                print(f"  VietinBank data for {date_str} already exists, skipping")
+            else:
+                # Build dynamic insert based on available columns
+                columns = ['bank_code', 'date', 'crawl_time'] + [k for k in ctg_data.keys() if k.startswith('term_')]
+                placeholders = ', '.join([f':{c}' for c in columns])
+                col_names = ', '.join(columns)
+                conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), ctg_data)
+                conn.commit()
+                rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in ctg_data.items() if k.startswith('term_')]
+                print(f"  Pushed VietinBank rates: {rates_list}")
     else:
         print(f"  No VietinBank term deposit data found")
 
@@ -311,17 +315,21 @@ try:
 
     if has_vcb_data:
         with engine.connect() as conn:
-            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'VCB' AND date = '{date_str}'"))
+            result = conn.execute(text("SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = 'VCB' AND date = :date"), {'date': date_str})
             exists = result.scalar() > 0
 
-        if exists:
-            print(f"  Vietcombank data for {date_str} already exists, skipping")
-        else:
-            vcb_df = pd.DataFrame([vcb_data])
-            vcb_df['date'] = pd.to_datetime(vcb_df['date'])
-            vcb_df.to_sql('vn_bank_termdepo', engine, if_exists='append', index=False)
-            rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in vcb_data.items() if k.startswith('term_') and v is not None]
-            print(f"  Pushed Vietcombank rates: {rates_list}")
+            if exists:
+                print(f"  Vietcombank data for {date_str} already exists, skipping")
+            else:
+                # Filter out None values and build insert
+                insert_data = {k: v for k, v in vcb_data.items() if v is not None or k in ['bank_code', 'date', 'crawl_time']}
+                columns = list(insert_data.keys())
+                placeholders = ', '.join([f':{c}' for c in columns])
+                col_names = ', '.join(columns)
+                conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), insert_data)
+                conn.commit()
+                rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in vcb_data.items() if k.startswith('term_') and v is not None]
+                print(f"  Pushed Vietcombank rates: {rates_list}")
     else:
         print(f"  No Vietcombank term deposit data found")
 
