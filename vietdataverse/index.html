@@ -1386,7 +1386,7 @@
                         </div>
                     </div>
 
-                    <!-- TD Chart -->
+                    <!-- TD Chart - Term Deposit Interest Rates -->
                     <div class="chart-card">
                         <div class="chart-header">
                             <h3 class="chart-title">
@@ -1395,6 +1395,8 @@
                             <div class="chart-filters">
                                 <select id="bankTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
                                     <option value="ACB">ACB</option>
+                                    <option value="CTG">VietinBank (CTG)</option>
+                                    <option value="SHB">SHB</option>
                                 </select>
                                 <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
                                 <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button>
@@ -1403,8 +1405,8 @@
                             </div>
                         </div>
                         <div class="chart-container">
-                            <canvas id="silverChart"></canvas>
-                            <div class="chart-loading" id="silverLoading">Loading data...</div>
+                            <canvas id="tdChart"></canvas>
+                            <div class="chart-loading" id="tdLoading">Loading data...</div>
                         </div>
                     </div>
 
@@ -2028,6 +2030,7 @@
         let sbvChart = null;
         let tbChart = null;
         let globalChart = null;
+        let tdChart = null;
 
         // Chart.js default configuration
         Chart.defaults.color = '#A0A0A0';
@@ -2100,19 +2103,20 @@
             }
         }
         
-        // Load bank types
+        // Load bank types for term deposit
         async function loadBankTypes() {
             try {
-                const response = await fetch(`${API_BASE_URL}/gold/types`);
+                const response = await fetch(`${API_BASE_URL}/termdepo/banks`);
                 const result = await response.json();
-                if (result.success && result.types) {
+                if (result.success && result.banks) {
                     const select = document.getElementById('bankTypeSelect');
-                    select.innerHTML = result.types.map(type =>
-                        `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
+                    select.innerHTML = result.banks.map(bank =>
+                        `<option value="${bank}"${bank === 'ACB' ? ' selected' : ''}>${bank}</option>`
                     ).join('');
                 }
             } catch (error) {
-                console.error('Error loading gold types:', error);
+                console.error('Error loading bank types:', error);
+                // Keep default options if API fails
             }
         }
 
@@ -2381,6 +2385,159 @@
 
                 // Setup tooltip hide on click outside
                 setupTooltipHideOnClickOutside(silverChart, canvas);
+
+            } catch (error) {
+                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
+            }
+        }
+
+        // Create/Update Term Deposit Chart
+        async function updateTdChart(period = '1m', bankCode = null) {
+            const loading = document.getElementById('tdLoading');
+            const canvas = document.getElementById('tdChart');
+
+            if (!bankCode) {
+                const select = document.getElementById('bankTypeSelect');
+                bankCode = select ? select.value : 'ACB';
+            }
+
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/termdepo?period=${period}&bank=${encodeURIComponent(bankCode)}`);
+                const result = await response.json();
+                const data = result.data;
+                loading.style.display = 'none';
+
+                // Term deposit shows multiple term rates over time
+                const chartData = {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: '1 Month',
+                            data: data.term_1m,
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '3 Months',
+                            data: data.term_3m,
+                            borderColor: '#E4C78A',
+                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '6 Months',
+                            data: data.term_6m,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '12 Months',
+                            data: data.term_12m,
+                            borderColor: '#7CB342',
+                            backgroundColor: 'rgba(124, 179, 66, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: '24 Months',
+                            data: data.term_24m,
+                            borderColor: '#42A5F5',
+                            backgroundColor: 'rgba(66, 165, 245, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#A0A0A0',
+                                    padding: 15,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1C1C1C',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#A0A0A0',
+                                borderColor: 'rgba(201, 165, 91, 0.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toFixed(1) + '%';
+                                    },
+                                    color: '#707070'
+                                },
+                                grid: {
+                                    color: 'rgba(201, 165, 91, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    color: '#707070',
+                                    autoSkip: true,
+                                    maxTicksLimit: getResponsiveTickLimit(),
+                                    autoSkipPadding: 15,
+                                    padding: 8,
+                                    font: {
+                                        size: getResponsiveFontSize()
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        const label = this.getLabelForValue(value);
+                                        if (!label) return '';
+                                        const parts = label.split('-');
+                                        if (parts.length === 3) {
+                                            return parts[1] + '-' + parts[2];
+                                        }
+                                        return label;
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                };
+
+                if (tdChart) {
+                    tdChart.destroy();
+                }
+                tdChart = new Chart(canvas, config);
+
+                setupTooltipHideOnClickOutside(tdChart, canvas);
 
             } catch (error) {
                 loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
@@ -2719,6 +2876,8 @@
                     updateGoldChart(period);
                 } else if (chart === 'silver') {
                     updateSilverChart(period);
+                } else if (chart === 'td') {
+                    updateTdChart(period);
                 } else if (chart === 'sbv') {
                     updateSBVChart(period);
                 } else if (chart === 'global') {
@@ -2888,6 +3047,13 @@
                     const period = document.querySelector('.filter-btn[data-chart="gold"].active').dataset.period;
                     updateGoldChart(period, this.value);
                 });
+            });
+
+            // Initialize term deposit chart with bank selector
+            updateTdChart('1m');
+            document.getElementById('bankTypeSelect').addEventListener('change', function() {
+                const period = document.querySelector('.filter-btn[data-chart="td"].active').dataset.period;
+                updateTdChart(period, this.value);
             });
 
             updateSilverChart('1m');
