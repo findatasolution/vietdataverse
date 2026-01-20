@@ -1,4 +1,4 @@
-name: Bank Term Deposit Crawl (Weekly)
+name: Bank Term Deposit Crawl
 
 on:
   schedule:
