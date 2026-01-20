@@ -266,74 +266,105 @@ try:
     chrome_options_vcb.add_argument('--no-sandbox')
     chrome_options_vcb.add_argument('--disable-dev-shm-usage')
     chrome_options_vcb.add_argument('--disable-gpu')
+    chrome_options_vcb.add_argument('--disable-http2')  # Avoid HTTP2 protocol errors
+    chrome_options_vcb.page_load_strategy = 'normal'
     if sys.platform == 'linux':
         chrome_options_vcb.binary_location = '/usr/bin/chromium-browser'
-
-    driver_vcb = webdriver.Chrome(options=chrome_options_vcb)
 
     vcb_data = {
         'bank_code': 'VCB',
         'date': date_str,
-        'crawl_time': datetime.now(),
-        'term_noterm': None,
-        'term_1m': None,
-        'term_2m': None,
-        'term_3m': None,
-        'term_6m': None,
-        'term_9m': None,
-        'term_12m': None,
-        'term_13m': None,
-        'term_18m': None,
-        'term_24m': None,
-        'term_36m': None
+        'crawl_time': datetime.now()
     }
 
-    try:
-        print("  Loading Vietcombank page (20s wait)...")
-        driver_vcb.get("https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat")
-        time.sleep(20)
+    tables = []
+    max_retries = 3
 
-        soup_vcb = BeautifulSoup(driver_vcb.page_source, 'html.parser')
-        text_content = soup_vcb.get_text()
+    for attempt in range(max_retries):
+        driver_vcb = None
+        try:
+            driver_vcb = webdriver.Chrome(options=chrome_options_vcb)
+            driver_vcb.set_page_load_timeout(60)
 
-        # No-term rate
-        noterm_match = re.search(r'Không kỳ hạn.*?(\d+[.,]\d+)\s*%?', text_content, re.IGNORECASE)
-        if noterm_match:
-            try:
-                rate = float(noterm_match.group(1).replace(',', '.'))
-                if 0 < rate < 20:
-                    vcb_data['term_noterm'] = rate
-            except ValueError:
-                pass
+            print(f"  Attempt {attempt+1}/{max_retries}: Loading Vietcombank page...")
+            driver_vcb.get("https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat")
+            time.sleep(25)
 
-        # Term patterns
-        term_patterns = {
-            'term_1m': r'1\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_2m': r'2\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_3m': r'3\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_6m': r'6\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_9m': r'9\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_12m': r'12\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_13m': r'13\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_18m': r'18\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_24m': r'24\s*tháng[^\d]*(\d+[.,]\d+)',
-            'term_36m': r'36\s*tháng[^\d]*(\d+[.,]\d+)',
-        }
+            soup_vcb = BeautifulSoup(driver_vcb.page_source, 'html.parser')
+            tables = soup_vcb.find_all('table')
+            print(f"  Found {len(tables)} tables")
 
-        for key, pattern in term_patterns.items():
-            match = re.search(pattern, text_content, re.IGNORECASE)
-            if match:
+            if tables:
+                break
+            else:
+                print("  No tables found, retrying...")
+                time.sleep(5)
+        except Exception as retry_err:
+            print(f"  Attempt {attempt+1} failed: {retry_err}")
+            time.sleep(5)
+        finally:
+            if driver_vcb:
+                driver_vcb.quit()
+
+    # Parse the interest rate table (outside retry loop)
+    if tables:
+        table = tables[0]
+        rows = table.find_all('tr')
+        print(f"  Parsing {len(rows)} table rows...")
+
+        for row in rows:
+            cols = row.find_all(['td', 'th'])
+            if len(cols) >= 2:
+                # Normalize text: Unicode NFC, replace non-breaking space, lowercase
+                term_text = unicodedata.normalize('NFC', cols[0].get_text(strip=True)).replace('\xa0', ' ').lower()
+                rate_text = cols[1].get_text(strip=True)  # VND column
+
+                # Extract rate value
                 try:
-                    rate = float(match.group(1).replace(',', '.'))
-                    if 0 < rate < 20:
-                        vcb_data[key] = rate
-                except ValueError:
-                    pass
+                    rate = float(rate_text.replace('%', '').replace(',', '.').strip())
+                except (ValueError, AttributeError):
+                    continue
 
-    finally:
-        driver_vcb.quit()
+                if rate <= 0 or rate > 20:
+                    continue
 
-    has_vcb_data = any(value is not None for key, value in vcb_data.items() if key.startswith('term_'))
+                # Map term text to database columns
+                # VCB format: "Không kỳ hạn", "1 tháng", "2 tháng", etc.
+                if term_text == 'không kỳ hạn':
+                    vcb_data['term_noterm'] = rate
+                    print(f"    term_noterm: {rate}%")
+                elif term_text == '1 tháng':
+                    vcb_data['term_1m'] = rate
+                    print(f"    term_1m: {rate}%")
+                elif term_text == '2 tháng':
+                    vcb_data['term_2m'] = rate
+                    print(f"    term_2m: {rate}%")
+                elif term_text == '3 tháng':
+                    vcb_data['term_3m'] = rate
+                    print(f"    term_3m: {rate}%")
+                elif term_text == '6 tháng':
+                    vcb_data['term_6m'] = rate
+                    print(f"    term_6m: {rate}%")
+                elif term_text == '9 tháng':
+                    vcb_data['term_9m'] = rate
+                    print(f"    term_9m: {rate}%")
+                elif term_text == '12 tháng':
+                    vcb_data['term_12m'] = rate
+                    print(f"    term_12m: {rate}%")
+                elif term_text == '13 tháng':
+                    vcb_data['term_13m'] = rate
+                    print(f"    term_13m: {rate}%")
+                elif term_text == '18 tháng':
+                    vcb_data['term_18m'] = rate
+                    print(f"    term_18m: {rate}%")
+                elif term_text == '24 tháng':
+                    vcb_data['term_24m'] = rate
+                    print(f"    term_24m: {rate}%")
+                elif term_text == '36 tháng':
+                    vcb_data['term_36m'] = rate
+                    print(f"    term_36m: {rate}%")
+
+    has_vcb_data = any(key.startswith('term_') for key in vcb_data.keys())
 
     if has_vcb_data:
         with engine.connect() as conn:
@@ -343,14 +374,13 @@ try:
             if exists:
                 print(f"  Vietcombank data for {date_str} already exists, skipping")
             else:
-                # Filter out None values and build insert
-                insert_data = {k: v for k, v in vcb_data.items() if v is not None or k in ['bank_code', 'date', 'crawl_time']}
-                columns = list(insert_data.keys())
+                # Build dynamic insert based on available columns
+                columns = ['bank_code', 'date', 'crawl_time'] + [k for k in vcb_data.keys() if k.startswith('term_')]
                 placeholders = ', '.join([f':{c}' for c in columns])
                 col_names = ', '.join(columns)
-                conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), insert_data)
+                conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), vcb_data)
                 conn.commit()
-                rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in vcb_data.items() if k.startswith('term_') and v is not None]
+                rates_list = [f'{k.replace("term_", "").upper()}: {v}%' for k, v in vcb_data.items() if k.startswith('term_')]
                 print(f"  Pushed Vietcombank rates: {rates_list}")
     else:
         print(f"  No Vietcombank term deposit data found")
