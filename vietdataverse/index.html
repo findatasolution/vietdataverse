@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viet Dataverse | Tải Dữ Liệu Kinh Tế Vĩ Mô Miễn Phí | Download Vietnam Historical Index</title>
+    <!-- <title>Viet Dataverse | Tải Dữ Liệu Kinh Tế Vĩ Mô Miễn Phí | Download Vietnam Historical Index</title> -->
+    <title>Viet Dataverse | Dữ Liệu Kinh Tế Mở</title>
     <meta name="description" content="Tải lịch sử giá vàng SJC, DOJI, PNJ từ 2015 miễn phí. Download Vietnam historical gold price data, silver price, interest rate export free.">
     <meta name="keywords" content="tải lịch sử giá vàng, download vietnam historical gold price, tải giá vàng, download gold price, lịch sử giá vàng sjc, vietnam gold price data, giá vàng, historical gold price vietnam, tải giá vàng miễn phí, free gold price data, vàng doji, gold price api vietnam, giá vàng export, download silver price vietnam, tải lịch sử giá bạc, tải lãi suất liên ngân hàng, lãi suất gửi tiết kiệm, lịch sử, dữ liệu miễn phí, free macro economic index">
     <meta name="author" content="Viet Dataverse">
@@ -1314,7 +1315,7 @@
                     <li class="nav-item">
                         <a class="nav-link" data-tab="flash-news" id="flash-news-toggle">
                             <div class="nav-content">
-                                <h4>Flash News</h4>
+                                <h4>Gold News</h4>
                                 <span class="nav-meta">Latest updates</span>
                             </div>
                         </a>
@@ -1395,7 +1396,7 @@
                             <div class="chart-filters">
                                 <select id="bankTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
                                     <option value="ACB">ACB</option>
-                                    <option value="CTG">VietinBank (CTG)</option>
+                                    <option value="CTG">CTG</option>
                                     <option value="SHB">SHB</option>
                                 </select>
                                 <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
@@ -1409,7 +1410,6 @@
                             <div class="chart-loading" id="tdLoading">Loading data...</div>
                         </div>
                     </div>
-
 
                     <!-- SBV Interbank Rate Chart -->
                     <div class="chart-card">
@@ -1916,8 +1916,8 @@
             if (chartTitles[0]) chartTitles[0].textContent = t.goldChart;
             if (chartTitles[1]) chartTitles[1].textContent = t.silverChart;
             if (chartTitles[2]) chartTitles[2].textContent = t.sbvChart;
-            if (chartTitles[2]) chartTitles[2].textContent = t.tdChart;
-            if (chartTitles[3]) chartTitles[3].textContent = t.globalChart;
+            if (chartTitles[3]) chartTitles[3].textContent = t.tdChart;
+            if (chartTitles[4]) chartTitles[4].textContent = t.globalChart;
 
             // Update API button
             document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
@@ -2581,6 +2581,22 @@
                             backgroundColor: 'rgba(184, 184, 184, 0.1)',
                             borderWidth: 2,
                             tension: 0.4
+                        },                        
+                        {
+                            label: 'Rediscount Rate',
+                            data: data.rediscount,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.2)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },                      
+                        {
+                            label: 'Refinancing Rate',
+                            data: data.refinancing,
+                            borderColor: '#B8B8B8',
+                            backgroundColor: 'rgba(184, 184, 184, 0.3)',
+                            borderWidth: 2,
+                            tension: 0.4
                         }
                     ]
                 };
@@ -2975,8 +2991,13 @@
                         break;
                     case 'sbv':
                         endpoint = 'sbv-interbank?period=all';
-                        headers = ['Date', 'Overnight', '1 Week', '2 Weeks', '1 Month', '3 Months', '6 Months', '9 Months'];
+                        headers = ['Date', 'Overnight', '1 Week', '2 Weeks', '1 Month', '3 Months', '6 Months', '9 Months', 'rediscount_rate', 'refinancing_rate'];
                         filename = `sbv_interbank_rates_${new Date().toISOString().split('T')[0]}.csv`;
+                        break;
+                    case 'td':
+                        endpoint = 'termdepo?period=all';
+                        apiUrl = `${API_BASE_URL}/termdepo?period=1m&bank=ACB`; 
+                        example = 'GET /api/v1/termdepo?period=1m&bank=ACB';
                         break;
                     default:
                         console.error('Unknown dataset:', dataset);
@@ -3032,11 +3053,16 @@
                     apiUrl = `${API_BASE_URL}/sbv-interbank?period=1m`;
                     example = 'GET /api/v1/sbv-interbank?period=1m';
                     break;
+                case 'td':
+                    apiUrl = `${API_BASE_URL}/sbv-interbank?period=1m`;
+                    example = 'GET /api/v1/td?period=1m';
+                break;
             }
 
             alert(`API Endpoint:\n\n${example}\n\nFull URL:\n${apiUrl}\n\nPeriods: 7d, 1m, 1y, all`);
         }
 
+        // Initialize charts and analysis on page load
         // Initialize charts and analysis on page load
         window.addEventListener('load', function() {
             loadGoldTypes().then(() => {
@@ -3044,20 +3070,30 @@
 
                 // Add type selector change event
                 document.getElementById('goldTypeSelect').addEventListener('change', function() {
-                    const period = document.querySelector('.filter-btn[data-chart="gold"].active').dataset.period;
+                    const activeBtn = document.querySelector('.filter-btn[data-chart="gold"].active');
+                    // Thêm check null để an toàn hơn
+                    const period = activeBtn ? activeBtn.dataset.period : '1m';
                     updateGoldChart(period, this.value);
                 });
             });
 
             // Initialize term deposit chart with bank selector
-            updateTdChart('1m');
+            loadBankTypes().then(() => { // Nên load bank types trước khi vẽ chart
+                updateTdChart('1m');
+            });
+
             document.getElementById('bankTypeSelect').addEventListener('change', function() {
-                const period = document.querySelector('.filter-btn[data-chart="td"].active').dataset.period;
+                const activeBtn = document.querySelector('.filter-btn[data-chart="td"].active');
+                const period = activeBtn ? activeBtn.dataset.period : '1m';
                 updateTdChart(period, this.value);
             });
 
             updateSilverChart('1m');
             updateSBVChart('1m');
+            
+            // FIX TYPO HERE: updatetdChart -> updateTdChart
+            updateTdChart('1m'); 
+            
             updateGlobalChart('1m');
             loadGoldAnalysis();
 
@@ -3077,6 +3113,8 @@
                 });
             });
         });
+
+
     </script>
 
     <!-- Structured Data for SEO (JSON-LD) -->

@@ -146,7 +146,7 @@ try:
     response_gold = requests.get(url_gold, timeout=10)
     response_gold.raise_for_status()
     soup_gold = BeautifulSoup(response_gold.content, 'html.parser')
-
+    crawl_time = datetime.now()
     gold_records = []
     tables_gold = soup_gold.find_all('table')
 
@@ -177,7 +177,8 @@ try:
                         'date': date_str,
                         'type': brand_type,
                         'buy_price': buy_price,
-                        'sell_price': sell_price
+                        'sell_price': sell_price,
+                        'crawl_time': sell_price
                     })
                 except (ValueError, AttributeError):
                     continue
@@ -191,8 +192,19 @@ try:
         for record in gold_records:
             with engine.connect() as conn:
                 result = conn.execute(
-                    text("SELECT COUNT(*) FROM vn_gold_24h_hist WHERE date = :date AND type = :type"),
-                    {'date': record['date'], 'type': record['type']}
+                    text("""
+                        SELECT COUNT(*) FROM vn_gold_24h_hist
+                        WHERE date = :date
+                        AND type = :type
+                        AND crawl_time >= :start_time
+                        AND crawl_time < :end_time
+                    """),
+                    {
+                        'date': record['date'],
+                        'type': record['type'],
+                        'start_time': crawl_time.replace(minute=0, second=0, microsecond=0),
+                        'end_time': crawl_time.replace(minute=59, second=59, microsecond=999999)
+                    }
                 )
 
                 if result.scalar() > 0:
@@ -201,8 +213,8 @@ try:
 
                 conn.execute(
                     text("""
-                        INSERT INTO vn_gold_24h_hist (date, type, buy_price, sell_price)
-                        VALUES (:date, :type, :buy_price, :sell_price)
+                        INSERT INTO vn_gold_24h_hist (date, type, buy_price, sell_price, crawl_time)
+                        VALUES (:date, :type, :buy_price, :sell_price, :crawl_time)
                     """),
                     record
                 )
