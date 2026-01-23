@@ -178,7 +178,7 @@ try:
                         'type': brand_type,
                         'buy_price': buy_price,
                         'sell_price': sell_price,
-                        'crawl_time': sell_price
+                        'crawl_time': crawl_time
                     })
                 except (ValueError, AttributeError):
                     continue
