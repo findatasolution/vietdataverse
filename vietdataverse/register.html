@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - Viet Dataverse</title>
+    <meta name="description" content="Đăng ký tài khoản Viet Dataverse để truy cập dữ liệu kinh tế Việt Nam">
+    <meta name="author" content="Viet Dataverse">
+    <link rel="icon" type="image/png" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png">
+    <link rel="canonical" href="https://nguyenphamdieuhien.online/vietdataverse/register.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold-primary: #C9A55B;
+            --gold-accent: #E4C78A;
+            --gold-dark: #8B7355;
+            --bg-dark: #0A0A0A;
+            --bg-secondary: #141414;
+            --bg-elevated: #1C1C1C;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+            --text-tertiary: #707070;
+            --border-color: rgba(201, 165, 91, 0.15);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .register-container {
+            max-width: 400px;
+            width: 100%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-accent) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.3);
+            overflow: hidden;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 6px;
+        }
+
+        .register-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .register-header p {
+            color: var(--text-tertiary);
+            font-size: 0.95rem;
+        }
+
+        .register-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(201, 165, 91, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-group .field-hint {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        .register-btn {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: var(--bg-dark);
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .register-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 165, 91, 0.4);
+        }
+
+        .register-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .message.success {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #22C55E;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .message.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .links a {
+            color: var(--gold-accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .links a:hover {
+            color: var(--gold-primary);
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .back-link:hover {
+            color: var(--text-secondary);
+        }
+
+        .login-link {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            .register-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .form-group input {
+                padding: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <div class="logo">
+                <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png" alt="Viet Dataverse Logo">
+            </div>
+            <h1>Đăng ký</h1>
+            <p>Tạo tài khoản để truy cập dữ liệu kinh tế</p>
+        </div>
+
+        <form id="registerForm" class="register-form">
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required placeholder="Nhập email của bạn" autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mật khẩu *</label>
+                <input type="password" id="password" name="password" required placeholder="Tạo mật khẩu (tối thiểu 6 ký tự)" autocomplete="new-password">
+                <div class="field-hint">Mật khẩu phải có ít nhất 6 ký tự</div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Số điện thoại</label>
+                <input type="tel" id="phone" name="phone" placeholder="Nhập số điện thoại (tùy chọn)" autocomplete="tel">
+                <div class="field-hint">Ví dụ: +84123456789</div>
+            </div>
+
+            <button type="submit" class="register-btn" id="submitBtn">
+                <i class="fas fa-user-plus"></i> Đăng ký
+            </button>
+        </form>
+
+        <div id="message" class="message" style="display: none;"></div>
+
+        <div class="links">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Quay lại trang chủ
+            </a>
+            <br>
+            <div class="login-link">
+                Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+
+            // Get form data
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const phone = document.getElementById('phone').value.trim();
+
+            // Basic validation
+            if (!email || !password) {
+                showMessage('Vui lòng nhập đầy đủ email và mật khẩu.', 'error');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showMessage('Email không hợp lệ.', 'error');
+                return;
+            }
+
+            // Password validation
+            if (password.length < 6) {
+                showMessage('Mật khẩu phải có ít nhất 6 ký tự.', 'error');
+                return;
+            }
+
+            // Phone validation (optional but if provided, check format)
+            if (phone && !/^(\+84|84|0)[3|5|7|8|9][0-9]{8}$/.test(phone.replace(/\s+/g, ''))) {
+                showMessage('Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng Việt Nam.', 'error');
+                return;
+            }
+
+            // Disable submit button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đăng ký...';
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        phone: phone || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showMessage(data.detail || 'Đăng ký thất bại. Vui lòng thử lại.', 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('Có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Đăng ký';
+            }
+        });
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+
+            // Auto-hide message after 5 seconds for errors, keep success visible
+            if (type === 'error') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Real-time password validation
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const hint = this.parentElement.querySelector('.field-hint');
+
+            if (password.length < 6 && password.length > 0) {
+                hint.style.color = '#EF4444';
+                hint.textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+            } else if (password.length >= 6) {
+                hint.style.color = '#22C55E';
+                hint.textContent = '✓ Mật khẩu hợp lệ';
+            } else {
+                hint.style.color = 'var(--text-tertiary)';
+                hint.textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+            }
+        });
+
+        // Real-time email validation
+        document.getElementById('email').addEventListener('input', function() {
+            const email = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            // Visual feedback could be added here if needed
+        });
+    </script>
+</body>
+</html>

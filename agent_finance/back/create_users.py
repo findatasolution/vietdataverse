@@ -1,6 +1,6 @@
 from back.database import SessionLocal, engine, Base
 from back.models import User
-from back.auth import hash_password
+from auth import hash_password
 import logging
 
 logging.basicConfig(level=logging.INFO)
