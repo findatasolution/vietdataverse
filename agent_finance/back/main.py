@@ -9,10 +9,10 @@ from sqlalchemy import create_engine, text
 import os
 import json
 
-# Import database models and functions using relative imports
-from .neon_database import engine, Base
-from .neon_models import NeonUser
-from .neon_auth import hash_password, verify_password, create_access_token, decode_access_token
+# Import existing database models and functions
+from .database import engine, Base, get_db
+from .models import User
+from .auth import hash_password, verify_password, create_access_token, decode_access_token
 from .middleware import authenticate_user, get_current_user
 
 # Create tables
@@ -69,19 +69,18 @@ async def register_user(request: RegisterRequest):
         Session = sessionmaker(bind=engine)
         session = Session()
         
-        existing_user = session.query(NeonUser).filter_by(email=request.email).first()
+        existing_user = session.query(User).filter_by(email=request.email).first()
         if existing_user:
             session.close()
             raise HTTPException(status_code=400, detail="Email already registered")
-        
+
         # Hash password
         password_hash = hash_password(request.password)
-        
+
         # Create new user
-        new_user = NeonUser(
+        new_user = User(
             email=request.email,
-            password_hash=password_hash,
-            phone=request.phone
+            password_hash=password_hash
         )
         
         # Add to database
@@ -105,23 +104,23 @@ async def login_user(request: LoginRequest):
         session = Session()
         
         # Find user by email
-        user = session.query(NeonUser).filter_by(email=request.email).first()
+        user = session.query(User).filter_by(email=request.email).first()
         session.close()
-        
+
         if not user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
         # Verify password
         if not verify_password(request.password, user.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
         # Create JWT token
         access_token = create_access_token(
             data={
                 "sub": user.email,
                 "user_id": user.id,
-                "type": user.type,
-                "membership_level": user.membership_level
+                "role": user.role,
+                "is_admin": user.is_admin
             }
         )
         
@@ -177,8 +176,8 @@ async def dashboard_data(request: Request):
         return {
             "user": {
                 "email": user["email"],
-                "type": user["type"],
-                "membership_level": user["membership_level"]
+                "role": user["role"],
+                "is_admin": user["is_admin"]
             },
             "dashboard_data": {
                 "total_users": 1000,

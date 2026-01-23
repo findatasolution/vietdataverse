@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 # Import the auth functions
-from neon_auth import decode_access_token
+from .auth import decode_access_token
 
 async def authenticate_user(request: Request):
     """
