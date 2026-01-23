@@ -177,8 +177,10 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
 - Chỉ sử dụng số liệu thực tế từ dữ liệu đã cung cấp
 - Viết tự nhiên, chuyên nghiệp, dễ hiểu
 - Mỗi phần ĐÚNG 3 câu, không nhiều hơn
-- Không thêm tiêu đề hay phần giới thiệu
-- Không sử dụng markdown code blocks (```html)
+- KHÔNG thêm bất kỳ phần nào khác ngoài 3 phần đã chỉ định
+- KHÔNG thêm phần "Tin tức quốc tế liên quan" hay bất kỳ liên kết nào
+- KHÔNG thêm tiêu đề hay phần giới thiệu ngoài 3 phần chính
+- Chỉ trả về HTML thuần túy, không có markdown code blocks (```html)
 """
 
     return prompt

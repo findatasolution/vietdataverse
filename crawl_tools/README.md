@@ -13,7 +13,7 @@
 
 **Tables updated:**
 - `vn_silver_phuquy_hist` (date, buy_price, sell_price)
-- `vn_gold_24h_dojihn_hist` (date, buy_price, sell_price)
+- `vn_gold_24h_hist` (date, buy_price, sell_price)
 - `vn_sbv_interbankrate` (date, rates for 7 terms, trading volumes)
 - `vn_bank_termdepo` (bank_code='ACB', date, term rates 1m-36m)
 
@@ -35,7 +35,7 @@
 
 **What it does:**
 - Creates all required tables in Neon PostgreSQL database
-- Tables: vn_gold_24h_dojihn_hist, vn_silver_phuquy_hist, vn_sbv_interbankrate, vn_bank_termdepo
+- Tables: vn_gold_24h_hist, vn_silver_phuquy_hist, vn_sbv_interbankrate, vn_bank_termdepo
 - Run once during initial setup or when adding new tables
 
 ---

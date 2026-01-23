@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+# Neon-specific secret key and algorithm
+NEON_SECRET_KEY = os.getenv("NEON_SECRET_KEY", "neon_secret_key_for_jwt")
+NEON_ALGORITHM = os.getenv("NEON_ALGORITHM", "HS256")
+NEON_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("NEON_ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 
 def hash_password(password: str) -> str:
@@ -37,13 +38,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     
     return bcrypt.checkpw(plain_password_bytes, hashed_password_bytes)
 
-
 def create_access_token(data: dict, expires_delta: timedelta = None):
     """Create a JWT access token"""
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=NEON_ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, NEON_SECRET_KEY, algorithm=NEON_ALGORITHM)
     return encoded_jwt
 
 
@@ -52,5 +52,5 @@ def decode_access_token(token: str) -> dict:
     Decode a JWT token and return the payload.
     Raises JWTError if the token is invalid.
     """
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    payload = jwt.decode(token, NEON_SECRET_KEY, algorithms=[NEON_ALGORITHM])
     return payload
