@@ -12,7 +12,14 @@
     <meta name="language" content="Vietnamese">
     <meta name="geo.region" content="VN">
     <meta name="geo.placename" content="Vietnam">
-    <link rel="icon" type="image/png" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png">
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/apple-touch-icon.png">
+    <link rel="manifest" href="https://nguyenphamdieuhien.online/vietdataverse/manifest.json">
+    <meta name="theme-color" content="#C9A55B">
+    <meta name="msapplication-TileColor" content="#C9A55B">
+
     <link rel="canonical" href="https://nguyenphamdieuhien.online/vietdataverse/">
     <link rel="alternate" hreflang="vi" href="https://nguyenphamdieuhien.online/vietdataverse/">
     <link rel="alternate" hreflang="en" href="https://nguyenphamdieuhien.online/vietdataverse/">
@@ -380,6 +387,43 @@
         .header-btn.primary:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(201, 165, 91, 0.4);
+        }
+
+        .header-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        .header-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #EF4444;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(201, 165, 91, 0.1);
+            border: 1px solid rgba(201, 165, 91, 0.2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--gold-accent);
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--bg-dark);
         }
 
         /* Sidebar */
@@ -1016,6 +1060,116 @@
             background: var(--gold-primary);
         }
 
+        /* Notification Overlay */
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .notification-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .notification-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            margin: 1rem;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification-overlay.active .notification-card {
+            transform: translateY(0);
+        }
+
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: var(--bg-dark);
+        }
+
+        .notification-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .notification-message {
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .notification-btn {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            min-width: 100px;
+        }
+
+        .notification-btn.primary {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: var(--bg-dark);
+        }
+
+        .notification-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.4);
+        }
+
+        .notification-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .notification-btn.secondary:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .app-container {
@@ -1291,8 +1445,26 @@
                 <button class="header-btn" id="lang-toggle">
                     <span id="lang-text">En/Vie</span>
                 </button>
-                <button class="header-btn primary">
-                    <span>API Access</span>
+
+                <!-- Authenticated user info -->
+                <div class="user-info" id="user-info" style="display: none;">
+                    <!-- <div class="user-avatar">U</div> -->
+                    <div>
+                        <div id="user-email" style="font-weight: 500;"></div>
+                        <!-- <div style="font-size: 0.75rem; opacity: 0.7;">Đã đăng nhập</div> -->
+                    </div>
+                </div>
+
+                <!-- Login button (shown when not authenticated) -->
+                <a href="login.html" class="header-link" id="login-link">
+                    <button class="header-btn primary">
+                        <span>Đăng nhập</span>
+                    </button>
+                </a>
+
+                <!-- Logout button (shown when authenticated) -->
+                <button class="header-btn danger" id="logout-btn" style="display: none;">
+                    <span>Đăng xuất</span>
                 </button>
             </div>
         </header>
@@ -1779,6 +1951,27 @@
         </main>
     </div>
 
+    <!-- Notification Overlay -->
+    <div class="notification-overlay" id="notification-overlay">
+        <div class="notification-card">
+            <div class="notification-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="notification-title">Yêu cầu đăng nhập</h3>
+            <p class="notification-message">
+                Bạn cần đăng nhập để tải dữ liệu. Vui lòng đăng nhập để tiếp tục sử dụng các tính năng của Viet Dataverse.
+            </p>
+            <div class="notification-actions">
+                <button class="notification-btn secondary" id="cancel-btn">
+                    <span>Hủy</span>
+                </button>
+                <button class="notification-btn primary" id="login-btn">
+                    <span>Đăng nhập</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Language toggle with translations (Vietnamese is primary)
         let currentLang = 'vi';
@@ -1927,6 +2120,61 @@
             document.getElementById('lang-toggle').style.borderColor =
                 lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
         }
+
+        // Check authentication status and update UI
+        function checkAuthenticationStatus() {
+            const token = localStorage.getItem('auth_token');
+            const userEmail = localStorage.getItem('user_email');
+
+            const userInfo = document.getElementById('user-info');
+            const loginLink = document.getElementById('login-link');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userEmailElement = document.getElementById('user-email');
+
+            if (token && userEmail) {
+                // User is logged in
+                userInfo.style.display = 'flex';
+                loginLink.style.display = 'none';
+                logoutBtn.style.display = 'block';
+
+                // Set user email
+                if (userEmailElement) {
+                    userEmailElement.textContent = userEmail;
+                }
+            } else {
+                // User is not logged in
+                userInfo.style.display = 'none';
+                loginLink.style.display = 'block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // Logout functionality
+        function logout() {
+            // Clear authentication data
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_email');
+
+            // Update UI
+            checkAuthenticationStatus();
+
+            // Show logout message
+            alert('Bạn đã đăng xuất thành công.');
+
+            // Optional: Redirect to home page
+            // window.location.href = 'index.html';
+        }
+
+        // Add logout button event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+
+            // Check authentication status on page load
+            checkAuthenticationStatus();
+        });
 
         // Initialize with Vietnamese
         updateLanguage('vi');
@@ -2973,7 +3221,46 @@
             document.body.removeChild(link);
         }
 
+        // Notification overlay functions
+        function showNotificationOverlay() {
+            const overlay = document.getElementById('notification-overlay');
+            overlay.classList.add('active');
+        }
+
+        function hideNotificationOverlay() {
+            const overlay = document.getElementById('notification-overlay');
+            overlay.classList.remove('active');
+        }
+
+        // Add event listeners for notification buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const cancelBtn = document.getElementById('cancel-btn');
+            const loginBtn = document.getElementById('login-btn');
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', hideNotificationOverlay);
+            }
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function() {
+                    hideNotificationOverlay();
+                    window.location.href = 'login.html';
+                });
+            }
+
+            // Check authentication status on page load
+            checkAuthenticationStatus();
+        });
+
         async function handleDownloadCSV(dataset) {
+            // Check if user is authenticated
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                // Show notification overlay instead of alert
+                showNotificationOverlay();
+                return;
+            }
+
             try {
                 let endpoint, headers, filename;
 
@@ -2996,7 +3283,7 @@
                         break;
                     case 'td':
                         endpoint = 'termdepo?period=all';
-                        apiUrl = `${API_BASE_URL}/termdepo?period=1m&bank=ACB`; 
+                        apiUrl = `${API_BASE_URL}/termdepo?period=1m&bank=ACB`;
                         example = 'GET /api/v1/termdepo?period=1m&bank=ACB';
                         break;
                     default:
@@ -3010,12 +3297,40 @@
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
                 button.disabled = true;
 
-                // Fetch data
-                const response = await fetch(`${API_BASE_URL}/${endpoint}`);
-                if (!response.ok) throw new Error('Failed to fetch data');
+                // Fetch data with authentication header
+                console.log('🔄 Fetching data from:', `${API_BASE_URL}/${endpoint}`);
+                const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                console.log('📡 Response status:', response.status);
+
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error:', response.status, errorText);
+                    throw new Error(`API Error: ${response.status} - ${errorText}`);
+                }
 
                 const result = await response.json();
+                console.log('✅ API Response:', result);
+
+                if (!result.success || !result.data) {
+                    throw new Error('Invalid API response format');
+                }
+
                 const csvContent = convertToCSV(result.data, headers);
+                console.log('📄 CSV Content generated, length:', csvContent.length);
 
                 // Download
                 downloadCSV(filename, csvContent);
