@@ -9,12 +9,11 @@ from sqlalchemy import create_engine, text
 import os
 import json
 
-# Import database models and functions
-from neon_database import engine, Base
-from neon_models import NeonUser
-
-from neon_auth import hash_password, verify_password, create_access_token, decode_access_token
-from middleware import authenticate_user, get_current_user
+# Import database models and functions using relative imports
+from .neon_database import engine, Base
+from .neon_models import NeonUser
+from .neon_auth import hash_password, verify_password, create_access_token, decode_access_token
+from .middleware import authenticate_user, get_current_user
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -34,9 +33,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static directories
-app.mount("/agent_finance/front", StaticFiles(directory="../front", html=True), name="agent_finance_front")
-app.mount("/vietdataverse", StaticFiles(directory="../../vietdataverse", html=True), name="vietdataverse")
+# Mount static directories - adjust paths for both local and Render deployment
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
+
+# For Render deployment (running from agent_finance/back/)
+front_path = os.path.join(current_dir, "../front")
+vietdataverse_path = os.path.join(project_root, "vietdataverse")
+
+# Fallback for local development
+if not os.path.exists(front_path):
+    front_path = "../front"
+if not os.path.exists(vietdataverse_path):
+    vietdataverse_path = "../../vietdataverse"
+
+app.mount("/agent_finance/front", StaticFiles(directory=front_path, html=True), name="agent_finance_front")
+app.mount("/vietdataverse", StaticFiles(directory=vietdataverse_path, html=True), name="vietdataverse")
 
 class RegisterRequest(BaseModel):
     email: str
