@@ -423,13 +423,17 @@ async def get_gold_data(
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
-        # Build query
+        # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, buy_price, sell_price
-        FROM vn_gold_24h_hist
-        WHERE date >= '{date_filter}'
-        AND type = '{type.replace("'", "''")}'
+        FROM (
+            SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
+            FROM vn_gold_24h_hist
+            WHERE date >= '{date_filter}'
+            AND type = '{type.replace("'", "''")}'
+            ORDER BY date, crawl_time DESC
+        ) subquery
         ORDER BY date DESC
         """
 
@@ -481,12 +485,16 @@ async def get_silver_data(
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
-        # Build query
+        # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, buy_price, sell_price
-        FROM vn_silver_phuquy_hist
-        WHERE date >= '{date_filter}'
+        FROM (
+            SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
+            FROM vn_silver_phuquy_hist
+            WHERE date >= '{date_filter}'
+            ORDER BY date, crawl_time DESC
+        ) subquery
         ORDER BY date DESC
         """
 
@@ -537,12 +545,16 @@ async def get_sbv_interbank_data(
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
-        # Build query
+        # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, ls_quadem, ls_1m, ls_3m, rediscount_rate, refinancing_rate
-        FROM vn_sbv_interbankrate
-        WHERE date >= '{date_filter}'
+        FROM (
+            SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_3m, rediscount_rate, refinancing_rate, crawl_time
+            FROM vn_sbv_interbankrate
+            WHERE date >= '{date_filter}'
+            ORDER BY date, crawl_time DESC
+        ) subquery
         ORDER BY date DESC
         """
 
@@ -603,13 +615,17 @@ async def get_term_deposit_data(
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
-        # Build query
+        # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, term_1m, term_3m, term_6m, term_12m, term_24m
-        FROM vn_bank_termdepo
-        WHERE date >= '{date_filter}'
-        AND bank_code = '{bank.replace("'", "''")}'
+        FROM (
+            SELECT DISTINCT ON (date) date, term_1m, term_3m, term_6m, term_12m, term_24m, crawl_time
+            FROM vn_bank_termdepo
+            WHERE date >= '{date_filter}'
+            AND bank_code = '{bank.replace("'", "''")}'
+            ORDER BY date, crawl_time DESC
+        ) subquery
         ORDER BY date DESC
         """
 
@@ -670,12 +686,16 @@ async def get_global_macro_data(
 
         engine_global = create_engine(GLOBAL_INDICATOR_DB)
 
-        # Build query
+        # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, gold_price, silver_price, nasdaq_price
-        FROM global_macro
-        WHERE date >= '{date_filter}'
+        FROM (
+            SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, crawl_time
+            FROM global_macro
+            WHERE date >= '{date_filter}'
+            ORDER BY date, crawl_time DESC
+        ) subquery
         ORDER BY date DESC
         """
 
