@@ -2,7 +2,7 @@
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, func
 )
-from back.database import Base
+from database import Base
 
 
 # ======================

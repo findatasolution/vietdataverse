@@ -10,10 +10,15 @@ import os
 import json
 
 # Import existing database models and functions
-from .database import engine, Base, get_db
-from .models import User
-from .auth import hash_password, verify_password, create_access_token, decode_access_token
-from .middleware import authenticate_user, get_current_user
+# Using absolute imports for local development compatibility
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from database import engine, Base, get_db
+from models import User
+from auth import hash_password, verify_password, create_access_token, decode_access_token
+from middleware import authenticate_user, get_current_user
 
 # Create tables
 Base.metadata.create_all(bind=engine)
