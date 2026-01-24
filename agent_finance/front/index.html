@@ -13,7 +13,7 @@
 
     <link rel="stylesheet" href="styles.css" />
     <script type="text/javascript">
-        window.API_BASE = 'http://127.0.0.1:8000';
+        window.API_BASE = 'https://nguyenphamdieuhien.online';
         window.httpPost = async function(url, body){
             const res = await fetch(url, {
                 method: 'POST',
@@ -152,6 +152,11 @@
                         <div class="hidden sm:flex items-center gap-2">
                             <a href="ai.html" class="tab-btn tab-btn--sm">
                                 <span>Ask Finance</span>
+                            </a>
+
+                            <!-- Auth0 Login button -->
+                            <a href="/auth/login" class="auth0-login-btn rounded-full bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 shadow-lg shadow-blue-900/20">
+                                <i class="fab fa-google mr-2"></i><span>Login with Google</span>
                             </a>
 
                             <!-- Logout button shown after login -->
