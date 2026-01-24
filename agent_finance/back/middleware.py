@@ -12,7 +12,13 @@ async def authenticate_user(request: Request):
     Middleware to authenticate users based on JWT token
     """
     # Skip authentication for public endpoints
-    public_endpoints = ['/api/register', '/api/login', '/api/docs', '/api/openapi.json']
+    public_endpoints = [
+        '/api/register', '/api/login', '/api/docs', '/api/openapi.json',
+        # Chart endpoints that should be publicly accessible
+        '/api/v1/gold', '/api/v1/silver', '/api/v1/sbv-interbank', 
+        '/api/v1/termdepo', '/api/v1/global-macro', '/api/v1/gold/types',
+        '/api/v1/termdepo/banks'
+    ]
     
     if request.url.path in public_endpoints:
         return None

@@ -29,7 +29,7 @@
     <meta property="og:site_name" content="Viet Dataverse">
     <meta property="og:title" content="Tải Lịch Sử Giá Vàng Việt Nam Miễn Phí | Download Vietnam Gold Price Data">
     <meta property="og:description" content="Download Vietnam historical gold price CSV miễn phí từ 2015. Tải lịch sử giá vàng SJC, DOJI, PNJ, giá bạc Phú Quý, lãi suất ngân hàng. API & export.">
-    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png">
+    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Viet Dataverse - Vietnam Economic Data Platform">
@@ -44,7 +44,7 @@
     <meta name="twitter:creator" content="@VietDataverse">
     <meta name="twitter:title" content="Tải Lịch Sử Giá Vàng Vietnam | Download Historical Gold Price CSV">
     <meta name="twitter:description" content="Download Vietnam historical gold price data CSV free. Tải lịch sử giá vàng SJC, DOJI từ 2015. API & export miễn phí.">
-    <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png">
+    <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <meta name="twitter:image:alt" content="Viet Dataverse Logo">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -205,7 +205,7 @@
       "@type": "Organization",
       "name": "Viet Dataverse",
       "url": "https://nguyenphamdieuhien.online/vietdataverse/",
-      "logo": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png",
+      "logo": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png",
       "description": "Nền tảng dữ liệu kinh tế Việt Nam minh bạch, cung cấp giá vàng, giá bạc, lãi suất ngân hàng và các chỉ số thị trường",
       "sameAs": [
         "https://github.com/Hiienng/nguyenphamdieuhien.online"
@@ -1434,7 +1434,7 @@
                 <button class="mobile-menu-btn" id="mobile-menu-toggle">
                     </button>
                 <div class="brand-icon">
-                    <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/assets/main_logo.png" alt="Viet Dataverse Logo">
+                    <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png" alt="Viet Dataverse Logo">
                 </div>
                 <div class="brand-text">
                     <div style="font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-primary) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.125rem;">Viet Dataverse</div>
@@ -2322,10 +2322,30 @@
             document.addEventListener('touchstart', hideTooltip);
         }
 
-        // Fetch data from API
+        // Fetch data from API with authentication
         async function fetchData(endpoint, period) {
             try {
-                const response = await fetch(`${API_BASE_URL}/${endpoint}?period=${period}`);
+                const token = localStorage.getItem('auth_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add authorization header if token exists
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/${endpoint}?period=${period}`, {
+                    headers: headers
+                });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    throw new Error('Authentication required');
+                }
+                
                 if (!response.ok) throw new Error('Network response was not ok');
                 const result = await response.json();
                 return result.data;
@@ -2338,8 +2358,30 @@
         // Load gold types
         async function loadGoldTypes() {
             try {
-                const response = await fetch(`${API_BASE_URL}/gold/types`);
+                const token = localStorage.getItem('auth_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add authorization header if token exists
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/gold/types`, {
+                    headers: headers
+                });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    throw new Error('Authentication required');
+                }
+                
+                if (!response.ok) throw new Error('Network response was not ok');
                 const result = await response.json();
+                
                 if (result.success && result.types) {
                     const select = document.getElementById('goldTypeSelect');
                     select.innerHTML = result.types.map(type =>
@@ -2354,8 +2396,30 @@
         // Load bank types for term deposit
         async function loadBankTypes() {
             try {
-                const response = await fetch(`${API_BASE_URL}/termdepo/banks`);
+                const token = localStorage.getItem('auth_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add authorization header if token exists
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/termdepo/banks`, {
+                    headers: headers
+                });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    throw new Error('Authentication required');
+                }
+                
+                if (!response.ok) throw new Error('Network response was not ok');
                 const result = await response.json();
+                
                 if (result.success && result.banks) {
                     const select = document.getElementById('bankTypeSelect');
                     select.innerHTML = result.banks.map(bank =>
@@ -2382,7 +2446,27 @@
             loading.style.display = 'block';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`);
+                const token = localStorage.getItem('auth_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add authorization header if token exists
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`, {
+                    headers: headers
+                });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    throw new Error('Authentication required');
+                }
+                
                 const result = await response.json();
                 const data = result.data;
                 loading.style.display = 'none';
@@ -2800,7 +2884,29 @@
             loading.style.display = 'block';
 
             try {
-                const data = await fetchData('sbv-interbank', period);
+                const token = localStorage.getItem('auth_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add authorization header if token exists
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/sbv-interbank?period=${period}`, {
+                    headers: headers
+                });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    throw new Error('Authentication required');
+                }
+                
+                const result = await response.json();
+                const data = result.data;
                 loading.style.display = 'none';
 
                 const chartData = {
@@ -2952,7 +3058,29 @@
             loading.style.display = 'block';
 
             try {
-                const data = await fetchData('global-macro', period);
+                const token = localStorage.getItem('auth_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add authorization header if token exists
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/global-macro?period=${period}`, {
+                    headers: headers
+                });
+                
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_email');
+                    throw new Error('Authentication required');
+                }
+                
+                const result = await response.json();
+                const data = result.data;
                 loading.style.display = 'none';
 
                 const chartData = {

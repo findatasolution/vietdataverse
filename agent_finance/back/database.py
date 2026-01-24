@@ -12,13 +12,13 @@ try:
 except ImportError:
     # Fallback to manual .env loading if config.py doesn't exist
     from dotenv import load_dotenv
-    root_dir = Path(__file__).resolve().parent
-    cand = [root_dir / ".env", root_dir.parent / ".env"]
-    for p in cand:
-        if p.exists():
-            load_dotenv(p)
-            break
+    # Load .env file from project root
+    project_root = Path(__file__).resolve().parent.parent.parent
+    env_path = project_root / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
     else:
+        # Try loading from current working directory
         load_dotenv()
     config = None
 
@@ -28,6 +28,8 @@ Base = declarative_base()
 SCHEMA = (os.getenv("DB_SCHEMA") or "public").strip() or None
 
 raw_url = (os.getenv("CRAWLING_BOT_DB") or "").strip().strip('"').strip("'")
+print(f"DEBUG: CRAWLING_BOT_DB environment variable: {os.getenv('CRAWLING_BOT_DB')}")
+print(f"DEBUG: raw_url after processing: {raw_url}")
 if raw_url.startswith("//"):
     raw_url = "postgresql+psycopg:" + raw_url
 if not raw_url:
