@@ -448,6 +448,71 @@
             padding: 0 0.75rem;
         }
 
+        /* Sidebar buttons */
+        .sidebar-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-btn:hover {
+            border-color: var(--gold-primary);
+            background: rgba(201, 165, 91, 0.05);
+            color: var(--gold-accent);
+        }
+
+        .sidebar-btn.primary {
+            background: rgba(201, 165, 91, 0.15);
+            border-color: var(--gold-primary);
+            color: var(--gold-accent);
+        }
+
+        .sidebar-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        .sidebar-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .sidebar-link {
+            text-decoration: none;
+            display: block;
+        }
+
+        .sidebar-user-info {
+            padding: 0.75rem 1rem;
+            background: rgba(201, 165, 91, 0.1);
+            border: 1px solid rgba(201, 165, 91, 0.2);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-user-email {
+            font-size: 0.875rem;
+            color: var(--gold-accent);
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        /* Mobile only elements */
+        .mobile-only {
+            display: none;
+        }
+
         .nav-list {
             list-style: none;
         }
@@ -1342,6 +1407,16 @@
                 display: none;
             }
 
+            /* Show mobile controls in sidebar */
+            .mobile-only {
+                display: block;
+            }
+
+            /* Hide all header actions on mobile */
+            .header-actions {
+                display: none;
+            }
+
             .main-content {
                 padding: 1rem;
             }
@@ -1450,7 +1525,8 @@
         <header class="app-header">
             <div class="brand">
                 <button class="mobile-menu-btn" id="mobile-menu-toggle">
-                    </button>
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="brand-icon">
                     <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png" alt="Viet Dataverse Logo">
                 </div>
@@ -1492,6 +1568,36 @@
 
         <!-- Sidebar -->
         <aside class="sidebar">
+            <!-- Mobile User Controls Section -->
+            <div class="sidebar-section mobile-only">
+                <h2 class="sidebar-heading">Account</h2>
+
+                <!-- Language Toggle -->
+                <button class="sidebar-btn" id="sidebar-lang-toggle">
+                    <i class="fas fa-language"></i>
+                    <span id="sidebar-lang-text">En/Vie</span>
+                </button>
+
+                <!-- User Info (shown when authenticated) -->
+                <div class="sidebar-user-info" id="sidebar-user-info" style="display: none;">
+                    <div class="sidebar-user-email" id="sidebar-user-email"></div>
+                </div>
+
+                <!-- Login Link (shown when not authenticated) -->
+                <a href="login.html" class="sidebar-link" id="sidebar-login-link">
+                    <button class="sidebar-btn primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Đăng nhập</span>
+                    </button>
+                </a>
+
+                <!-- Logout Button (shown when authenticated) -->
+                <button class="sidebar-btn danger" id="sidebar-logout-btn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </div>
+
             <div class="sidebar-section">
                 <h2 class="sidebar-heading">Navigation</h2>
                 <ul class="nav-list">
@@ -2057,8 +2163,14 @@
             currentLang = lang;
             const t = translations[lang];
 
-            // Update button
+            // Update button - Header
             document.getElementById('lang-text').textContent = t.langBtn;
+
+            // Update button - Sidebar
+            const sidebarLangText = document.getElementById('sidebar-lang-text');
+            if (sidebarLangText) {
+                sidebarLangText.textContent = t.langBtn;
+            }
             document.querySelector('.brand-subtitle').textContent = t.subtitle;
 
             // Update navigation
@@ -2149,21 +2261,36 @@
             const logoutBtn = document.getElementById('logout-btn');
             const userEmailElement = document.getElementById('user-email');
 
+            // Sidebar elements
+            const sidebarUserInfo = document.getElementById('sidebar-user-info');
+            const sidebarLoginLink = document.getElementById('sidebar-login-link');
+            const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+            const sidebarUserEmail = document.getElementById('sidebar-user-email');
+
             if (token && userEmail) {
-                // User is logged in
+                // User is logged in - Header
                 userInfo.style.display = 'flex';
                 loginLink.style.display = 'none';
                 logoutBtn.style.display = 'block';
-
-                // Set user email
                 if (userEmailElement) {
                     userEmailElement.textContent = userEmail;
                 }
+
+                // User is logged in - Sidebar
+                if (sidebarUserInfo) sidebarUserInfo.style.display = 'block';
+                if (sidebarLoginLink) sidebarLoginLink.style.display = 'none';
+                if (sidebarLogoutBtn) sidebarLogoutBtn.style.display = 'block';
+                if (sidebarUserEmail) sidebarUserEmail.textContent = userEmail;
             } else {
-                // User is not logged in
+                // User is not logged in - Header
                 userInfo.style.display = 'none';
                 loginLink.style.display = 'block';
                 logoutBtn.style.display = 'none';
+
+                // User is not logged in - Sidebar
+                if (sidebarUserInfo) sidebarUserInfo.style.display = 'none';
+                if (sidebarLoginLink) sidebarLoginLink.style.display = 'block';
+                if (sidebarLogoutBtn) sidebarLogoutBtn.style.display = 'none';
             }
         }
 
@@ -2186,8 +2313,14 @@
         // Add logout button event listener
         document.addEventListener('DOMContentLoaded', function() {
             const logoutBtn = document.getElementById('logout-btn');
+            const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', logout);
+            }
+
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.addEventListener('click', logout);
             }
 
             // Check authentication status on page load
@@ -2197,10 +2330,18 @@
         // Initialize with Vietnamese
         updateLanguage('vi');
 
-        // Toggle event
+        // Toggle event - Header
         document.getElementById('lang-toggle').addEventListener('click', function() {
             updateLanguage(currentLang === 'vi' ? 'en' : 'vi');
         });
+
+        // Toggle event - Sidebar
+        const sidebarLangToggle = document.getElementById('sidebar-lang-toggle');
+        if (sidebarLangToggle) {
+            sidebarLangToggle.addEventListener('click', function() {
+                updateLanguage(currentLang === 'vi' ? 'en' : 'vi');
+            });
+        }
 
         // Mobile menu toggle
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
