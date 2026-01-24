@@ -6,7 +6,7 @@
     <!-- <title>Viet Dataverse | Tải Dữ Liệu Kinh Tế Vĩ Mô Miễn Phí | Download Vietnam Historical Index</title> -->
     <title>Viet Dataverse | Dữ Liệu Kinh Tế Mở</title>
     <meta name="description" content="Tải lịch sử giá vàng SJC, DOJI, PNJ từ 2015 miễn phí. Download Vietnam historical gold price data, silver price, interest rate export free.">
-    <meta name="keywords" content="tải lịch sử giá vàng, download vietnam historical gold price, tải giá vàng, download gold price, lịch sử giá vàng sjc, vietnam gold price data, giá vàng, historical gold price vietnam, tải giá vàng miễn phí, free gold price data, vàng doji, gold price api vietnam, giá vàng export, download silver price vietnam, tải lịch sử giá bạc, tải lãi suất liên ngân hàng, lãi suất gửi tiết kiệm, lịch sử, dữ liệu miễn phí, free macro economic index">
+    <meta name="keywords" content="vietdataverse, viet dataverse, VietDataverse, tải lịch sử giá vàng, download vietnam historical gold price, tải giá vàng, download gold price, lịch sử giá vàng sjc, vietnam gold price data, giá vàng, historical gold price vietnam, tải giá vàng miễn phí, free gold price data, vàng doji, gold price api vietnam, giá vàng export, download silver price vietnam, tải lịch sử giá bạc, tải lãi suất liên ngân hàng, lãi suất gửi tiết kiệm, lịch sử, dữ liệu miễn phí, free macro economic index">
     <meta name="author" content="Viet Dataverse">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="language" content="Vietnamese">
@@ -69,7 +69,7 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Viet Dataverse",
-      "alternateName": "Giá Vàng Hôm Nay - Dữ Liệu Kinh Tế Việt Nam",
+      "alternateName": ["VietDataverse", "vietdataverse", "Giá Vàng Hôm Nay - Dữ Liệu Kinh Tế Việt Nam"],
       "url": "https://nguyenphamdieuhien.online/vietdataverse/",
       "description": "Theo dõi giá vàng SJC hôm nay, giá bạc Phú Quý, lãi suất ngân hàng SBV. Tải dữ liệu lịch sử miễn phí.",
       "inLanguage": "vi-VN",
@@ -204,8 +204,14 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Viet Dataverse",
+      "alternateName": ["VietDataverse", "vietdataverse", "Viet Dataverse"],
       "url": "https://nguyenphamdieuhien.online/vietdataverse/",
-      "logo": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
       "description": "Nền tảng dữ liệu kinh tế Việt Nam minh bạch, cung cấp giá vàng, giá bạc, lãi suất ngân hàng và các chỉ số thị trường",
       "sameAs": [
         "https://github.com/Hiienng/nguyenphamdieuhien.online"
@@ -318,19 +324,19 @@
         .brand-icon {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-accent) 100%);
+            /* background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-accent) 100%); */
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(201, 165, 91, 0.3);
+            /* box-shadow: 0 4px 12px rgba(201, 165, 91, 0.3); */
             overflow: hidden;
         }
 
         .brand-icon img {
-            width: 100%;
-            height: 100%;
+            width: 120%;
+            height: 120%;
             object-fit: contain;
             padding: 4px;
         }
@@ -340,7 +346,7 @@
             font-size: 1.75rem;
             font-weight: 700;
             letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-primary) 100%);
+            /* background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-primary) 100%); */
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -1569,35 +1575,6 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <!-- Mobile User Controls Section -->
-            <div class="sidebar-section mobile-only">
-                <h2 class="sidebar-heading">Account</h2>
-
-                <!-- Language Toggle -->
-                <button class="sidebar-btn" id="sidebar-lang-toggle">
-                    <i class="fas fa-language"></i>
-                    <span id="sidebar-lang-text">En/Vie</span>
-                </button>
-
-                <!-- User Info (shown when authenticated) -->
-                <div class="sidebar-user-info" id="sidebar-user-info" style="display: none;">
-                    <div class="sidebar-user-email" id="sidebar-user-email"></div>
-                </div>
-
-                <!-- Login Link (shown when not authenticated) -->
-                <a href="login.html" class="sidebar-link" id="sidebar-login-link">
-                    <button class="sidebar-btn primary">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Đăng nhập</span>
-                    </button>
-                </a>
-
-                <!-- Logout Button (shown when authenticated) -->
-                <button class="sidebar-btn danger" id="sidebar-logout-btn" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Đăng xuất</span>
-                </button>
-            </div>
-
             <div class="sidebar-section">
                 <h2 class="sidebar-heading">Navigation</h2>
                 <ul class="nav-list">
@@ -1625,6 +1602,34 @@
                         </a>
                     </li>
                 </ul>
+            </div>
+            <div class="sidebar-section mobile-only">
+                <h2 class="sidebar-heading">Account</h2>
+
+                <!-- Language Toggle -->
+                <button class="sidebar-btn" id="sidebar-lang-toggle">
+                    <i class="fas fa-language"></i>
+                    <span id="sidebar-lang-text">En/Vie</span>
+                </button>
+
+                <!-- User Info (shown when authenticated) -->
+                <div class="sidebar-user-info" id="sidebar-user-info" style="display: none;">
+                    <div class="sidebar-user-email" id="sidebar-user-email"></div>
+                </div>
+
+                <!-- Login Link (shown when not authenticated) -->
+                <a href="login.html" class="sidebar-link" id="sidebar-login-link">
+                    <button class="sidebar-btn primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Đăng nhập</span>
+                    </button>
+                </a>
+
+                <!-- Logout Button (shown when authenticated) -->
+                <button class="sidebar-btn danger" id="sidebar-logout-btn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </button>
             </div>
         </aside>
 
