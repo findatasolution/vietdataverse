@@ -540,7 +540,7 @@ async def get_sbv_interbank_data(
         # Build query
         date_filter = get_date_filter(period)
         query = f"""
-        SELECT date, overnight, month_1, month_3, rediscount, refinancing
+        SELECT date, ls_quadem, ls_1m, ls_3m, rediscount_rate, refinancing_rate
         FROM vn_sbv_interbankrate
         WHERE date >= '{date_filter}'
         ORDER BY date DESC
@@ -607,7 +607,7 @@ async def get_term_deposit_data(
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, term_1m, term_3m, term_6m, term_12m, term_24m
-        FROM vn_term_deposit
+        FROM vn_bank_termdepo
         WHERE date >= '{date_filter}'
         AND bank_code = '{bank.replace("'", "''")}'
         ORDER BY date DESC
@@ -673,8 +673,8 @@ async def get_global_macro_data(
         # Build query
         date_filter = get_date_filter(period)
         query = f"""
-        SELECT date, gold_price, silver_price, nasdaq_close
-        FROM global_macro_indicators
+        SELECT date, gold_price, silver_price, nasdaq_price
+        FROM global_macro
         WHERE date >= '{date_filter}'
         ORDER BY date DESC
         """
