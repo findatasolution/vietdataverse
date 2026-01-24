@@ -286,6 +286,11 @@
     </div>
 
     <script>
+        // API Base URL configuration
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000'  // Local development
+            : 'https://api.nguyenphamdieuhien.online';  // Production
+
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -327,7 +332,7 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đăng ký...';
 
             try {
-                const response = await fetch('/api/register', {
+                const response = await fetch(`${API_BASE_URL}/api/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
