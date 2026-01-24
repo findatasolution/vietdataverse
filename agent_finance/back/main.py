@@ -1,13 +1,16 @@
-from fastapi import FastAPI, HTTPException, Depends, Request, Query
+from fastapi import FastAPI, HTTPException, Depends, Request, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import status
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
 import os
 import json
+import requests
+from urllib.parse import urlencode
 
 # Import existing database models and functions
 # Using absolute imports for local development compatibility
@@ -149,6 +152,10 @@ async def root():
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
+@app.get("/health")
+async def health_check_root():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
 @app.get("/api/protected")
 async def protected_endpoint(request: Request):
     """Protected endpoint that requires authentication"""
@@ -191,6 +198,191 @@ async def dashboard_data(request: Request):
             },
             "timestamp": datetime.now().isoformat()
         }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# AUTH0 AUTHENTICATION ENDPOINTS
+# ============================================================================
+
+@app.get("/auth/login")
+async def auth0_login():
+    """Initiate Auth0 login flow"""
+    try:
+        AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+        AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://nguyenphamdieuhien.online/callback")
+        
+        if not all([AUTH0_DOMAIN, AUTH0_CLIENT_ID]):
+            raise HTTPException(status_code=500, detail="Auth0 configuration missing")
+        
+        # Build Auth0 login URL
+        params = {
+            "client_id": AUTH0_CLIENT_ID,
+            "redirect_uri": AUTH0_CALLBACK_URL,
+            "response_type": "code",
+            "scope": "openid profile email"
+        }
+        
+        auth_url = f"https://{AUTH0_DOMAIN}/authorize?{urlencode(params)}"
+        return RedirectResponse(url=auth_url)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/callback")
+async def auth0_callback(request: Request, code: str = None, error: str = None):
+    """Handle Auth0 callback"""
+    try:
+        if error:
+            raise HTTPException(status_code=400, detail=f"Auth0 error: {error}")
+        
+        if not code:
+            raise HTTPException(status_code=400, detail="No authorization code provided")
+        
+        # Exchange code for tokens
+        AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+        AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+        AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
+        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://nguyenphamdieuhien.online/callback")
+        
+        if not all([AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET]):
+            raise HTTPException(status_code=500, detail="Auth0 configuration missing")
+        
+        # Exchange code for tokens
+        token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
+        token_data = {
+            "grant_type": "authorization_code",
+            "client_id": AUTH0_CLIENT_ID,
+            "client_secret": AUTH0_CLIENT_SECRET,
+            "code": code,
+            "redirect_uri": AUTH0_CALLBACK_URL
+        }
+        
+        token_response = requests.post(token_url, json=token_data)
+        if token_response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to exchange code for tokens")
+        
+        tokens = token_response.json()
+        id_token = tokens.get("id_token")
+        
+        # Decode ID token to get user info
+        from auth import decode_access_token
+        user_info = decode_access_token(id_token)
+        
+        # Get or create user in database
+        from sqlalchemy.orm import sessionmaker
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        
+        # Check if user exists by auth0_id
+        user = session.query(User).filter_by(auth0_id=user_info.get("sub")).first()
+        
+        if not user:
+            # Create new user
+            user = User(
+                email=user_info.get("email"),
+                auth0_id=user_info.get("sub"),
+                name=user_info.get("name"),
+                picture=user_info.get("picture"),
+                role="user",
+                is_admin=False
+            )
+            session.add(user)
+            session.commit()
+        else:
+            # Update user info
+            user.name = user_info.get("name")
+            user.picture = user_info.get("picture")
+            session.commit()
+        
+        session.close()
+        
+        # Create JWT token for our system
+        access_token = create_access_token(
+            data={
+                "sub": user.email,
+                "user_id": user.id,
+                "role": user.role,
+                "is_admin": user.is_admin,
+                "auth0_id": user.auth0_id
+            }
+        )
+        
+        # Return success response
+        return {
+            "message": "Auth0 login successful",
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "email": user.email,
+                "name": user.name,
+                "picture": user.picture,
+                "user_id": user.id
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/auth/logout")
+async def auth0_logout():
+    """Logout from Auth0"""
+    try:
+        AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+        AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+        LOGOUT_URL = os.getenv("LOGOUT_URL", "https://nguyenphamdieuhien.online")
+        
+        if not AUTH0_DOMAIN:
+            raise HTTPException(status_code=500, detail="Auth0 configuration missing")
+        
+        # Build Auth0 logout URL
+        params = {
+            "client_id": AUTH0_CLIENT_ID,
+            "returnTo": LOGOUT_URL
+        }
+        
+        logout_url = f"https://{AUTH0_DOMAIN}/v2/logout?{urlencode(params)}"
+        return RedirectResponse(url=logout_url)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/me")
+async def get_current_user_info(request: Request):
+    """Get current user information"""
+    try:
+        # Authenticate user
+        await authenticate_user(request)
+        user = request.state.user
+        
+        # Get full user info from database
+        from sqlalchemy.orm import sessionmaker
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        
+        db_user = session.query(User).filter_by(id=user["user_id"]).first()
+        session.close()
+        
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {
+            "email": db_user.email,
+            "name": db_user.name,
+            "picture": db_user.picture,
+            "user_id": db_user.id,
+            "role": db_user.role,
+            "is_admin": db_user.is_admin,
+            "auth0_id": db_user.auth0_id,
+            "created_at": db_user.created_at.isoformat(),
+            "updated_at": db_user.updated_at.isoformat()
+        }
+        
     except HTTPException:
         raise
     except Exception as e:

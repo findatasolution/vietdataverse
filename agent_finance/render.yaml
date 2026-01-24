@@ -5,7 +5,7 @@ services:
     region: singapore
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn agent_finance.back.main:app --host 0.0.0.0 --port $PORT --reload
+    startCommand: uvicorn agent_finance.back.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -25,3 +25,13 @@ services:
         value: "30"
       - key: CORS_ALLOW_ORIGINS
         value: https://nguyenphamdieuhien.online,https://www.nguyenphamdieuhien.online,https://hiienng.github.io,http://localhost:3000,http://127.0.0.1:5500
+      - key: AUTH0_DOMAIN
+        sync: false
+      - key: AUTH0_CLIENT_ID
+        sync: false
+      - key: AUTH0_CLIENT_SECRET
+        sync: false
+      - key: AUTH0_CALLBACK_URL
+        value: https://nguyenphamdieuhien.online/callback
+      - key: LOGOUT_URL
+        value: https://nguyenphamdieuhien.online
