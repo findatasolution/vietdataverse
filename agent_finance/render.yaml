@@ -4,7 +4,7 @@ services:
     env: python
     region: singapore
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r agent_finance/requirements.txt
     startCommand: uvicorn agent_finance.back.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY

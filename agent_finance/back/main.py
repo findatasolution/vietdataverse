@@ -410,10 +410,8 @@ async def get_gold_data(
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
     type: str = Query("DOJI HN", description="Gold type: DOJI HN, SJC, etc.")
 ):
-    """Get gold price data - Requires authentication"""
+    """Get gold price data - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
         from sqlalchemy.orm import sessionmaker
@@ -471,10 +469,8 @@ async def get_silver_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all")
 ):
-    """Get silver price data - Requires authentication"""
+    """Get silver price data - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
 
@@ -529,10 +525,8 @@ async def get_sbv_interbank_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all")
 ):
-    """Get SBV interbank rates - Requires authentication"""
+    """Get SBV interbank rates - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
 
@@ -597,10 +591,8 @@ async def get_term_deposit_data(
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
     bank: str = Query("ACB", description="Bank code: ACB, VCB, etc.")
 ):
-    """Get term deposit rates - Requires authentication"""
+    """Get term deposit rates - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
 
@@ -666,10 +658,8 @@ async def get_global_macro_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all")
 ):
-    """Get global macro indicators - Requires authentication"""
+    """Get global macro indicators - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
 
@@ -728,10 +718,8 @@ async def get_global_macro_data(
 
 @app.get("/api/v1/gold/types")
 async def get_gold_types(request: Request):
-    """Get available gold types - Requires authentication"""
+    """Get available gold types - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
 
@@ -768,10 +756,8 @@ async def get_gold_types(request: Request):
 
 @app.get("/api/v1/termdepo/banks")
 async def get_bank_types(request: Request):
-    """Get available bank codes - Requires authentication"""
+    """Get available bank codes - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         from sqlalchemy import text
 
@@ -808,10 +794,8 @@ async def get_bank_types(request: Request):
 
 @app.get("/api/v1/gold-analysis")
 async def get_gold_analysis(request: Request):
-    """Get AI-generated gold analysis - Requires authentication"""
+    """Get AI-generated gold analysis - Public endpoint"""
     try:
-        # Authenticate user
-        await authenticate_user(request)
 
         # For now, return a mock analysis
         # In a real implementation, this would call your AI agent
