@@ -419,7 +419,9 @@ async def get_gold_data(
         from sqlalchemy.orm import sessionmaker
 
         # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB", 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+        if not CRAWLING_BOT_DB:
+            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
@@ -477,7 +479,9 @@ async def get_silver_data(
         from sqlalchemy import text
 
         # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB", 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+        if not CRAWLING_BOT_DB:
+            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
@@ -533,7 +537,9 @@ async def get_sbv_interbank_data(
         from sqlalchemy import text
 
         # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB", 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+        if not CRAWLING_BOT_DB:
+            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
@@ -599,7 +605,9 @@ async def get_term_deposit_data(
         from sqlalchemy import text
 
         # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB", 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
+        if not CRAWLING_BOT_DB:
+            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
@@ -666,7 +674,9 @@ async def get_global_macro_data(
         from sqlalchemy import text
 
         # Get global indicator database connection
-        GLOBAL_INDICATOR_DB = os.getenv("GLOBAL_INDICATOR_DB", 'postgresql://neondb_owner:npg_DTMVHjWIy21J@ep-frosty-forest-a19clsva-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+        GLOBAL_INDICATOR_DB = os.getenv("GLOBAL_INDICATOR_DB")
+        if not GLOBAL_INDICATOR_DB:
+            raise HTTPException(status_code=500, detail="GLOBAL_INDICATOR_DB environment variable not set")
 
         engine_global = create_engine(GLOBAL_INDICATOR_DB)
 
