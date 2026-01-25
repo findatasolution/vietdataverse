@@ -178,7 +178,6 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
 - Viết tự nhiên, chuyên nghiệp, dễ hiểu
 - Mỗi phần ĐÚNG 3 câu, không nhiều hơn
 - KHÔNG thêm bất kỳ phần nào khác ngoài 3 phần đã chỉ định
-- KHÔNG thêm phần "Tin tức quốc tế liên quan" hay bất kỳ liên kết nào
 - KHÔNG thêm tiêu đề hay phần giới thiệu ngoài 3 phần chính
 - Chỉ trả về HTML thuần túy, không có markdown code blocks (```html)
 """

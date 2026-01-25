@@ -842,15 +842,6 @@ async def get_gold_analysis(request: Request):
                     Rủi ro điều chỉnh giảm có thể xảy ra nếu số liệu CPI tháng 1 của Mỹ (công bố 15/01) thấp hơn dự báo, làm giảm kỳ vọng lạm phát và giảm sức hấp dẫn của vàng như công cụ phòng ngừa rủi ro.
                 </p>
 
-                <h3>Tin tức quốc tế liên quan</h3>
-                <ul>
-                    <li><a href="https://www.reuters.com/markets/commodities/gold-prices/" target="_blank">Reuters: Gold climbs as Middle East tensions fuel safe-haven demand</a></li>
-                    <li><a href="https://www.bloomberg.com/quote/XAUUSD:CUR" target="_blank">Bloomberg: Gold Rises on Fed Rate-Cut Speculation, Dollar Weakness</a></li>
-                    <li><a href="https://www.cnbc.com/quotes/@GC.1" target="_blank">CNBC: Gold futures hit 3-month high amid inflation concerns</a></li>
-                    <li><a href="https://www.kitco.com/news/" target="_blank">Kitco: Central banks increase gold reserves for 15th consecutive month</a></li>
-                    <li><a href="https://www.ft.com/commodities" target="_blank">Financial Times: Precious metals rally as investors seek inflation hedge</a></li>
-                </ul>
-
                 <p class="article-disclaimer">
                     <em>Lưu ý: Đây là phân tích dựa trên dữ liệu lịch sử và xu hướng thị trường. Nhà đầu tư nên tham khảo ý kiến chuyên gia trước khi đưa ra quyết định đầu tư.</em>
                 </p>

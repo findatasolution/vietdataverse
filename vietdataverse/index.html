@@ -2001,16 +2001,6 @@
                                 Yếu tố chính hỗ trợ đà tăng là cuộc họp Fed ngày 29/01 sắp tới, thị trường kỳ vọng Fed sẽ giữ nguyên lãi suất ở mức 5.25-5.50%, tạo áp lực giảm lên đồng USD và đẩy giá vàng lên cao.
                                 Rủi ro điều chỉnh giảm có thể xảy ra nếu số liệu CPI tháng 1 của Mỹ (công bố 15/01) thấp hơn dự báo, làm giảm kỳ vọng lạm phát và giảm sức hấp dẫn của vàng như công cụ phòng ngừa rủi ro.
                             </p>
-
-                            <h3>Tin tức quốc tế liên quan</h3>
-                            <ul>
-                                <li><a href="https://www.reuters.com/markets/commodities/gold-prices/" target="_blank">Reuters: Gold climbs as Middle East tensions fuel safe-haven demand</a></li>
-                                <li><a href="https://www.bloomberg.com/quote/XAUUSD:CUR" target="_blank">Bloomberg: Gold Rises on Fed Rate-Cut Speculation, Dollar Weakness</a></li>
-                                <li><a href="https://www.cnbc.com/quotes/@GC.1" target="_blank">CNBC: Gold futures hit 3-month high amid inflation concerns</a></li>
-                                <li><a href="https://www.kitco.com/news/" target="_blank">Kitco: Central banks increase gold reserves for 15th consecutive month</a></li>
-                                <li><a href="https://www.ft.com/commodities" target="_blank">Financial Times: Precious metals rally as investors seek inflation hedge</a></li>
-                            </ul>
-
                             <p class="article-disclaimer">
                                 <em>Lưu ý: Đây là phân tích dựa trên dữ liệu lịch sử và xu hướng thị trường. Nhà đầu tư nên tham khảo ý kiến chuyên gia trước khi đưa ra quyết định đầu tư.</em>
                             </p>
@@ -2523,42 +2513,14 @@
             }
         }
 
-        // Load gold types
-        async function loadGoldTypes() {
-            try {
-                const token = localStorage.getItem('auth_token');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add authorization header if token exists
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-
-                const response = await fetch(`${API_BASE_URL}/gold/types`, {
-                    headers: headers
-                });
-                
-                if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
-                    throw new Error('Authentication required');
-                }
-                
-                if (!response.ok) throw new Error('Network response was not ok');
-                const result = await response.json();
-                
-                if (result.success && result.types) {
-                    const select = document.getElementById('goldTypeSelect');
-                    select.innerHTML = result.types.map(type =>
-                        `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
-                    ).join('');
-                }
-            } catch (error) {
-                console.error('Error loading gold types:', error);
-            }
+        // Load gold types - Hardcoded to DOJI HN và BTMC SJC
+        function loadGoldTypes() {
+            const select = document.getElementById('goldTypeSelect');
+            const allowedTypes = ['DOJI HN', 'BTMC SJC'];
+            select.innerHTML = allowedTypes.map(type =>
+                `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
+            ).join('');
+            return Promise.resolve();
         }
         
         // Load bank types for term deposit

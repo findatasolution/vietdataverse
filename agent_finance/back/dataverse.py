@@ -30,7 +30,7 @@ engine = create_engine(CRAWLING_BOT_DB, poolclass=NullPool)
 DATASET_CONFIG = {
     'VNGold': {
         'table': 'vn_gold_24h_hist',
-        'query': 'SELECT * FROM vn_gold_24h_hist ORDER BY date DESC',
+        'query': "SELECT * FROM vn_gold_24h_hist WHERE type IN ('DOJI HN', 'BTTMC SJC') ORDER BY date DESC",
         'filename': 'vn_gold_prices.csv',
         'description': 'Vietnamese Gold Prices (DOJI HN 24k)'
     },
