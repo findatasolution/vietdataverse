@@ -44,26 +44,34 @@ try:
     print("Silver Price Crawler - Phu Quy")
     print("============================================================")
 
-    driver.get('https://giabac.vn/')
-    time.sleep(2)
+    driver.get('https://giabac.phuquygroup.vn/')
+    time.sleep(3)
 
-    # Click "Lượng" button to filter by unit
-    buttons = driver.find_elements(By.TAG_NAME, 'button')
-    for btn in buttons:
-        if 'Lượng' in btn.text or 'luong' in btn.text.lower():
-            btn.click()
-            time.sleep(2)
-            break
-
-    # Get prices
-    price_div = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'priceDiv'))
+    # Get price from table in priceListContainer
+    price_container = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, 'priceListContainer'))
     )
-    price_elements = price_div.find_elements(By.CSS_SELECTOR, 'p.text-24px')
 
-    if len(price_elements) >= 2:
-        buy_price = float(price_elements[0].text.strip().replace(',', '').replace('.', ''))
-        sell_price = float(price_elements[1].text.strip().replace(',', '').replace('.', ''))
+    # Find table rows
+    rows = price_container.find_elements(By.CSS_SELECTOR, 'table tr')
+    buy_price = None
+    sell_price = None
+
+    for row in rows:
+        cells = row.find_elements(By.TAG_NAME, 'td')
+        if len(cells) >= 4:
+            product_name = cells[0].text.strip()
+            # Look for "1 lượng" product
+            if '1 lượng' in product_name.lower():
+                buy_text = cells[2].text.strip().replace(',', '').replace('.', '')
+                sell_text = cells[3].text.strip().replace(',', '').replace('.', '')
+                if buy_text and sell_text:
+                    buy_price = float(buy_text)
+                    sell_price = float(sell_text)
+                    print(f"  Found: {product_name}")
+                    break
+
+    if buy_price and sell_price:
 
         now = datetime.now()
         date_str = now.strftime('%Y-%m-%d')
