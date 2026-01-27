@@ -1025,6 +1025,111 @@
             text-decoration: underline;
         }
 
+        /* Tab Navigation */
+        .chart-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(201, 165, 91, 0.03);
+            padding: 6px;
+            border-radius: 16px;
+            border: 1px solid rgba(201, 165, 91, 0.1);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-tab-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-tab-btn:hover:not(.active) {
+            background: rgba(201, 165, 91, 0.1);
+            color: var(--gold-accent);
+        }
+
+        .chart-tab-btn.active {
+            background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+            color: #0A0A0A;
+            box-shadow: 0 4px 20px rgba(201, 165, 91, 0.3);
+        }
+
+        .chart-tab-btn i {
+            font-size: 1rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeInTab 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInTab {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--bg-elevated) 0%,
+                rgba(201, 165, 91, 0.08) 50%,
+                var(--bg-elevated) 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .chart-skeleton {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 20px;
+        }
+
+        .chart-skeleton .skeleton-bar {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .skeleton-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            height: 300px;
+        }
+
+        .skeleton-bars .skeleton-bar {
+            flex: 1;
+            min-width: 20px;
+        }
+
         /* Charts Section */
         .charts-section {
             margin-bottom: 3rem;
@@ -1032,10 +1137,35 @@
 
         .chart-card {
             background: var(--bg-elevated);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
+            border: 1px solid rgba(201, 165, 91, 0.1);
+            border-radius: 20px;
+            padding: 24px;
             margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .chart-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-accent));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .chart-card:hover::before {
+            opacity: 1;
+        }
+
+        .chart-card:hover {
+            border-color: rgba(201, 165, 91, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(201, 165, 91, 0.1);
         }
 
         .chart-header {
@@ -1268,6 +1398,47 @@
 
             .mobile-menu-btn {
                 display: block;
+            }
+
+            /* Tab Navigation Mobile */
+            .chart-tabs {
+                padding: 4px;
+                gap: 4px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .chart-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .chart-tab-btn {
+                padding: 10px 16px;
+                font-size: 0.8rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .chart-tab-btn span {
+                display: none;
+            }
+
+            .chart-tab-btn i {
+                margin: 0;
+            }
+
+            .chart-card {
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            .chart-card:hover {
+                transform: none;
+            }
+
+            .skeleton-bars {
+                gap: 8px;
             }
 
             .sidebar {
@@ -1649,108 +1820,198 @@
                     </p>
                 </div>
 
-                <!-- Charts Section -->
+                <!-- Charts Section with Tabs -->
                 <div class="charts-section">
-                    <!-- Gold Price Chart -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3 class="chart-title">
-                                Lịch Sử Giá Vàng Việt Nam
-                            </h3>
-                            <div class="chart-filters">
-                                <select id="goldTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
-                                    <option value="DOJI HN">DOJI HN</option>
-                                </select>
-                                <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
-                                <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
-                                <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
-                                <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                    <!-- Tab Navigation -->
+                    <div class="chart-tabs">
+                        <button class="chart-tab-btn active" data-tab="tab-gold-silver">
+                            <i class="fas fa-coins"></i>
+                            <span>Vàng & Bạc</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-currency">
+                            <i class="fas fa-university"></i>
+                            <span>Tiền tệ VN</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-global">
+                            <i class="fas fa-globe"></i>
+                            <span>Thị trường Quốc tế</span>
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Vàng & Bạc (Load immediately) -->
+                    <div class="tab-content active" id="tab-gold-silver">
+                        <!-- Gold Price Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Lịch Sử Giá Vàng Việt Nam
+                                </h3>
+                                <div class="chart-filters">
+                                    <select id="goldTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                        <option value="DOJI HN">DOJI HN</option>
+                                    </select>
+                                    <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="goldChart"></canvas>
+                                <div class="chart-loading" id="goldLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 45%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="chart-container">
-                            <canvas id="goldChart"></canvas>
-                            <div class="chart-loading" id="goldLoading">Loading data...</div>
+
+                        <!-- Silver Price Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Lịch Sử Giá Bạc Việt Nam - Phú Quý
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="silver" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="silverChart"></canvas>
+                                <div class="chart-loading" id="silverLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Silver Price Chart -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3 class="chart-title">
-                                Lịch Sử Giá Bạc Việt Nam - Phú Quý
-                            </h3>
-                            <div class="chart-filters">
-                                <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
-                                <button class="filter-btn active" data-chart="silver" data-period="1m">1 Month</button>
-                                <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
-                                <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                    <!-- Tab 2: Tiền tệ VN (Lazy load) -->
+                    <div class="tab-content" id="tab-currency">
+                        <!-- TD Chart - Term Deposit Interest Rates -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Lãi Suất Gửi Tiết Kiệm
+                                </h3>
+                                <div class="chart-filters">
+                                    <select id="bankTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                        <option value="ACB">ACB</option>
+                                        <option value="CTG">CTG</option>
+                                        <option value="SHB">SHB</option>
+                                    </select>
+                                    <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="td" data-period="all">All</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="tdChart"></canvas>
+                                <div class="chart-loading" id="tdLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="chart-container">
-                            <canvas id="silverChart"></canvas>
-                            <div class="chart-loading" id="silverLoading">Loading data...</div>
+
+                        <!-- SBV Interbank Rate Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Lịch Sử Lãi Suất Liên Ngân Hàng SBV
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="sbvChart"></canvas>
+                                <div class="chart-loading" id="sbvLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- TD Chart - Term Deposit Interest Rates -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3 class="chart-title">
-                                Lãi Suất Gửi Tiết Kiệm
-                            </h3>
-                            <div class="chart-filters">
-                                <select id="bankTypeSelect" class="type-select" style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
-                                    <option value="ACB">ACB</option>
-                                    <option value="CTG">CTG</option>
-                                    <option value="SHB">SHB</option>
-                                </select>
-                                <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
-                                <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button>
-                                <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
-                                <button class="filter-btn" data-chart="td" data-period="all">All</button>
+                    <!-- Tab 3: Thị trường Quốc tế (Lazy load) -->
+                    <div class="tab-content" id="tab-global">
+                        <!-- Global Macro Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="global" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="tdChart"></canvas>
-                            <div class="chart-loading" id="tdLoading">Loading data...</div>
-                        </div>
-                    </div>
-
-                    <!-- SBV Interbank Rate Chart -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3 class="chart-title">
-                                Lịch Sử Lãi Suất Liên Ngân Hàng SBV
-                            </h3>
-                            <div class="chart-filters">
-                                <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
-                                <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
-                                <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
-                                <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                            <div class="chart-container">
+                                <canvas id="globalChart"></canvas>
+                                <div class="chart-loading" id="globalLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="sbvChart"></canvas>
-                            <div class="chart-loading" id="sbvLoading">Loading data...</div>
-                        </div>
-                    </div>
-
-                    <!-- Global Macro Chart -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3 class="chart-title">
-                                Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)
-                            </h3>
-                            <div class="chart-filters">
-                                <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
-                                <button class="filter-btn active" data-chart="global" data-period="1m">1 Month</button>
-                                <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
-                                <button class="filter-btn" data-chart="global" data-period="all">All</button>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="globalChart"></canvas>
-                            <div class="chart-loading" id="globalLoading">Loading data...</div>
                         </div>
                     </div>
                 </div>
@@ -3635,24 +3896,84 @@
             alert(`API Endpoint:\n\n${example}\n\nFull URL:\n${apiUrl}\n\nPeriods: 7d, 1m, 1y, all`);
         }
 
-        // Initialize charts and analysis on page load
-        // Initialize charts and analysis on page load
-        window.addEventListener('load', function() {
-            loadGoldTypes().then(() => {
-                updateGoldChart('1m');
+        // Track which tabs have been loaded
+        const tabLoaded = {
+            'tab-gold-silver': false,
+            'tab-currency': false,
+            'tab-global': false
+        };
 
-                // Add type selector change event
-                document.getElementById('goldTypeSelect').addEventListener('change', function() {
-                    const activeBtn = document.querySelector('.filter-btn[data-chart="gold"].active');
-                    // Thêm check null để an toàn hơn
-                    const period = activeBtn ? activeBtn.dataset.period : '1m';
-                    updateGoldChart(period, this.value);
+        // Tab switching function with lazy loading
+        function switchChartTab(tabId) {
+            // Update tab buttons
+            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            // Lazy load charts for this tab if not loaded yet
+            if (!tabLoaded[tabId]) {
+                loadTabCharts(tabId);
+                tabLoaded[tabId] = true;
+            }
+        }
+
+        // Load charts for specific tab
+        async function loadTabCharts(tabId) {
+            switch(tabId) {
+                case 'tab-gold-silver':
+                    await Promise.all([
+                        loadGoldTypes().then(() => updateGoldChart('1m')),
+                        updateSilverChart('1m')
+                    ]);
+                    break;
+                case 'tab-currency':
+                    await Promise.all([
+                        loadBankTypes().then(() => updateTdChart('1m')),
+                        updateSBVChart('1m')
+                    ]);
+                    break;
+                case 'tab-global':
+                    await updateGlobalChart('1m');
+                    break;
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            // Setup tab click handlers
+            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchChartTab(this.dataset.tab);
                 });
             });
 
-            // Initialize term deposit chart with bank selector
-            loadBankTypes().then(() => { // Nên load bank types trước khi vẽ chart
-                updateTdChart('1m');
+            // Load Tab 1 immediately (Gold & Silver)
+            tabLoaded['tab-gold-silver'] = true;
+            Promise.all([
+                loadGoldTypes().then(() => updateGoldChart('1m')),
+                updateSilverChart('1m')
+            ]).then(() => {
+                // Preload other tabs data in background after 2 seconds
+                setTimeout(() => {
+                    // Preload Tab 2 & 3 data silently
+                    loadBankTypes();
+                }, 2000);
+            });
+
+            // Add type selector change events
+            document.getElementById('goldTypeSelect').addEventListener('change', function() {
+                const activeBtn = document.querySelector('.filter-btn[data-chart="gold"].active');
+                const period = activeBtn ? activeBtn.dataset.period : '1m';
+                updateGoldChart(period, this.value);
             });
 
             document.getElementById('bankTypeSelect').addEventListener('change', function() {
@@ -3661,13 +3982,7 @@
                 updateTdChart(period, this.value);
             });
 
-            updateSilverChart('1m');
-            updateSBVChart('1m');
-            
-            // FIX TYPO HERE: updatetdChart -> updateTdChart
-            updateTdChart('1m'); 
-            
-            updateGlobalChart('1m');
+            // Load gold analysis
             loadGoldAnalysis();
 
             // Add download button listeners
