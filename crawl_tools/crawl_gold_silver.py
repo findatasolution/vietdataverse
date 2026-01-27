@@ -65,16 +65,26 @@ try:
     sell_price = None
 
     try:
-        driver.get("https://giabac.phuquygroup.vn/")
+        driver.get("https://giabac.vn/")
         time.sleep(3)
 
-        # Get price from table in priceListContainer
-        price_container = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "priceListContainer"))
+        # Click tab "Lượng" to filter by unit
+        try:
+            luong_tab = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "pills-profile-tab"))
+            )
+            luong_tab.click()
+            time.sleep(3)  # Wait for AJAX to load
+        except Exception as e:
+            print(f"  Warning: Could not click Luong tab: {e}")
+
+        # Get price from table in priceDiv
+        price_div = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "priceDiv"))
         )
 
         # Find table rows
-        rows = price_container.find_elements(By.CSS_SELECTOR, "table tr")
+        rows = price_div.find_elements(By.CSS_SELECTOR, "table tr")
 
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
