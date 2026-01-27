@@ -3913,8 +3913,8 @@
                 }
             });
 
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
+            // Update tab content - ONLY target chart sub-tabs inside .charts-section
+            document.querySelectorAll('.charts-section > .tab-content').forEach(content => {
                 content.classList.remove('active');
             });
             document.getElementById(tabId).classList.add('active');
