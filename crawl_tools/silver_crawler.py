@@ -45,26 +45,34 @@ try:
     print("============================================================")
 
     driver.get('https://giabac.vn/')
-    time.sleep(3)
+    time.sleep(5)  # Wait for initial page load
 
     # Click tab "Lượng" to filter by unit
     try:
-        luong_tab = WebDriverWait(driver, 10).until(
+        luong_tab = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.ID, 'pills-profile-tab'))
         )
         luong_tab.click()
-        time.sleep(3)  # Wait for AJAX to load
-        print("  Clicked Luong tab")
+        print("  Clicked Luong tab, waiting for AJAX...")
+        time.sleep(5)  # Wait for AJAX to load
     except Exception as e:
         print(f"  Warning: Could not click Luong tab: {e}")
 
+    # Wait for table to appear inside priceDiv after AJAX
+    try:
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '#priceDiv table tr td'))
+        )
+        print("  Table loaded in priceDiv")
+    except Exception as e:
+        print(f"  Warning: Table not found in priceDiv: {e}")
+
     # Get price from table in priceDiv
-    price_div = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'priceDiv'))
-    )
+    price_div = driver.find_element(By.ID, 'priceDiv')
 
     # Find table rows
     rows = price_div.find_elements(By.CSS_SELECTOR, 'table tr')
+    print(f"  Found {len(rows)} rows in table")
     buy_price = None
     sell_price = None
 
