@@ -28,7 +28,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 selenium python-dotenv
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 selenium python-dotenv yfinance
 
     - name: Run gold & silver crawler
       env:
