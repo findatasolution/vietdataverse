@@ -353,19 +353,20 @@ except Exception as e:
     print(f"  Error crawling VietinBank: {e}")
 
 
-############## 4. Vietcombank/VCB (Selenium - DISABLED due to HTTP2 issues)
+############## 4. Vietcombank/VCB (HTTP + JSON - No Selenium needed!)
 print(f"\n--- Crawling Vietcombank Term Deposit Rates ---")
 
 try:
-    chrome_options_vcb = Options()
-    chrome_options_vcb.add_argument('--headless')
-    chrome_options_vcb.add_argument('--no-sandbox')
-    chrome_options_vcb.add_argument('--disable-dev-shm-usage')
-    chrome_options_vcb.add_argument('--disable-gpu')
-    chrome_options_vcb.add_argument('--disable-http2')  # Avoid HTTP2 protocol errors
-    chrome_options_vcb.page_load_strategy = 'normal'
-    if sys.platform == 'linux':
-        chrome_options_vcb.binary_location = '/usr/bin/chromium-browser'
+    import json
+
+    # VCB embeds rate data as JSON in a hidden input field
+    vcb_url = "https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat"
+    response = requests.get(vcb_url, headers=headers, timeout=30)
+    response.raise_for_status()
+
+    # Extract JSON from hidden input #currentDataInterestRate
+    soup_vcb = BeautifulSoup(response.content, 'html.parser')
+    json_input = soup_vcb.find('input', {'id': 'currentDataInterestRate'})
 
     vcb_data = {
         'bank_code': 'VCB',
@@ -373,92 +374,35 @@ try:
         'crawl_time': datetime.now()
     }
 
-    tables = []
-    max_retries = 3
+    if json_input and json_input.get('value'):
+        rate_json = json.loads(json_input['value'])
+        print(f"  Found {rate_json.get('Count', 0)} rate entries in JSON")
 
-    for attempt in range(max_retries):
-        driver_vcb = None
-        try:
-            driver_vcb = webdriver.Chrome(options=chrome_options_vcb)
-            driver_vcb.set_page_load_timeout(60)
+        # Map tenor to DB columns (only VND FixedDeposit rates)
+        tenor_map = {
+            'Demand': 'term_noterm',
+            '1-months': 'term_1m',
+            '2-months': 'term_2m',
+            '3-months': 'term_3m',
+            '6-months': 'term_6m',
+            '9-months': 'term_9m',
+            '12-months': 'term_12m',
+            '18-months': 'term_18m',
+            '24-months': 'term_24m',
+            '36-months': 'term_36m'
+        }
 
-            print(f"  Attempt {attempt+1}/{max_retries}: Loading Vietcombank page...")
-            driver_vcb.get("https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat")
-            time.sleep(25)
+        for item in rate_json.get('Data', []):
+            # Only get VND FixedDeposit rates
+            if item.get('currencyCode') == 'VND' and item.get('tenorType') == 'FixedDeposit':
+                tenor = item.get('tenor')
+                rate = item.get('rates')
 
-            soup_vcb = BeautifulSoup(driver_vcb.page_source, 'html.parser')
-            tables = soup_vcb.find_all('table')
-            print(f"  Found {len(tables)} tables")
-
-            if tables:
-                break
-            else:
-                print("  No tables found, retrying...")
-                time.sleep(5)
-        except Exception as retry_err:
-            print(f"  Attempt {attempt+1} failed: {retry_err}")
-            time.sleep(5)
-        finally:
-            if driver_vcb:
-                driver_vcb.quit()
-
-    # Parse the interest rate table (outside retry loop)
-    if tables:
-        table = tables[0]
-        rows = table.find_all('tr')
-        print(f"  Parsing {len(rows)} table rows...")
-
-        for row in rows:
-            cols = row.find_all(['td', 'th'])
-            if len(cols) >= 2:
-                # Normalize text: Unicode NFC, replace non-breaking space, lowercase
-                term_text = unicodedata.normalize('NFC', cols[0].get_text(strip=True)).replace('\xa0', ' ').lower()
-                rate_text = cols[1].get_text(strip=True)  # VND column
-
-                # Extract rate value
-                try:
-                    rate = float(rate_text.replace('%', '').replace(',', '.').strip())
-                except (ValueError, AttributeError):
-                    continue
-
-                if rate <= 0 or rate > 20:
-                    continue
-
-                # Map term text to database columns
-                # VCB format: "Không kỳ hạn", "1 tháng", "2 tháng", etc.
-                if term_text == 'không kỳ hạn':
-                    vcb_data['term_noterm'] = rate
-                    print(f"    term_noterm: {rate}%")
-                elif term_text == '1 tháng':
-                    vcb_data['term_1m'] = rate
-                    print(f"    term_1m: {rate}%")
-                elif term_text == '2 tháng':
-                    vcb_data['term_2m'] = rate
-                    print(f"    term_2m: {rate}%")
-                elif term_text == '3 tháng':
-                    vcb_data['term_3m'] = rate
-                    print(f"    term_3m: {rate}%")
-                elif term_text == '6 tháng':
-                    vcb_data['term_6m'] = rate
-                    print(f"    term_6m: {rate}%")
-                elif term_text == '9 tháng':
-                    vcb_data['term_9m'] = rate
-                    print(f"    term_9m: {rate}%")
-                elif term_text == '12 tháng':
-                    vcb_data['term_12m'] = rate
-                    print(f"    term_12m: {rate}%")
-                elif term_text == '13 tháng':
-                    vcb_data['term_13m'] = rate
-                    print(f"    term_13m: {rate}%")
-                elif term_text == '18 tháng':
-                    vcb_data['term_18m'] = rate
-                    print(f"    term_18m: {rate}%")
-                elif term_text == '24 tháng':
-                    vcb_data['term_24m'] = rate
-                    print(f"    term_24m: {rate}%")
-                elif term_text == '36 tháng':
-                    vcb_data['term_36m'] = rate
-                    print(f"    term_36m: {rate}%")
+                if tenor in tenor_map and rate is not None:
+                    # Convert from decimal (0.052) to percentage (5.2)
+                    rate_pct = round(rate * 100, 2)
+                    vcb_data[tenor_map[tenor]] = rate_pct
+                    print(f"    {tenor_map[tenor]}: {rate_pct}%")
 
     has_vcb_data = any(key.startswith('term_') for key in vcb_data.keys())
 
@@ -470,7 +414,6 @@ try:
             if exists:
                 print(f"  Vietcombank data for {date_str} already exists, skipping")
             else:
-                # Build dynamic insert based on available columns
                 columns = ['bank_code', 'date', 'crawl_time'] + [k for k in vcb_data.keys() if k.startswith('term_')]
                 placeholders = ', '.join([f':{c}' for c in columns])
                 col_names = ', '.join(columns)
