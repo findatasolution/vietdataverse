@@ -22,13 +22,13 @@ jobs:
         python-version: '3.11'
 
     - name: Install Chrome for Selenium
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
 
     - name: Install dependencies
       run: |
-        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 selenium python-dotenv yfinance
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 selenium python-dotenv yfinance webdriver-manager
 
     - name: Run gold & silver crawler
       env:

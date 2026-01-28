@@ -21,6 +21,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -52,15 +53,26 @@ global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
 print(f"\n--- Crawling Silver Prices ---")
 
 try:
+    # Use webdriver-manager for automatic ChromeDriver management
+    try:
+        from webdriver_manager.chrome import ChromeDriverManager
+        use_webdriver_manager = True
+    except ImportError:
+        use_webdriver_manager = False
+        print("  webdriver-manager not installed, using default Chrome")
+
     chrome_options = Options()
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_argument('--disable-gpu')
-    if sys.platform == 'linux':
-        chrome_options.binary_location = '/usr/bin/chromium-browser'
+    chrome_options.add_argument('--window-size=1920,1080')
 
-    driver = webdriver.Chrome(options=chrome_options)
+    if use_webdriver_manager:
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+    else:
+        driver = webdriver.Chrome(options=chrome_options)
     buy_price = None
     sell_price = None
 
@@ -144,7 +156,9 @@ try:
         print(f"  No silver price found")
 
 except Exception as e:
+    import traceback
     print(f"  Error crawling Silver: {e}")
+    print(f"  Traceback: {traceback.format_exc()}")
 
 
 ############## 2. Domestic Gold Prices (HTTP)
