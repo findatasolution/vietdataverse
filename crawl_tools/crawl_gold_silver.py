@@ -122,6 +122,72 @@ except Exception as e:
     print(f"  Traceback: {traceback.format_exc()}")
 
 
+############## 1b. World Silver Spot Price (Kitco - backup source)
+print(f"\n--- Crawling World Silver Spot (Kitco) ---")
+
+try:
+    response_kitco = requests.get("http://www.kitco.com/charts/silver", timeout=15,
+                                   headers={'User-Agent': 'Mozilla/5.0'})
+    response_kitco.raise_for_status()
+    soup_kitco = BeautifulSoup(response_kitco.content, 'html.parser')
+
+    # Extract silver price per ounce from Kitco
+    world_silver_usd = None
+    price_grid = soup_kitco.find(class_=lambda c: c and 'spotPriceGrid' in str(c))
+    if price_grid:
+        price_items = price_grid.find_all(class_=lambda c: c and 'convertPrice' in str(c))
+        price_names = price_grid.find_all(class_=lambda c: c and 'priceName' in str(c))
+        for name_el, price_el in zip(price_names, price_items):
+            name_text = name_el.get_text(strip=True).lower()
+            if name_text == 'ounce':
+                price_text = price_el.get_text(strip=True).replace(',', '')
+                try:
+                    world_silver_usd = float(price_text)
+                    print(f"  World silver: ${world_silver_usd:.2f}/oz")
+                except ValueError:
+                    pass
+                break
+
+    if world_silver_usd:
+        crawl_time = datetime.now()
+
+        # Create table if not exists and insert
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS world_silver_kitco_hist (
+                    id SERIAL PRIMARY KEY,
+                    date VARCHAR(10),
+                    crawl_time TIMESTAMP,
+                    price_usd_oz FLOAT
+                )
+            """))
+            conn.commit()
+
+            # Check duplicate
+            result = conn.execute(
+                text("SELECT COUNT(*) FROM world_silver_kitco_hist WHERE date = :date AND crawl_time >= :s AND crawl_time < :e"),
+                {
+                    'date': date_str,
+                    's': crawl_time.replace(minute=0, second=0, microsecond=0),
+                    'e': crawl_time.replace(minute=59, second=59, microsecond=999999)
+                }
+            )
+            if result.scalar() > 0:
+                print(f"  World silver for {date_str} this hour already exists")
+            else:
+                conn.execute(
+                    text("INSERT INTO world_silver_kitco_hist (date, crawl_time, price_usd_oz) VALUES (:date, :crawl_time, :price)"),
+                    {'date': date_str, 'crawl_time': crawl_time, 'price': world_silver_usd}
+                )
+                conn.commit()
+                print(f"  Pushed world silver: ${world_silver_usd:.2f}/oz")
+    else:
+        print(f"  Could not parse Kitco silver price")
+
+except Exception as e:
+    print(f"  Error crawling Kitco silver: {e}")
+
+
 ############## 2. Domestic Gold Prices (HTTP)
 print(f"\n--- Crawling Gold Prices ---")
 
