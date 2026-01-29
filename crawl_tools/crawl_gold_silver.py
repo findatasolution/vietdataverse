@@ -122,50 +122,42 @@ except Exception as e:
     print(f"  Traceback: {traceback.format_exc()}")
 
 
-############## 1b. World Silver Spot Price (Kitco - backup source)
-print(f"\n--- Crawling World Silver Spot (Kitco) ---")
+############## 1b. Domestic Silver Backup (phuquygroup.vn)
+print(f"\n--- Crawling Silver Backup (phuquygroup.vn) ---")
 
 try:
-    response_kitco = requests.get("http://www.kitco.com/charts/silver", timeout=15,
-                                   headers={'User-Agent': 'Mozilla/5.0'})
-    response_kitco.raise_for_status()
-    soup_kitco = BeautifulSoup(response_kitco.content, 'html.parser')
+    response_pq = requests.get("https://giabac.phuquygroup.vn/", timeout=15,
+                                headers={'User-Agent': 'Mozilla/5.0'})
+    response_pq.raise_for_status()
+    soup_pq = BeautifulSoup(response_pq.content, 'html.parser')
 
-    # Extract silver price per ounce from Kitco
-    world_silver_usd = None
-    price_grid = soup_kitco.find(class_=lambda c: c and 'spotPriceGrid' in str(c))
-    if price_grid:
-        price_items = price_grid.find_all(class_=lambda c: c and 'convertPrice' in str(c))
-        price_names = price_grid.find_all(class_=lambda c: c and 'priceName' in str(c))
-        for name_el, price_el in zip(price_names, price_items):
-            name_text = name_el.get_text(strip=True).lower()
-            if name_text == 'ounce':
-                price_text = price_el.get_text(strip=True).replace(',', '')
-                try:
-                    world_silver_usd = float(price_text)
-                    print(f"  World silver: ${world_silver_usd:.2f}/oz")
-                except ValueError:
-                    pass
-                break
+    buy_price_pq = None
+    sell_price_pq = None
 
-    if world_silver_usd:
+    table_pq = soup_pq.find('table')
+    if table_pq:
+        rows_pq = table_pq.find_all('tr')
+        for row in rows_pq:
+            cells = row.find_all('td')
+            if len(cells) >= 4:
+                product_name = cells[0].get_text(strip=True)
+                if '1' in product_name and ('LƯỢNG' in product_name.upper() or 'lượng' in product_name.lower()):
+                    buy_text = cells[2].get_text(strip=True).replace(',', '').replace('.', '')
+                    sell_text = cells[3].get_text(strip=True).replace(',', '').replace('.', '')
+                    if buy_text and sell_text:
+                        buy_price_pq = float(buy_text)
+                        sell_price_pq = float(sell_text)
+                        print(f"  Found: {product_name}")
+                        break
+
+    if buy_price_pq and sell_price_pq:
         crawl_time = datetime.now()
 
-        # Create table if not exists and insert
         with engine.connect() as conn:
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS world_silver_kitco_hist (
-                    id SERIAL PRIMARY KEY,
-                    date VARCHAR(10),
-                    crawl_time TIMESTAMP,
-                    price_usd_oz FLOAT
-                )
-            """))
-            conn.commit()
-
             # Check duplicate
             result = conn.execute(
-                text("SELECT COUNT(*) FROM world_silver_kitco_hist WHERE date = :date AND crawl_time >= :s AND crawl_time < :e"),
+                text("""SELECT COUNT(*) FROM vn_silver_phuquy_hist
+                        WHERE date = :date AND crawl_time >= :s AND crawl_time < :e"""),
                 {
                     'date': date_str,
                     's': crawl_time.replace(minute=0, second=0, microsecond=0),
@@ -173,19 +165,20 @@ try:
                 }
             )
             if result.scalar() > 0:
-                print(f"  World silver for {date_str} this hour already exists")
+                print(f"  Silver backup for {date_str} this hour already exists (primary already inserted)")
             else:
                 conn.execute(
-                    text("INSERT INTO world_silver_kitco_hist (date, crawl_time, price_usd_oz) VALUES (:date, :crawl_time, :price)"),
-                    {'date': date_str, 'crawl_time': crawl_time, 'price': world_silver_usd}
+                    text("""INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price)
+                            VALUES (:date, :crawl_time, :buy_price, :sell_price)"""),
+                    {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price_pq, 'sell_price': sell_price_pq}
                 )
                 conn.commit()
-                print(f"  Pushed world silver: ${world_silver_usd:.2f}/oz")
+                print(f"  Pushed backup silver: Buy {buy_price_pq:,.0f} | Sell {sell_price_pq:,.0f}")
     else:
-        print(f"  Could not parse Kitco silver price")
+        print(f"  No silver price found on phuquygroup.vn")
 
 except Exception as e:
-    print(f"  Error crawling Kitco silver: {e}")
+    print(f"  Error crawling phuquygroup silver: {e}")
 
 
 ############## 2. Domestic Gold Prices (HTTP)
