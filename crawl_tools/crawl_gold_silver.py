@@ -76,22 +76,13 @@ try:
 
     if buy_price and sell_price:
         crawl_time = datetime.now()
-        silver_record = {
-            'date': date_str,
-            'crawl_time': crawl_time,
-            'buy_price': buy_price,
-            'sell_price': sell_price
-        }
 
-        # Check if exists in same hour
+        # Check if exists in same hour from same source
         with engine.connect() as conn:
             result = conn.execute(
-                text("""
-                    SELECT COUNT(*) FROM vn_silver_phuquy_hist
-                    WHERE date = :date
-                    AND crawl_time >= :start_time
-                    AND crawl_time < :end_time
-                """),
+                text("""SELECT COUNT(*) FROM vn_silver_phuquy_hist
+                        WHERE date = :date AND source = 'giabac.vn'
+                        AND crawl_time >= :start_time AND crawl_time < :end_time"""),
                 {
                     'date': date_str,
                     'start_time': crawl_time.replace(minute=0, second=0, microsecond=0),
@@ -101,18 +92,16 @@ try:
             exists = result.scalar() > 0
 
         if exists:
-            print(f"  Silver data for {date_str} {crawl_time.strftime('%H:%M')} already exists")
+            print(f"  Silver (giabac.vn) for {date_str} {crawl_time.strftime('%H:%M')} already exists")
         else:
             with engine.connect() as conn:
                 conn.execute(
-                    text("""
-                        INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price)
-                        VALUES (:date, :crawl_time, :buy_price, :sell_price)
-                    """),
-                    silver_record
+                    text("""INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price, source)
+                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'giabac.vn')"""),
+                    {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price, 'sell_price': sell_price}
                 )
                 conn.commit()
-            print(f"  Pushed silver: {crawl_time.strftime('%H:%M')} | Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
+            print(f"  Pushed silver (giabac.vn): Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
     else:
         print(f"  No silver price found")
 
@@ -154,10 +143,11 @@ try:
         crawl_time = datetime.now()
 
         with engine.connect() as conn:
-            # Check duplicate
+            # Check duplicate for this source
             result = conn.execute(
                 text("""SELECT COUNT(*) FROM vn_silver_phuquy_hist
-                        WHERE date = :date AND crawl_time >= :s AND crawl_time < :e"""),
+                        WHERE date = :date AND source = 'phuquygroup.vn'
+                        AND crawl_time >= :s AND crawl_time < :e"""),
                 {
                     'date': date_str,
                     's': crawl_time.replace(minute=0, second=0, microsecond=0),
@@ -165,11 +155,11 @@ try:
                 }
             )
             if result.scalar() > 0:
-                print(f"  Silver backup for {date_str} this hour already exists (primary already inserted)")
+                print(f"  Silver (phuquygroup.vn) for {date_str} this hour already exists")
             else:
                 conn.execute(
-                    text("""INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price)
-                            VALUES (:date, :crawl_time, :buy_price, :sell_price)"""),
+                    text("""INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price, source)
+                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'phuquygroup.vn')"""),
                     {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price_pq, 'sell_price': sell_price_pq}
                 )
                 conn.commit()
