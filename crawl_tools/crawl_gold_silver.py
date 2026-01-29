@@ -16,12 +16,6 @@ from sqlalchemy import create_engine, text
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -49,69 +43,36 @@ if not GLOBAL_INDICATOR_DB:
 global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
 
 
-############## 1. Domestic Silver Prices (Selenium)
+############## 1. Domestic Silver Prices (HTTP - no Selenium needed)
 print(f"\n--- Crawling Silver Prices ---")
 
 try:
-    # Use webdriver-manager for automatic ChromeDriver management
-    try:
-        from webdriver_manager.chrome import ChromeDriverManager
-        use_webdriver_manager = True
-    except ImportError:
-        use_webdriver_manager = False
-        print("  webdriver-manager not installed, using default Chrome")
+    response_silver = requests.get("https://giabac.vn/", timeout=15)
+    response_silver.raise_for_status()
+    soup_silver = BeautifulSoup(response_silver.content, 'html.parser')
 
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--window-size=1920,1080')
-
-    if use_webdriver_manager:
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-    else:
-        driver = webdriver.Chrome(options=chrome_options)
     buy_price = None
     sell_price = None
 
-    try:
-        driver.get("https://giabac.vn/")
-        time.sleep(3)  # Wait for initial page load
-
-        # Wait for price table to load (table is in #priceTable, not #priceDiv)
-        try:
-            WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "#priceTable table tr td"))
-            )
-            print("  Table loaded in #priceTable")
-        except Exception as e:
-            print(f"  Warning: Table not found in #priceTable: {e}")
-
-        # Get price from table in #priceTable
-        price_table = driver.find_element(By.ID, "priceTable")
-
-        # Find table rows
-        rows = price_table.find_elements(By.CSS_SELECTOR, "table tr")
-        print(f"  Found {len(rows)} rows in table")
+    price_table = soup_silver.find(id='priceTable')
+    if price_table:
+        rows = price_table.find_all('tr')
+        print(f"  Found {len(rows)} rows in #priceTable")
 
         for row in rows:
-            cells = row.find_elements(By.TAG_NAME, "td")
+            cells = row.find_all('td')
             if len(cells) >= 4:
-                product_name = cells[0].text.strip()
-                # Look for "1 lượng" product
-                if "1 lượng" in product_name.lower():
-                    buy_text = cells[2].text.strip().replace(',', '').replace('.', '')
-                    sell_text = cells[3].text.strip().replace(',', '').replace('.', '')
+                product_name = cells[0].get_text(strip=True)
+                if '1 lượng' in product_name.lower():
+                    buy_text = cells[2].get_text(strip=True).replace(',', '').replace('.', '')
+                    sell_text = cells[3].get_text(strip=True).replace(',', '').replace('.', '')
                     if buy_text and sell_text:
                         buy_price = float(buy_text)
                         sell_price = float(sell_text)
                         print(f"  Found silver price from: {product_name}")
                         break
-
-    finally:
-        driver.quit()
+    else:
+        print("  #priceTable not found in HTML")
 
     if buy_price and sell_price:
         crawl_time = datetime.now()
