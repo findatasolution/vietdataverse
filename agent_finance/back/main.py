@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi import status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
@@ -20,7 +20,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database import engine, Base, get_db
 from models import User
-from auth import hash_password, verify_password, create_access_token, decode_access_token
+from auth import verify_auth0_token
 from middleware import authenticate_user, get_current_user
 
 # Create tables
@@ -59,90 +59,10 @@ if not os.path.exists(vietdataverse_path):
 app.mount("/agent_finance/front", StaticFiles(directory=front_path, html=True), name="agent_finance_front")
 app.mount("/vietdataverse", StaticFiles(directory=vietdataverse_path, html=True), name="vietdataverse")
 
-class RegisterRequest(BaseModel):
-    email: str
-    password: str = Field(min_length=6, max_length=72)
-    phone: Optional[str] = None
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-@app.post("/api/register")
-async def register_user(request: RegisterRequest):
-    """Register a new user"""
-    try:
-        # Check if user already exists
-        from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        
-        existing_user = session.query(User).filter_by(email=request.email).first()
-        if existing_user:
-            session.close()
-            raise HTTPException(status_code=400, detail="Email already registered")
-
-        # Hash password
-        password_hash = hash_password(request.password)
-
-        # Create new user
-        new_user = User(
-            email=request.email,
-            password_hash=password_hash
-        )
-        
-        # Add to database
-        session.add(new_user)
-        session.commit()
-        session.close()
-        
-        return {"message": "User registered successfully"}
-        
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/login")
-async def login_user(request: LoginRequest):
-    """Login user and return JWT token"""
-    try:
-        from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        
-        # Find user by email
-        user = session.query(User).filter_by(email=request.email).first()
-        session.close()
-
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Verify password
-        if not verify_password(request.password, user.password_hash):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Create JWT token
-        access_token = create_access_token(
-            data={
-                "sub": user.email,
-                "user_id": user.id,
-                "role": user.role,
-                "is_admin": user.is_admin
-            }
-        )
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "email": user.email,
-            "user_id": user.id
-        }
-        
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# ============================================================================
+# LOCAL REGISTER/LOGIN REMOVED — All auth now via Auth0 Universal Login
+# ============================================================================
 
 @app.get("/")
 async def root():
@@ -209,180 +129,179 @@ async def dashboard_data(request: Request):
 
 @app.get("/auth/login")
 async def auth0_login():
-    """Initiate Auth0 login flow"""
+    """Initiate Auth0 login flow — redirects to Auth0 Universal Login"""
     try:
         AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
         AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://nguyenphamdieuhien.online/callback")
-        
+        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://api.nguyenphamdieuhien.online/callback")
+        AUTH0_API_AUDIENCE = os.getenv("AUTH0_API_AUDIENCE", "https://api.nguyenphamdieuhien.online")
+
         if not all([AUTH0_DOMAIN, AUTH0_CLIENT_ID]):
             raise HTTPException(status_code=500, detail="Auth0 configuration missing")
-        
-        # Build Auth0 login URL
+
         params = {
             "client_id": AUTH0_CLIENT_ID,
             "redirect_uri": AUTH0_CALLBACK_URL,
             "response_type": "code",
-            "scope": "openid profile email"
+            "scope": "openid profile email",
+            "audience": AUTH0_API_AUDIENCE,
         }
-        
+
         auth_url = f"https://{AUTH0_DOMAIN}/authorize?{urlencode(params)}"
         return RedirectResponse(url=auth_url)
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/callback")
 async def auth0_callback(request: Request, code: str = None, error: str = None):
-    """Handle Auth0 callback"""
+    """Handle Auth0 callback — exchange code for tokens, sync user to DB, redirect to frontend"""
+    FRONTEND_URL = "https://nguyenphamdieuhien.online/vietdataverse/index.html"
+
     try:
         if error:
-            raise HTTPException(status_code=400, detail=f"Auth0 error: {error}")
-        
+            return RedirectResponse(url=f"{FRONTEND_URL}?auth_error={error}")
+
         if not code:
-            raise HTTPException(status_code=400, detail="No authorization code provided")
-        
-        # Exchange code for tokens
+            return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=no_code")
+
         AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
         AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
         AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
-        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://nguyenphamdieuhien.online/callback")
-        
+        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://api.nguyenphamdieuhien.online/callback")
+        AUTH0_API_AUDIENCE = os.getenv("AUTH0_API_AUDIENCE", "https://api.nguyenphamdieuhien.online")
+
         if not all([AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET]):
-            raise HTTPException(status_code=500, detail="Auth0 configuration missing")
-        
-        # Exchange code for tokens
+            return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=config_missing")
+
+        # Exchange authorization code for tokens
         token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
         token_data = {
             "grant_type": "authorization_code",
             "client_id": AUTH0_CLIENT_ID,
             "client_secret": AUTH0_CLIENT_SECRET,
             "code": code,
-            "redirect_uri": AUTH0_CALLBACK_URL
+            "redirect_uri": AUTH0_CALLBACK_URL,
+            "audience": AUTH0_API_AUDIENCE,
         }
-        
+
         token_response = requests.post(token_url, json=token_data)
         if token_response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to exchange code for tokens")
-        
+            return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=token_exchange_failed")
+
         tokens = token_response.json()
-        id_token = tokens.get("id_token")
-        
-        # Decode ID token to get user info
-        from auth import decode_access_token
-        user_info = decode_access_token(id_token)
-        
-        # Get or create user in database
-        from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        
-        # Check if user exists by auth0_id
-        user = session.query(User).filter_by(auth0_id=user_info.get("sub")).first()
-        
-        if not user:
-            # Create new user
-            user = User(
-                email=user_info.get("email"),
-                auth0_id=user_info.get("sub"),
-                name=user_info.get("name"),
-                picture=user_info.get("picture"),
-                role="user",
-                is_admin=False
-            )
-            session.add(user)
-            session.commit()
-        else:
-            # Update user info
-            user.name = user_info.get("name")
-            user.picture = user_info.get("picture")
-            session.commit()
-        
-        session.close()
-        
-        # Create JWT token for our system
-        access_token = create_access_token(
-            data={
-                "sub": user.email,
-                "user_id": user.id,
-                "role": user.role,
-                "is_admin": user.is_admin,
-                "auth0_id": user.auth0_id
-            }
+        access_token = tokens.get("access_token")
+
+        # Get user info from Auth0 /userinfo endpoint
+        userinfo_url = f"https://{AUTH0_DOMAIN}/userinfo"
+        userinfo_response = requests.get(
+            userinfo_url,
+            headers={"Authorization": f"Bearer {access_token}"}
         )
-        
-        # Return success response
-        return {
-            "message": "Auth0 login successful",
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": {
-                "email": user.email,
-                "name": user.name,
-                "picture": user.picture,
-                "user_id": user.id
-            }
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+        if userinfo_response.status_code == 200:
+            user_info = userinfo_response.json()
+
+            # Sync user to local database
+            from sqlalchemy.orm import sessionmaker
+            Session = sessionmaker(bind=engine)
+            session = Session()
+
+            try:
+                auth0_id = user_info.get("sub")
+                user = session.query(User).filter_by(auth0_id=auth0_id).first()
+
+                if not user:
+                    # Check if user exists by email (legacy local user)
+                    user = session.query(User).filter_by(email=user_info.get("email")).first()
+                    if user:
+                        # Link existing local user to Auth0
+                        user.auth0_id = auth0_id
+                        user.name = user_info.get("name")
+                        user.picture = user_info.get("picture")
+                    else:
+                        # Create new user
+                        user = User(
+                            email=user_info.get("email"),
+                            auth0_id=auth0_id,
+                            name=user_info.get("name"),
+                            picture=user_info.get("picture"),
+                            role="user",
+                            is_admin=False,
+                        )
+                        session.add(user)
+                else:
+                    # Update existing Auth0 user profile
+                    user.name = user_info.get("name")
+                    user.picture = user_info.get("picture")
+
+                session.commit()
+            finally:
+                session.close()
+
+        # Redirect to frontend — auth0-spa-js on the frontend will handle
+        # token acquisition via getTokenSilently() after this redirect
+        return RedirectResponse(url=FRONTEND_URL)
+
+    except Exception:
+        return RedirectResponse(url=f"{FRONTEND_URL}?auth_error=unexpected")
 
 @app.get("/auth/logout")
 async def auth0_logout():
-    """Logout from Auth0"""
+    """Logout from Auth0 — clears Auth0 session and redirects to frontend"""
     try:
         AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
         AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-        LOGOUT_URL = os.getenv("LOGOUT_URL", "https://nguyenphamdieuhien.online")
-        
+        LOGOUT_URL = os.getenv("LOGOUT_URL", "https://nguyenphamdieuhien.online/vietdataverse/index.html")
+
         if not AUTH0_DOMAIN:
             raise HTTPException(status_code=500, detail="Auth0 configuration missing")
-        
-        # Build Auth0 logout URL
+
         params = {
             "client_id": AUTH0_CLIENT_ID,
-            "returnTo": LOGOUT_URL
+            "returnTo": LOGOUT_URL,
         }
-        
+
         logout_url = f"https://{AUTH0_DOMAIN}/v2/logout?{urlencode(params)}"
         return RedirectResponse(url=logout_url)
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/me")
 async def get_current_user_info(request: Request):
-    """Get current user information"""
+    """Get current user information from Auth0 token + local DB"""
     try:
-        # Authenticate user
         await authenticate_user(request)
         user = request.state.user
-        
-        # Get full user info from database
+
+        # Optionally enrich with DB profile data
         from sqlalchemy.orm import sessionmaker
         Session = sessionmaker(bind=engine)
         session = Session()
-        
-        db_user = session.query(User).filter_by(id=user["user_id"]).first()
+
+        db_user = session.query(User).filter_by(auth0_id=user.get("auth0_id")).first()
         session.close()
-        
-        if not db_user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        return {
-            "email": db_user.email,
-            "name": db_user.name,
-            "picture": db_user.picture,
-            "user_id": db_user.id,
-            "role": db_user.role,
-            "is_admin": db_user.is_admin,
-            "auth0_id": db_user.auth0_id,
-            "created_at": db_user.created_at.isoformat(),
-            "updated_at": db_user.updated_at.isoformat()
+
+        result = {
+            "auth0_id": user.get("auth0_id"),
+            "email": user.get("email"),
+            "role": user.get("role"),
+            "business_unit": user.get("business_unit"),
+            "is_admin": user.get("is_admin"),
         }
-        
+
+        if db_user:
+            result.update({
+                "user_id": db_user.id,
+                "name": db_user.name,
+                "picture": db_user.picture,
+                "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
+                "updated_at": db_user.updated_at.isoformat() if db_user.updated_at else None,
+            })
+
+        return result
+
     except HTTPException:
         raise
     except Exception as e:

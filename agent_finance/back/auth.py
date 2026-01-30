@@ -1,56 +1,74 @@
-import bcrypt
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
+"""
+Auth0 JWT Token Verification
+Verifies RS256 tokens issued by Auth0 using JWKS (JSON Web Key Set)
+"""
+
 import os
+import json
+from jose import jwt, JWTError
+from urllib.request import urlopen
+from functools import lru_cache
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-
-
-def hash_password(password: str) -> str:
-    """Hash a password using bcrypt"""
-    # Ensure password is bytes and truncate to 72 bytes
-    if len(password.encode('utf-8')) > 72:
-        password = password[:72]
-    
-    # Convert to bytes
-    password_bytes = password.encode('utf-8')
-    
-    # Generate salt and hash
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password_bytes, salt)
-    
-    # Return as string
-    return hashed.decode('utf-8')
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+AUTH0_API_AUDIENCE = os.getenv("AUTH0_API_AUDIENCE", "https://api.nguyenphamdieuhien.online")
+AUTH0_ALGORITHMS = ["RS256"]
+NAMESPACE = "https://nguyenphamdieuhien.online"
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
-    # Ensure plain password is bytes and truncate to 72 bytes
-    if len(plain_password.encode('utf-8')) > 72:
-        plain_password = plain_password[:72]
-    
-    # Convert to bytes
-    plain_password_bytes = plain_password.encode('utf-8')
-    hashed_password_bytes = hashed_password.encode('utf-8')
-    
-    return bcrypt.checkpw(plain_password_bytes, hashed_password_bytes)
+@lru_cache(maxsize=1)
+def get_jwks():
+    """Fetch and cache Auth0 JWKS (JSON Web Key Set)"""
+    jwks_url = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
+    with urlopen(jwks_url) as response:
+        return json.loads(response.read())
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    """Create a JWT access token"""
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-def decode_access_token(token: str) -> dict:
+def verify_auth0_token(token: str) -> dict:
     """
-    Decode a JWT token and return the payload.
-    Raises JWTError if the token is invalid.
+    Verify an Auth0 JWT access token using JWKS.
+    Returns the decoded payload if valid.
+    Raises JWTError if invalid.
     """
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    jwks = get_jwks()
+    unverified_header = jwt.get_unverified_header(token)
+
+    # Find the matching RSA key by kid
+    rsa_key = {}
+    for key in jwks["keys"]:
+        if key["kid"] == unverified_header.get("kid"):
+            rsa_key = {
+                "kty": key["kty"],
+                "kid": key["kid"],
+                "use": key["use"],
+                "n": key["n"],
+                "e": key["e"],
+            }
+            break
+
+    if not rsa_key:
+        raise JWTError("Unable to find appropriate signing key")
+
+    payload = jwt.decode(
+        token,
+        rsa_key,
+        algorithms=AUTH0_ALGORITHMS,
+        audience=AUTH0_API_AUDIENCE,
+        issuer=f"https://{AUTH0_DOMAIN}/",
+    )
+
     return payload
+
+
+def get_user_role(payload: dict) -> str:
+    """Extract role from Auth0 token custom claims"""
+    return payload.get(f"{NAMESPACE}/role", "user")
+
+
+def get_user_business_unit(payload: dict):
+    """Extract business unit from Auth0 token custom claims"""
+    return payload.get(f"{NAMESPACE}/business_unit", None)
+
+
+def get_user_is_admin(payload: dict) -> bool:
+    """Check if user is admin from Auth0 token custom claims"""
+    return payload.get(f"{NAMESPACE}/is_admin", False)

@@ -1,28 +1,25 @@
 from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
-from jose import JWTError, jwt
-import os
-from datetime import datetime
+from jose import JWTError
 
-# Import the auth functions
-from auth import decode_access_token
+from auth import verify_auth0_token, get_user_role, get_user_business_unit, get_user_is_admin, NAMESPACE
+
 
 async def authenticate_user(request: Request):
     """
-    Middleware to authenticate users based on JWT token
+    Middleware to authenticate users via Auth0 JWT (RS256 verified by JWKS)
     """
     # Skip authentication for public endpoints
     public_endpoints = [
-        '/api/register', '/api/login', '/api/docs', '/api/openapi.json',
-        # Chart endpoints that should be publicly accessible
-        '/api/v1/gold', '/api/v1/silver', '/api/v1/sbv-interbank', 
+        '/api/docs', '/api/openapi.json',
+        # Public data API endpoints
+        '/api/v1/gold', '/api/v1/silver', '/api/v1/sbv-interbank',
         '/api/v1/termdepo', '/api/v1/global-macro', '/api/v1/gold/types',
-        '/api/v1/termdepo/banks'
+        '/api/v1/termdepo/banks', '/api/v1/gold-analysis',
     ]
-    
+
     if request.url.path in public_endpoints:
         return None
-    
+
     # Check for authorization header
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -31,63 +28,41 @@ async def authenticate_user(request: Request):
             detail="Missing or invalid authorization header",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     token = auth_header.split(' ')[1]
-    
+
     try:
-        # Decode and verify the token
-        payload = decode_access_token(token)
-        
-        # Check if token is expired
-        if 'exp' in payload:
-            exp_time = datetime.fromtimestamp(payload['exp'])
-            if exp_time < datetime.utcnow():
-                raise HTTPException(
-                    status_code=401,
-                    detail="Token has expired",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-        
-        # Add user info to request state
+        payload = verify_auth0_token(token)
+
+        # Populate request.state.user from Auth0 token claims
         request.state.user = {
-            'email': payload.get('sub'),
-            'user_id': payload.get('user_id'),
-            'type': payload.get('type', 'basic'),
-            'membership_level': payload.get('membership_level', 'free')
+            'auth0_id': payload.get('sub'),
+            'email': payload.get(f'{NAMESPACE}/email', payload.get('sub')),
+            'role': get_user_role(payload),
+            'business_unit': get_user_business_unit(payload),
+            'is_admin': get_user_is_admin(payload),
         }
-        
+
         return payload
-        
-    except JWTError as e:
+
+    except JWTError:
         raise HTTPException(
             status_code=401,
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
             detail="Authentication error",
         )
 
+
 def get_current_user(request: Request):
-    """
-    Helper function to get current user from request state
-    """
+    """Helper function to get current user from request state"""
     if not hasattr(request.state, 'user'):
         raise HTTPException(
             status_code=401,
             detail="Authentication required",
         )
     return request.state.user
-
-def require_auth(request: Request):
-    """
-    Decorator to require authentication for endpoints
-    """
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
-            await authenticate_user(request)
-            return await func(*args, **kwargs)
-        return wrapper
-    return decorator

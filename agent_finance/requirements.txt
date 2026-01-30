@@ -1,8 +1,8 @@
 fastapi
-passlib[bcrypt]
 psycopg2-binary
 python-dotenv
 python-jose[cryptography]
+cryptography
 sqlalchemy
 uvicorn
 google-generativeai

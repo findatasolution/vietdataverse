@@ -125,22 +125,12 @@ def get_group_by_clause(role: str, table: str) -> str:
     return ""
 
 
-# User-to-BU mapping
-# In production, store this in users table with business_unit column
-USER_BU_ASSIGNMENT = {
-    # Group CEO - no BU assignment (sees all)
-    "gceo@example.com": None,
-
-    # BU General Managers
-    "apac_gm@example.com": "APAC",
-    "emea_gm@example.com": "EMEA",
-    "americas_gm@example.com": "Americas"
-}
-
-
-def get_user_bu(email: str) -> str:
-    """Get user's assigned business unit"""
-    return USER_BU_ASSIGNMENT.get(email, None)
+def get_user_bu(email: str = None, token_payload: dict = None) -> str:
+    """Get user's assigned business unit from Auth0 token claims"""
+    if token_payload:
+        namespace = "https://nguyenphamdieuhien.online"
+        return token_payload.get(f"{namespace}/business_unit", None)
+    return None
 
 
 def get_accessible_data_summary(role: str, user_email: str = None) -> str:
