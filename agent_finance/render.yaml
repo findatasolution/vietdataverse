@@ -17,12 +17,6 @@ services:
         sync: false
       - key: DB_SCHEMA
         value: public
-      - key: SECRET_KEY
-        sync: false
-      - key: ALGORITHM
-        value: HS256
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "30"
       - key: CORS_ALLOW_ORIGINS
         value: https://nguyenphamdieuhien.online,https://www.nguyenphamdieuhien.online,https://hiienng.github.io,http://localhost:3000,http://127.0.0.1:5500
       - key: AUTH0_DOMAIN
@@ -31,7 +25,9 @@ services:
         sync: false
       - key: AUTH0_CLIENT_SECRET
         sync: false
+      - key: AUTH0_API_AUDIENCE
+        value: https://api.nguyenphamdieuhien.online
       - key: AUTH0_CALLBACK_URL
-        value: https://nguyenphamdieuhien.online/callback
+        value: https://api.nguyenphamdieuhien.online/callback
       - key: LOGOUT_URL
-        value: https://nguyenphamdieuhien.online
+        value: https://nguyenphamdieuhien.online/vietdataverse/index.html

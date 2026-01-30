@@ -1730,7 +1730,7 @@
                 </div>
 
                 <!-- Login button (shown when not authenticated) -->
-                <a href="login.html" class="header-link" id="login-link">
+                <a href="#" class="header-link" id="login-link" onclick="event.preventDefault(); login();">
                     <button class="header-btn primary">
                         <span>Đăng nhập</span>
                     </button>
@@ -1799,7 +1799,7 @@
                 </div>
 
                 <!-- Login Link (shown when not authenticated) -->
-                <a href="login.html" class="sidebar-link" id="sidebar-login-link">
+                <a href="#" class="sidebar-link" id="sidebar-login-link" onclick="event.preventDefault(); login();">
                     <button class="sidebar-btn primary">
                         <i class="fas fa-sign-in-alt"></i>
                         <span>Đăng nhập</span>
@@ -2375,6 +2375,9 @@
         </div>
     </div>
 
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth.js"></script>
+
     <script>
         // Language toggle with translations (Vietnamese is primary)
         let currentLang = 'vi';
@@ -2535,80 +2538,55 @@
                 lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
         }
 
-        // Check authentication status and update UI
-        function checkAuthenticationStatus() {
-            const token = localStorage.getItem('auth_token');
-            const userEmail = localStorage.getItem('user_email');
+        // Check authentication status and update UI (Auth0)
+        async function checkAuthenticationStatus() {
+            const authenticated = await isAuthenticated();
 
             const userInfo = document.getElementById('user-info');
             const loginLink = document.getElementById('login-link');
             const logoutBtn = document.getElementById('logout-btn');
             const userEmailElement = document.getElementById('user-email');
 
-            // Sidebar elements
             const sidebarUserInfo = document.getElementById('sidebar-user-info');
             const sidebarLoginLink = document.getElementById('sidebar-login-link');
             const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
             const sidebarUserEmail = document.getElementById('sidebar-user-email');
 
-            if (token && userEmail) {
-                // User is logged in - Header
+            if (authenticated) {
+                const user = await getUser();
+                const email = user ? user.email : '';
+
                 userInfo.style.display = 'flex';
                 loginLink.style.display = 'none';
                 logoutBtn.style.display = 'block';
-                if (userEmailElement) {
-                    userEmailElement.textContent = userEmail;
-                }
+                if (userEmailElement) userEmailElement.textContent = email;
 
-                // User is logged in - Sidebar
                 if (sidebarUserInfo) sidebarUserInfo.style.display = 'block';
                 if (sidebarLoginLink) sidebarLoginLink.style.display = 'none';
                 if (sidebarLogoutBtn) sidebarLogoutBtn.style.display = 'block';
-                if (sidebarUserEmail) sidebarUserEmail.textContent = userEmail;
+                if (sidebarUserEmail) sidebarUserEmail.textContent = email;
             } else {
-                // User is not logged in - Header
                 userInfo.style.display = 'none';
                 loginLink.style.display = 'block';
                 logoutBtn.style.display = 'none';
 
-                // User is not logged in - Sidebar
                 if (sidebarUserInfo) sidebarUserInfo.style.display = 'none';
                 if (sidebarLoginLink) sidebarLoginLink.style.display = 'block';
                 if (sidebarLogoutBtn) sidebarLogoutBtn.style.display = 'none';
             }
         }
 
-        // Logout functionality
-        function logout() {
-            // Clear authentication data
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_email');
+        // Initialize Auth0 and check auth status on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initAuth0();
 
-            // Update UI
-            checkAuthenticationStatus();
-
-            // Show logout message
-            alert('Bạn đã đăng xuất thành công.');
-
-            // Optional: Redirect to home page
-            // window.location.href = 'index.html';
-        }
-
-        // Add logout button event listener
-        document.addEventListener('DOMContentLoaded', function() {
             const logoutBtn = document.getElementById('logout-btn');
             const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
 
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
-            }
+            if (logoutBtn) logoutBtn.addEventListener('click', logout);
+            if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
 
-            if (sidebarLogoutBtn) {
-                sidebarLogoutBtn.addEventListener('click', logout);
-            }
-
-            // Check authentication status on page load
-            checkAuthenticationStatus();
+            await checkAuthenticationStatus();
         });
 
         // Initialize with Vietnamese
@@ -2722,30 +2700,15 @@
             document.addEventListener('touchstart', hideTooltip);
         }
 
-        // Fetch data from API with authentication
+        // Fetch data from API with Auth0 authentication
         async function fetchData(endpoint, period) {
             try {
-                const token = localStorage.getItem('auth_token');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add authorization header if token exists
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
+                const response = await fetchWithAuth(`${API_BASE_URL}/${endpoint}?period=${period}`);
 
-                const response = await fetch(`${API_BASE_URL}/${endpoint}?period=${period}`, {
-                    headers: headers
-                });
-                
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
                     throw new Error('Authentication required');
                 }
-                
+
                 if (!response.ok) throw new Error('Network response was not ok');
                 const result = await response.json();
                 return result.data;
@@ -2768,27 +2731,12 @@
         // Load bank types for term deposit
         async function loadBankTypes() {
             try {
-                const token = localStorage.getItem('auth_token');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add authorization header if token exists
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
+                const response = await fetchWithAuth(`${API_BASE_URL}/termdepo/banks`);
 
-                const response = await fetch(`${API_BASE_URL}/termdepo/banks`, {
-                    headers: headers
-                });
-                
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
                     throw new Error('Authentication required');
                 }
-                
+
                 if (!response.ok) throw new Error('Network response was not ok');
                 const result = await response.json();
                 
@@ -2818,27 +2766,12 @@
             loading.style.display = 'block';
 
             try {
-                const token = localStorage.getItem('auth_token');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add authorization header if token exists
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
+                const response = await fetchWithAuth(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`);
 
-                const response = await fetch(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`, {
-                    headers: headers
-                });
-                
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
                     throw new Error('Authentication required');
                 }
-                
+
                 const result = await response.json();
                 const data = result.data;
                 loading.style.display = 'none';
@@ -3256,27 +3189,12 @@
             loading.style.display = 'block';
 
             try {
-                const token = localStorage.getItem('auth_token');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add authorization header if token exists
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
+                const response = await fetchWithAuth(`${API_BASE_URL}/sbv-interbank?period=${period}`);
 
-                const response = await fetch(`${API_BASE_URL}/sbv-interbank?period=${period}`, {
-                    headers: headers
-                });
-                
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
                     throw new Error('Authentication required');
                 }
-                
+
                 const result = await response.json();
                 const data = result.data;
                 loading.style.display = 'none';
@@ -3430,27 +3348,12 @@
             loading.style.display = 'block';
 
             try {
-                const token = localStorage.getItem('auth_token');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Add authorization header if token exists
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
+                const response = await fetchWithAuth(`${API_BASE_URL}/global-macro?period=${period}`);
 
-                const response = await fetch(`${API_BASE_URL}/global-macro?period=${period}`, {
-                    headers: headers
-                });
-                
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
                     throw new Error('Authentication required');
                 }
-                
+
                 const result = await response.json();
                 const data = result.data;
                 loading.style.display = 'none';
@@ -3744,7 +3647,7 @@
         }
 
         // Add event listeners for notification buttons
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const cancelBtn = document.getElementById('cancel-btn');
             const loginBtn = document.getElementById('login-btn');
 
@@ -3753,9 +3656,9 @@
             }
 
             if (loginBtn) {
-                loginBtn.addEventListener('click', function() {
+                loginBtn.addEventListener('click', async function() {
                     hideNotificationOverlay();
-                    window.location.href = 'login.html';
+                    await login();
                 });
             }
 
@@ -3768,21 +3671,18 @@
             }
 
             if (apiSignupBtn) {
-                apiSignupBtn.addEventListener('click', function() {
+                apiSignupBtn.addEventListener('click', async function() {
                     hideApiNotificationOverlay();
-                    window.location.href = 'login.html';
+                    await signup();
                 });
             }
 
-            // Check authentication status on page load
-            checkAuthenticationStatus();
         });
 
         async function handleDownloadCSV(dataset) {
-            // Check if user is authenticated
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                // Show notification overlay instead of alert
+            // Check if user is authenticated via Auth0
+            const authenticated = await isAuthenticated();
+            if (!authenticated) {
                 showNotificationOverlay();
                 return;
             }
@@ -3823,22 +3723,16 @@
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
                 button.disabled = true;
 
-                // Fetch data with authentication header
+                // Fetch data with Auth0 authentication
                 console.log('🔄 Fetching data from:', `${API_BASE_URL}/${endpoint}`);
-                const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const response = await fetchWithAuth(`${API_BASE_URL}/${endpoint}`);
 
                 console.log('📡 Response status:', response.status);
 
                 if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_email');
+                    // Token expired or invalid — re-login via Auth0
                     alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                    window.location.href = 'login.html';
+                    await login();
                     return;
                 }
 
