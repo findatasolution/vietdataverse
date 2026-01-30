@@ -615,16 +615,17 @@ async def get_term_deposit_data(
 
         engine_crawl = create_engine(CRAWLING_BOT_DB)
 
-        # Build query - Get latest crawl_time per day
+        # Build query - Get latest data point per month
         date_filter = get_date_filter(period)
         query = f"""
         SELECT date, term_1m, term_3m, term_6m, term_12m, term_24m
         FROM (
-            SELECT DISTINCT ON (date) date, term_1m, term_3m, term_6m, term_12m, term_24m, crawl_time
+            SELECT DISTINCT ON (date_trunc('month', date))
+                   date, term_1m, term_3m, term_6m, term_12m, term_24m, crawl_time
             FROM vn_bank_termdepo
             WHERE date >= '{date_filter}'
             AND bank_code = '{bank.replace("'", "''")}'
-            ORDER BY date, crawl_time DESC
+            ORDER BY date_trunc('month', date), date DESC, crawl_time DESC
         ) subquery
         ORDER BY date DESC
         """
@@ -814,46 +815,38 @@ async def get_bank_types(request: Request):
 
 @app.get("/api/v1/gold-analysis")
 async def get_gold_analysis(request: Request):
-    """Get AI-generated gold analysis - Public endpoint"""
+    """Get AI-generated gold analysis from ARGUS_FINTEL DB"""
     try:
+        ARGUS_FINTEL_DB = os.getenv("ARGUS_FINTEL_DB")
+        if not ARGUS_FINTEL_DB:
+            raise HTTPException(status_code=500, detail="ARGUS_FINTEL_DB not configured")
 
-        # For now, return a mock analysis
-        # In a real implementation, this would call your AI agent
-        analysis = {
-            "content": """
-                <h3>Diễn biến thị trường vàng toàn cầu</h3>
-                <p>
-                    Giá vàng tương lai trên sàn COMEX đạt <strong>$2,690/oz</strong>, tăng 1.2% so với phiên giao dịch trước đó, phản ánh tâm lý lo ngại về lạm phát toàn cầu và căng thẳng địa chính trị gia tăng.
-                    Chỉ số NASDAQ Composite ghi nhận mức <strong>19,630 điểm</strong>, giảm 0.8% trong tuần qua, khiến dòng vốn chuyển hướng sang tài sản trú ẩn an toàn như vàng và trái phiếu chính phủ.
-                    Giá bạc giao ngay tại thị trường quốc tế đạt <strong>$31.2/oz</strong>, tăng 2.1% theo xu hướng của vàng, cho thấy kim loại quý đang được ưa chuộng trong bối cảnh bất ổn kinh tế.
-                </p>
+        engine_argus = create_engine(ARGUS_FINTEL_DB)
 
-                <h3>Thị trường vàng trong nước</h3>
-                <p>
-                    Vàng SJC tại Hà Nội hôm nay giao dịch ở mức <strong>160.0 - 160.0 triệu đồng/lượng</strong> (mua vào - bán ra), tăng 2.2 triệu đồng (+1.4%) so với phiên trước, đạt mức cao nhất trong 3 tháng qua theo dữ liệu từ DOJI.
-                    Chênh lệch giá mua-bán thu hẹp xuống còn 0 đồng, phản ánh thanh khoản tốt và nhu cầu mua vào mạnh mẽ từ nhà đầu tư cá nhân và tổ chức.
-                    Khối lượng giao dịch vàng miếng SJC tăng 35% so với tuần trước, cho thấy dòng tiền đang đổ mạnh vào kênh đầu tư vàng vật chất khi thị trường chứng khoán biến động.
-                </p>
+        with engine_argus.connect() as conn:
+            result = conn.execute(text("""
+                SELECT date, generated_at, content
+                FROM gold_analysis
+                ORDER BY date DESC
+                LIMIT 1
+            """))
+            row = result.fetchone()
 
-                <h3>Dự báo tuần tới (13-19/01/2026)</h3>
-                <p>
-                    Giá vàng trong nước dự kiến <strong>tiếp tục xu hướng tăng</strong> trong tuần tới với biên độ 1-3 triệu đồng/lượng, chạm mốc 162-163 triệu đồng, do áp lực từ giá vàng thế giới tăng mạnh và tâm lý trú ẩn an toàn tăng cao.
-                    Yếu tố chính hỗ trợ đà tăng là cuộc họp Fed ngày 29/01 sắp tới, thị trường kỳ vọng Fed sẽ giữ nguyên lãi suất ở mức 5.25-5.50%, tạo áp lực giảm lên đồng USD và đẩy giá vàng lên cao.
-                    Rủi ro điều chỉnh giảm có thể xảy ra nếu số liệu CPI tháng 1 của Mỹ (công bố 15/01) thấp hơn dự báo, làm giảm kỳ vọng lạm phát và giảm sức hấp dẫn của vàng như công cụ phòng ngừa rủi ro.
-                </p>
-
-                <p class="article-disclaimer">
-                    <em>Lưu ý: Đây là phân tích dựa trên dữ liệu lịch sử và xu hướng thị trường. Nhà đầu tư nên tham khảo ý kiến chuyên gia trước khi đưa ra quyết định đầu tư.</em>
-                </p>
-            """,
-            "generated_at": datetime.now().isoformat(),
-            "source": "AI Analysis"
-        }
-
-        return {
-            "success": True,
-            "data": analysis
-        }
+        if row:
+            return {
+                "success": True,
+                "data": {
+                    "content": row[2],
+                    "generated_at": row[1].isoformat() if row[1] else None,
+                    "source": "AI Analysis"
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "data": None,
+                "message": "No analysis available"
+            }
 
     except HTTPException:
         raise
