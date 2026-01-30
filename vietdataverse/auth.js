@@ -8,11 +8,11 @@
 // CONFIGURATION — Update these after Auth0 Dashboard setup
 // ============================================================================
 const AUTH0_CONFIG = {
-    domain: 'YOUR_AUTH0_DOMAIN.auth0.com',       // TODO: Replace with actual Auth0 domain
-    clientId: 'YOUR_AUTH0_CLIENT_ID',              // TODO: Replace with actual SPA client ID
+    domain: 'vietdataverse.jp.auth0.com',       
+    clientId: 'qIGHgewr7kkbJNMS6cDcVLHmM5h3TeOV',              
     authorizationParams: {
-        redirect_uri: window.location.origin + '/vietdataverse/index.html',
-        audience: 'https://api.nguyenphamdieuhien.online',
+        redirect_uri: window.location.origin + '/index.html',
+        audience: 'https://api.vietdataverse.online',
         scope: 'openid profile email',
     },
     cacheLocation: 'localstorage',
@@ -20,7 +20,7 @@ const AUTH0_CONFIG = {
 
 const API_BASE_URL = window.location.hostname === 'localhost'
     ? 'http://127.0.0.1:8000'
-    : 'https://api.nguyenphamdieuhien.online';
+    : 'https://api.vietdataverse.online';
 
 // ============================================================================
 // AUTH0 CLIENT
