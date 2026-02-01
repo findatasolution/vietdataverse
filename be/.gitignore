@@ -63,8 +63,8 @@ nul
 # User uploads directory
 uploads/
 
-# Ignore data, requestes, tenique doc folder
-agent_finance/ignore/
+# # Ignore data, requestes, tenique doc folder
+# agent_finance/ignore/
 
 # Keep data directory examples
 !data/**/*.csv

@@ -99,7 +99,32 @@ def fetch_vietnam_gold_data(days=7):
             })
         return data
 
-def generate_analysis_prompt(global_data, vietnam_data):
+def fetch_vietnam_silver_data(days=7):
+    """Fetch recent Vietnam gold prices from CRAWLING_BOT_DB"""
+    query = text("""
+        SELECT date, buy_price, sell_price
+        FROM vn_silver_phuquy_hist
+        ORDER BY date DESC
+        LIMIT :days
+    """)
+
+    with crawling_bot_engine.connect() as conn:
+        result = conn.execute(query, {'days': days})
+        rows = result.fetchall()
+
+        if not rows:
+            return None
+
+        data = []
+        for row in rows:
+            data.append({
+                'date': row[0].strftime('%Y-%m-%d') if row[0] else None,
+                'buy_price': float(row[1]) if row[1] else None,
+                'sell_price': float(row[2]) if row[2] else None
+            })
+        return data
+
+def generate_analysis_prompt(global_data, vietnam_data, vietnam_silver_data):
     """Generate prompt for Gemini AI"""
 
     # Get current time in Vietnam timezone
@@ -108,7 +133,7 @@ def generate_analysis_prompt(global_data, vietnam_data):
     # Latest data
     latest_global = global_data[0] if global_data else {}
     latest_vietnam = vietnam_data[0] if vietnam_data else {}
-
+    latest_vietnam_silver = vietnam_silver_data[0] if vietnam_silver_data else {}
     # Calculate trends
     if len(global_data) >= 2:
         gold_change = ((global_data[0]['gold_price'] - global_data[-1]['gold_price']) / global_data[-1]['gold_price'] * 100)
@@ -121,7 +146,11 @@ def generate_analysis_prompt(global_data, vietnam_data):
         vn_gold_change = ((vietnam_data[0]['buy_price'] - vietnam_data[-1]['buy_price']) / vietnam_data[-1]['buy_price'] * 100)
     else:
         vn_gold_change = 0
-
+    
+    if len(vietnam_silver_data) >= 2:
+        vietnam_silver_data = ((vietnam_silver_data[0]['buy_price'] - vietnam_silver_data[-1]['buy_price']) / vietnam_silver_data[-1]['buy_price'] * 100)
+    else:
+        vn_silver_change = 0
     prompt = f"""
 Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài phân tích thị trường vàng hôm nay bằng tiếng Việt với cấu trúc sau:
 
@@ -132,7 +161,9 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
 
 **DỮ LIỆU THỊ TRƯỜNG VIỆT NAM (7 ngày gần nhất):**
 - Vàng SJC DOJI HN hôm nay: {latest_vietnam.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
-- Thay đổi 7 ngày: {vn_gold_change:+.2f}%
+- Giá vàng thay đổi trong 7 ngày: {vn_gold_change:+.2f}%
+- Bạc trong nước hôm nay: {latest_vietnam.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
+- Giá bạc thay đổi trong 7 ngày: {vn_silver_change:+.2f}%
 
 **YÊU CẦU:**
 
@@ -141,13 +172,18 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
    - Câu 2: Nhận xét về chỉ số NASDAQ và ảnh hưởng đến tâm lý đầu tư vàng
    - Câu 3: Nhận xét về giá bạc và mối tương quan với vàng
 
-2. Viết đúng 3 câu phân tích thị trường Việt Nam:
+2. Viết đúng 3 câu phân tích thị trường vàng Việt Nam:
    - Câu 1: Giá vàng SJC hôm nay và xu hướng
    - Câu 2: Chênh lệch mua-bán và thanh khoản thị trường
    - Câu 3: So sánh với giá vàng thế giới (tính theo tỷ giá)
 
-3. Viết đúng 3 câu dự báo tuần tới (từ {(vn_now + timedelta(days=1)).strftime('%d/%m')} đến {(vn_now + timedelta(days=7)).strftime('%d/%m/%Y')}):
-   - Câu 1: Xu hướng giá dự kiến (tăng/giảm/đi ngang) với mức giá cụ thể
+3. Viết đúng 3 câu phân tích thị trường bạc Việt Nam:
+   - Câu 1: Giá bạc trong nước hôm nay và xu hướng
+   - Câu 2: Chênh lệch mua-bán và thanh khoản thị trường
+   - Câu 3: So sánh với giá vàng thế giới (tính theo tỷ giá) 
+
+4. Viết đúng 3 câu dự báo tuần tới (từ {(vn_now + timedelta(days=1)).strftime('%d/%m')} đến {(vn_now + timedelta(days=7)).strftime('%d/%m/%Y')}):
+   - Câu 1: Xu hướng giá vàng và giá bạc dự kiến (tăng/giảm/đi ngang) với mức giá cụ thể
    - Câu 2: Yếu tố chính hỗ trợ xu hướng (Fed, lạm phát, địa chính trị, v.v.)
    - Câu 3: Rủi ro cần lưu ý và khuyến nghị
 
@@ -202,15 +238,19 @@ def generate_analysis():
 
     print("\n2. Fetching Vietnam gold data...")
     vietnam_data = fetch_vietnam_gold_data(days=7)
+    vietnam_silver_data = fetch_vietnam_silver_data(days=7)
     if not vietnam_data:
         print("❌ No Vietnam gold data found")
+        return None
+    if not vietnam_silver_data:
+        print("❌ No Vietnam silver data found")
         return None
     print(f"✅ Fetched {len(vietnam_data)} days of Vietnam data")
     print(f"   Latest: {vietnam_data[0]['buy_price']:,.1f} - {vietnam_data[0]['sell_price']:,.1f} triệu đồng")
 
     # Generate prompt
     print("\n3. Generating analysis prompt...")
-    prompt = generate_analysis_prompt(global_data, vietnam_data)
+    prompt = generate_analysis_prompt(global_data, vietnam_data, vietnam_silver_data)
 
     # Call Gemini AI
     print("\n4. Calling Gemini AI for analysis...")

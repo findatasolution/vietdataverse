@@ -109,7 +109,7 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
 
-# For Render deployment (running from agent_finance/back/)
+# For Render deployment 
 front_path = os.path.join(current_dir, "../front")
 vietdataverse_path = os.path.join(project_root, "vietdataverse")
 
@@ -782,6 +782,65 @@ async def get_gold_analysis(request: Request):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch gold analysis: {str(e)}")
+
+@app.get("/api/v1/market-pulse")
+async def get_market_pulse(
+    request: Request,
+    lang: str = Query("vi", description="Language: vi or en"),
+    limit: int = Query(10, ge=1, le=50, description="Number of articles")
+):
+    """Get latest market pulse news articles"""
+    try:
+        engine_argus = get_engine_argus()
+
+        with engine_argus.connect() as conn:
+            # Check if lang column exists
+            try:
+                result = conn.execute(text("""
+                    SELECT id, title, brief_content, source_name, source_date, url, label, mri, generated_at, lang
+                    FROM mri_analysis
+                    WHERE lang = :lang
+                    ORDER BY generated_at DESC
+                    LIMIT :limit
+                """), {"lang": lang, "limit": limit})
+            except Exception:
+                # Fallback if lang column doesn't exist
+                result = conn.execute(text("""
+                    SELECT id, title, brief_content, source_name, source_date, url, label, mri, generated_at
+                    FROM mri_analysis
+                    ORDER BY generated_at DESC
+                    LIMIT :limit
+                """), {"limit": limit})
+
+            rows = result.fetchall()
+
+        if not rows:
+            return {"success": True, "data": [], "count": 0}
+
+        articles = []
+        for row in rows:
+            articles.append({
+                "id": row[0],
+                "title": row[1],
+                "brief_content": row[2],
+                "source_name": row[3],
+                "source_date": row[4],
+                "url": row[5],
+                "label": row[6],
+                "mri": row[7],
+                "generated_at": row[8].isoformat() if row[8] else None,
+            })
+
+        return {
+            "success": True,
+            "data": articles,
+            "count": len(articles)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch market pulse: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

@@ -12,3 +12,4 @@ openpyxl
 PyPDF2
 python-multipart
 requests
+feedparser

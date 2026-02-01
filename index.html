@@ -440,6 +440,10 @@
             background-color: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             padding: 2rem 1.5rem;
+
+            position: sticky;
+            top: 80px;              /* chiều cao header desktop */
+            height: calc(100vh - 80px);
             overflow-y: auto;
         }
 
@@ -1698,6 +1702,12 @@
             }
         }
     </style>
+
+    <!-- Auth0 SPA SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+
+    <!-- Auth module -->
+    <script src="auth.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -1760,7 +1770,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" data-tab="1smarket-portal">
+                        <a class="nav-link" data-tab="1smarket-portal">
                             <div class="nav-content">
                                 <h4>1s Market Pulse</h4>
                             </div>
@@ -2073,12 +2083,18 @@
             </div>
             
             <!-- 1s Market Pulse -->
-            <div class="tab-content active" id="1smarket-portal">
+            <div class="tab-content" id="1smarket-portal">
                 <div class="section-header">
                     <h1 class="section-title" style="font-size: 2.5rem;">Thời báo 1 Giây</h1>
                     <p class="section-subtitle" style="font-size: 1.125rem;">
                         <strong>Thông tin toàn cầu ảnh hưởng đến thị trường tài chính trong nước</strong>
                     </p>
+                </div>
+
+                <div id="market-pulse-articles">
+                    <div class="chart-loading" id="pulseLoading" style="padding: 3rem; text-align: center; color: var(--text-tertiary);">
+                        Loading...
+                    </div>
                 </div>
 
             </div>
@@ -2375,11 +2391,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="auth.js"></script>
-
-    <script>
-        // Language toggle with translations (Vietnamese is primary)
+   <script>
+       // Language toggle with translations (Vietnamese is primary)
         let currentLang = 'vi';
 
         const translations = {
@@ -2538,1394 +2551,390 @@
                 lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
         }
 
-        // Check authentication status and update UI (Auth0)
-        async function checkAuthenticationStatus() {
-            const authenticated = await isAuthenticated();
+        // Check authentication status and update UI
+        function checkAuthenticationStatus() {
+            const token = localStorage.getItem('auth_token');
+            const userEmail = localStorage.getItem('user_email');
 
             const userInfo = document.getElementById('user-info');
             const loginLink = document.getElementById('login-link');
             const logoutBtn = document.getElementById('logout-btn');
             const userEmailElement = document.getElementById('user-email');
 
+            // Sidebar elements
             const sidebarUserInfo = document.getElementById('sidebar-user-info');
             const sidebarLoginLink = document.getElementById('sidebar-login-link');
             const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
             const sidebarUserEmail = document.getElementById('sidebar-user-email');
 
-            if (authenticated) {
-                const user = await getUser();
-                const email = user ? user.email : '';
-
+            if (token && userEmail) {
+                // User is logged in - Header
                 userInfo.style.display = 'flex';
                 loginLink.style.display = 'none';
                 logoutBtn.style.display = 'block';
-                if (userEmailElement) userEmailElement.textContent = email;
+                if (userEmailElement) {
+                    userEmailElement.textContent = userEmail;
+                }
 
+                // User is logged in - Sidebar
                 if (sidebarUserInfo) sidebarUserInfo.style.display = 'block';
                 if (sidebarLoginLink) sidebarLoginLink.style.display = 'none';
                 if (sidebarLogoutBtn) sidebarLogoutBtn.style.display = 'block';
-                if (sidebarUserEmail) sidebarUserEmail.textContent = email;
+                if (sidebarUserEmail) sidebarUserEmail.textContent = userEmail;
             } else {
+                // User is not logged in - Header
                 userInfo.style.display = 'none';
                 loginLink.style.display = 'block';
                 logoutBtn.style.display = 'none';
 
+                // User is not logged in - Sidebar
                 if (sidebarUserInfo) sidebarUserInfo.style.display = 'none';
                 if (sidebarLoginLink) sidebarLoginLink.style.display = 'block';
                 if (sidebarLogoutBtn) sidebarLogoutBtn.style.display = 'none';
             }
         }
+/* =========================================================
+   GLOBAL CONFIG (SAFE – NO DUPLICATE)
+========================================================= */
+(function () {
+    window.APP_CONFIG = window.APP_CONFIG || {};
+    window.APP_CONFIG.API_BASE_URL =
+        location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000/api/v1'
+            : 'https://api.vietdataverse.online/api/v1';
+})();
 
-        // Initialize Auth0 and check auth status on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                await initAuth0();
-            } catch (err) {
-                console.warn('Auth0 init failed (non-blocking):', err.message);
-            }
+/* =========================================================
+   DOM READY
+========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+    initHeaderActions();
+    initMobileMenu();
+    initSidebarTabs();
+    initChartTabs();
+    initFilterButtons();
+    initNotifications();
+});
 
-            const logoutBtn = document.getElementById('logout-btn');
-            const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+/* =========================================================
+   HEADER ACTIONS: LANGUAGE + LOGIN
+========================================================= */
+function initHeaderActions() {
+    const langBtn = document.getElementById('lang-toggle');
+    const sidebarLangBtn = document.getElementById('sidebar-lang-toggle');
 
-            if (logoutBtn) logoutBtn.addEventListener('click', logout);
-            if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
+    /* ---------- LANGUAGE (ENG / VIE) ---------- */
+    const savedLang = localStorage.getItem('lang') || 'vi';
+    updateLanguage(savedLang);
 
-            try {
-                await checkAuthenticationStatus();
-            } catch (err) {
-                console.warn('Auth check failed (non-blocking):', err.message);
-            }
+    if (langBtn) {
+        langBtn.addEventListener('click', () => {
+            const current = document.documentElement.lang || 'vi';
+            const next = current === 'vi' ? 'en' : 'vi';
+            updateLanguage(next);
         });
-
-        // Initialize with Vietnamese
-        updateLanguage('vi');
-
-        // Toggle event - Header
-        document.getElementById('lang-toggle').addEventListener('click', function() {
-            updateLanguage(currentLang === 'vi' ? 'en' : 'vi');
+    }
+    if (sidebarLangBtn) {
+        sidebarLangBtn.addEventListener('click', () => {
+            const current = document.documentElement.lang || 'vi';
+            const next = current === 'vi' ? 'en' : 'vi';
+            updateLanguage(next);
         });
-
-        // Toggle event - Sidebar
-        const sidebarLangToggle = document.getElementById('sidebar-lang-toggle');
-        if (sidebarLangToggle) {
-            sidebarLangToggle.addEventListener('click', function() {
-                updateLanguage(currentLang === 'vi' ? 'en' : 'vi');
-            });
-        }
-
-        // Mobile menu toggle
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        const mobileOverlay = document.getElementById('mobile-overlay');
-        const sidebar = document.querySelector('.sidebar');
-
-        function toggleMobileMenu() {
-            sidebar.classList.toggle('active');
-            mobileOverlay.classList.toggle('active');
-        }
-
-        mobileMenuToggle.addEventListener('click', toggleMobileMenu);
-        mobileOverlay.addEventListener('click', toggleMobileMenu);
-
-        // Tab switching
-        const navLinks = document.querySelectorAll('.nav-link[data-tab]');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                // Remove active from all nav links
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-
-                // Hide all tab contents
-                tabContents.forEach(tab => tab.classList.remove('active'));
-
-                // Show selected tab
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
-
-                // Close mobile menu after selection on mobile
-                if (window.innerWidth <= 968) {
-                    toggleMobileMenu();
-                }
-            });
-        });
-
-        // ==================== CHARTS FUNCTIONALITY ====================
-        // API Base URL - use port 8000 for local dev, dynamic for production
-        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://127.0.0.1:8000/api/v1'  // Local development
-            : 'https://api.vietdataverse.online/api/v1';  // Production
-
-        // Chart instances
-        let goldChart = null;
-        let silverChart = null;
-        let sbvChart = null;
-        let tbChart = null;
-        let globalChart = null;
-        let tdChart = null;
-
-        // Chart.js default configuration
-        Chart.defaults.color = '#A0A0A0';
-        Chart.defaults.borderColor = 'rgba(201, 165, 91, 0.15)';
-        Chart.defaults.font.family = 'Inter, sans-serif';
-
-        // Helper function to get responsive font size
-        function getResponsiveFontSize() {
-            return window.innerWidth <= 640 ? 9 : 11;
-        }
-
-        // Helper function to get responsive tick limit
-        function getResponsiveTickLimit() {
-            return window.innerWidth <= 640 ? 6 : 8;
-        }
-
-        // Helper function to hide tooltip when clicking outside chart
-        function setupTooltipHideOnClickOutside(chart, canvas) {
-            const hideTooltip = (event) => {
-                const rect = canvas.getBoundingClientRect();
-                const isInside = event.clientX >= rect.left &&
-                                event.clientX <= rect.right &&
-                                event.clientY >= rect.top &&
-                                event.clientY <= rect.bottom;
-
-                if (!isInside && chart.tooltip && chart.tooltip.getActiveElements().length > 0) {
-                    chart.tooltip.setActiveElements([], {x: 0, y: 0});
-                    chart.update();
-                }
-            };
-
-            // Remove existing listener if any
-            if (canvas._hideTooltipListener) {
-                document.removeEventListener('click', canvas._hideTooltipListener);
-                document.removeEventListener('touchstart', canvas._hideTooltipListener);
-            }
-
-            // Add new listener
-            canvas._hideTooltipListener = hideTooltip;
-            document.addEventListener('click', hideTooltip);
-            document.addEventListener('touchstart', hideTooltip);
-        }
-
-        // Fetch data from API with Auth0 authentication
-        async function fetchData(endpoint, period) {
-            try {
-                const response = await fetchWithAuth(`${API_BASE_URL}/${endpoint}?period=${period}`);
-
-                if (response.status === 401) {
-                    throw new Error('Authentication required');
-                }
-
-                if (!response.ok) throw new Error('Network response was not ok');
-                const result = await response.json();
-                return result.data;
-            } catch (error) {
-                console.error(`Error fetching ${endpoint}:`, error);
-                throw error;
-            }
-        }
-
-        // Load gold types - Hardcoded to DOJI HN và BTMC SJC
-        function loadGoldTypes() {
-            const select = document.getElementById('goldTypeSelect');
-            const allowedTypes = ['DOJI HN', 'BTMC SJC'];
-            select.innerHTML = allowedTypes.map(type =>
-                `<option value="${type}"${type === 'DOJI HN' ? ' selected' : ''}>${type}</option>`
-            ).join('');
-            return Promise.resolve();
-        }
-        
-        // Load bank types for term deposit
-        async function loadBankTypes() {
-            try {
-                const response = await fetchWithAuth(`${API_BASE_URL}/termdepo/banks`);
-
-                if (response.status === 401) {
-                    throw new Error('Authentication required');
-                }
-
-                if (!response.ok) throw new Error('Network response was not ok');
-                const result = await response.json();
-                
-                if (result.success && result.banks) {
-                    const select = document.getElementById('bankTypeSelect');
-                    select.innerHTML = result.banks.map(bank =>
-                        `<option value="${bank}"${bank === 'ACB' ? ' selected' : ''}>${bank}</option>`
-                    ).join('');
-                }
-            } catch (error) {
-                console.error('Error loading bank types:', error);
-                // Keep default options if API fails
-            }
-        }
-
-
-        // Create/Update Gold Chart
-        async function updateGoldChart(period = '1m', type = null) {
-            const loading = document.getElementById('goldLoading');
-            const canvas = document.getElementById('goldChart');
-
-            if (!type) {
-                const select = document.getElementById('goldTypeSelect');
-                type = select ? select.value : 'DOJI HN';
-            }
-
-            loading.style.display = 'block';
-
-            try {
-                const response = await fetchWithAuth(`${API_BASE_URL}/gold?period=${period}&type=${encodeURIComponent(type)}`);
-
-                if (response.status === 401) {
-                    throw new Error('Authentication required');
-                }
-
-                const result = await response.json();
-                const data = result.data;
-                loading.style.display = 'none';
-
-                const chartData = {
-                    labels: data.dates,
-                    datasets: [
-                        {
-                            label: 'Buy Price',
-                            data: data.buy_prices,
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Sell Price',
-                            data: data.sell_prices,
-                            borderColor: '#E4C78A',
-                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                };
-
-                const config = {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: '#A0A0A0',
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1C1C1C',
-                                titleColor: '#FFFFFF',
-                                bodyColor: '#A0A0A0',
-                                borderColor: 'rgba(201, 165, 91, 0.3)',
-                                borderWidth: 1,
-                                padding: 12,
-                                displayColors: true,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' +
-                                               context.parsed.y.toLocaleString('vi-VN') + ' VND';
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function(value) {
-                                        return (value / 1000000).toFixed(1) + 'M';
-                                    },
-                                    color: '#707070'
-                                },
-                                grid: {
-                                    color: 'rgba(201, 165, 91, 0.05)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45,
-                                    color: '#707070',
-                                    autoSkip: true,
-                                    maxTicksLimit: getResponsiveTickLimit(),
-                                    autoSkipPadding: 15,
-                                    padding: 8,
-                                    font: {
-                                        size: getResponsiveFontSize()
-                                    },
-                                    callback: function(value, index, ticks) {
-                                        // Format date consistently to avoid jumping
-                                        const label = this.getLabelForValue(value);
-                                        if (!label) return '';
-
-                                        // Try to parse and format consistently
-                                        const parts = label.split('-');
-                                        if (parts.length === 3) {
-                                            // Format: MM-DD or YYYY-MM-DD
-                                            const month = parts[1];
-                                            const day = parts[2];
-                                            return month + '-' + day;
-                                        }
-                                        return label;
-                                    }
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                };
-
-                if (goldChart) {
-                    goldChart.destroy();
-                }
-                goldChart = new Chart(canvas, config);
-
-                // Setup tooltip hide on click outside
-                setupTooltipHideOnClickOutside(goldChart, canvas);
-
-            } catch (error) {
-                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
-            }
-        }
-
-        // Create/Update Silver Chart
-        async function updateSilverChart(period = '1m') {
-            const loading = document.getElementById('silverLoading');
-            const canvas = document.getElementById('silverChart');
-
-            loading.style.display = 'block';
-
-            try {
-                const data = await fetchData('silver', period);
-                loading.style.display = 'none';
-
-                const chartData = {
-                    labels: data.dates,
-                    datasets: [
-                        {
-                            label: 'Buy Price',
-                            data: data.buy_prices,
-                            borderColor: '#B8B8B8',
-                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Sell Price',
-                            data: data.sell_prices,
-                            borderColor: '#D4D4D4',
-                            backgroundColor: 'rgba(212, 212, 212, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                };
-
-                const config = {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: '#A0A0A0',
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1C1C1C',
-                                titleColor: '#FFFFFF',
-                                bodyColor: '#A0A0A0',
-                                borderColor: 'rgba(184, 184, 184, 0.3)',
-                                borderWidth: 1,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' +
-                                               context.parsed.y.toLocaleString('vi-VN') + ' VND';
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function(value) {
-                                        return (value / 1000).toFixed(0) + 'K';
-                                    },
-                                    color: '#707070'
-                                },
-                                grid: {
-                                    color: 'rgba(184, 184, 184, 0.05)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45,
-                                    color: '#707070',
-                                    autoSkip: true,
-                                    maxTicksLimit: getResponsiveTickLimit(),
-                                    autoSkipPadding: 15,
-                                    padding: 8,
-                                    font: {
-                                        size: getResponsiveFontSize()
-                                    },
-                                    callback: function(value, index, ticks) {
-                                        // Format date consistently to avoid jumping
-                                        const label = this.getLabelForValue(value);
-                                        if (!label) return '';
-
-                                        // Try to parse and format consistently
-                                        const parts = label.split('-');
-                                        if (parts.length === 3) {
-                                            // Format: MM-DD or YYYY-MM-DD
-                                            const month = parts[1];
-                                            const day = parts[2];
-                                            return month + '-' + day;
-                                        }
-                                        return label;
-                                    }
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                };
-
-                if (silverChart) {
-                    silverChart.destroy();
-                }
-                silverChart = new Chart(canvas, config);
-
-                // Setup tooltip hide on click outside
-                setupTooltipHideOnClickOutside(silverChart, canvas);
-
-            } catch (error) {
-                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
-            }
-        }
-
-        // Create/Update Term Deposit Chart
-        async function updateTdChart(period = '1y', bankCode = null) {
-            const loading = document.getElementById('tdLoading');
-            const canvas = document.getElementById('tdChart');
-
-            if (!bankCode) {
-                const select = document.getElementById('bankTypeSelect');
-                bankCode = select ? select.value : 'ACB';
-            }
-
-            loading.style.display = 'block';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/termdepo?period=${period}&bank=${encodeURIComponent(bankCode)}`);
-                const result = await response.json();
-                const data = result.data;
-                loading.style.display = 'none';
-
-                // Term deposit shows multiple term rates over time
-                const chartData = {
-                    labels: data.dates,
-                    datasets: [
-                        {
-                            label: '1 Month',
-                            data: data.term_1m,
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '3 Months',
-                            data: data.term_3m,
-                            borderColor: '#E4C78A',
-                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '6 Months',
-                            data: data.term_6m,
-                            borderColor: '#B8B8B8',
-                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '12 Months',
-                            data: data.term_12m,
-                            borderColor: '#7CB342',
-                            backgroundColor: 'rgba(124, 179, 66, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '24 Months',
-                            data: data.term_24m,
-                            borderColor: '#42A5F5',
-                            backgroundColor: 'rgba(66, 165, 245, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        }
-                    ]
-                };
-
-                const config = {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: '#A0A0A0',
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1C1C1C',
-                                titleColor: '#FFFFFF',
-                                bodyColor: '#A0A0A0',
-                                borderColor: 'rgba(201, 165, 91, 0.3)',
-                                borderWidth: 1,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toFixed(1) + '%';
-                                    },
-                                    color: '#707070'
-                                },
-                                grid: {
-                                    color: 'rgba(201, 165, 91, 0.05)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45,
-                                    color: '#707070',
-                                    autoSkip: true,
-                                    maxTicksLimit: getResponsiveTickLimit(),
-                                    autoSkipPadding: 15,
-                                    padding: 8,
-                                    font: {
-                                        size: getResponsiveFontSize()
-                                    },
-                                    callback: function(value, index, ticks) {
-                                        const label = this.getLabelForValue(value);
-                                        if (!label) return '';
-                                        const parts = label.split('-');
-                                        if (parts.length === 3) {
-                                            return parts[1] + '-' + parts[2];
-                                        }
-                                        return label;
-                                    }
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                };
-
-                if (tdChart) {
-                    tdChart.destroy();
-                }
-                tdChart = new Chart(canvas, config);
-
-                setupTooltipHideOnClickOutside(tdChart, canvas);
-
-            } catch (error) {
-                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
-            }
-        }
-
-        // Create/Update SBV Chart
-        async function updateSBVChart(period = '1m') {
-            const loading = document.getElementById('sbvLoading');
-            const canvas = document.getElementById('sbvChart');
-
-            loading.style.display = 'block';
-
-            try {
-                const response = await fetchWithAuth(`${API_BASE_URL}/sbv-interbank?period=${period}`);
-
-                if (response.status === 401) {
-                    throw new Error('Authentication required');
-                }
-
-                const result = await response.json();
-                const data = result.data;
-                loading.style.display = 'none';
-
-                const chartData = {
-                    labels: data.dates,
-                    datasets: [
-                        {
-                            label: 'Overnight',
-                            data: data.overnight,
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '1 Month',
-                            data: data.month_1,
-                            borderColor: '#E4C78A',
-                            backgroundColor: 'rgba(228, 199, 138, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '3 Months',
-                            data: data.month_3,
-                            borderColor: '#B8B8B8',
-                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },                        
-                        {
-                            label: 'Rediscount Rate',
-                            data: data.rediscount,
-                            borderColor: '#B8B8B8',
-                            backgroundColor: 'rgba(184, 184, 184, 0.2)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },                      
-                        {
-                            label: 'Refinancing Rate',
-                            data: data.refinancing,
-                            borderColor: '#B8B8B8',
-                            backgroundColor: 'rgba(184, 184, 184, 0.3)',
-                            borderWidth: 2,
-                            tension: 0.4
-                        }
-                    ]
-                };
-
-                const config = {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: '#A0A0A0',
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1C1C1C',
-                                titleColor: '#FFFFFF',
-                                bodyColor: '#A0A0A0',
-                                borderColor: 'rgba(201, 165, 91, 0.3)',
-                                borderWidth: 1,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' + context.parsed.y + '%';
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + '%';
-                                    },
-                                    color: '#707070'
-                                },
-                                grid: {
-                                    color: 'rgba(201, 165, 91, 0.05)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45,
-                                    color: '#707070',
-                                    autoSkip: true,
-                                    maxTicksLimit: getResponsiveTickLimit(),
-                                    autoSkipPadding: 15,
-                                    padding: 8,
-                                    font: {
-                                        size: getResponsiveFontSize()
-                                    },
-                                    callback: function(value, index, ticks) {
-                                        // Format date consistently to avoid jumping
-                                        const label = this.getLabelForValue(value);
-                                        if (!label) return '';
-
-                                        // Try to parse and format consistently
-                                        const parts = label.split('-');
-                                        if (parts.length === 3) {
-                                            // Format: MM-DD or YYYY-MM-DD
-                                            const month = parts[1];
-                                            const day = parts[2];
-                                            return month + '-' + day;
-                                        }
-                                        return label;
-                                    }
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                };
-
-                if (sbvChart) {
-                    sbvChart.destroy();
-                }
-                sbvChart = new Chart(canvas, config);
-
-                // Setup tooltip hide on click outside
-                setupTooltipHideOnClickOutside(sbvChart, canvas);
-
-            } catch (error) {
-                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
-            }
-        }
-
-        // Create/Update Global Macro Chart
-        async function updateGlobalChart(period = '1m') {
-            const loading = document.getElementById('globalLoading');
-            const canvas = document.getElementById('globalChart');
-
-            loading.style.display = 'block';
-
-            try {
-                const response = await fetchWithAuth(`${API_BASE_URL}/global-macro?period=${period}`);
-
-                if (response.status === 401) {
-                    throw new Error('Authentication required');
-                }
-
-                const result = await response.json();
-                const data = result.data;
-                loading.style.display = 'none';
-
-                const chartData = {
-                    labels: data.dates,
-                    datasets: [
-                        {
-                            label: 'Gold ($/oz)',
-                            data: data.gold_prices,
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'rgba(201, 165, 91, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            yAxisID: 'y-gold'
-                        },
-                        {
-                            label: 'Silver ($/oz)',
-                            data: data.silver_prices,
-                            borderColor: '#B8B8B8',
-                            backgroundColor: 'rgba(184, 184, 184, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            yAxisID: 'y-silver'
-                        },
-                        {
-                            label: 'NASDAQ',
-                            data: data.nasdaq_prices,
-                            borderColor: '#4A90E2',
-                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            yAxisID: 'y-nasdaq'
-                        }
-                    ]
-                };
-
-                const config = {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: '#A0A0A0',
-                                    padding: 15,
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1C1C1C',
-                                titleColor: '#FFFFFF',
-                                bodyColor: '#A0A0A0',
-                                borderColor: 'rgba(201, 165, 91, 0.3)',
-                                borderWidth: 1,
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.dataset.label;
-                                        const value = context.parsed.y;
-                                        if (label.includes('NASDAQ')) {
-                                            return label + ': ' + value.toLocaleString('en-US', {maximumFractionDigits: 2});
-                                        } else {
-                                            return label + ': $' + value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            'y-gold': {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: {
-                                    display: true,
-                                    text: 'Gold/Silver ($/oz)',
-                                    color: '#C9A55B'
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return '$' + value.toLocaleString('en-US');
-                                    },
-                                    color: '#707070'
-                                },
-                                grid: {
-                                    color: 'rgba(201, 165, 91, 0.05)'
-                                }
-                            },
-                            'y-silver': {
-                                type: 'linear',
-                                display: false,
-                                position: 'left',
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            },
-                            'y-nasdaq': {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: {
-                                    display: true,
-                                    text: 'NASDAQ',
-                                    color: '#4A90E2'
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toLocaleString('en-US');
-                                    },
-                                    color: '#707070'
-                                },
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45,
-                                    color: '#707070',
-                                    autoSkip: true,
-                                    maxTicksLimit: getResponsiveTickLimit(),
-                                    autoSkipPadding: 15,
-                                    padding: 8,
-                                    font: {
-                                        size: getResponsiveFontSize()
-                                    },
-                                    callback: function(value, index, ticks) {
-                                        // Format date consistently to avoid jumping
-                                        const label = this.getLabelForValue(value);
-                                        if (!label) return '';
-
-                                        // Try to parse and format consistently
-                                        const parts = label.split('-');
-                                        if (parts.length === 3) {
-                                            // Format: MM-DD or YYYY-MM-DD
-                                            const month = parts[1];
-                                            const day = parts[2];
-                                            return month + '-' + day;
-                                        }
-                                        return label;
-                                    }
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                };
-
-                if (globalChart) {
-                    globalChart.destroy();
-                }
-                globalChart = new Chart(canvas, config);
-
-                // Setup tooltip hide on click outside
-                setupTooltipHideOnClickOutside(globalChart, canvas);
-
-            } catch (error) {
-                loading.innerHTML = '<div class="chart-error">❌ Error loading chart data. Please try again later.</div>';
-            }
-        }
-
-        // Filter button functionality
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const chart = this.dataset.chart;
-                const period = this.dataset.period;
-
-                // Update active state for buttons in same group
-                document.querySelectorAll(`.filter-btn[data-chart="${chart}"]`).forEach(b => {
-                    b.classList.remove('active');
-                });
-                this.classList.add('active');
-
-                // Update respective chart
-                if (chart === 'gold') {
-                    updateGoldChart(period);
-                } else if (chart === 'silver') {
-                    updateSilverChart(period);
-                } else if (chart === 'td') {
-                    updateTdChart(period);
-                } else if (chart === 'sbv') {
-                    updateSBVChart(period);
-                } else if (chart === 'global') {
-                    updateGlobalChart(period);
-                }
-            });
-        });
-
-        // Load AI-generated gold analysis
-        async function loadGoldAnalysis() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/gold-analysis`);
-                if (!response.ok) {
-                    console.error('Failed to fetch gold analysis');
-                    return;
-                }
-
-                const result = await response.json();
-                if (result.success && result.data) {
-                    // Update article content
-                    const articleBody = document.querySelector('#article-1 .article-text');
-                    if (articleBody) {
-                        articleBody.innerHTML = result.data.content;
-                    }
-
-                    // Update article date
-                    const articleDate = document.querySelector('#article-1 .article-meta .meta-item:nth-child(2)');
-                    if (articleDate && result.data.generated_at) {
-                        const date = new Date(result.data.generated_at);
-                        const formatted = date.toLocaleString('vi-VN', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        articleDate.textContent = formatted;
-                    }
-
-                    console.log('✅ Gold analysis loaded successfully');
-                } else {
-                    console.warn('No gold analysis available, using static content');
-                }
-            } catch (error) {
-                console.error('Error loading gold analysis:', error);
-                // Keep static content as fallback
-            }
-        }
-
-        // CSV Download functionality
-        function convertToCSV(data, headers) {
-            const rows = [headers.join(',')];
-
-            for (let i = 0; i < data.dates.length; i++) {
-                const row = [data.dates[i]];
-                Object.keys(data).forEach(key => {
-                    if (key !== 'dates' && key !== 'count') {
-                        row.push(data[key][i] || '');
-                    }
-                });
-                rows.push(row.join(','));
-            }
-
-            return rows.join('\n');
-        }
-
-        function downloadCSV(filename, csvContent) {
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Notification overlay functions
-        function showNotificationOverlay() {
+    }
+
+    /* ---------- LOGIN (notification modal) ---------- */
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            // Close notification overlay first
             const overlay = document.getElementById('notification-overlay');
-            overlay.classList.add('active');
-        }
-
-        function hideNotificationOverlay() {
-            const overlay = document.getElementById('notification-overlay');
-            overlay.classList.remove('active');
-        }
-
-        // API notification overlay functions
-        function showApiNotificationOverlay() {
-            const overlay = document.getElementById('api-notification-overlay');
-            overlay.classList.add('active');
-        }
-
-        function hideApiNotificationOverlay() {
-            const overlay = document.getElementById('api-notification-overlay');
-            overlay.classList.remove('active');
-        }
-
-        // Add event listeners for notification buttons
-        document.addEventListener('DOMContentLoaded', async function() {
-            const cancelBtn = document.getElementById('cancel-btn');
-            const loginBtn = document.getElementById('login-btn');
-
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', hideNotificationOverlay);
-            }
-
-            if (loginBtn) {
-                loginBtn.addEventListener('click', async function() {
-                    hideNotificationOverlay();
-                    await login();
-                });
-            }
-
-            // API notification buttons
-            const apiCancelBtn = document.getElementById('api-cancel-btn');
-            const apiSignupBtn = document.getElementById('api-signup-btn');
-
-            if (apiCancelBtn) {
-                apiCancelBtn.addEventListener('click', hideApiNotificationOverlay);
-            }
-
-            if (apiSignupBtn) {
-                apiSignupBtn.addEventListener('click', async function() {
-                    hideApiNotificationOverlay();
-                    await signup();
-                });
-            }
-
+            if (overlay) overlay.classList.remove('active');
+            // Use Auth0 login
+            if (typeof login === 'function') login();
         });
+    }
+}
 
-        async function handleDownloadCSV(dataset) {
-            // Check if user is authenticated via Auth0
-            const authenticated = await isAuthenticated();
-            if (!authenticated) {
-                showNotificationOverlay();
+/* =========================================================
+   LANGUAGE HANDLER (UI-LEVEL, STABLE)
+========================================================= */
+function setLanguage(lang) {
+    document.documentElement.lang = lang;
+    localStorage.setItem('lang', lang);
+
+    const label = lang === 'vi' ? 'EN / VIE' : 'VIE / EN';
+
+    // Update header lang button
+    const langText = document.getElementById('lang-text');
+    if (langText) langText.textContent = label;
+
+    // Update sidebar lang button
+    const sidebarText = document.getElementById('sidebar-lang-text');
+    if (sidebarText) sidebarText.textContent = label;
+
+    document.body.setAttribute('data-lang', lang);
+}
+
+/* =========================================================
+   MOBILE MENU
+========================================================= */
+function initMobileMenu() {
+    const toggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobile-overlay');
+
+    if (!toggle || !sidebar || !overlay) return;
+
+    toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    });
+}
+
+/* =========================================================
+   SIDEBAR TABS (main-level only)
+========================================================= */
+function initSidebarTabs() {
+    document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+        link.addEventListener('click', () => {
+            const tabId = link.dataset.tab;
+
+            // Only toggle main-level nav-links
+            document.querySelectorAll('.nav-link[data-tab]').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            // Only toggle top-level tab-content (direct children of .main-content)
+            document.querySelectorAll('.main-content > .tab-content').forEach(c => c.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+
+            // If switching to data-portal, restore the inner chart tab
+            if (tabId === 'data-portal') {
+                const activeChartTab = document.querySelector('.chart-tab-btn.active');
+                if (activeChartTab) {
+                    const innerTabId = activeChartTab.dataset.tab;
+                    const innerTarget = document.getElementById(innerTabId);
+                    if (innerTarget) innerTarget.classList.add('active');
+                }
+            }
+
+            // Close mobile sidebar
+            const sidebar = document.querySelector('.sidebar');
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            if (sidebar) sidebar.classList.remove('active');
+            if (mobileOverlay) mobileOverlay.classList.remove('active');
+        });
+    });
+}
+
+/* =========================================================
+   CHART SUB-TABS (Vang & Bac / Tien te VN / Quoc te)
+========================================================= */
+function initChartTabs() {
+    document.querySelectorAll('.chart-tab-btn[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+
+            // Toggle button active states
+            document.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Toggle inner tab-contents within charts-section
+            const chartsSection = btn.closest('.charts-section');
+            if (chartsSection) {
+                chartsSection.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            }
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+        });
+    });
+}
+
+/* =========================================================
+   FILTER BUTTONS
+========================================================= */
+function initFilterButtons() {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const chart = btn.dataset.chart;
+            const period = btn.dataset.period;
+
+            btn.parentElement
+                ?.querySelectorAll('.filter-btn')
+                .forEach(b => b.classList.remove('active'));
+
+            btn.classList.add('active');
+            loadChartData(chart, period);
+        });
+    });
+}
+
+/* =========================================================
+   NOTIFICATION OVERLAYS
+========================================================= */
+function initNotifications() {
+    // Download notification - cancel
+    const cancelBtn = document.getElementById('cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            const overlay = document.getElementById('notification-overlay');
+            if (overlay) overlay.classList.remove('active');
+        });
+    }
+
+    // API notification - cancel
+    const apiCancelBtn = document.getElementById('api-cancel-btn');
+    if (apiCancelBtn) {
+        apiCancelBtn.addEventListener('click', () => {
+            const overlay = document.getElementById('api-notification-overlay');
+            if (overlay) overlay.classList.remove('active');
+        });
+    }
+
+    // API notification - signup
+    const apiSignupBtn = document.getElementById('api-signup-btn');
+    if (apiSignupBtn) {
+        apiSignupBtn.addEventListener('click', () => {
+            const overlay = document.getElementById('api-notification-overlay');
+            if (overlay) overlay.classList.remove('active');
+            if (typeof signup === 'function') signup();
+        });
+    }
+
+    // Download buttons -> show login notification if not authenticated
+    document.querySelectorAll('[data-download]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
+            if (!authed) {
+                const overlay = document.getElementById('notification-overlay');
+                if (overlay) overlay.classList.add('active');
                 return;
             }
-
-            try {
-                let endpoint, headers, filename;
-
-                switch(dataset) {
-                    case 'gold':
-                        const goldType = document.getElementById('goldTypeSelect').value || 'DOJI HN';
-                        endpoint = `gold?period=all&type=${encodeURIComponent(goldType)}`;
-                        headers = ['Date', 'Buy Price (VND)', 'Sell Price (VND)'];
-                        filename = `vietnam_gold_price_${goldType.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
-                        break;
-                    case 'silver':
-                        endpoint = 'silver?period=all';
-                        headers = ['Date', 'Buy Price (VND)', 'Sell Price (VND)'];
-                        filename = `vietnam_silver_price_${new Date().toISOString().split('T')[0]}.csv`;
-                        break;
-                    case 'sbv':
-                        endpoint = 'sbv-interbank?period=all';
-                        headers = ['Date', 'Overnight', '1 Week', '2 Weeks', '1 Month', '3 Months', '6 Months', '9 Months', 'rediscount_rate', 'refinancing_rate'];
-                        filename = `sbv_interbank_rates_${new Date().toISOString().split('T')[0]}.csv`;
-                        break;
-                    case 'td':
-                        endpoint = 'termdepo?period=all';
-                        apiUrl = `${API_BASE_URL}/termdepo?period=1y&bank=ACB`;
-                        example = 'GET /api/v1/termdepo?period=1y&bank=ACB';
-                        break;
-                    default:
-                        console.error('Unknown dataset:', dataset);
-                        return;
-                }
-
-                // Show loading
-                const button = document.querySelector(`[data-download="${dataset}"]`);
-                const originalHTML = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-                button.disabled = true;
-
-                // Fetch data with Auth0 authentication
-                console.log('🔄 Fetching data from:', `${API_BASE_URL}/${endpoint}`);
-                const response = await fetchWithAuth(`${API_BASE_URL}/${endpoint}`);
-
-                console.log('📡 Response status:', response.status);
-
-                if (response.status === 401) {
-                    // Token expired or invalid — re-login via Auth0
-                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-                    await login();
-                    return;
-                }
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ API Error:', response.status, errorText);
-                    throw new Error(`API Error: ${response.status} - ${errorText}`);
-                }
-
-                const result = await response.json();
-                console.log('✅ API Response:', result);
-
-                if (!result.success || !result.data) {
-                    throw new Error('Invalid API response format');
-                }
-
-                const csvContent = convertToCSV(result.data, headers);
-                console.log('📄 CSV Content generated, length:', csvContent.length);
-
-                // Download
-                downloadCSV(filename, csvContent);
-
-                // Reset button
-                button.innerHTML = originalHTML;
-                button.disabled = false;
-
-                console.log(`✅ Downloaded ${filename}`);
-            } catch (error) {
-                console.error('Download error:', error);
-                alert('Failed to download CSV. Please try again.');
-
-                // Reset button
-                const button = document.querySelector(`[data-download="${dataset}"]`);
-                button.innerHTML = '<i class="fas fa-download"></i> Download';
-                button.disabled = false;
-            }
-        }
-
-        // API Info functionality
-        function showAPIInfo(dataset) {
-            showApiNotificationOverlay();
-        }
-
-
-        // Track which tabs have been loaded
-        const tabLoaded = {
-            'tab-gold-silver': false,
-            'tab-currency': false,
-            'tab-global': false
-        };
-
-        // Tab switching function with lazy loading
-        function switchChartTab(tabId) {
-            // Update tab buttons
-            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.tab === tabId) {
-                    btn.classList.add('active');
-                }
-            });
-
-            // Update tab content - ONLY target chart sub-tabs inside .charts-section
-            document.querySelectorAll('.charts-section > .tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabId).classList.add('active');
-
-            // Lazy load charts for this tab if not loaded yet
-            if (!tabLoaded[tabId]) {
-                loadTabCharts(tabId);
-                tabLoaded[tabId] = true;
-            }
-        }
-
-        // Load charts for specific tab
-        async function loadTabCharts(tabId) {
-            switch(tabId) {
-                case 'tab-gold-silver':
-                    await Promise.all([
-                        loadGoldTypes().then(() => updateGoldChart('1m')),
-                        updateSilverChart('1m')
-                    ]);
-                    break;
-                case 'tab-currency':
-                    await Promise.all([
-                        loadBankTypes().then(() => updateTdChart('1y')),
-                        updateSBVChart('1m')
-                    ]);
-                    break;
-                case 'tab-global':
-                    await updateGlobalChart('1m');
-                    break;
-            }
-        }
-
-        // Initialize on page load
-        window.addEventListener('load', function() {
-            // Setup tab click handlers
-            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    switchChartTab(this.dataset.tab);
-                });
-            });
-
-            // Load Tab 1 immediately (Gold & Silver)
-            tabLoaded['tab-gold-silver'] = true;
-            Promise.all([
-                loadGoldTypes().then(() => updateGoldChart('1m')),
-                updateSilverChart('1m')
-            ]).then(() => {
-                // Preload other tabs data in background after 2 seconds
-                setTimeout(() => {
-                    // Preload Tab 2 & 3 data silently
-                    loadBankTypes();
-                }, 2000);
-            });
-
-            // Add type selector change events
-            document.getElementById('goldTypeSelect').addEventListener('change', function() {
-                const activeBtn = document.querySelector('.filter-btn[data-chart="gold"].active');
-                const period = activeBtn ? activeBtn.dataset.period : '1m';
-                updateGoldChart(period, this.value);
-            });
-
-            document.getElementById('bankTypeSelect').addEventListener('change', function() {
-                const activeBtn = document.querySelector('.filter-btn[data-chart="td"].active');
-                const period = activeBtn ? activeBtn.dataset.period : '1y';
-                updateTdChart(period, this.value);
-            });
-
-            // Load gold analysis
-            loadGoldAnalysis();
-
-            // Add download button listeners
-            document.querySelectorAll('[data-download]').forEach(button => {
-                button.addEventListener('click', function() {
-                    const dataset = this.getAttribute('data-download');
-                    handleDownloadCSV(dataset);
-                });
-            });
-
-            // Add API button listeners
-            document.querySelectorAll('[data-api]').forEach(button => {
-                button.addEventListener('click', function() {
-                    const dataset = this.getAttribute('data-api');
-                    showAPIInfo(dataset);
-                });
-            });
+            // TODO: actual download logic
+            console.log('Download:', btn.dataset.download);
         });
+    });
 
+    // API buttons -> show API notification
+    document.querySelectorAll('[data-api]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const overlay = document.getElementById('api-notification-overlay');
+            if (overlay) overlay.classList.add('active');
+        });
+    });
+}
 
-    </script>
+/* =========================================================
+   FETCH CHART DATA (SAFE)
+========================================================= */
+async function loadChartData(type, period) {
+    const base = window.APP_CONFIG.API_BASE_URL;
+    if (!base || !type) return;
 
-    <!-- Structured Data for SEO (JSON-LD) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Viet Dataverse",
-      "description": "Vietnamese economic data and market analysis platform",
-      "url": "https://vietdataverse.online/"
+    try {
+        const res = await fetch(`${base}/${type}?period=${period}`);
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        console.log(`[${type}]`, data);
+        // renderChart(type, data); // hook sau
+    } catch (e) {
+        console.error('Fetch failed', e);
     }
-    </script>
+}
 
-    <!-- Article 1 Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "NewsArticle",
-      "headline": "Gold Prices Today",
-      "datePublished": "2026-01-05T14:30:00+07:00",
-      "dateModified": "2026-01-05T14:30:00+07:00",
-      "author": {
-        "@type": "Person",
-        "name": "Hồng Chiêu"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "VnExpress"
-      },
-      "articleSection": "Macroeconomic Trends",
-      "keywords": "gold price, Vietnam, SJC gold, DOJI, precious metals",
-      "articleBody": "SJC gold bars traded in Hanoi today increased by 500,000 VND, reaching 79.8 - 80.2 million VND/tael. This represents a 0.6% increase and marks the highest level in the past three months."
+/* =========================================================
+   MARKET PULSE - LOAD & RENDER ARTICLES
+========================================================= */
+const LABEL_COLORS = {
+    VNINDEX: '#4CAF50',
+    GOLD: '#C9A55B',
+    REAL_ESTATE: '#FF7043',
+    BANKING: '#42A5F5',
+    FX: '#AB47BC'
+};
+
+const LABEL_NAMES_VI = {
+    VNINDEX: 'VN-Index',
+    GOLD: 'Vang',
+    REAL_ESTATE: 'BDS',
+    BANKING: 'Ngan hang',
+    FX: 'Ngoai hoi'
+};
+
+function formatPulseDate(isoStr) {
+    if (!isoStr) return '';
+    try {
+        const d = new Date(isoStr);
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return isoStr; }
+}
+
+function renderMriBadge(mri) {
+    if (mri == null) return '';
+    const color = mri > 0 ? '#4CAF50' : mri < 0 ? '#EF5350' : '#888';
+    const arrow = mri > 0 ? '&#9650;' : mri < 0 ? '&#9660;' : '&#9654;';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.8rem;font-weight:600;color:${color};background:${color}1a;">${arrow} MRI ${mri > 0 ? '+' : ''}${mri}</span>`;
+}
+
+function renderPulseArticle(item) {
+    const labelColor = LABEL_COLORS[item.label] || '#888';
+    return `
+    <article class="article-featured" style="margin-bottom:1.5rem;">
+        <div class="article-header" style="padding:1.5rem 2rem 1rem;">
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+                <span class="article-tag" style="border-color:${labelColor}40;color:${labelColor};background:${labelColor}15;margin-bottom:0;">${item.label || 'NEWS'}</span>
+                ${renderMriBadge(item.mri)}
+            </div>
+            <h2 class="article-title" style="font-size:1.5rem;margin-bottom:0.75rem;">
+                <a href="${item.url || '#'}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${item.title || 'Untitled'}</a>
+            </h2>
+            <div class="article-meta">
+                <span class="meta-item">${item.source_name || ''}</span>
+                <span class="meta-item">${formatPulseDate(item.generated_at)}</span>
+            </div>
+        </div>
+        <div class="article-body" style="padding:1rem 2rem 1.5rem;">
+            <div class="article-text">
+                <p style="margin:0;">${item.brief_content || ''}</p>
+            </div>
+        </div>
+    </article>`;
+}
+
+async function loadMarketPulse() {
+    const base = window.APP_CONFIG.API_BASE_URL;
+    const container = document.getElementById('market-pulse-articles');
+    const loading = document.getElementById('pulseLoading');
+    if (!container || !base) return;
+
+    const lang = localStorage.getItem('lang') || 'vi';
+
+    try {
+        const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=10`);
+        if (!res.ok) throw new Error('API error');
+        const json = await res.json();
+
+        if (!json.success || !json.data || json.data.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chua co bai viet nao. Du lieu se duoc cap nhat moi 6 gio.</p>';
+            return;
+        }
+
+        container.innerHTML = json.data.map(renderPulseArticle).join('');
+    } catch (e) {
+        console.error('Market Pulse fetch failed:', e);
+        if (loading) loading.textContent = 'Khong the tai du lieu. Vui long thu lai sau.';
     }
-    </script>
+}
+
+// Load market pulse on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', loadMarketPulse);
+</script>
+
 
 </body>
 </html>

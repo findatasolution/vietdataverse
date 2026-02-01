@@ -9,10 +9,10 @@
 // ============================================================================
 const AUTH0_CONFIG = {
     domain: 'vietdataverse.jp.auth0.com',
-    clientId: 'qIGHgewr7kkbJNMS6cDcVLHmM5h3TeOV',
+    clientId: 'EDXXS3TBQpJ3HhWilLLgEHNB8SsAvG0O',
     authorizationParams: {
         redirect_uri: window.location.origin + '/index.html',
-        audience: 'https://api.vietdataverse.online',
+        // audience: 'https://api.vietdataverse.online',  // Temporarily commented out for testing
         scope: 'openid profile email',
     },
     cacheLocation: 'localstorage',
