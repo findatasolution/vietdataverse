@@ -726,7 +726,7 @@ async def get_bank_types(request: Request):
         # Get unique bank codes
         query = """
         SELECT DISTINCT bank_code
-        FROM vn_term_deposit
+        FROM vn_bank_termdepo
         WHERE bank_code IS NOT NULL
         ORDER BY bank_code
         """
