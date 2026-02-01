@@ -11,6 +11,9 @@ import os
 import json
 import requests
 from urllib.parse import urlencode
+import gzip
+import time
+from functools import lru_cache
 
 # Import existing database models and functions
 # Using absolute imports for local development compatibility
@@ -20,7 +23,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from database import engine, Base, get_db
 from models import User
-from auth import hash_password, verify_password, create_access_token, decode_access_token
+from auth import verify_auth0_token, get_user_role, get_user_business_unit, get_user_is_admin, get_auth0_user_info, create_local_user_from_auth0, exchange_code_for_tokens
 from middleware import authenticate_user, get_current_user
 
 # Create tables
@@ -41,6 +44,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add response compression middleware
+@app.middleware("http")
+async def add_compression(request: Request, call_next):
+    """Add gzip compression to responses"""
+    response = await call_next(request)
+    
+    # Only compress if response is large enough and content type is appropriate
+    if response.status_code == 200:
+        content_length = response.headers.get("content-length")
+        if content_length and int(content_length) > 1024:
+            content_type = response.headers.get("content-type", "")
+            if "application/json" in content_type or "text/" in content_type:
+                # Read response body
+                body = b""
+                async for chunk in response.body_iterator:
+                    body += chunk
+                
+                # Compress if beneficial
+                compressed_body = gzip.compress(body)
+                if len(compressed_body) < len(body):
+                    response.body = compressed_body
+                    response.headers["Content-Encoding"] = "gzip"
+                    response.headers["Content-Length"] = str(len(compressed_body))
+    
+    return response
+
 # Mount static directories - adjust paths for both local and Render deployment
 import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -56,93 +85,19 @@ if not os.path.exists(front_path):
 if not os.path.exists(vietdataverse_path):
     vietdataverse_path = "../../vietdataverse"
 
-app.mount("/agent_finance/front", StaticFiles(directory=front_path, html=True), name="agent_finance_front")
-app.mount("/vietdataverse", StaticFiles(directory=vietdataverse_path, html=True), name="vietdataverse")
+# Only mount static directories if they exist
+if os.path.exists(front_path):
+    app.mount("/agent_finance/front", StaticFiles(directory=front_path, html=True), name="agent_finance_front")
+    print(f"✅ Mounted front static files from: {front_path}")
+else:
+    print(f"⚠️  Front static directory not found: {front_path}")
 
-class RegisterRequest(BaseModel):
-    email: str
-    password: str = Field(min_length=6, max_length=72)
-    phone: Optional[str] = None
+if os.path.exists(vietdataverse_path):
+    app.mount("/vietdataverse", StaticFiles(directory=vietdataverse_path, html=True), name="vietdataverse")
+    print(f"✅ Mounted vietdataverse static files from: {vietdataverse_path}")
+else:
+    print(f"⚠️  VietDataverse static directory not found: {vietdataverse_path}")
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-@app.post("/api/register")
-async def register_user(request: RegisterRequest):
-    """Register a new user"""
-    try:
-        # Check if user already exists
-        from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        
-        existing_user = session.query(User).filter_by(email=request.email).first()
-        if existing_user:
-            session.close()
-            raise HTTPException(status_code=400, detail="Email already registered")
-
-        # Hash password
-        password_hash = hash_password(request.password)
-
-        # Create new user
-        new_user = User(
-            email=request.email,
-            password_hash=password_hash
-        )
-        
-        # Add to database
-        session.add(new_user)
-        session.commit()
-        session.close()
-        
-        return {"message": "User registered successfully"}
-        
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/login")
-async def login_user(request: LoginRequest):
-    """Login user and return JWT token"""
-    try:
-        from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        
-        # Find user by email
-        user = session.query(User).filter_by(email=request.email).first()
-        session.close()
-
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Verify password
-        if not verify_password(request.password, user.password_hash):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Create JWT token
-        access_token = create_access_token(
-            data={
-                "sub": user.email,
-                "user_id": user.id,
-                "role": user.role,
-                "is_admin": user.is_admin
-            }
-        )
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "email": user.email,
-            "user_id": user.id
-        }
-        
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 async def root():
@@ -213,7 +168,7 @@ async def auth0_login():
     try:
         AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
         AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://nguyenphamdieuhien.online/callback")
+        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://api.vietdataverse.online/callback")
         
         if not all([AUTH0_DOMAIN, AUTH0_CLIENT_ID]):
             raise HTTPException(status_code=500, detail="Auth0 configuration missing")
@@ -242,35 +197,12 @@ async def auth0_callback(request: Request, code: str = None, error: str = None):
         if not code:
             raise HTTPException(status_code=400, detail="No authorization code provided")
         
-        # Exchange code for tokens
-        AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
-        AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-        AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
-        AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "https://nguyenphamdieuhien.online/callback")
-        
-        if not all([AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET]):
-            raise HTTPException(status_code=500, detail="Auth0 configuration missing")
-        
-        # Exchange code for tokens
-        token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
-        token_data = {
-            "grant_type": "authorization_code",
-            "client_id": AUTH0_CLIENT_ID,
-            "client_secret": AUTH0_CLIENT_SECRET,
-            "code": code,
-            "redirect_uri": AUTH0_CALLBACK_URL
-        }
-        
-        token_response = requests.post(token_url, json=token_data)
-        if token_response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to exchange code for tokens")
-        
-        tokens = token_response.json()
+        # Exchange code for tokens using auth module function
+        tokens = exchange_code_for_tokens(code)
         id_token = tokens.get("id_token")
         
-        # Decode ID token to get user info
-        from auth import decode_access_token
-        user_info = decode_access_token(id_token)
+        # Get user info from ID token
+        user_info = get_auth0_user_info(id_token)
         
         # Get or create user in database
         from sqlalchemy.orm import sessionmaker
@@ -278,49 +210,38 @@ async def auth0_callback(request: Request, code: str = None, error: str = None):
         session = Session()
         
         # Check if user exists by auth0_id
-        user = session.query(User).filter_by(auth0_id=user_info.get("sub")).first()
+        user = session.query(User).filter_by(auth0_id=user_info["auth0_id"]).first()
         
         if not user:
-            # Create new user
-            user = User(
-                email=user_info.get("email"),
-                auth0_id=user_info.get("sub"),
-                name=user_info.get("name"),
-                picture=user_info.get("picture"),
-                role="user",
-                is_admin=False
-            )
+            # Create new user using auth module helper
+            user_data = create_local_user_from_auth0(user_info)
+            user = User(**user_data)
             session.add(user)
             session.commit()
         else:
             # Update user info
             user.name = user_info.get("name")
             user.picture = user_info.get("picture")
+            user.email_verified = user_info.get("email_verified", False)
             session.commit()
         
         session.close()
         
-        # Create JWT token for our system
-        access_token = create_access_token(
-            data={
-                "sub": user.email,
-                "user_id": user.id,
-                "role": user.role,
-                "is_admin": user.is_admin,
-                "auth0_id": user.auth0_id
-            }
-        )
-        
-        # Return success response
+        # Create JWT token for our system (using Auth0 token as access token)
+        # For now, we'll return the Auth0 tokens directly
         return {
             "message": "Auth0 login successful",
-            "access_token": access_token,
-            "token_type": "bearer",
+            "access_token": tokens.get("access_token"),
+            "id_token": id_token,
+            "token_type": "Bearer",
+            "expires_in": tokens.get("expires_in"),
             "user": {
                 "email": user.email,
                 "name": user.name,
                 "picture": user.picture,
-                "user_id": user.id
+                "user_id": user.id,
+                "auth0_id": user.auth0_id,
+                "email_verified": user.email_verified
             }
         }
         
@@ -335,7 +256,7 @@ async def auth0_logout():
     try:
         AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
         AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-        LOGOUT_URL = os.getenv("LOGOUT_URL", "https://nguyenphamdieuhien.online")
+        LOGOUT_URL = os.getenv("LOGOUT_URL", "https://vietdataverse.online")
         
         if not AUTH0_DOMAIN:
             raise HTTPException(status_code=500, detail="Auth0 configuration missing")
@@ -354,24 +275,37 @@ async def auth0_logout():
 
 @app.get("/me")
 async def get_current_user_info(request: Request):
-    """Get current user information"""
+    """Get current user information from Auth0 token claims + DB"""
     try:
-        # Authenticate user
+        # Authenticate user via Auth0 token
         await authenticate_user(request)
         user = request.state.user
-        
-        # Get full user info from database
+        auth0_id = user.get("auth0_id")
+
+        if not auth0_id:
+            raise HTTPException(status_code=401, detail="Invalid token: missing auth0_id")
+
+        # Look up user in DB by auth0_id, auto-create if not found
         from sqlalchemy.orm import sessionmaker
         Session = sessionmaker(bind=engine)
         session = Session()
-        
-        db_user = session.query(User).filter_by(id=user["user_id"]).first()
-        session.close()
-        
+
+        db_user = session.query(User).filter_by(auth0_id=auth0_id).first()
+
         if not db_user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        return {
+            # Auto-create user from Auth0 token claims (SPA flow)
+            db_user = User(
+                auth0_id=auth0_id,
+                email=user.get("email", ""),
+                role=user.get("role", "user"),
+                business_unit=user.get("business_unit"),
+                is_admin=user.get("is_admin", False),
+            )
+            session.add(db_user)
+            session.commit()
+            session.refresh(db_user)
+
+        result = {
             "email": db_user.email,
             "name": db_user.name,
             "picture": db_user.picture,
@@ -379,10 +313,12 @@ async def get_current_user_info(request: Request):
             "role": db_user.role,
             "is_admin": db_user.is_admin,
             "auth0_id": db_user.auth0_id,
-            "created_at": db_user.created_at.isoformat(),
-            "updated_at": db_user.updated_at.isoformat()
+            "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
+            "updated_at": db_user.updated_at.isoformat() if db_user.updated_at else None,
         }
-        
+        session.close()
+        return result
+
     except HTTPException:
         raise
     except Exception as e:

@@ -5,12 +5,12 @@
 
   <!-- Viet Dataverse - Main Homepage -->
   <url>
-    <loc>https://nguyenphamdieuhien.online/vietdataverse/</loc>
-    <lastmod>2026-01-25</lastmod>
+    <loc>https://vietdataverse.online/</loc>
+    <lastmod>2026-02-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="vi" href="https://nguyenphamdieuhien.online/vietdataverse/" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nguyenphamdieuhien.online/vietdataverse/" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://vietdataverse.online/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://vietdataverse.online/" />
     <image:image>
       <image:loc>https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png</image:loc>
       <image:title>Viet Dataverse Logo</image:title>
@@ -20,50 +20,42 @@
 
   <!-- Viet Dataverse - Index Page -->
   <url>
-    <loc>https://nguyenphamdieuhien.online/vietdataverse/index.html</loc>
-    <lastmod>2026-01-25</lastmod>
+    <loc>https://vietdataverse.online/index.html</loc>
+    <lastmod>2026-02-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="vi" href="https://nguyenphamdieuhien.online/vietdataverse/index.html" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nguyenphamdieuhien.online/vietdataverse/index.html" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://vietdataverse.online/index.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://vietdataverse.online/index.html" />
   </url>
 
   <!-- Login Page -->
   <url>
-    <loc>https://nguyenphamdieuhien.online/vietdataverse/login.html</loc>
-    <lastmod>2026-01-25</lastmod>
+    <loc>https://vietdataverse.online/login.html</loc>
+    <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- Register Page -->
   <url>
-    <loc>https://nguyenphamdieuhien.online/vietdataverse/register.html</loc>
-    <lastmod>2026-01-25</lastmod>
+    <loc>https://vietdataverse.online/register.html</loc>
+    <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- AI Tech Demo Page -->
   <url>
-    <loc>https://nguyenphamdieuhien.online/vietdataverse/ai-tech-demo.html</loc>
-    <lastmod>2026-01-25</lastmod>
+    <loc>https://vietdataverse.online/ai-tech-demo.html</loc>
+    <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
 
-  <!-- Web App Manifest -->
+  <!-- API Documentation -->
   <url>
-    <loc>https://nguyenphamdieuhien.online/vietdataverse/manifest.json</loc>
-    <lastmod>2026-01-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <!-- API Documentation (if accessible) -->
-  <url>
-    <loc>https://api.nguyenphamdieuhien.online/api/docs</loc>
-    <lastmod>2026-01-25</lastmod>
+    <loc>https://api.vietdataverse.online/api/docs</loc>
+    <lastmod>2026-02-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

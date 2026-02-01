@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: nguyenphamdieuhien.online
+    name: vietdataverse-api
     env: python
     region: singapore
     plan: free
-    buildCommand: pip install -r agent_finance/requirements.txt
-    startCommand: uvicorn agent_finance.back.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -18,7 +18,7 @@ services:
       - key: DB_SCHEMA
         value: public
       - key: CORS_ALLOW_ORIGINS
-        value: https://nguyenphamdieuhien.online,https://www.nguyenphamdieuhien.online,https://hiienng.github.io,http://localhost:3000,http://127.0.0.1:5500
+        value: https://vietdataverse.online,https://www.vietdataverse.online,https://findatasolution.github.io,http://localhost:3000,http://127.0.0.1:5500
       - key: AUTH0_DOMAIN
         sync: false
       - key: AUTH0_CLIENT_ID
@@ -26,8 +26,8 @@ services:
       - key: AUTH0_CLIENT_SECRET
         sync: false
       - key: AUTH0_API_AUDIENCE
-        value: https://api.nguyenphamdieuhien.online
+        value: https://api.vietdataverse.online
       - key: AUTH0_CALLBACK_URL
-        value: https://api.nguyenphamdieuhien.online/callback
+        value: https://api.vietdataverse.online/callback
       - key: LOGOUT_URL
-        value: https://nguyenphamdieuhien.online/vietdataverse/index.html
+        value: https://vietdataverse.online/index.html
