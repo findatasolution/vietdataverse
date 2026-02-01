@@ -29,6 +29,40 @@ from middleware import authenticate_user, get_current_user
 # Create tables
 Base.metadata.create_all(bind=engine)
 
+# ============================================================================
+# SHARED DATABASE ENGINES (reuse connections instead of creating per-request)
+# ============================================================================
+_engine_crawl = None
+_engine_global = None
+_engine_argus = None
+
+def get_engine_crawl():
+    global _engine_crawl
+    if _engine_crawl is None:
+        db_url = os.getenv("CRAWLING_BOT_DB")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB not set")
+        _engine_crawl = create_engine(db_url, pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycle=300)
+    return _engine_crawl
+
+def get_engine_global():
+    global _engine_global
+    if _engine_global is None:
+        db_url = os.getenv("GLOBAL_INDICATOR_DB")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="GLOBAL_INDICATOR_DB not set")
+        _engine_global = create_engine(db_url, pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycle=300)
+    return _engine_global
+
+def get_engine_argus():
+    global _engine_argus
+    if _engine_argus is None:
+        db_url = os.getenv("ARGUS_FINTEL_DB")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="ARGUS_FINTEL_DB not set")
+        _engine_argus = create_engine(db_url, pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycle=300)
+    return _engine_argus
+
 app = FastAPI(
     title="Agent Finance API",
     description="API for Agent Finance application with Neon database",
@@ -350,14 +384,8 @@ async def get_gold_data(
     try:
 
         from sqlalchemy import text
-        from sqlalchemy.orm import sessionmaker
 
-        # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
-        if not CRAWLING_BOT_DB:
-            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
-
-        engine_crawl = create_engine(CRAWLING_BOT_DB)
+        engine_crawl = get_engine_crawl()
 
         # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
@@ -414,12 +442,7 @@ async def get_silver_data(
 
         from sqlalchemy import text
 
-        # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
-        if not CRAWLING_BOT_DB:
-            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
-
-        engine_crawl = create_engine(CRAWLING_BOT_DB)
+        engine_crawl = get_engine_crawl()
 
         # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
@@ -474,12 +497,7 @@ async def get_sbv_interbank_data(
 
         from sqlalchemy import text
 
-        # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
-        if not CRAWLING_BOT_DB:
-            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
-
-        engine_crawl = create_engine(CRAWLING_BOT_DB)
+        engine_crawl = get_engine_crawl()
 
         # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
@@ -544,12 +562,7 @@ async def get_term_deposit_data(
 
         from sqlalchemy import text
 
-        # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
-        if not CRAWLING_BOT_DB:
-            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
-
-        engine_crawl = create_engine(CRAWLING_BOT_DB)
+        engine_crawl = get_engine_crawl()
 
         # Build query - Get latest data point per month
         date_filter = get_date_filter(period)
@@ -616,12 +629,7 @@ async def get_global_macro_data(
 
         from sqlalchemy import text
 
-        # Get global indicator database connection
-        GLOBAL_INDICATOR_DB = os.getenv("GLOBAL_INDICATOR_DB")
-        if not GLOBAL_INDICATOR_DB:
-            raise HTTPException(status_code=500, detail="GLOBAL_INDICATOR_DB environment variable not set")
-
-        engine_global = create_engine(GLOBAL_INDICATOR_DB)
+        engine_global = get_engine_global()
 
         # Build query - Get latest crawl_time per day
         date_filter = get_date_filter(period)
@@ -680,12 +688,7 @@ async def get_gold_types(request: Request):
 
         from sqlalchemy import text
 
-        # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
-        if not CRAWLING_BOT_DB:
-            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
-
-        engine_crawl = create_engine(CRAWLING_BOT_DB)
+        engine_crawl = get_engine_crawl()
 
         # Get unique gold types
         query = """
@@ -718,12 +721,7 @@ async def get_bank_types(request: Request):
 
         from sqlalchemy import text
 
-        # Get crawling bot database connection
-        CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
-        if not CRAWLING_BOT_DB:
-            raise HTTPException(status_code=500, detail="CRAWLING_BOT_DB environment variable not set")
-
-        engine_crawl = create_engine(CRAWLING_BOT_DB)
+        engine_crawl = get_engine_crawl()
 
         # Get unique bank codes
         query = """
@@ -753,11 +751,7 @@ async def get_bank_types(request: Request):
 async def get_gold_analysis(request: Request):
     """Get AI-generated gold analysis from ARGUS_FINTEL DB"""
     try:
-        ARGUS_FINTEL_DB = os.getenv("ARGUS_FINTEL_DB")
-        if not ARGUS_FINTEL_DB:
-            raise HTTPException(status_code=500, detail="ARGUS_FINTEL_DB not configured")
-
-        engine_argus = create_engine(ARGUS_FINTEL_DB)
+        engine_argus = get_engine_argus()
 
         with engine_argus.connect() as conn:
             result = conn.execute(text("""
