@@ -2578,7 +2578,11 @@
 
         // Initialize Auth0 and check auth status on page load
         document.addEventListener('DOMContentLoaded', async function() {
-            await initAuth0();
+            try {
+                await initAuth0();
+            } catch (err) {
+                console.warn('Auth0 init failed (non-blocking):', err.message);
+            }
 
             const logoutBtn = document.getElementById('logout-btn');
             const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
@@ -2586,7 +2590,11 @@
             if (logoutBtn) logoutBtn.addEventListener('click', logout);
             if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener('click', logout);
 
-            await checkAuthenticationStatus();
+            try {
+                await checkAuthenticationStatus();
+            } catch (err) {
+                console.warn('Auth check failed (non-blocking):', err.message);
+            }
         });
 
         // Initialize with Vietnamese
