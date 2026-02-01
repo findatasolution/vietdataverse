@@ -26,30 +26,38 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 // AUTH0 CLIENT
 // ============================================================================
 let _auth0Client = null;
+let _auth0InitFailed = false;
 
 async function initAuth0() {
     if (_auth0Client) return _auth0Client;
+    if (_auth0InitFailed) return null;
 
-    _auth0Client = await auth0.createAuth0Client({
-        domain: AUTH0_CONFIG.domain,
-        clientId: AUTH0_CONFIG.clientId,
-        authorizationParams: AUTH0_CONFIG.authorizationParams,
-        cacheLocation: AUTH0_CONFIG.cacheLocation,
-    });
+    try {
+        _auth0Client = await auth0.createAuth0Client({
+            domain: AUTH0_CONFIG.domain,
+            clientId: AUTH0_CONFIG.clientId,
+            authorizationParams: AUTH0_CONFIG.authorizationParams,
+            cacheLocation: AUTH0_CONFIG.cacheLocation,
+        });
 
-    // Handle redirect callback (after Auth0 login redirects back)
-    const query = window.location.search;
-    if (query.includes('code=') && query.includes('state=')) {
-        try {
-            await _auth0Client.handleRedirectCallback();
-            // Clean URL parameters
-            window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (err) {
-            console.error('Auth0 callback error:', err);
+        // Handle redirect callback (after Auth0 login redirects back)
+        const query = window.location.search;
+        if (query.includes('code=') && query.includes('state=')) {
+            try {
+                await _auth0Client.handleRedirectCallback();
+                // Clean URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (err) {
+                console.error('Auth0 callback error:', err);
+            }
         }
-    }
 
-    return _auth0Client;
+        return _auth0Client;
+    } catch (err) {
+        console.error('Auth0 init failed:', err);
+        _auth0InitFailed = true;
+        return null;
+    }
 }
 
 // ============================================================================
@@ -58,11 +66,13 @@ async function initAuth0() {
 
 async function login() {
     const client = await initAuth0();
+    if (!client) { console.warn('Auth0 not available'); return; }
     await client.loginWithRedirect();
 }
 
 async function signup() {
     const client = await initAuth0();
+    if (!client) { console.warn('Auth0 not available'); return; }
     await client.loginWithRedirect({
         authorizationParams: {
             screen_hint: 'signup',
@@ -72,6 +82,7 @@ async function signup() {
 
 async function logout() {
     const client = await initAuth0();
+    if (!client) { console.warn('Auth0 not available'); return; }
     await client.logout({
         logoutParams: {
             returnTo: window.location.origin + '/index.html',
@@ -81,16 +92,19 @@ async function logout() {
 
 async function isAuthenticated() {
     const client = await initAuth0();
+    if (!client) return false;
     return await client.isAuthenticated();
 }
 
 async function getUser() {
     const client = await initAuth0();
+    if (!client) return null;
     return await client.getUser();
 }
 
 async function getToken() {
     const client = await initAuth0();
+    if (!client) return null;
     try {
         return await client.getTokenSilently();
     } catch (err) {
