@@ -32,7 +32,7 @@ jobs:
         ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        cd agent_finance
+        # cd agent_finance
         python run_daily_analysis.py
 
     - name: Show results

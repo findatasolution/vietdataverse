@@ -1,0 +1,37 @@
+name: Market Pulse (4x Daily)
+
+on:
+  schedule:
+    # Every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC
+    # = 07:00, 13:00, 19:00, 01:00 Vietnam time
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:
+
+jobs:
+  market-pulse:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install python-dotenv sqlalchemy psycopg2-binary google-generativeai feedparser
+
+    - name: Run market pulse pipeline
+      env:
+        ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        cd be
+        python 1s_market_pulse.py
+
+    - name: Show results
+      if: always()
+      run: echo "Market Pulse completed at $(date)"
