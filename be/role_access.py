@@ -128,7 +128,7 @@
 # def get_user_bu(email: str = None, token_payload: dict = None) -> str:
 #     """Get user's assigned business unit from Auth0 token claims"""
 #     if token_payload:
-#         namespace = "https://nguyenphamdieuhien.online"
+#         namespace = "https://vietdataverse.online"
 #         return token_payload.get(f"{namespace}/business_unit", None)
 #     return None
 
