@@ -2631,8 +2631,29 @@ async function initAuth0AndUpdateUI() {
         const authenticated = await isAuthenticated();
 
         if (authenticated) {
-            // Get user info
+            // Get user info from Auth0
             const user = await getUser();
+
+            // Sync user with backend DB by calling /me endpoint
+            try {
+                const token = await getToken();
+                const apiBase = window.APP_CONFIG.API_BASE_URL;
+                const response = await fetch(`${apiBase}/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const dbUser = await response.json();
+                    console.log('User synced with backend:', dbUser);
+                } else {
+                    console.warn('Failed to sync user with backend:', response.status);
+                }
+            } catch (err) {
+                console.error('Error syncing user with backend:', err);
+            }
 
             // Update UI to show logged-in state
             const loginLink = document.getElementById('login-link');
@@ -2790,6 +2811,7 @@ function initSidebarTabs() {
 
 /* =========================================================
    CHART SUB-TABS (Vang & Bac / Tien te VN / Quoc te)
+   WITH LAZY LOADING
 ========================================================= */
 function initChartTabs() {
     document.querySelectorAll('.chart-tab-btn[data-tab]').forEach(btn => {
@@ -2807,27 +2829,100 @@ function initChartTabs() {
             }
             const target = document.getElementById(tabId);
             if (target) target.classList.add('active');
+
+            // Lazy load charts when tab is clicked for the first time
+            loadChartsForTab(tabId);
         });
     });
+
+    // Load the first tab (gold & silver) immediately on page load
+    loadChartsForTab('tab-gold-silver');
 }
 
 /* =========================================================
-   FILTER BUTTONS
+   LAZY LOAD CHARTS FOR A SPECIFIC TAB
+========================================================= */
+function loadChartsForTab(tabId) {
+    // Skip if already loaded
+    if (loadedTabs[tabId]) {
+        return;
+    }
+
+    loadedTabs[tabId] = true;
+
+    // Load charts based on tab ID
+    if (tabId === 'tab-gold-silver') {
+        // Load gold and silver charts with default period (1 month)
+        const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
+        loadChartData('gold', '1m', goldType);
+        loadChartData('silver', '1m');
+    } else if (tabId === 'tab-currency') {
+        // Load term deposit and SBV rate charts
+        const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
+        loadChartData('td', '1y', null, bankCode);
+        loadChartData('sbv', '1m');
+    } else if (tabId === 'tab-global') {
+        // Load global markets chart
+        loadChartData('global', '1m');
+    }
+}
+
+/* =========================================================
+   FILTER BUTTONS & DROPDOWNS
 ========================================================= */
 function initFilterButtons() {
+    // Period filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const chart = btn.dataset.chart;
             const period = btn.dataset.period;
 
+            // Update active state
             btn.parentElement
                 ?.querySelectorAll('.filter-btn')
                 .forEach(b => b.classList.remove('active'));
-
             btn.classList.add('active');
-            loadChartData(chart, period);
+
+            // Get additional parameters
+            let goldType = null;
+            let bankCode = null;
+
+            if (chart === 'gold') {
+                goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
+            } else if (chart === 'td') {
+                bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
+            }
+
+            // Load chart data with updated period
+            loadChartData(chart, period, goldType, bankCode);
         });
     });
+
+    // Gold type selector
+    const goldTypeSelect = document.getElementById('goldTypeSelect');
+    if (goldTypeSelect) {
+        goldTypeSelect.addEventListener('change', (e) => {
+            const goldType = e.target.value;
+            // Get current active period
+            const activePeriodBtn = document.querySelector('.filter-btn[data-chart="gold"].active');
+            const period = activePeriodBtn?.dataset.period || '1m';
+            // Reload gold chart with new type
+            loadChartData('gold', period, goldType);
+        });
+    }
+
+    // Bank type selector
+    const bankTypeSelect = document.getElementById('bankTypeSelect');
+    if (bankTypeSelect) {
+        bankTypeSelect.addEventListener('change', (e) => {
+            const bankCode = e.target.value;
+            // Get current active period
+            const activePeriodBtn = document.querySelector('.filter-btn[data-chart="td"].active');
+            const period = activePeriodBtn?.dataset.period || '1y';
+            // Reload TD chart with new bank
+            loadChartData('td', period, null, bankCode);
+        });
+    }
 }
 
 /* =========================================================
@@ -2886,21 +2981,452 @@ function initNotifications() {
 }
 
 /* =========================================================
-   FETCH CHART DATA (SAFE)
+   CHART RENDERING SYSTEM WITH LAZY LOADING & CACHING
 ========================================================= */
-async function loadChartData(type, period) {
+
+// Store Chart.js instances
+const chartInstances = {
+    gold: null,
+    silver: null,
+    td: null,
+    sbv: null,
+    global: null
+};
+
+// Cache for loaded data (avoid redundant API calls)
+const chartCache = {};
+
+// Track which tabs have been loaded
+const loadedTabs = {
+    'tab-gold-silver': false,
+    'tab-currency': false,
+    'tab-global': false
+};
+
+// Map chart types to their API endpoints
+const CHART_API_ENDPOINTS = {
+    gold: 'gold',
+    silver: 'silver',
+    td: 'termdepo',
+    sbv: 'sbv-interbank',
+    global: 'global-macro'
+};
+
+/* =========================================================
+   FETCH CHART DATA WITH CACHING
+========================================================= */
+async function loadChartData(chartType, period = '1m', goldType = 'DOJI HN', bankCode = 'ACB') {
     const base = window.APP_CONFIG.API_BASE_URL;
-    if (!base || !type) return;
+    if (!base || !chartType) return;
+
+    const endpoint = CHART_API_ENDPOINTS[chartType];
+    if (!endpoint) {
+        console.error('Unknown chart type:', chartType);
+        return;
+    }
+
+    // Build cache key
+    const cacheKey = `${chartType}-${period}-${goldType}-${bankCode}`;
+
+    // Check cache first
+    if (chartCache[cacheKey]) {
+        console.log(`[${chartType}] Using cached data`);
+        renderChart(chartType, chartCache[cacheKey], period);
+        return;
+    }
+
+    // Show loading skeleton
+    const loadingEl = document.getElementById(`${chartType}Loading`);
+    if (loadingEl) loadingEl.style.display = 'flex';
 
     try {
-        const res = await fetch(`${base}/${type}?period=${period}`);
-        if (!res.ok) throw new Error('API error');
+        // Build API URL with parameters
+        let apiUrl = `${base}/${endpoint}?period=${period}`;
+        if (chartType === 'gold' && goldType) {
+            apiUrl += `&type=${encodeURIComponent(goldType)}`;
+        }
+        if (chartType === 'td' && bankCode) {
+            apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
+        }
+
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
+
         const data = await res.json();
-        console.log(`[${type}]`, data);
-        // renderChart(type, data); // hook sau
+        console.log(`[${chartType}] Data loaded:`, data);
+
+        // Store in cache
+        chartCache[cacheKey] = data;
+
+        // Render chart
+        renderChart(chartType, data, period);
+
     } catch (e) {
-        console.error('Fetch failed', e);
+        console.error(`[${chartType}] Fetch failed:`, e);
+        // Show error message
+        if (loadingEl) {
+            loadingEl.innerHTML = '<p style="color: #EF5350; text-align: center;">Failed to load data. Please try again.</p>';
+        }
+    } finally {
+        // Hide loading skeleton after a short delay
+        setTimeout(() => {
+            if (loadingEl) loadingEl.style.display = 'none';
+        }, 500);
     }
+}
+
+/* =========================================================
+   RENDER CHART WITH CHART.JS
+========================================================= */
+function renderChart(chartType, apiData, period) {
+    const canvas = document.getElementById(`${chartType}Chart`);
+    if (!canvas) {
+        console.error(`Canvas not found for ${chartType}Chart`);
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    // Destroy existing chart instance if it exists
+    if (chartInstances[chartType]) {
+        chartInstances[chartType].destroy();
+    }
+
+    // Parse data based on chart type
+    let chartData;
+    if (chartType === 'gold' || chartType === 'silver') {
+        chartData = parseGoldSilverData(apiData, chartType);
+    } else if (chartType === 'td') {
+        chartData = parseTDData(apiData);
+    } else if (chartType === 'sbv') {
+        chartData = parseSBVData(apiData);
+    } else if (chartType === 'global') {
+        chartData = parseGlobalData(apiData);
+    }
+
+    if (!chartData) {
+        console.error(`Failed to parse data for ${chartType}`);
+        return;
+    }
+
+    // Create new chart
+    chartInstances[chartType] = new Chart(ctx, chartData);
+}
+
+/* =========================================================
+   DATA PARSERS FOR DIFFERENT CHART TYPES
+========================================================= */
+function parseGoldSilverData(apiData, chartType) {
+    // API format: { success: true, data: { dates: [...], buy_prices: [...], sell_prices: [...] } }
+    if (!apiData || !apiData.data || !apiData.data.dates) {
+        console.warn(`No data for ${chartType}`);
+        return null;
+    }
+
+    const dates = apiData.data.dates;
+    const buyPrices = apiData.data.buy_prices;
+    const sellPrices = apiData.data.sell_prices;
+
+    const color = chartType === 'gold' ? '#C9A55B' : '#A0A0A0';
+
+    return {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Buy Price (Mua vào)',
+                    data: buyPrices,
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Sell Price (Bán ra)',
+                    data: sellPrices,
+                    borderColor: color + 'CC',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    borderDash: [5, 5]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: '#A0A0A0' }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666', maxRotation: 45 },
+                    grid: { color: '#2A2A2A' }
+                },
+                y: {
+                    ticks: { color: '#666' },
+                    grid: { color: '#2A2A2A' }
+                }
+            }
+        }
+    };
+}
+
+function parseTDData(apiData) {
+    // API format: { success: true, data: { dates: [...], term_1m: [...], term_3m: [...], ... } }
+    if (!apiData || !apiData.data || !apiData.data.dates) {
+        return null;
+    }
+
+    const dates = apiData.data.dates;
+    const rate1m = apiData.data.term_1m;
+    const rate3m = apiData.data.term_3m;
+    const rate6m = apiData.data.term_6m;
+    const rate12m = apiData.data.term_12m;
+
+    return {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: '1 Month',
+                    data: rate1m,
+                    borderColor: '#42A5F5',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: '3 Months',
+                    data: rate3m,
+                    borderColor: '#66BB6A',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: '6 Months',
+                    data: rate6m,
+                    borderColor: '#FFA726',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: '12 Months',
+                    data: rate12m,
+                    borderColor: '#EF5350',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: '#A0A0A0' }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666', maxRotation: 45 },
+                    grid: { color: '#2A2A2A' }
+                },
+                y: {
+                    ticks: {
+                        color: '#666',
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    },
+                    grid: { color: '#2A2A2A' }
+                }
+            }
+        }
+    };
+}
+
+function parseSBVData(apiData) {
+    // API format: { success: true, data: { dates: [...], overnight: [...], month_1: [...], month_3: [...] } }
+    if (!apiData || !apiData.data || !apiData.data.dates) {
+        return null;
+    }
+
+    const dates = apiData.data.dates;
+    const overnight = apiData.data.overnight;
+    const onweek = apiData.data.month_1;  // Using month_1 as "1 week" equivalent
+    const twoweek = apiData.data.month_3;  // Using month_3 as "2 weeks" equivalent
+
+    return {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Overnight',
+                    data: overnight,
+                    borderColor: '#C9A55B',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: '1 Week',
+                    data: onweek,
+                    borderColor: '#42A5F5',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: '2 Weeks',
+                    data: twoweek,
+                    borderColor: '#66BB6A',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: '#A0A0A0' }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666', maxRotation: 45 },
+                    grid: { color: '#2A2A2A' }
+                },
+                y: {
+                    ticks: {
+                        color: '#666',
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    },
+                    grid: { color: '#2A2A2A' }
+                }
+            }
+        }
+    };
+}
+
+function parseGlobalData(apiData) {
+    // API format: { success: true, data: { dates: [...], gold_prices: [...], silver_prices: [...], nasdaq_prices: [...] } }
+    if (!apiData || !apiData.data || !apiData.data.dates) {
+        return null;
+    }
+
+    const dates = apiData.data.dates;
+    const goldFuture = apiData.data.gold_prices;
+    const silverSpot = apiData.data.silver_prices;
+    const nasdaq = apiData.data.nasdaq_prices;
+
+    return {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Gold Future ($/oz)',
+                    data: goldFuture,
+                    borderColor: '#C9A55B',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Silver Spot ($/oz)',
+                    data: silverSpot,
+                    borderColor: '#A0A0A0',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'NASDAQ',
+                    data: nasdaq,
+                    borderColor: '#42A5F5',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y2'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: '#A0A0A0' }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666', maxRotation: 45 },
+                    grid: { color: '#2A2A2A' }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    ticks: { color: '#C9A55B' },
+                    grid: { color: '#2A2A2A' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    ticks: { color: '#A0A0A0' },
+                    grid: { drawOnChartArea: false }
+                },
+                y2: {
+                    type: 'linear',
+                    display: false,
+                    position: 'right'
+                }
+            }
+        }
+    };
 }
 
 /* =========================================================

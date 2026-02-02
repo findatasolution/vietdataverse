@@ -32,6 +32,17 @@ async function initAuth0() {
     if (_auth0Client) return _auth0Client;
     if (_auth0InitFailed) return null;
 
+    // Only initialize Auth0 on HTTPS or localhost
+    const isSecure = window.location.protocol === 'https:' ||
+                     window.location.hostname === 'localhost' ||
+                     window.location.hostname === '127.0.0.1';
+
+    if (!isSecure) {
+        console.warn('Auth0 requires HTTPS. Authentication disabled on HTTP.');
+        _auth0InitFailed = true;
+        return null;
+    }
+
     try {
         _auth0Client = await auth0.createAuth0Client({
             domain: AUTH0_CONFIG.domain,
