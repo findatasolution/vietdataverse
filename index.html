@@ -2377,8 +2377,11 @@
                 <i class="fas fa-code"></i>
             </div>
             <h3 class="notification-title">API đang phát triển</h3>
-            <p class="notification-message">
+            <p class="notification-message" id="api-message">
                 Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính năng sẵn sàng.
+            </p>
+            <p class="notification-message" id="api-message-logged-in" style="display: none;">
+                Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính năng sẵn sàng.
             </p>
             <div class="notification-actions">
                 <button class="notification-btn secondary" id="api-cancel-btn">
@@ -2957,7 +2960,7 @@ function initNotifications() {
         });
     }
 
-    // Download buttons -> show login notification if not authenticated
+    // Download buttons -> show login notification if not authenticated, or trigger download
     document.querySelectorAll('[data-download]').forEach(btn => {
         btn.addEventListener('click', async () => {
             const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
@@ -2966,18 +2969,113 @@ function initNotifications() {
                 if (overlay) overlay.classList.add('active');
                 return;
             }
-            // TODO: actual download logic
-            console.log('Download:', btn.dataset.download);
+
+            // User is authenticated - trigger actual download
+            const dataType = btn.dataset.download;
+            await downloadData(dataType);
         });
     });
 
-    // API buttons -> show API notification
+    // API buttons -> check authentication status
     document.querySelectorAll('[data-api]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
+            const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
             const overlay = document.getElementById('api-notification-overlay');
+            const signupBtn = document.getElementById('api-signup-btn');
+            const guestMessage = document.getElementById('api-message');
+            const loggedInMessage = document.getElementById('api-message-logged-in');
+
+            if (authed) {
+                // User is logged in - show logged-in message, hide signup button
+                if (signupBtn) signupBtn.style.display = 'none';
+                if (guestMessage) guestMessage.style.display = 'none';
+                if (loggedInMessage) loggedInMessage.style.display = 'block';
+            } else {
+                // User is not logged in - show guest message and signup button
+                if (signupBtn) signupBtn.style.display = 'inline-flex';
+                if (guestMessage) guestMessage.style.display = 'block';
+                if (loggedInMessage) loggedInMessage.style.display = 'none';
+            }
+
             if (overlay) overlay.classList.add('active');
         });
     });
+}
+
+/* =========================================================
+   DOWNLOAD DATA FUNCTIONALITY
+========================================================= */
+async function downloadData(dataType) {
+    const base = window.APP_CONFIG.API_BASE_URL;
+
+    // Map data types to API endpoints
+    const endpointMap = {
+        'gold': 'gold?period=all',
+        'silver': 'silver?period=all',
+        'sbv': 'sbv-interbank?period=all'
+    };
+
+    const endpoint = endpointMap[dataType];
+    if (!endpoint) {
+        console.error('Unknown data type:', dataType);
+        return;
+    }
+
+    try {
+        // Show loading state (optional - could add a loading indicator)
+        console.log(`Downloading ${dataType} data...`);
+
+        // Fetch data from API
+        const response = await fetch(`${base}/${endpoint}`);
+        if (!response.ok) throw new Error('Failed to fetch data');
+
+        const jsonData = await response.json();
+
+        if (!jsonData.success || !jsonData.data) {
+            throw new Error('Invalid data format');
+        }
+
+        // Convert to CSV
+        let csvContent = '';
+        const data = jsonData.data;
+
+        if (dataType === 'gold' || dataType === 'silver') {
+            // CSV header
+            csvContent = 'Date,Buy Price,Sell Price\n';
+
+            // CSV rows
+            for (let i = 0; i < data.dates.length; i++) {
+                csvContent += `${data.dates[i]},${data.buy_prices[i]},${data.sell_prices[i]}\n`;
+            }
+        } else if (dataType === 'sbv') {
+            // CSV header
+            csvContent = 'Date,Overnight,1 Month,3 Months,Rediscount,Refinancing\n';
+
+            // CSV rows
+            for (let i = 0; i < data.dates.length; i++) {
+                csvContent += `${data.dates[i]},${data.overnight[i]},${data.month_1[i]},${data.month_3[i]},${data.rediscount[i]},${data.refinancing[i]}\n`;
+            }
+        }
+
+        // Create blob and trigger download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', `vietdataverse_${dataType}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        console.log(`Downloaded ${dataType} data successfully`);
+
+    } catch (error) {
+        console.error('Download failed:', error);
+        alert('Download failed. Please try again.');
+    }
 }
 
 /* =========================================================
