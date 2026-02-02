@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi import status
@@ -11,7 +12,6 @@ import os
 import json
 import requests
 from urllib.parse import urlencode
-import gzip
 import time
 from functools import lru_cache
 
@@ -78,31 +78,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add response compression middleware
-@app.middleware("http")
-async def add_compression(request: Request, call_next):
-    """Add gzip compression to responses"""
-    response = await call_next(request)
-    
-    # Only compress if response is large enough and content type is appropriate
-    if response.status_code == 200:
-        content_length = response.headers.get("content-length")
-        if content_length and int(content_length) > 1024:
-            content_type = response.headers.get("content-type", "")
-            if "application/json" in content_type or "text/" in content_type:
-                # Read response body
-                body = b""
-                async for chunk in response.body_iterator:
-                    body += chunk
-                
-                # Compress if beneficial
-                compressed_body = gzip.compress(body)
-                if len(compressed_body) < len(body):
-                    response.body = compressed_body
-                    response.headers["Content-Encoding"] = "gzip"
-                    response.headers["Content-Length"] = str(len(compressed_body))
-    
-    return response
+# Add gzip compression (compresses responses > 1000 bytes)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Mount static directories - adjust paths for both local and Render deployment
 import os
@@ -415,7 +392,7 @@ async def get_gold_data(
             buy_prices.append(float(row[1]) if row[1] else 0)
             sell_prices.append(float(row[2]) if row[2] else 0)
 
-        return {
+        response_data = {
             "success": True,
             "data": {
                 "dates": dates[::-1],  # Reverse to chronological order
@@ -426,6 +403,16 @@ async def get_gold_data(
             "period": period,
             "count": len(dates)
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -471,7 +458,7 @@ async def get_silver_data(
             buy_prices.append(float(row[1]) if row[1] else 0)
             sell_prices.append(float(row[2]) if row[2] else 0)
 
-        return {
+        response_data = {
             "success": True,
             "data": {
                 "dates": dates[::-1],  # Reverse to chronological order
@@ -481,6 +468,16 @@ async def get_silver_data(
             "period": period,
             "count": len(dates)
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -532,7 +529,7 @@ async def get_sbv_interbank_data(
             rediscount.append(float(row[4]) if row[4] else 0)
             refinancing.append(float(row[5]) if row[5] else 0)
 
-        return {
+        response_data = {
             "success": True,
             "data": {
                 "dates": dates[::-1],  # Reverse to chronological order
@@ -545,6 +542,16 @@ async def get_sbv_interbank_data(
             "period": period,
             "count": len(dates)
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -599,7 +606,7 @@ async def get_term_deposit_data(
             term_12m.append(float(row[4]) if row[4] else 0)
             term_24m.append(float(row[5]) if row[5] else 0)
 
-        return {
+        response_data = {
             "success": True,
             "data": {
                 "dates": dates[::-1],  # Reverse to chronological order
@@ -613,6 +620,16 @@ async def get_term_deposit_data(
             "period": period,
             "count": len(dates)
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -660,7 +677,7 @@ async def get_global_macro_data(
             silver_prices.append(float(row[2]) if row[2] else 0)
             nasdaq_prices.append(float(row[3]) if row[3] else 0)
 
-        return {
+        response_data = {
             "success": True,
             "data": {
                 "dates": dates[::-1],  # Reverse to chronological order
@@ -671,6 +688,16 @@ async def get_global_macro_data(
             "period": period,
             "count": len(dates)
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -704,10 +731,20 @@ async def get_gold_types(request: Request):
 
         types = [row[0] for row in rows if row[0]]
 
-        return {
+        response_data = {
             "success": True,
             "types": types
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -737,10 +774,20 @@ async def get_bank_types(request: Request):
 
         banks = [row[0] for row in rows if row[0]]
 
-        return {
+        response_data = {
             "success": True,
             "banks": banks
         }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -763,7 +810,7 @@ async def get_gold_analysis(request: Request):
             row = result.fetchone()
 
         if row:
-            return {
+            response_data = {
                 "success": True,
                 "data": {
                     "content": row[2],
@@ -772,11 +819,21 @@ async def get_gold_analysis(request: Request):
                 }
             }
         else:
-            return {
+            response_data = {
                 "success": False,
                 "data": None,
                 "message": "No analysis available"
             }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise
@@ -871,6 +928,58 @@ async def get_market_pulse(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch market pulse: {str(e)}")
+
+@app.post("/api/v1/generate-market-pulse")
+async def generate_market_pulse(request: Request):
+    """Trigger 1s Market Pulse generation (crawl RSS, filter with AI, save to DB)"""
+    try:
+        import subprocess
+        import os
+
+        # Get the directory where main.py is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        market_pulse_script = os.path.join(script_dir, "1s_market_pulse.py")
+
+        # Check if script exists
+        if not os.path.exists(market_pulse_script):
+            raise HTTPException(status_code=500, detail="Market pulse script not found")
+
+        # Run the script
+        result = subprocess.run(
+            ["python3", market_pulse_script],
+            cwd=script_dir,
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout
+        )
+
+        if result.returncode == 0:
+            response_data = {
+                "success": True,
+                "message": "Market pulse generated successfully",
+                "output": result.stdout[-500:] if len(result.stdout) > 500 else result.stdout
+            }
+        else:
+            response_data = {
+                "success": False,
+                "message": "Market pulse generation failed",
+                "error": result.stderr[-500:] if len(result.stderr) > 500 else result.stderr
+            }
+
+        # Convert to JSON bytes with explicit encoding
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
+
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="Market pulse generation timed out")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate market pulse: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
