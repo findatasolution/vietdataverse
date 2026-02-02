@@ -21,7 +21,7 @@ import feedparser
 
 # Load environment variables
 from pathlib import Path
-root_dir = Path(__file__).resolve().parent.parent.parent
+root_dir = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=root_dir / '.env')
 
 # Configure Gemini AI
@@ -212,17 +212,41 @@ Return ONLY valid JSON (no markdown code blocks):
   "items": [ ... exactly 5 items ... ]
 }}"""
 
-    response = model.generate_content(prompt)
+    # Configure generation with higher output token limit
+    generation_config = {
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "top_k": 40,
+        "max_output_tokens": 8192,
+    }
+    response = model.generate_content(prompt, generation_config=generation_config)
     raw = response.text.strip()
 
     # Clean markdown code blocks if present
-    if raw.startswith('```'):
+    if '```json' in raw:
+        raw = raw.split('```json', 1)[1]
+        raw = raw.split('```', 1)[0]
+    elif raw.startswith('```'):
         raw = raw.split('\n', 1)[1] if '\n' in raw else raw[3:]
         if raw.endswith('```'):
             raw = raw[:-3]
-        raw = raw.strip()
 
-    data = json.loads(raw)
+    raw = raw.strip()
+
+    # Try to find JSON object in the response
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"   JSON parsing error: {e}")
+        print(f"   Raw response (first 500 chars): {raw[:500]}")
+        # Try to extract JSON from the response
+        import re
+        json_match = re.search(r'\{[\s\S]*\}', raw)
+        if json_match:
+            raw = json_match.group(0)
+            data = json.loads(raw)
+        else:
+            raise
     items = data.get("items", [])
 
     if len(items) != 5:

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi import status
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -793,6 +793,7 @@ async def get_market_pulse(
     try:
         engine_argus = get_engine_argus()
 
+        articles = []
         with engine_argus.connect() as conn:
             # Check if lang column exists
             try:
@@ -803,8 +804,28 @@ async def get_market_pulse(
                     ORDER BY generated_at DESC
                     LIMIT :limit
                 """), {"lang": lang, "limit": limit})
-            except Exception:
+
+                rows = result.fetchall()
+
+                # Process all data inside the connection context
+                for row in rows:
+                    article = {
+                        "id": int(row[0]) if row[0] is not None else None,
+                        "title": str(row[1]) if row[1] else "",
+                        "brief_content": str(row[2]) if row[2] else "",
+                        "source_name": str(row[3]) if row[3] else "",
+                        "source_date": str(row[4]) if row[4] else None,
+                        "url": str(row[5]) if row[5] else "",
+                        "label": str(row[6]) if row[6] else "",
+                        "mri": int(row[7]) if row[7] is not None else 0,
+                        "generated_at": row[8].isoformat() if row[8] else None,
+                        "lang": str(row[9]) if len(row) > 9 and row[9] else "vi"
+                    }
+                    articles.append(article)
+
+            except Exception as e:
                 # Fallback if lang column doesn't exist
+                print(f"Error with lang query: {e}")
                 result = conn.execute(text("""
                     SELECT id, title, brief_content, source_name, source_date, url, label, mri, generated_at
                     FROM mri_analysis
@@ -812,30 +833,39 @@ async def get_market_pulse(
                     LIMIT :limit
                 """), {"limit": limit})
 
-            rows = result.fetchall()
+                rows = result.fetchall()
 
-        if not rows:
-            return {"success": True, "data": [], "count": 0}
+                for row in rows:
+                    article = {
+                        "id": int(row[0]) if row[0] is not None else None,
+                        "title": str(row[1]) if row[1] else "",
+                        "brief_content": str(row[2]) if row[2] else "",
+                        "source_name": str(row[3]) if row[3] else "",
+                        "source_date": str(row[4]) if row[4] else None,
+                        "url": str(row[5]) if row[5] else "",
+                        "label": str(row[6]) if row[6] else "",
+                        "mri": int(row[7]) if row[7] is not None else 0,
+                        "generated_at": row[8].isoformat() if row[8] else None,
+                        "lang": "vi"
+                    }
+                    articles.append(article)
 
-        articles = []
-        for row in rows:
-            articles.append({
-                "id": row[0],
-                "title": row[1],
-                "brief_content": row[2],
-                "source_name": row[3],
-                "source_date": row[4],
-                "url": row[5],
-                "label": row[6],
-                "mri": row[7],
-                "generated_at": row[8].isoformat() if row[8] else None,
-            })
-
-        return {
+        # Prepare response data
+        response_data = {
             "success": True,
             "data": articles,
             "count": len(articles)
         }
+
+        # Explicitly encode JSON and set Content-Length
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
 
     except HTTPException:
         raise

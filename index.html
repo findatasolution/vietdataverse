@@ -2607,14 +2607,70 @@
 /* =========================================================
    DOM READY
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initHeaderActions();
     initMobileMenu();
     initSidebarTabs();
     initChartTabs();
     initFilterButtons();
     initNotifications();
+
+    // Initialize Auth0 and check authentication status
+    await initAuth0AndUpdateUI();
 });
+
+/* =========================================================
+   AUTH0 INITIALIZATION & UI UPDATE
+========================================================= */
+async function initAuth0AndUpdateUI() {
+    try {
+        // Initialize Auth0
+        await initAuth0();
+
+        // Check if user is authenticated
+        const authenticated = await isAuthenticated();
+
+        if (authenticated) {
+            // Get user info
+            const user = await getUser();
+
+            // Update UI to show logged-in state
+            const loginLink = document.getElementById('login-link');
+            const userInfo = document.getElementById('user-info');
+            const userEmail = document.getElementById('user-email');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            // Header
+            if (loginLink) loginLink.style.display = 'none';
+            if (userInfo) userInfo.style.display = 'block';
+            if (userEmail) userEmail.textContent = user.email || user.name || 'User';
+            if (logoutBtn) {
+                logoutBtn.style.display = 'block';
+                logoutBtn.addEventListener('click', () => {
+                    logout();
+                });
+            }
+
+            // Sidebar
+            const sidebarLoginLink = document.getElementById('sidebar-login-link');
+            const sidebarUserInfo = document.getElementById('sidebar-user-info');
+            const sidebarUserEmail = document.getElementById('sidebar-user-email');
+            const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+
+            if (sidebarLoginLink) sidebarLoginLink.style.display = 'none';
+            if (sidebarUserInfo) sidebarUserInfo.style.display = 'block';
+            if (sidebarUserEmail) sidebarUserEmail.textContent = user.email || user.name || 'User';
+            if (sidebarLogoutBtn) {
+                sidebarLogoutBtn.style.display = 'block';
+                sidebarLogoutBtn.addEventListener('click', () => {
+                    logout();
+                });
+            }
+        }
+    } catch (err) {
+        console.error('Auth0 initialization failed:', err);
+    }
+}
 
 /* =========================================================
    HEADER ACTIONS: LANGUAGE + LOGIN
