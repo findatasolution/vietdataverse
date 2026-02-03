@@ -2415,7 +2415,7 @@
                 goldChart: 'Lịch Sử Giá Vàng Trong Nước',
                 silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
                 sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng',
-                tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm',
+                tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm (NHTM)',
                 globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
                 downloadTitle: 'Tải Dữ liệu Lịch Sử',
                 downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng trong nước, giá bạc, lãi suất ngân hàng miễn phí. Download Vietnam historical gold price từ 2015 đến nay hoặc truy cập qua RESTful API.',
@@ -2982,19 +2982,13 @@ function initNotifications() {
             const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
             const overlay = document.getElementById('api-notification-overlay');
             const signupBtn = document.getElementById('api-signup-btn');
-            const guestMessage = document.getElementById('api-message');
-            const loggedInMessage = document.getElementById('api-message-logged-in');
 
             if (authed) {
-                // User is logged in - show logged-in message, hide signup button
+                // User is logged in - hide signup button
                 if (signupBtn) signupBtn.style.display = 'none';
-                if (guestMessage) guestMessage.style.display = 'none';
-                if (loggedInMessage) loggedInMessage.style.display = 'block';
             } else {
-                // User is not logged in - show guest message and signup button
+                // User is not logged in - show signup button
                 if (signupBtn) signupBtn.style.display = 'inline-flex';
-                if (guestMessage) guestMessage.style.display = 'block';
-                if (loggedInMessage) loggedInMessage.style.display = 'none';
             }
 
             if (overlay) overlay.classList.add('active');
