@@ -367,6 +367,10 @@ def save_bank_data(bank_code, data, force=False):
                 {'bank': bank_code, 'date': date_str}
             )
 
+        # Generate next id (table has no auto-increment)
+        next_id = conn.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM vn_bank_termdepo")).scalar()
+        record['id'] = next_id
+
         columns = [k for k, v in record.items() if v is not None]
         placeholders = ', '.join([f':{c}' for c in columns])
         col_names = ', '.join(columns)
