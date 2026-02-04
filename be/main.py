@@ -929,6 +929,204 @@ async def get_market_pulse(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch market pulse: {str(e)}")
 
+# ============================================================================
+# USER INTEREST TRACKING ENDPOINTS
+# ============================================================================
+
+class InterestRequest(BaseModel):
+    fingerprint: str = Field(..., min_length=8, max_length=64)
+    source: str = Field(default="web", max_length=32)
+    timestamp: Optional[str] = None
+    user_agent: Optional[str] = Field(default=None, max_length=512)
+    language: Optional[str] = Field(default=None, max_length=16)
+
+@app.post("/api/v1/interest/{interest_type}")
+async def save_user_interest(request: Request, interest_type: str, data: InterestRequest):
+    """Save user interest in a specific item/service for admin tracking"""
+    try:
+        # Validate interest_type (alphanumeric + hyphen, max 64 chars)
+        import re
+        if not re.match(r'^[a-zA-Z0-9-]+$', interest_type) or len(interest_type) > 64:
+            raise HTTPException(status_code=400, detail="Invalid interest_type")
+
+        engine_argus = get_engine_argus()
+
+        with engine_argus.connect() as conn:
+            # Create table if not exists
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS user_interest (
+                    id SERIAL PRIMARY KEY,
+                    fingerprint VARCHAR(64) NOT NULL,
+                    interest_type VARCHAR(64) NOT NULL,
+                    source VARCHAR(32),
+                    user_agent VARCHAR(512),
+                    language VARCHAR(16),
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
+            conn.commit()
+
+            # Check for duplicate (same fingerprint + interest_type)
+            result = conn.execute(text("""
+                SELECT id FROM user_interest
+                WHERE fingerprint = :fp
+                AND interest_type = :itype
+            """), {"fp": data.fingerprint, "itype": interest_type})
+
+            if result.fetchone():
+                response_data = {
+                    "success": True,
+                    "message": "Interest already recorded",
+                    "interest_type": interest_type,
+                    "duplicate": True
+                }
+            else:
+                # Insert new interest
+                conn.execute(text("""
+                    INSERT INTO user_interest (fingerprint, interest_type, source, user_agent, language)
+                    VALUES (:fp, :itype, :source, :ua, :lang)
+                """), {
+                    "fp": data.fingerprint,
+                    "itype": interest_type,
+                    "source": data.source,
+                    "ua": data.user_agent[:512] if data.user_agent else None,
+                    "lang": data.language
+                })
+                conn.commit()
+
+                response_data = {
+                    "success": True,
+                    "message": "Interest saved successfully",
+                    "interest_type": interest_type,
+                    "duplicate": False
+                }
+
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save interest: {str(e)}")
+
+@app.get("/api/v1/interest/stats")
+async def get_interest_stats(request: Request):
+    """Get interest statistics summary by type"""
+    try:
+        engine_argus = get_engine_argus()
+
+        with engine_argus.connect() as conn:
+            # Get total count by type
+            result = conn.execute(text("""
+                SELECT interest_type, COUNT(DISTINCT fingerprint) as unique_users, COUNT(*) as total
+                FROM user_interest
+                GROUP BY interest_type
+                ORDER BY unique_users DESC
+            """))
+            rows = result.fetchall()
+
+        stats = {}
+        for row in rows:
+            stats[row[0]] = {
+                "unique_users": row[1],
+                "total_records": row[2]
+            }
+
+        response_data = {
+            "success": True,
+            "data": stats
+        }
+
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+
+@app.get("/api/v1/interest/details")
+async def get_interest_details(
+    request: Request,
+    interest_type: Optional[str] = Query(None, description="Filter by interest type"),
+    limit: int = Query(100, ge=1, le=500, description="Max records to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination")
+):
+    """Get detailed interest records for admin tracking"""
+    try:
+        engine_argus = get_engine_argus()
+
+        with engine_argus.connect() as conn:
+            # Build query with optional filter
+            if interest_type:
+                result = conn.execute(text("""
+                    SELECT id, fingerprint, interest_type, source, user_agent, language, created_at
+                    FROM user_interest
+                    WHERE interest_type = :itype
+                    ORDER BY created_at DESC
+                    LIMIT :limit OFFSET :offset
+                """), {"itype": interest_type, "limit": limit, "offset": offset})
+            else:
+                result = conn.execute(text("""
+                    SELECT id, fingerprint, interest_type, source, user_agent, language, created_at
+                    FROM user_interest
+                    ORDER BY created_at DESC
+                    LIMIT :limit OFFSET :offset
+                """), {"limit": limit, "offset": offset})
+
+            rows = result.fetchall()
+
+            # Get total count
+            if interest_type:
+                count_result = conn.execute(text("""
+                    SELECT COUNT(*) FROM user_interest WHERE interest_type = :itype
+                """), {"itype": interest_type})
+            else:
+                count_result = conn.execute(text("SELECT COUNT(*) FROM user_interest"))
+            total = count_result.fetchone()[0]
+
+        records = []
+        for row in rows:
+            records.append({
+                "id": row[0],
+                "fingerprint": row[1][:8] + "..." if row[1] else None,  # Truncate for privacy
+                "interest_type": row[2],
+                "source": row[3],
+                "user_agent": row[4][:100] + "..." if row[4] and len(row[4]) > 100 else row[4],
+                "language": row[5],
+                "created_at": row[6].isoformat() if row[6] else None
+            })
+
+        response_data = {
+            "success": True,
+            "data": records,
+            "total": total,
+            "limit": limit,
+            "offset": offset
+        }
+
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get details: {str(e)}")
+
 @app.post("/api/v1/generate-market-pulse")
 async def generate_market_pulse(request: Request):
     """Trigger 1s Market Pulse generation (crawl RSS, filter with AI, save to DB)"""
