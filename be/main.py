@@ -35,6 +35,20 @@ Base.metadata.create_all(bind=engine)
 _engine_crawl = None
 _engine_global = None
 _engine_argus = None
+_engine_user = None
+
+def get_engine_user():
+    """Get engine for USER_DB (stores users, interests, etc.)"""
+    global _engine_user
+    if _engine_user is None:
+        db_url = os.getenv("USER_DB")
+        if not db_url:
+            # Fallback to ARGUS_FINTEL_DB if USER_DB not set
+            db_url = os.getenv("ARGUS_FINTEL_DB")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="USER_DB or ARGUS_FINTEL_DB not set")
+        _engine_user = create_engine(db_url, pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycle=300)
+    return _engine_user
 
 def get_engine_crawl():
     global _engine_crawl
@@ -214,28 +228,52 @@ async def auth0_callback(request: Request, code: str = None, error: str = None):
         
         # Get user info from ID token
         user_info = get_auth0_user_info(id_token)
-        
-        # Get or create user in database
+
+        # Get or create user in USER_DB
+        engine_user = get_engine_user()
+
+        # Ensure users table exists
+        with engine_user.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    auth0_id VARCHAR(255) UNIQUE,
+                    name VARCHAR(255),
+                    picture TEXT,
+                    email_verified BOOLEAN DEFAULT FALSE,
+                    is_admin BOOLEAN DEFAULT FALSE,
+                    role VARCHAR(50) DEFAULT 'user',
+                    business_unit VARCHAR(100),
+                    auth0_metadata JSONB,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
+            conn.commit()
+
         from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=engine_user)
         session = Session()
-        
+
         # Check if user exists by auth0_id
         user = session.query(User).filter_by(auth0_id=user_info["auth0_id"]).first()
-        
+
         if not user:
             # Create new user using auth module helper
             user_data = create_local_user_from_auth0(user_info)
             user = User(**user_data)
             session.add(user)
             session.commit()
+            print(f"✅ Created new user: {user.email}")
         else:
             # Update user info
             user.name = user_info.get("name")
             user.picture = user_info.get("picture")
             user.email_verified = user_info.get("email_verified", False)
             session.commit()
-        
+            print(f"✅ Updated user: {user.email}")
+
         session.close()
         
         # Create JWT token for our system (using Auth0 token as access token)
@@ -296,9 +334,32 @@ async def get_current_user_info(request: Request):
         if not auth0_id:
             raise HTTPException(status_code=401, detail="Invalid token: missing auth0_id")
 
+        # Use USER_DB for user management
+        engine_user = get_engine_user()
+
+        # Ensure users table exists
+        with engine_user.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    auth0_id VARCHAR(255) UNIQUE,
+                    name VARCHAR(255),
+                    picture TEXT,
+                    email_verified BOOLEAN DEFAULT FALSE,
+                    is_admin BOOLEAN DEFAULT FALSE,
+                    role VARCHAR(50) DEFAULT 'user',
+                    business_unit VARCHAR(100),
+                    auth0_metadata JSONB,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
+            conn.commit()
+
         # Look up user in DB by auth0_id, auto-create if not found
         from sqlalchemy.orm import sessionmaker
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=engine_user)
         session = Session()
 
         db_user = session.query(User).filter_by(auth0_id=auth0_id).first()
@@ -308,6 +369,9 @@ async def get_current_user_info(request: Request):
             db_user = User(
                 auth0_id=auth0_id,
                 email=user.get("email", ""),
+                name=user.get("name"),
+                picture=user.get("picture"),
+                email_verified=user.get("email_verified", False),
                 role=user.get("role", "user"),
                 business_unit=user.get("business_unit"),
                 is_admin=user.get("is_admin", False),
@@ -315,6 +379,7 @@ async def get_current_user_info(request: Request):
             session.add(db_user)
             session.commit()
             session.refresh(db_user)
+            print(f"✅ Auto-created user from SPA flow: {db_user.email}")
 
         result = {
             "email": db_user.email,
@@ -949,9 +1014,9 @@ async def save_user_interest(request: Request, interest_type: str, data: Interes
         if not re.match(r'^[a-zA-Z0-9-]+$', interest_type) or len(interest_type) > 64:
             raise HTTPException(status_code=400, detail="Invalid interest_type")
 
-        engine_argus = get_engine_argus()
+        engine_user = get_engine_user()
 
-        with engine_argus.connect() as conn:
+        with engine_user.connect() as conn:
             # Create table if not exists
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS user_interest (
@@ -1019,9 +1084,9 @@ async def save_user_interest(request: Request, interest_type: str, data: Interes
 async def get_interest_stats(request: Request):
     """Get interest statistics summary by type"""
     try:
-        engine_argus = get_engine_argus()
+        engine_user = get_engine_user()
 
-        with engine_argus.connect() as conn:
+        with engine_user.connect() as conn:
             # Get total count by type
             result = conn.execute(text("""
                 SELECT interest_type, COUNT(DISTINCT fingerprint) as unique_users, COUNT(*) as total
@@ -1064,9 +1129,9 @@ async def get_interest_details(
 ):
     """Get detailed interest records for admin tracking"""
     try:
-        engine_argus = get_engine_argus()
+        engine_user = get_engine_user()
 
-        with engine_argus.connect() as conn:
+        with engine_user.connect() as conn:
             # Build query with optional filter
             if interest_type:
                 result = conn.execute(text("""
@@ -1126,6 +1191,63 @@ async def get_interest_details(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get details: {str(e)}")
+
+@app.get("/api/v1/admin/users")
+async def get_all_users(
+    request: Request,
+    limit: int = Query(50, ge=1, le=200, description="Max users to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination")
+):
+    """Get all registered users for admin monitoring"""
+    try:
+        engine_user = get_engine_user()
+
+        with engine_user.connect() as conn:
+            # Get users
+            result = conn.execute(text("""
+                SELECT user_id, email, auth0_id, name, email_verified, is_admin, role, created_at
+                FROM users
+                ORDER BY created_at DESC
+                LIMIT :limit OFFSET :offset
+            """), {"limit": limit, "offset": offset})
+            rows = result.fetchall()
+
+            # Get total count
+            count_result = conn.execute(text("SELECT COUNT(*) FROM users"))
+            total = count_result.fetchone()[0]
+
+        users = []
+        for row in rows:
+            users.append({
+                "user_id": row[0],
+                "email": row[1],
+                "auth0_id": row[2][:20] + "..." if row[2] and len(row[2]) > 20 else row[2],
+                "name": row[3],
+                "email_verified": row[4],
+                "is_admin": row[5],
+                "role": row[6],
+                "created_at": row[7].isoformat() if row[7] else None
+            })
+
+        response_data = {
+            "success": True,
+            "data": users,
+            "total": total,
+            "limit": limit,
+            "offset": offset
+        }
+
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get users: {str(e)}")
 
 @app.post("/api/v1/generate-market-pulse")
 async def generate_market_pulse(request: Request):
