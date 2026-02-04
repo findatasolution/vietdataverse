@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Dictionary - Argus FinTel</title>
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #0f3460;
+            --highlight: #e94560;
+            --text: #eee;
+            --text-muted: #aaa;
+            --border: #333;
+            --success: #4CAF50;
+            --warning: #FF9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--highlight), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .section h2 {
+            color: var(--highlight);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2 .icon {
+            font-size: 1.5rem;
+        }
+
+        .source-badge {
+            display: inline-block;
+            background: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .field-name {
+            font-family: 'Consolas', monospace;
+            color: #64B5F6;
+        }
+
+        .field-type {
+            color: var(--warning);
+            font-size: 0.85rem;
+        }
+
+        .source-link {
+            color: var(--highlight);
+            text-decoration: none;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        .update-freq {
+            display: inline-block;
+            background: var(--success);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .db-name {
+            font-family: 'Consolas', monospace;
+            background: var(--secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--highlight);
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid var(--highlight);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background: var(--highlight);
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.85rem;
+            }
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Data Dictionary</h1>
+            <p class="subtitle">Argus FinTel - Vietnam Financial Intelligence Platform</p>
+        </header>
+
+        <!-- SBV Data -->
+        <div class="section">
+            <h2>
+                <span class="icon">🏦</span>
+                SBV Interest Rates
+                <span class="source-badge">Database: crawling_bot</span>
+            </h2>
+            <p style="margin-bottom:15px;">
+                <strong>Source:</strong> <a href="https://sbv.gov.vn" class="source-link" target="_blank">State Bank of Vietnam (SBV)</a><br>
+                <strong>Table:</strong> <span class="db-name">vn_sbv_interbankrate</span><br>
+                <strong>Update:</strong> <span class="update-freq">Daily 9:30 AM VN</span>
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">date</td>
+                        <td class="field-type">DATE</td>
+                        <td>Ngay ap dung (Effective date)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">quadem</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat qua dem (Overnight rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">1w</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat 1 tuan (1 week rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">2w</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat 2 tuan (2 weeks rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">1m</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat 1 thang (1 month rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">3m</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat 3 thang (3 months rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">6m</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat 6 thang (6 months rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">9m</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat 9 thang (9 months rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">rediscount_rate</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat tai chiet khau (Rediscount rate, %/year)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">refinancing_rate</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat tai cap von (Refinancing rate, %/year)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SBV Central Exchange Rate -->
+        <div class="section">
+            <h2>
+                <span class="icon">💱</span>
+                SBV Central Exchange Rate
+                <span class="source-badge">Database: crawling_bot</span>
+            </h2>
+            <p style="margin-bottom:15px;">
+                <strong>Source:</strong> <a href="https://sbv.gov.vn/vi/ty-gia" class="source-link" target="_blank">SBV Exchange Rate Page</a><br>
+                <strong>Table:</strong> <span class="db-name">vn_sbv_centralrate</span><br>
+                <strong>Update:</strong> <span class="update-freq">Daily 9:30 AM VN</span>
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">date</td>
+                        <td class="field-type">DATE</td>
+                        <td>Ngay ban hanh (Issue date)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">usd_vnd_rate</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Ty gia trung tam USD/VND (VND per 1 USD)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">document_no</td>
+                        <td class="field-type">VARCHAR(50)</td>
+                        <td>So van ban/quyet dinh (Document number)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">crawl_time</td>
+                        <td class="field-type">TIMESTAMP</td>
+                        <td>Thoi gian crawl du lieu</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bank Term Deposit -->
+        <div class="section">
+            <h2>
+                <span class="icon">🏧</span>
+                Bank Term Deposit Rates
+                <span class="source-badge">Database: crawling_bot</span>
+            </h2>
+            <p style="margin-bottom:15px;">
+                <strong>Sources:</strong>
+                <a href="https://www.acb.com.vn/wps/portal/vi/khcn/tt-tien-gui/tien-gui-co-ky-han" class="source-link" target="_blank">ACB</a>,
+                <a href="https://www.shb.com.vn/category/lai-suat/" class="source-link" target="_blank">SHB</a>,
+                <a href="https://www.vietinbank.vn/web/home/vn/lai-suat/ca-nhan" class="source-link" target="_blank">VietinBank</a>,
+                <a href="https://portal.vietcombank.com.vn/Personal/TG/Pages/lai-suat.aspx?devicechannel=default" class="source-link" target="_blank">Vietcombank</a><br>
+                <strong>Table:</strong> <span class="db-name">vn_bank_termdepo</span><br>
+                <strong>Update:</strong> <span class="update-freq">Daily 8:30 AM VN</span>
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">bank</td>
+                        <td class="field-type">VARCHAR(10)</td>
+                        <td>Ma ngan hang (ACB, SHB, CTG, VCB)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">date</td>
+                        <td class="field-type">DATE</td>
+                        <td>Ngay cap nhat lai suat</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">1m ... 36m</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Lai suat theo ky han (1, 2, 3, 6, 9, 12, 18, 24, 36 thang)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Gold Prices -->
+        <div class="section">
+            <h2>
+                <span class="icon">🥇</span>
+                Gold Prices
+                <span class="source-badge">Database: crawling_bot</span>
+            </h2>
+            <p style="margin-bottom:15px;">
+                <strong>Source:</strong> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" class="source-link" target="_blank">24h.com.vn</a><br>
+                <strong>Table:</strong> <span class="db-name">vn_gold_24h_hist</span><br>
+                <strong>Update:</strong> <span class="update-freq">2x Daily (8:30 AM, 2:30 PM VN)</span>
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">date</td>
+                        <td class="field-type">DATE</td>
+                        <td>Ngay giao dich</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">type</td>
+                        <td class="field-type">VARCHAR(100)</td>
+                        <td>Loai vang (SJC, DOJI, PNJ, ...)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">buy_price</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Gia mua (VND/luong)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">sell_price</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Gia ban (VND/luong)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Silver Prices -->
+        <div class="section">
+            <h2>
+                <span class="icon">🥈</span>
+                Silver Prices
+                <span class="source-badge">Database: crawling_bot</span>
+            </h2>
+            <p style="margin-bottom:15px;">
+                <strong>Source:</strong> <a href="https://www.phuquy.com.vn/gia-bac-hom-nay" class="source-link" target="_blank">Phu Quy</a><br>
+                <strong>Table:</strong> <span class="db-name">vn_silver_phuquy_hist</span><br>
+                <strong>Update:</strong> <span class="update-freq">2x Daily (8:30 AM, 2:30 PM VN)</span>
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">date</td>
+                        <td class="field-type">DATE</td>
+                        <td>Ngay giao dich</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">buy_price</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Gia mua (VND)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">sell_price</td>
+                        <td class="field-type">FLOAT</td>
+                        <td>Gia ban (VND)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">source</td>
+                        <td class="field-type">VARCHAR(50)</td>
+                        <td>Nguon du lieu</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Market Pulse / MRI -->
+        <div class="section">
+            <h2>
+                <span class="icon">📰</span>
+                Market Pulse (MRI Analysis)
+                <span class="source-badge">Database: argus_fintel</span>
+            </h2>
+            <p style="margin-bottom:15px;">
+                <strong>Sources:</strong> CNBC, BBC Business, MarketWatch (RSS Feeds)<br>
+                <strong>Table:</strong> <span class="db-name">mri_analysis</span><br>
+                <strong>Update:</strong> <span class="update-freq">Every 6 hours</span><br>
+                <strong>Processing:</strong> Gemini 2.5 Flash AI filtering
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field-name">title</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Tieu de bai bao (VI hoac EN)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">brief_content</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Tom tat noi dung</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">source_name</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Nguon tin (CNBC, BBC, MarketWatch)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">source_date</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Ngay dang bai goc</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">url</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Link bai bao goc</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">label</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Thi truong bi anh huong (VNINDEX, GOLD, REAL_ESTATE, BANKING, FX)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">mri</td>
+                        <td class="field-type">INTEGER</td>
+                        <td>Market Reaction Index (-100 to +100). <a href="mri-methodology.html" class="source-link">Chi tiet &rarr;</a></td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">lang</td>
+                        <td class="field-type">TEXT</td>
+                        <td>Ngon ngu (vi, en)</td>
+                    </tr>
+                    <tr>
+                        <td class="field-name">generated_at</td>
+                        <td class="field-type">TIMESTAMP</td>
+                        <td>Thoi gian xu ly</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align:center; margin-top:40px;">
+            <a href="mri-methodology.html" class="nav-link">MRI Methodology &rarr;</a>
+            <a href="index.html" class="nav-link">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -21,11 +21,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 python-dotenv
+        pip install pandas requests sqlalchemy psycopg2-binary beautifulsoup4 python-dotenv google-generativeai
 
     - name: Run SBV crawler
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         cd crawl_tools
         python crawl_sbv.py

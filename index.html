@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YB3PKHN2E5"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-YB3PKHN2E5');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <title>Viet Dataverse | Tải Dữ Liệu Kinh Tế Vĩ Mô Miễn Phí | Download Vietnam Historical Index</title> -->
@@ -1108,6 +1117,11 @@
             100% { background-position: -200% 0; }
         }
 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .chart-skeleton {
             height: 400px;
             display: flex;
@@ -2085,15 +2099,60 @@
             <!-- 1s Market Pulse -->
             <div class="tab-content" id="1smarket-portal">
                 <div class="section-header">
-                    <h1 class="section-title" style="font-size: 2.5rem;">Thời báo 1 Giây</h1>
+                    <h1 class="section-title" style="font-size: 2.5rem;">Thoi bao 1 Giay</h1>
                     <p class="section-subtitle" style="font-size: 1.125rem;">
-                        <strong>Thông tin toàn cầu ảnh hưởng đến thị trường tài chính trong nước</strong>
+                        <strong>Thong tin toan cau anh huong den thi truong tai chinh trong nuoc</strong>
                     </p>
                 </div>
 
+                <!-- Filters -->
+                <div id="pulse-filters" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem;padding:1rem;background:var(--bg-secondary);border-radius:8px;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <label style="font-size:0.85rem;color:var(--text-secondary);">Nguon:</label>
+                        <select id="filter-source" style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-primary);color:var(--text-primary);font-size:0.85rem;">
+                            <option value="">Tat ca</option>
+                            <option value="CNBC">CNBC</option>
+                            <option value="BBC">BBC</option>
+                            <option value="MarketWatch">MarketWatch</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <label style="font-size:0.85rem;color:var(--text-secondary);">Thi truong:</label>
+                        <select id="filter-label" style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-primary);color:var(--text-primary);font-size:0.85rem;">
+                            <option value="">Tat ca</option>
+                            <option value="VNINDEX">VN-Index</option>
+                            <option value="GOLD">Vang</option>
+                            <option value="REAL_ESTATE">Bat dong san</option>
+                            <option value="BANKING">Ngan hang</option>
+                            <option value="FX">Ngoai hoi</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <label style="font-size:0.85rem;color:var(--text-secondary);">MRI:</label>
+                        <select id="filter-mri" style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-primary);color:var(--text-primary);font-size:0.85rem;">
+                            <option value="">Tat ca</option>
+                            <option value="positive">Tich cuc (+)</option>
+                            <option value="negative">Tieu cuc (-)</option>
+                        </select>
+                    </div>
+                    <button id="filter-reset" style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:0.85rem;cursor:pointer;">Reset</button>
+                </div>
+
                 <div id="market-pulse-articles">
-                    <div class="chart-loading" id="pulseLoading" style="padding: 3rem; text-align: center; color: var(--text-tertiary);">
-                        Loading...
+                    <!-- Skeleton loading -->
+                    <div class="pulse-skeleton" style="animation:pulse 1.5s infinite;">
+                        <div style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                            <div style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;"></div>
+                            <div style="height:28px;width:70%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;"></div>
+                            <div style="height:16px;width:40%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;"></div>
+                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
+                        </div>
+                        <div style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                            <div style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;"></div>
+                            <div style="height:28px;width:60%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;"></div>
+                            <div style="height:16px;width:35%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;"></div>
+                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -2269,20 +2328,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- API Section -->
-                <div class="api-section">
-                    <div class="api-header">
-                        <i class="fas fa-plug" style="color: var(--gold-primary); font-size: 1.5rem;"></i>
-                        <h3>API Access</h3>
-                    </div>
-                    <p class="api-description">
-                        Access datasets programmatically via our API. Processing...
-                    </p>
-                    <p class="api-footer">
-                        <a href="../crawl_tools/data_description.html">Sign in</a> to receive notification when it available.
-                    </p>
-                </div>
             </div>
 
             <!-- About & Terms Tab -->
@@ -2418,7 +2463,7 @@
                 tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm (NHTM)',
                 globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
                 downloadTitle: 'Tải Dữ liệu Lịch Sử',
-                downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng trong nước, giá bạc, lãi suất ngân hàng miễn phí. Download Vietnam historical gold price từ 2015 đến nay hoặc truy cập qua RESTful API.',
+                downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng trong nước, giá bạc, và dữ liệu vĩ mô tại đây',
                 goldDatasetTitle: 'Tải Lịch Sử Giá Vàng',
                 goldDatasetDesc: 'Tải lịch sử giá vàng trong nước. Download Vietnam historical gold price miễn phí với giá mua/bán cập nhật 2 lần mỗi ngày từ nguồn uy tín.',
                 silverDatasetTitle: 'Giá Bạc Phú Quý',
@@ -2432,7 +2477,7 @@
                 langBtn: 'Vie',
                 subtitle: 'Economic Intelligence',
                 navDataPortal: 'Open Economic Data',
-                nav1sMarketPortal: 'Thời báo 1 giây',
+                nav1sMarketPortal: '1s Market Pulse',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Download data & API access',
                 navAboutTerms: 'About & Terms',
@@ -3104,66 +3149,89 @@ const CHART_API_ENDPOINTS = {
     global: 'global-macro'
 };
 
+// Static CDN base URL (same domain, /data folder)
+const STATIC_CDN_BASE = './data';
+
+// Build static file URL for chart type
+function getStaticFileUrl(chartType, period, goldType, bankCode) {
+    if (chartType === 'gold') {
+        const safeType = goldType.replace(/ /g, '_').replace(/\//g, '_');
+        return `${STATIC_CDN_BASE}/gold_${safeType}_${period}.json`;
+    }
+    if (chartType === 'silver') return `${STATIC_CDN_BASE}/silver_${period}.json`;
+    if (chartType === 'sbv') return `${STATIC_CDN_BASE}/sbv_${period}.json`;
+    if (chartType === 'td') return `${STATIC_CDN_BASE}/termdepo_${bankCode}_${period}.json`;
+    return null;
+}
+
+// Transform static data format to API format
+function transformStaticData(chartType, staticData) {
+    const d = staticData.data || staticData;
+    if (chartType === 'gold' || chartType === 'silver') {
+        return { success: true, data: { dates: d.dates, buy_prices: d.buy_prices, sell_prices: d.sell_prices }, type: d.type, period: d.period, count: d.count };
+    }
+    if (chartType === 'sbv') {
+        return { success: true, data: { dates: d.dates, overnight: d.overnight, month_1: d.month_1, month_3: d.month_3, rediscount: d.rediscount, refinancing: d.refinancing }, period: d.period, count: d.count };
+    }
+    if (chartType === 'td') {
+        return { success: true, data: { dates: d.dates, term_1m: d.term_1m, term_3m: d.term_3m, term_6m: d.term_6m, term_12m: d.term_12m, term_24m: d.term_24m }, bank: d.bank, period: d.period, count: d.count };
+    }
+    return staticData;
+}
+
 /* =========================================================
-   FETCH CHART DATA WITH CACHING
+   FETCH CHART DATA - STATIC CDN FIRST, API FALLBACK
 ========================================================= */
 async function loadChartData(chartType, period = '1m', goldType = 'DOJI HN', bankCode = 'ACB') {
     const base = window.APP_CONFIG.API_BASE_URL;
-    if (!base || !chartType) return;
+    if (!chartType) return;
 
     const endpoint = CHART_API_ENDPOINTS[chartType];
-    if (!endpoint) {
-        console.error('Unknown chart type:', chartType);
-        return;
-    }
+    if (!endpoint) { console.error('Unknown chart type:', chartType); return; }
 
-    // Build cache key
     const cacheKey = `${chartType}-${period}-${goldType}-${bankCode}`;
-
-    // Check cache first
     if (chartCache[cacheKey]) {
         console.log(`[${chartType}] Using cached data`);
         renderChart(chartType, chartCache[cacheKey], period);
         return;
     }
 
-    // Show loading skeleton
     const loadingEl = document.getElementById(`${chartType}Loading`);
     if (loadingEl) loadingEl.style.display = 'flex';
 
+    let data = null;
     try {
-        // Build API URL with parameters
-        let apiUrl = `${base}/${endpoint}?period=${period}`;
-        if (chartType === 'gold' && goldType) {
-            apiUrl += `&type=${encodeURIComponent(goldType)}`;
+        // STRATEGY 1: Try static CDN first (instant, no cold start)
+        const staticUrl = getStaticFileUrl(chartType, period, goldType, bankCode);
+        if (staticUrl) {
+            try {
+                const staticRes = await fetch(staticUrl, { cache: 'default' });
+                if (staticRes.ok) {
+                    data = transformStaticData(chartType, await staticRes.json());
+                    console.log(`[${chartType}] Loaded from static CDN`);
+                }
+            } catch (e) { console.log(`[${chartType}] Static unavailable, trying API...`); }
         }
-        if (chartType === 'td' && bankCode) {
-            apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
+
+        // STRATEGY 2: Fallback to API if static failed
+        if (!data && base) {
+            let apiUrl = `${base}/${endpoint}?period=${period}`;
+            if (chartType === 'gold' && goldType) apiUrl += `&type=${encodeURIComponent(goldType)}`;
+            if (chartType === 'td' && bankCode) apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
+            const res = await fetch(apiUrl);
+            if (!res.ok) throw new Error(`API error: ${res.status}`);
+            data = await res.json();
+            console.log(`[${chartType}] Loaded from API`);
         }
 
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-
-        const data = await res.json();
-        console.log(`[${chartType}] Data loaded:`, data);
-
-        // Store in cache
-        chartCache[cacheKey] = data;
-
-        // Render chart
-        renderChart(chartType, data, period);
+        if (data) { chartCache[cacheKey] = data; renderChart(chartType, data, period); }
+        else { throw new Error('No data source available'); }
 
     } catch (e) {
-        console.error(`[${chartType}] Fetch failed:`, e);
-        // Show error message
-        if (loadingEl) {
-            loadingEl.innerHTML = '<p style="color: #EF5350; text-align: center;">Failed to load data. Please try again.</p>';
-        }
+        console.error(`[${chartType}] All fetch failed:`, e);
+        if (loadingEl) loadingEl.innerHTML = '<p style="color: #EF5350; text-align: center;">Failed to load data. Please try again.</p>';
     } finally {
-        // Hide loading skeleton after a short delay
-        setTimeout(() => {
-            if (loadingEl) loadingEl.style.display = 'none';
-        }, 500);
+        setTimeout(() => { if (loadingEl) loadingEl.style.display = 'none'; }, 500);
     }
 }
 
@@ -3580,33 +3648,87 @@ function renderPulseArticle(item) {
     </article>`;
 }
 
+// Market Pulse data cache for filtering
+let pulseDataCache = [];
+
 async function loadMarketPulse() {
     const base = window.APP_CONFIG.API_BASE_URL;
     const container = document.getElementById('market-pulse-articles');
-    const loading = document.getElementById('pulseLoading');
-    if (!container || !base) return;
+    if (!container) return;
 
     const lang = localStorage.getItem('lang') || 'vi';
+    let data = null;
 
     try {
-        const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=10`);
-        if (!res.ok) throw new Error('API error');
-        const json = await res.json();
+        // Try static file first (instant, no cold start)
+        try {
+            const staticRes = await fetch('./data/market_pulse.json', { cache: 'default' });
+            if (staticRes.ok) {
+                const staticJson = await staticRes.json();
+                data = staticJson.data?.data || staticJson.data || [];
+                console.log('[MarketPulse] Loaded from static');
+            }
+        } catch (e) { /* static unavailable */ }
 
-        if (!json.success || !json.data || json.data.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chua co bai viet nao. Du lieu se duoc cap nhat moi 6 gio.</p>';
+        // Fallback to API
+        if (!data || data.length === 0) {
+            if (base) {
+                const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`);
+                if (res.ok) {
+                    const json = await res.json();
+                    data = json.data || [];
+                    console.log('[MarketPulse] Loaded from API');
+                }
+            }
+        }
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chua co bai viet nao.</p>';
             return;
         }
 
-        container.innerHTML = json.data.map(renderPulseArticle).join('');
+        pulseDataCache = data;
+        renderFilteredPulse();
     } catch (e) {
         console.error('Market Pulse fetch failed:', e);
-        if (loading) loading.textContent = 'Khong the tai du lieu. Vui long thu lai sau.';
+        container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Khong the tai du lieu.</p>';
     }
 }
 
-// Load market pulse on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', loadMarketPulse);
+function renderFilteredPulse() {
+    const container = document.getElementById('market-pulse-articles');
+    if (!container) return;
+
+    const sourceFilter = document.getElementById('filter-source')?.value || '';
+    const labelFilter = document.getElementById('filter-label')?.value || '';
+    const mriFilter = document.getElementById('filter-mri')?.value || '';
+
+    let filtered = pulseDataCache;
+    if (sourceFilter) filtered = filtered.filter(i => i.source_name?.includes(sourceFilter));
+    if (labelFilter) filtered = filtered.filter(i => i.label === labelFilter);
+    if (mriFilter === 'positive') filtered = filtered.filter(i => i.mri > 0);
+    else if (mriFilter === 'negative') filtered = filtered.filter(i => i.mri < 0);
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Khong co ket qua phu hop.</p>';
+        return;
+    }
+    container.innerHTML = filtered.slice(0, 10).map(renderPulseArticle).join('');
+}
+
+// Initialize Market Pulse with filter listeners
+document.addEventListener('DOMContentLoaded', () => {
+    loadMarketPulse();
+    ['filter-source', 'filter-label', 'filter-mri'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', renderFilteredPulse);
+    });
+    document.getElementById('filter-reset')?.addEventListener('click', () => {
+        document.getElementById('filter-source').value = '';
+        document.getElementById('filter-label').value = '';
+        document.getElementById('filter-mri').value = '';
+        renderFilteredPulse();
+    });
+});
 </script>
 
 
