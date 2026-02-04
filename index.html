@@ -880,8 +880,38 @@
         .dataset-top {
             display: flex;
             align-items: flex-start;
+            justify-content: space-between;
             gap: 1.25rem;
             margin-bottom: 1.5rem;
+        }
+
+        /* Save/Bookmark button for tracking user interest */
+        .save-interest-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .save-interest-btn:hover {
+            border-color: var(--gold-primary);
+            color: var(--gold-primary);
+        }
+        .save-interest-btn.saved {
+            background: var(--gold-primary);
+            border-color: var(--gold-primary);
+            color: white;
+        }
+        .save-interest-btn.saved:hover {
+            background: var(--gold-accent);
+            border-color: var(--gold-accent);
         }
 
         /* Dataset icon removed for cleaner design */
@@ -1791,6 +1821,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" data-tab="fintel-agent-for-hire">
+                            <div class="nav-content">
+                                <h4>AI Agent</h4>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" data-tab="download-api">
                             <div class="nav-content">
                                 <h4>Download & API</h4>
@@ -2099,9 +2136,9 @@
             <!-- 1s Market Pulse -->
             <div class="tab-content" id="1smarket-portal">
                 <div class="section-header">
-                    <h1 class="section-title" style="font-size: 2.5rem;">Thoi bao 1 Giay</h1>
+                    <h1 class="section-title" style="font-size: 2.5rem;">Thời Báo 1 Giây</h1>
                     <p class="section-subtitle" style="font-size: 1.125rem;">
-                        <strong>Thong tin toan cau anh huong den thi truong tai chinh trong nuoc</strong>
+                        <strong>Thông tin toàn cầu ảnh hưởng đến thị trường tài chính trong nước</strong>
                     </p>
                 </div>
 
@@ -2157,6 +2194,184 @@
                 </div>
 
             </div>
+
+            <!-- Fintel Agent -->
+            <div class="tab-content" id="fintel-agent-for-hire">
+                <div class="section-header">
+                    <h1 class="section-title" style="font-size: 2.5rem;">Fintel Agent</h1>
+                    <p class="section-subtitle" style="font-size: 1.125rem;">
+                        <strong>Các Agent về tài chính sẵn sàng cho thuê</strong> - AI Financial Agents for Hire
+                    </p>
+                    <p class="section-subtitle">
+                        Dịch vụ AI Agent chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch.
+                        <br>Specialized AI agents for financial analysis, market forecasting, and trading automation.
+                    </p>
+                </div>
+
+                <!-- Agents Grid -->
+                <div class="datasets-grid">
+                    <!-- Market Analysis Agent -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>📊 Market Analysis Agent</h3>
+                                <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
+                            </div>
+                            <button class="save-interest-btn" data-interest="agent-market-analysis" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <p class="dataset-desc">
+                            <strong>Phân tích thị trường tự động</strong> - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và cảnh báo biến động bất thường 24/7.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-chart-line"></i>
+                                VN-Index, VN30
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                Real-time
+                            </span>
+                        </div>
+                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
+                            <span style="margin-right: 8px;">✓ Technical Analysis</span>
+                            <span style="margin-right: 8px;">✓ Trend Detection</span>
+                            <span>✓ Alert System</span>
+                        </div>
+                    </div>
+
+                    <!-- Gold Trading Agent -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>🥇 Gold Trading Agent</h3>
+                                <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
+                            </div>
+                            <button class="save-interest-btn" data-interest="agent-gold-trading" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <p class="dataset-desc">
+                            <strong>Theo dõi giá vàng</strong> - So sánh giá vàng SJC, DOJI, PNJ với giá quốc tế, cảnh báo chênh lệch và thời điểm mua/bán tối ưu.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-coins"></i>
+                                SJC, DOJI, PNJ
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-globe"></i>
+                                XAU/USD
+                            </span>
+                        </div>
+                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
+                            <span style="margin-right: 8px;">✓ Price Arbitrage</span>
+                            <span style="margin-right: 8px;">✓ Buy/Sell Signals</span>
+                            <span>✓ Spread Analysis</span>
+                        </div>
+                    </div>
+
+                    <!-- News Sentiment Agent -->
+                    <div class="dataset-card">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>📰 News Sentiment Agent</h3>
+                                <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
+                            </div>
+                            <button class="save-interest-btn" data-interest="agent-news-sentiment" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <p class="dataset-desc">
+                            <strong>Phân tích tin tức</strong> - Quét tin tức tài chính 24/7, đánh giá sentiment và dự báo tác động đến thị trường VN bằng AI.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-newspaper"></i>
+                                50+ Sources
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-brain"></i>
+                                NLP/LLM
+                            </span>
+                        </div>
+                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
+                            <span style="margin-right: 8px;">✓ Multi-source</span>
+                            <span style="margin-right: 8px;">✓ MRI Score</span>
+                            <span>✓ Impact Prediction</span>
+                        </div>
+                    </div>
+
+                    <!-- Custom Agent -->
+                    <div class="dataset-card" style="border: 2px dashed #d1d5db;">
+                        <div class="dataset-top">
+                            <div class="dataset-info">
+                                <h3>🛠️ Custom Agent</h3>
+                                <span style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 4px; display: inline-block;">On Request</span>
+                            </div>
+                            <button class="save-interest-btn" data-interest="agent-custom" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <p class="dataset-desc">
+                            <strong>Agent tùy chỉnh</strong> - Xây dựng AI agent theo yêu cầu riêng của doanh nghiệp: tích hợp dữ liệu nội bộ, workflow tự động, báo cáo định kỳ.
+                        </p>
+                        <div class="dataset-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-cogs"></i>
+                                Custom Logic
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-plug"></i>
+                                API Integration
+                            </span>
+                        </div>
+                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
+                            <span style="margin-right: 8px;">✓ Private Data</span>
+                            <span style="margin-right: 8px;">✓ Custom Workflow</span>
+                            <span>✓ Enterprise</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="section-header" style="margin-top: 48px;">
+                    <h2 class="section-title">Pricing (Beta)</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 24px; text-align: center;">
+                        <h3 style="color: #3b82f6; margin-bottom: 8px;">Starter</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">$29<span style="font-size: 1rem; color: #6b7280;">/month</span></p>
+                        <ul style="text-align: left; list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">✓ 1 Agent</li>
+                            <li style="padding: 8px 0;">✓ 1000 API calls/month</li>
+                            <li style="padding: 8px 0;">✓ Email alerts</li>
+                        </ul>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 12px; padding: 24px; text-align: center; color: white;">
+                        <h3 style="margin-bottom: 8px;">Pro</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">$99<span style="font-size: 1rem; opacity: 0.8;">/month</span></p>
+                        <ul style="text-align: left; list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">✓ 3 Agents</li>
+                            <li style="padding: 8px 0;">✓ Unlimited API calls</li>
+                            <li style="padding: 8px 0;">✓ Real-time webhooks</li>
+                            <li style="padding: 8px 0;">✓ Priority support</li>
+                        </ul>
+                    </div>
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 24px; text-align: center;">
+                        <h3 style="color: #10b981; margin-bottom: 8px;">Enterprise</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">Custom</p>
+                        <ul style="text-align: left; list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">✓ Custom Agents</li>
+                            <li style="padding: 8px 0;">✓ On-premise option</li>
+                            <li style="padding: 8px 0;">✓ SLA guarantee</li>
+                            <li style="padding: 8px 0;">✓ Dedicated support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- Download & API Tab -->
             <div class="tab-content" id="download-api">
                 <div class="section-header">
@@ -2173,6 +2388,9 @@
                             <div class="dataset-info">
                                 <h3>Lịch Sử Giá Vàng Trong Nước</h3>
                             </div>
+                            <button class="save-interest-btn" data-interest="gold-data" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
                         </div>
                         <p class="dataset-desc">
                             <strong>Tải lịch sử giá vàng</strong> SJC, DOJI, PNJ 24K từ 2015 đến nay. <strong>Download Vietnam historical gold price</strong> miễn phí.
@@ -2203,6 +2421,9 @@
                             <div class="dataset-info">
                                 <h3>Giá Bạc Phú Quý</h3>
                             </div>
+                            <button class="save-interest-btn" data-interest="silver-data" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
                         </div>
                         <p class="dataset-desc">
                             Giá bạc thỏi Phú Quý tại thị trường trong nước, cập nhật 2 lần mỗi ngày (8:30 sáng và 1:30 chiều) với kiểm tra chất lượng tự động từ nguồn công khai.
@@ -2231,6 +2452,9 @@
                             <div class="dataset-info">
                                 <h3>Lãi Suất Liên Ngân Hàng SBV</h3>
                             </div>
+                            <button class="save-interest-btn" data-interest="sbv-data" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
                         </div>
                         <p class="dataset-desc">
                             Lãi suất liên ngân hàng chính thức được Ngân hàng Nhà nước Việt Nam (SBV) công bố, bao gồm các kỳ hạn từ overnight đến 9 tháng.
@@ -2259,6 +2483,9 @@
                             <div class="dataset-info">
                                 <h3>Bank Term Deposit Rates</h3>
                             </div>
+                            <button class="save-interest-btn" data-interest="termdepo-data" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
                         </div>
                         <p class="dataset-desc">
                             Savings interest rates from Vietnam's 8 largest commercial banks (VCB, VTB, TCB, MB, ACB, TPB, VPB, AGR).
@@ -2284,6 +2511,9 @@
                             <div class="dataset-info">
                                 <h3>VN30 Financial Statements</h3>
                             </div>
+                            <button class="save-interest-btn" data-interest="vn30-data" title="Lưu quan tâm">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
                         </div>
                         <p class="dataset-desc">
                             Fundamental financial data for Vietnam's top 30 stocks by market cap, including balance sheets and key ratios.
@@ -2450,6 +2680,7 @@
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
                 nav1sMarketPortal: 'Thời báo 1 giây',
                 navfinagent: 'Trợ lý tài chính AI',
+                navfinagentsub: 'Dịch vụ cho thuê Fintel Agent',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Tải dữ liệu & API access',
                 navAboutTerms: 'Giới thiệu Viet Dataverse',
@@ -2480,8 +2711,9 @@
                 navDataPortal: 'Open Economic Data',
                 nav1sMarketPortal: '1s Market Pulse',
                 navfinagent: 'AI Financial Agent',
+                navfinagentsub: 'Fintel Agent for Hire',
                 navDownloadApi: 'Download & API',
-                navDownloadApiMeta: 'Download data & API access',
+                navDownloadApiMeta: 'Free Download & API',
                 navAboutTerms: 'About & Terms',
                 navAboutTermsMeta: 'About project & Terms',
                 mainTitle: 'Open Economic Data',
@@ -2529,6 +2761,10 @@
                     link.querySelector('h4').textContent = t.nav1sMarketPortal;
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.nav1sMarketPortal;
+                } else if (link.getAttribute('data-tab') === 'fintel-agent-for-hire') {
+                    link.querySelector('h4').textContent = t.navfinagent;
+                    const meta = link.querySelector('.nav-meta');
+                    if (meta) meta.textContent = t.navfinagentsub;
                 } else if (link.getAttribute('data-tab') === 'download-api') {
                     link.querySelector('h4').textContent = t.navDownloadApi;
                     const meta = link.querySelector('.nav-meta');
@@ -3729,6 +3965,106 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('filter-label').value = '';
         document.getElementById('filter-mri').value = '';
         renderFilteredPulse();
+    });
+});
+
+// ============================================================
+// SAVE INTEREST - Per-item bookmark buttons for tracking
+// ============================================================
+const SAVED_INTERESTS_KEY = 'vietdataverse_saved_interests';
+
+function getFingerprint() {
+    // Simple browser fingerprint for anonymous tracking
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillText('fingerprint', 2, 2);
+    const fp = canvas.toDataURL().slice(-50);
+    const nav = navigator.userAgent + navigator.language + screen.width + screen.height;
+    return btoa(fp + nav).slice(0, 32);
+}
+
+function getSavedInterests() {
+    try {
+        return JSON.parse(localStorage.getItem(SAVED_INTERESTS_KEY) || '{}');
+    } catch {
+        return {};
+    }
+}
+
+function setSavedInterest(interestType) {
+    const saved = getSavedInterests();
+    saved[interestType] = Date.now();
+    localStorage.setItem(SAVED_INTERESTS_KEY, JSON.stringify(saved));
+}
+
+function isInterestSaved(interestType) {
+    const saved = getSavedInterests();
+    return !!saved[interestType];
+}
+
+async function saveInterest(btn, interestType) {
+    if (!btn || !interestType) return;
+
+    // Check if already saved
+    if (isInterestSaved(interestType)) {
+        // Toggle off - unsave
+        const saved = getSavedInterests();
+        delete saved[interestType];
+        localStorage.setItem(SAVED_INTERESTS_KEY, JSON.stringify(saved));
+        btn.classList.remove('saved');
+        btn.title = 'Lưu quan tâm';
+        return;
+    }
+
+    // Save interest
+    btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    try {
+        const fingerprint = getFingerprint();
+        await fetch(`${API_BASE}/api/v1/interest/${interestType}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fingerprint: fingerprint,
+                source: 'web',
+                user_agent: navigator.userAgent,
+                language: navigator.language
+            })
+        });
+    } catch (err) {
+        console.error('Save interest error:', err);
+    }
+
+    // Always mark as saved locally (even if API fails)
+    setSavedInterest(interestType);
+    btn.innerHTML = '<i class="fas fa-bookmark"></i>';
+    btn.classList.add('saved');
+    btn.title = 'Đã lưu - Click để bỏ lưu';
+    btn.disabled = false;
+}
+
+// Initialize all save interest buttons
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.save-interest-btn').forEach(btn => {
+        const interestType = btn.getAttribute('data-interest');
+        if (!interestType) return;
+
+        // Restore saved state
+        if (isInterestSaved(interestType)) {
+            btn.classList.add('saved');
+            btn.title = 'Đã lưu - Click để bỏ lưu';
+        }
+
+        // Add click handler
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            saveInterest(btn, interestType);
+        });
     });
 });
 </script>
