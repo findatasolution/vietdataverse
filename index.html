@@ -834,6 +834,12 @@
             gap: 1.5rem;
             margin-bottom: 3rem;
         }
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
 
         .dataset-card {
             background: var(--bg-elevated);
@@ -844,8 +850,28 @@
             position: relative;
             overflow: hidden;
         }
-
+        .agents-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
         .dataset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold-primary), var(--gold-accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        .agents-card::before {
             content: '';
             position: absolute;
             top: 0;
@@ -863,6 +889,11 @@
             transform: translateY(-4px);
             box-shadow: var(--shadow-lg);
         }
+        .agents-card:hover {
+            border-color: rgba(201, 165, 91, 0.3);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
 
         .dataset-card:hover::before {
             transform: scaleX(1);
@@ -871,13 +902,25 @@
         .dataset-card.disabled {
             opacity: 0.5;
         }
-
+        .agents-card.disabled {
+            opacity: 0.5;
+        }
         .dataset-card.disabled:hover {
             transform: none;
             border-color: var(--border-color);
         }
-
+        .agents-card.disabled:hover {
+            transform: none;
+            border-color: var(--border-color);
+        }
         .dataset-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .agents-top {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -922,8 +965,25 @@
             color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
-
+        .agents-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
         .dataset-desc {
+            font-size: 0.9375rem;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+        .dataset-desc {
+            font-size: 0.9375rem;
+            color: var(--text-tertiary);
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+        .agents-desc {
             font-size: 0.9375rem;
             color: var(--text-tertiary);
             line-height: 1.6;
@@ -950,6 +1010,10 @@
         }
 
         .dataset-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .agents-actions {
             display: flex;
             gap: 0.75rem;
         }
@@ -1745,6 +1809,23 @@
                 gap: 0.5rem;
             }
         }
+        .beta-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+
+            color: #8a6d3b;
+            background: rgba(201, 165, 91, 0.18);
+
+            border: 1px solid rgba(201, 165, 91, 0.4);
+            border-radius: 6px;
+
+            vertical-align: middle;
+            }
+
     </style>
 
     <!-- Auth0 SPA SDK -->
@@ -1816,17 +1897,27 @@
                     <li class="nav-item">
                         <a class="nav-link" data-tab="1smarket-portal">
                             <div class="nav-content">
-                                <h4>1s Market Pulse</h4>
+                                <h4 data-i18n="nav1sMarketPortal">1s Market Pulse</h4>
+                                <span class="nav-meta" data-i18n="nav1smarketsub">
+                                Important updates with MRI
+                                </span>
                             </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-tab="fintel-agent-for-hire">
                             <div class="nav-content">
-                                <h4>AI Agent</h4>
+                                <h4 data-i18n="navfinagent">
+                                    AI Agent
+                                    <span class="beta-badge">BETA</span>
+                                </h4>
+                                <span class="nav-meta" data-i18n="navfinagentsub">
+                                    Fintel Agent for Hire
+                                </span>
                             </div>
                         </a>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" data-tab="download-api">
                             <div class="nav-content">
@@ -1877,6 +1968,8 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            
+            <!-- Open Economic Data -->
             <div class="tab-content active" id="data-portal">
                 <div class="section-header">
                     <h1 class="section-title" style="font-size: 2.5rem;">Dữ Liệu Kinh Tế Mở</h1>
@@ -2204,17 +2297,17 @@
                     </p>
                     <p class="section-subtitle">
                         Dịch vụ AI Agent chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch.
-                        <br>Specialized AI agents for financial analysis, market forecasting, and trading automation.
+                        Specialized AI agents for financial analysis, market forecasting, and trading automation.
                     </p>
                 </div>
 
                 <!-- Agents Grid -->
-                <div class="datasets-grid">
+                <div class="agents-grid">
                     <!-- Market Analysis Agent -->
-                    <div class="dataset-card">
+                    <div class="agents-card.disabled">
                         <div class="dataset-top">
                             <div class="dataset-info">
-                                <h3>📊 Market Analysis Agent</h3>
+                                <h3>Market Analysis Agent</h3>
                                 <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
                             </div>
                             <button class="save-interest-btn" data-interest="agent-market-analysis" title="Lưu quan tâm">
@@ -2242,10 +2335,10 @@
                     </div>
 
                     <!-- Gold Trading Agent -->
-                    <div class="dataset-card">
+                    <div class="agents-card.disabled">
                         <div class="dataset-top">
                             <div class="dataset-info">
-                                <h3>🥇 Gold Trading Agent</h3>
+                                <h3>Gold Trading Agent</h3>
                                 <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
                             </div>
                             <button class="save-interest-btn" data-interest="agent-gold-trading" title="Lưu quan tâm">
@@ -2273,10 +2366,10 @@
                     </div>
 
                     <!-- News Sentiment Agent -->
-                    <div class="dataset-card">
+                    <div class="agents-card.disabled">
                         <div class="dataset-top">
                             <div class="dataset-info">
-                                <h3>📰 News Sentiment Agent</h3>
+                                <h3>News Sentiment Agent</h3>
                                 <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
                             </div>
                             <button class="save-interest-btn" data-interest="agent-news-sentiment" title="Lưu quan tâm">
@@ -2304,10 +2397,10 @@
                     </div>
 
                     <!-- Custom Agent -->
-                    <div class="dataset-card" style="border: 2px dashed #d1d5db;">
+                    <div class="agents-card.disabled" style="border: 2px dashed #d1d5db;">
                         <div class="dataset-top">
                             <div class="dataset-info">
-                                <h3>🛠️ Custom Agent</h3>
+                                <h3>Custom Agent</h3>
                                 <span style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 4px; display: inline-block;">On Request</span>
                             </div>
                             <button class="save-interest-btn" data-interest="agent-custom" title="Lưu quan tâm">
@@ -2340,9 +2433,9 @@
                     <h2 class="section-title">Pricing (Beta)</h2>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
-                    <div style="background: #f8fafc; border-radius: 12px; padding: 24px; text-align: center;">
+                    <div style="background: #252526; border-radius: 12px; padding: 24px; text-align: center;">
                         <h3 style="color: #3b82f6; margin-bottom: 8px;">Starter</h3>
-                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">$29<span style="font-size: 1rem; color: #6b7280;">/month</span></p>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">Free</p>
                         <ul style="text-align: left; list-style: none; padding: 0;">
                             <li style="padding: 8px 0;">✓ 1 Agent</li>
                             <li style="padding: 8px 0;">✓ 1000 API calls/month</li>
@@ -2350,8 +2443,8 @@
                         </ul>
                     </div>
                     <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 12px; padding: 24px; text-align: center; color: white;">
-                        <h3 style="margin-bottom: 8px;">Pro</h3>
-                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">$99<span style="font-size: 1rem; opacity: 0.8;">/month</span></p>
+                        <h3 style="margin-bottom: 8px;">Starter</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">$9.9<span style="font-size: 1rem; opacity: 0.8;">/month</span></p>
                         <ul style="text-align: left; list-style: none; padding: 0;">
                             <li style="padding: 8px 0;">✓ 3 Agents</li>
                             <li style="padding: 8px 0;">✓ Unlimited API calls</li>
@@ -2359,7 +2452,7 @@
                             <li style="padding: 8px 0;">✓ Priority support</li>
                         </ul>
                     </div>
-                    <div style="background: #f8fafc; border-radius: 12px; padding: 24px; text-align: center;">
+                    <div style="background: #252526; border-radius: 12px; padding: 24px; text-align: center;">
                         <h3 style="color: #10b981; margin-bottom: 8px;">Enterprise</h3>
                         <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">Custom</p>
                         <ul style="text-align: left; list-style: none; padding: 0;">
@@ -2679,6 +2772,7 @@
                 subtitle: 'Thông tin Kinh tế',
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
                 nav1sMarketPortal: 'Thời báo 1 giây',
+                nav1smarketsub: 'Tờ báo quan trọng theo MRI',
                 navfinagent: 'Trợ lý tài chính AI',
                 navfinagentsub: 'Dịch vụ cho thuê Fintel Agent',
                 navDownloadApi: 'Download & API',
@@ -2710,6 +2804,7 @@
                 subtitle: 'Economic Intelligence',
                 navDataPortal: 'Open Economic Data',
                 nav1sMarketPortal: '1s Market Pulse',
+                nav1smarketsub: 'Important updates with Market Response Index',
                 navfinagent: 'AI Financial Agent',
                 navfinagentsub: 'Fintel Agent for Hire',
                 navDownloadApi: 'Download & API',
