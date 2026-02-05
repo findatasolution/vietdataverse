@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /be/
+Disallow: /crawl_tools/
+Disallow: /data/
+
+Sitemap: https://vietdataverse.online/sitemap.xml

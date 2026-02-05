@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <!-- Google tag (gtag.js) -->
+    <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-YB3PKHN2E5"></script>
     <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-YB3PKHN2E5');
+    gtag('config', 'G-B9BHYSYDES');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,20 +61,13 @@
     <meta name="twitter:image:alt" content="Viet Dataverse Logo">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preload" href="style.css" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B9BHYSYDES"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-B9BHYSYDES');
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
@@ -221,7 +214,7 @@
       "url": "https://vietdataverse.online/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://vietdataverse.online/icon-512.png",
+        "url": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png",
         "width": 512,
         "height": 512
       },
@@ -307,15 +300,18 @@
                             </div>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item nav-ai-agent">
                         <a class="nav-link" data-tab="fintel-agent-for-hire">
+                            <!-- <div class="ai-icon">
+                                <i class="fas fa-robot"></i>
+                            </div> -->
                             <div class="nav-content">
                                 <h4 data-i18n="navfinagent">
-                                    AI Agent
+                                    Fintel AI Agent
                                     <span class="beta-badge">BETA</span>
                                 </h4>
                                 <span class="nav-meta" data-i18n="navfinagentsub">
-                                    Fintel Agent for Hire
+                                    AI Agents for Hire
                                 </span>
                             </div>
                         </a>
@@ -693,177 +689,179 @@
 
             <!-- Fintel Agent -->
             <div class="tab-content" id="fintel-agent-for-hire">
-                <div class="section-header">
-                    <h1 class="section-title" style="font-size: 2.5rem;">Fintel Agent</h1>
-                    <p class="section-subtitle" style="font-size: 1.125rem;">
-                        <strong>Các Agent về tài chính sẵn sàng cho thuê</strong> - AI Financial Agents for Hire
-                    </p>
-                    <p class="section-subtitle">
-                        Dịch vụ AI Agent chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch.
-                        Specialized AI agents for financial analysis, market forecasting, and trading automation.
+                <!-- Hero Section -->
+                <div class="fintel-hero">
+                    <div class="fintel-hero-badge">
+                        <i class="fas fa-sparkles"></i>
+                        <span data-i18n="fintelHeroBadge">Powered by Advanced AI</span>
+                    </div>
+                    <h1 class="fintel-hero-title" data-i18n="fintelHeroTitle">Fintel AI Agents</h1>
+                    <p class="fintel-hero-subtitle" data-i18n="fintelHeroSubtitle">
+                        AI Agents chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch.
+                        Tích hợp dễ dàng qua API, nhận cảnh báo real-time qua webhook.
                     </p>
                 </div>
 
                 <!-- Agents Grid -->
                 <div class="agents-grid">
                     <!-- Market Analysis Agent -->
-                    <div class="dataset-card.disabled">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Market Analysis Agent</h3>
-                                <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
+                    <div class="agent-card">
+                        <div class="agent-card-icon purple">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="agent-card-header">
+                            <div>
+                                <h3 class="agent-card-title" data-i18n="agentMarketTitle">Market Analysis Agent</h3>
                             </div>
-                            <button class="save-interest-btn" data-interest="agent-market-analysis" title="Lưu quan tâm">
+                            <span class="agent-card-status coming-soon" data-i18n="agentStatusComingSoon">Coming Soon</span>
+                        </div>
+                        <p class="agent-card-desc" data-i18n="agentMarketDesc">
+                            Phân tích thị trường tự động - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và cảnh báo biến động bất thường 24/7.
+                        </p>
+                        <div class="agent-card-features">
+                            <span class="agent-feature-tag">Technical Analysis</span>
+                            <span class="agent-feature-tag">Trend Detection</span>
+                            <span class="agent-feature-tag">Alert System</span>
+                        </div>
+                        <div class="agent-card-footer">
+                            <span class="agent-card-meta"><i class="fas fa-chart-area"></i> VN-Index, VN30</span>
+                            <span class="agent-card-meta"><i class="fas fa-bolt"></i> Real-time</span>
+                            <button class="save-interest-btn" data-interest="agent-market-analysis" title="Lưu quan tâm" style="margin-left: auto;">
                                 <i class="fas fa-bookmark"></i>
                             </button>
-                        </div>
-                        <p class="dataset-desc">
-                            <strong>Phân tích thị trường tự động</strong> - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và cảnh báo biến động bất thường 24/7.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                <i class="fas fa-chart-line"></i>
-                                VN-Index, VN30
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-clock"></i>
-                                Real-time
-                            </span>
-                        </div>
-                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
-                            <span style="margin-right: 8px;">✓ Technical Analysis</span>
-                            <span style="margin-right: 8px;">✓ Trend Detection</span>
-                            <span>✓ Alert System</span>
                         </div>
                     </div>
 
                     <!-- Gold Trading Agent -->
-                    <div class="dataset-card.disabled">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Gold Trading Agent</h3>
-                                <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
+                    <div class="agent-card">
+                        <div class="agent-card-icon amber">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="agent-card-header">
+                            <div>
+                                <h3 class="agent-card-title" data-i18n="agentGoldTitle">Gold Trading Agent</h3>
                             </div>
-                            <button class="save-interest-btn" data-interest="agent-gold-trading" title="Lưu quan tâm">
+                            <span class="agent-card-status coming-soon" data-i18n="agentStatusComingSoon">Coming Soon</span>
+                        </div>
+                        <p class="agent-card-desc" data-i18n="agentGoldDesc">
+                            Theo dõi giá vàng - So sánh giá vàng SJC, DOJI, PNJ với giá quốc tế, cảnh báo chênh lệch và thời điểm mua/bán tối ưu.
+                        </p>
+                        <div class="agent-card-features">
+                            <span class="agent-feature-tag">Price Arbitrage</span>
+                            <span class="agent-feature-tag">Buy/Sell Signals</span>
+                            <span class="agent-feature-tag">Spread Analysis</span>
+                        </div>
+                        <div class="agent-card-footer">
+                            <span class="agent-card-meta"><i class="fas fa-coins"></i> SJC, DOJI, PNJ</span>
+                            <span class="agent-card-meta"><i class="fas fa-globe"></i> XAU/USD</span>
+                            <button class="save-interest-btn" data-interest="agent-gold-trading" title="Lưu quan tâm" style="margin-left: auto;">
                                 <i class="fas fa-bookmark"></i>
                             </button>
-                        </div>
-                        <p class="dataset-desc">
-                            <strong>Theo dõi giá vàng</strong> - So sánh giá vàng SJC, DOJI, PNJ với giá quốc tế, cảnh báo chênh lệch và thời điểm mua/bán tối ưu.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                <i class="fas fa-coins"></i>
-                                SJC, DOJI, PNJ
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-globe"></i>
-                                XAU/USD
-                            </span>
-                        </div>
-                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
-                            <span style="margin-right: 8px;">✓ Price Arbitrage</span>
-                            <span style="margin-right: 8px;">✓ Buy/Sell Signals</span>
-                            <span>✓ Spread Analysis</span>
                         </div>
                     </div>
 
                     <!-- News Sentiment Agent -->
-                    <div class="dataset-card.disabled">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>News Sentiment Agent</h3>
-                                <span class="badge-coming-soon" style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Coming Soon</span>
+                    <div class="agent-card">
+                        <div class="agent-card-icon blue">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <div class="agent-card-header">
+                            <div>
+                                <h3 class="agent-card-title" data-i18n="agentNewsTitle">News Sentiment Agent</h3>
                             </div>
-                            <button class="save-interest-btn" data-interest="agent-news-sentiment" title="Lưu quan tâm">
+                            <span class="agent-card-status coming-soon" data-i18n="agentStatusComingSoon">Coming Soon</span>
+                        </div>
+                        <p class="agent-card-desc" data-i18n="agentNewsDesc">
+                            Phân tích tin tức - Quét tin tức tài chính 24/7, đánh giá sentiment và dự báo tác động đến thị trường VN bằng AI.
+                        </p>
+                        <div class="agent-card-features">
+                            <span class="agent-feature-tag">Multi-source</span>
+                            <span class="agent-feature-tag">MRI Score</span>
+                            <span class="agent-feature-tag">Impact Prediction</span>
+                        </div>
+                        <div class="agent-card-footer">
+                            <span class="agent-card-meta"><i class="fas fa-rss"></i> 50+ Sources</span>
+                            <span class="agent-card-meta"><i class="fas fa-brain"></i> NLP/LLM</span>
+                            <button class="save-interest-btn" data-interest="agent-news-sentiment" title="Lưu quan tâm" style="margin-left: auto;">
                                 <i class="fas fa-bookmark"></i>
                             </button>
-                        </div>
-                        <p class="dataset-desc">
-                            <strong>Phân tích tin tức</strong> - Quét tin tức tài chính 24/7, đánh giá sentiment và dự báo tác động đến thị trường VN bằng AI.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                <i class="fas fa-newspaper"></i>
-                                50+ Sources
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-brain"></i>
-                                NLP/LLM
-                            </span>
-                        </div>
-                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
-                            <span style="margin-right: 8px;">✓ Multi-source</span>
-                            <span style="margin-right: 8px;">✓ MRI Score</span>
-                            <span>✓ Impact Prediction</span>
                         </div>
                     </div>
 
                     <!-- Custom Agent -->
-                    <div class="dataset-card.disabled" style="border: 2px dashed #d1d5db;">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Custom Agent</h3>
-                                <span style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 4px; display: inline-block;">On Request</span>
+                    <div class="agent-card custom-card">
+                        <div class="agent-card-icon green">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div class="agent-card-header">
+                            <div>
+                                <h3 class="agent-card-title" data-i18n="agentCustomTitle">Custom Agent</h3>
                             </div>
-                            <button class="save-interest-btn" data-interest="agent-custom" title="Lưu quan tâm">
+                            <span class="agent-card-status on-request" data-i18n="agentStatusOnRequest">On Request</span>
+                        </div>
+                        <p class="agent-card-desc" data-i18n="agentCustomDesc">
+                            Agent tùy chỉnh - Xây dựng AI agent theo yêu cầu riêng của doanh nghiệp: tích hợp dữ liệu nội bộ, workflow tự động, báo cáo định kỳ.
+                        </p>
+                        <div class="agent-card-features">
+                            <span class="agent-feature-tag">Private Data</span>
+                            <span class="agent-feature-tag">Custom Workflow</span>
+                            <span class="agent-feature-tag">Enterprise</span>
+                        </div>
+                        <div class="agent-card-footer">
+                            <span class="agent-card-meta"><i class="fas fa-cogs"></i> Custom Logic</span>
+                            <span class="agent-card-meta"><i class="fas fa-plug"></i> API Integration</span>
+                            <button class="save-interest-btn" data-interest="agent-custom" title="Lưu quan tâm" style="margin-left: auto;">
                                 <i class="fas fa-bookmark"></i>
                             </button>
-                        </div>
-                        <p class="dataset-desc">
-                            <strong>Agent tùy chỉnh</strong> - Xây dựng AI agent theo yêu cầu riêng của doanh nghiệp: tích hợp dữ liệu nội bộ, workflow tự động, báo cáo định kỳ.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                <i class="fas fa-cogs"></i>
-                                Custom Logic
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-plug"></i>
-                                API Integration
-                            </span>
-                        </div>
-                        <div class="agent-features" style="margin-top: 12px; font-size: 0.875rem; color: #6b7280;">
-                            <span style="margin-right: 8px;">✓ Private Data</span>
-                            <span style="margin-right: 8px;">✓ Custom Workflow</span>
-                            <span>✓ Enterprise</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pricing Section -->
-                <div class="section-header" style="margin-top: 48px;">
-                    <h2 class="section-title">Pricing (Beta)</h2>
+                <div class="section-header" style="margin-top: 64px;">
+                    <h2 class="section-title" style="font-size: 2rem;" data-i18n="pricingTitle">Pricing Plans</h2>
+                    <p class="section-subtitle" data-i18n="pricingSubtitle">Chọn gói phù hợp với nhu cầu của bạn</p>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
-                    <div style="background: #252526; border-radius: 12px; padding: 24px; text-align: center;">
-                        <h3 style="color: #3b82f6; margin-bottom: 8px;">Starter</h3>
-                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">Free</p>
-                        <ul style="text-align: left; list-style: none; padding: 0;">
-                            <li style="padding: 8px 0;">✓ 1 Agent</li>
-                            <li style="padding: 8px 0;">✓ 1000 API calls/month</li>
-                            <li style="padding: 8px 0;">✓ Email alerts</li>
+                <div class="pricing-grid">
+                    <!-- Free Plan -->
+                    <div class="pricing-card">
+                        <p class="pricing-card-name" data-i18n="pricingStarter">Starter</p>
+                        <p class="pricing-card-price" data-i18n="pricingFree">Free</p>
+                        <ul class="pricing-card-features">
+                            <li data-i18n="pricingFeature1Agent">1 Agent access</li>
+                            <li data-i18n="pricingFeature1kCalls">1,000 API calls/month</li>
+                            <li data-i18n="pricingFeatureEmail">Email alerts</li>
+                            <li data-i18n="pricingFeatureCommunity">Community support</li>
                         </ul>
+                        <button class="pricing-btn secondary" data-i18n="pricingBtnStart">Get Started</button>
                     </div>
-                    <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 12px; padding: 24px; text-align: center; color: white;">
-                        <h3 style="margin-bottom: 8px;">Starter</h3>
-                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">$9.9<span style="font-size: 1rem; opacity: 0.8;">/month</span></p>
-                        <ul style="text-align: left; list-style: none; padding: 0;">
-                            <li style="padding: 8px 0;">✓ 3 Agents</li>
-                            <li style="padding: 8px 0;">✓ Unlimited API calls</li>
-                            <li style="padding: 8px 0;">✓ Real-time webhooks</li>
-                            <li style="padding: 8px 0;">✓ Priority support</li>
+
+                    <!-- Pro Plan -->
+                    <div class="pricing-card featured">
+                        <p class="pricing-card-name" data-i18n="pricingPro">Pro</p>
+                        <p class="pricing-card-price">$9.9<span>/month</span></p>
+                        <ul class="pricing-card-features">
+                            <li data-i18n="pricingFeature3Agents">All 3 Agents</li>
+                            <li data-i18n="pricingFeatureUnlimited">Unlimited API calls</li>
+                            <li data-i18n="pricingFeatureWebhook">Real-time webhooks</li>
+                            <li data-i18n="pricingFeaturePriority">Priority support</li>
+                            <li data-i18n="pricingFeatureCustomAlerts">Custom alerts</li>
                         </ul>
+                        <button class="pricing-btn primary" data-i18n="pricingBtnUpgrade">Upgrade to Pro</button>
                     </div>
-                    <div style="background: #252526; border-radius: 12px; padding: 24px; text-align: center;">
-                        <h3 style="color: #10b981; margin-bottom: 8px;">Enterprise</h3>
-                        <p style="font-size: 2rem; font-weight: 700; margin: 16px 0;">Custom</p>
-                        <ul style="text-align: left; list-style: none; padding: 0;">
-                            <li style="padding: 8px 0;">✓ Custom Agents</li>
-                            <li style="padding: 8px 0;">✓ On-premise option</li>
-                            <li style="padding: 8px 0;">✓ SLA guarantee</li>
-                            <li style="padding: 8px 0;">✓ Dedicated support</li>
+
+                    <!-- Enterprise Plan -->
+                    <div class="pricing-card">
+                        <p class="pricing-card-name" data-i18n="pricingEnterprise">Enterprise</p>
+                        <p class="pricing-card-price" data-i18n="pricingCustom">Custom</p>
+                        <ul class="pricing-card-features">
+                            <li data-i18n="pricingFeatureCustomAgents">Custom Agents</li>
+                            <li data-i18n="pricingFeatureOnPremise">On-premise deployment</li>
+                            <li data-i18n="pricingFeatureSLA">SLA guarantee</li>
+                            <li data-i18n="pricingFeatureDedicated">Dedicated support</li>
+                            <li data-i18n="pricingFeaturePrivate">Private data integration</li>
                         </ul>
+                        <button class="pricing-btn secondary" data-i18n="pricingBtnContact">Contact Sales</button>
                     </div>
                 </div>
             </div>
@@ -1176,8 +1174,8 @@
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
                 nav1sMarketPortal: 'Thời báo 1 giây',
                 nav1smarketsub: 'Tờ báo quan trọng theo MRI',
-                navfinagent: 'Trợ lý tài chính AI',
-                navfinagentsub: 'Dịch vụ cho thuê Fintel Agent',
+                navfinagent: 'Fintel AI Agent',
+                navfinagentsub: 'AI Agents cho thuê',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Tải dữ liệu & API access',
                 navAboutTerms: 'Giới thiệu Viet Dataverse',
@@ -1200,7 +1198,45 @@
                 sbvDatasetTitle: 'Lãi Suất Liên Ngân Hàng SBV',
                 sbvDatasetDesc: 'Lãi suất liên ngân hàng VND (qua đêm, 1 tuần, 2 tuần, 1-9 tháng) công bố bởi Ngân hàng Nhà nước Việt Nam.',
                 tdDatasetTitle: 'Lãi Suất Gửi Tiết Kiệm',
-                apiBtn: 'Đăng nhập'
+                apiBtn: 'Đăng nhập',
+                // Fintel Agent Tab
+                fintelHeroBadge: 'Được hỗ trợ bởi AI tiên tiến',
+                fintelHeroTitle: 'Fintel AI Agents',
+                fintelHeroSubtitle: 'AI Agents chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch. Tích hợp dễ dàng qua API, nhận cảnh báo real-time qua webhook.',
+                agentMarketTitle: 'Market Analysis Agent',
+                agentMarketDesc: 'Phân tích thị trường tự động - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và cảnh báo biến động bất thường 24/7.',
+                agentGoldTitle: 'Gold Trading Agent',
+                agentGoldDesc: 'Theo dõi giá vàng - So sánh giá vàng SJC, DOJI, PNJ với giá quốc tế, cảnh báo chênh lệch và thời điểm mua/bán tối ưu.',
+                agentNewsTitle: 'News Sentiment Agent',
+                agentNewsDesc: 'Phân tích tin tức - Quét tin tức tài chính 24/7, đánh giá sentiment và dự báo tác động đến thị trường VN bằng AI.',
+                agentCustomTitle: 'Custom Agent',
+                agentCustomDesc: 'Agent tùy chỉnh - Xây dựng AI agent theo yêu cầu riêng của doanh nghiệp: tích hợp dữ liệu nội bộ, workflow tự động, báo cáo định kỳ.',
+                agentStatusComingSoon: 'Sắp ra mắt',
+                agentStatusOnRequest: 'Theo yêu cầu',
+                pricingTitle: 'Bảng Giá',
+                pricingSubtitle: 'Chọn gói phù hợp với nhu cầu của bạn',
+                pricingStarter: 'Khởi đầu',
+                pricingPro: 'Chuyên nghiệp',
+                pricingEnterprise: 'Doanh nghiệp',
+                pricingFree: 'Miễn phí',
+                pricingCustom: 'Liên hệ',
+                pricingFeature1Agent: '1 Agent truy cập',
+                pricingFeature3Agents: 'Tất cả 3 Agents',
+                pricingFeatureCustomAgents: 'Agents tùy chỉnh',
+                pricingFeature1kCalls: '1,000 lượt gọi API/tháng',
+                pricingFeatureUnlimited: 'Không giới hạn API',
+                pricingFeatureEmail: 'Cảnh báo qua email',
+                pricingFeatureWebhook: 'Webhooks real-time',
+                pricingFeatureCommunity: 'Hỗ trợ cộng đồng',
+                pricingFeaturePriority: 'Hỗ trợ ưu tiên',
+                pricingFeatureCustomAlerts: 'Cảnh báo tùy chỉnh',
+                pricingFeatureOnPremise: 'Triển khai nội bộ',
+                pricingFeatureSLA: 'Cam kết SLA',
+                pricingFeatureDedicated: 'Hỗ trợ riêng',
+                pricingFeaturePrivate: 'Tích hợp dữ liệu riêng',
+                pricingBtnStart: 'Bắt đầu',
+                pricingBtnUpgrade: 'Nâng cấp Pro',
+                pricingBtnContact: 'Liên hệ Sales'
             },
             en: {
                 langBtn: 'Vie',
@@ -1208,8 +1244,8 @@
                 navDataPortal: 'Open Economic Data',
                 nav1sMarketPortal: '1s Market Pulse',
                 nav1smarketsub: 'Important updates with Market Response Index',
-                navfinagent: 'AI Financial Agent',
-                navfinagentsub: 'Fintel Agent for Hire',
+                navfinagent: 'Fintel AI Agent',
+                navfinagentsub: 'AI Agents for Hire',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Free Download & API',
                 navAboutTerms: 'About & Terms',
@@ -1232,7 +1268,45 @@
                 sbvDatasetTitle: 'SBV Interbank Rates',
                 sbvDatasetDesc: 'VND interbank interest rates (overnight, 1 week, 2 weeks, 1-9 months) published by State Bank of Vietnam.',
                 tdDatasetTitle: 'Term Deposit Rates',
-                apiBtn: 'Login'
+                apiBtn: 'Login',
+                // Fintel Agent Tab
+                fintelHeroBadge: 'Powered by Advanced AI',
+                fintelHeroTitle: 'Fintel AI Agents',
+                fintelHeroSubtitle: 'Specialized AI Agents for financial analysis, market forecasting, and trade automation. Easy API integration, real-time alerts via webhook.',
+                agentMarketTitle: 'Market Analysis Agent',
+                agentMarketDesc: 'Automated market analysis - Track VN-Index, technical analysis, trend detection and abnormal volatility alerts 24/7.',
+                agentGoldTitle: 'Gold Trading Agent',
+                agentGoldDesc: 'Gold price tracking - Compare SJC, DOJI, PNJ prices with international rates, spread alerts and optimal buy/sell timing.',
+                agentNewsTitle: 'News Sentiment Agent',
+                agentNewsDesc: 'News analysis - Scan financial news 24/7, evaluate sentiment and predict market impact on Vietnam markets using AI.',
+                agentCustomTitle: 'Custom Agent',
+                agentCustomDesc: 'Custom agent - Build AI agents tailored to your business: private data integration, automated workflows, scheduled reports.',
+                agentStatusComingSoon: 'Coming Soon',
+                agentStatusOnRequest: 'On Request',
+                pricingTitle: 'Pricing Plans',
+                pricingSubtitle: 'Choose the plan that fits your needs',
+                pricingStarter: 'Starter',
+                pricingPro: 'Pro',
+                pricingEnterprise: 'Enterprise',
+                pricingFree: 'Free',
+                pricingCustom: 'Custom',
+                pricingFeature1Agent: '1 Agent access',
+                pricingFeature3Agents: 'All 3 Agents',
+                pricingFeatureCustomAgents: 'Custom Agents',
+                pricingFeature1kCalls: '1,000 API calls/month',
+                pricingFeatureUnlimited: 'Unlimited API calls',
+                pricingFeatureEmail: 'Email alerts',
+                pricingFeatureWebhook: 'Real-time webhooks',
+                pricingFeatureCommunity: 'Community support',
+                pricingFeaturePriority: 'Priority support',
+                pricingFeatureCustomAlerts: 'Custom alerts',
+                pricingFeatureOnPremise: 'On-premise deployment',
+                pricingFeatureSLA: 'SLA guarantee',
+                pricingFeatureDedicated: 'Dedicated support',
+                pricingFeaturePrivate: 'Private data integration',
+                pricingBtnStart: 'Get Started',
+                pricingBtnUpgrade: 'Upgrade to Pro',
+                pricingBtnContact: 'Contact Sales'
             }
         };
 
@@ -1258,9 +1332,9 @@
                 } else if (link.getAttribute('data-tab') === '1smarket-portal') {
                     link.querySelector('h4').textContent = t.nav1sMarketPortal;
                     const meta = link.querySelector('.nav-meta');
-                    if (meta) meta.textContent = t.nav1sMarketPortal;
+                    if (meta) meta.textContent = t.nav1smarketsub;
                 } else if (link.getAttribute('data-tab') === 'fintel-agent-for-hire') {
-                    link.querySelector('h4').textContent = t.navfinagent;
+                    link.querySelector('h4').innerHTML = t.navfinagent + ' <span class="beta-badge">BETA</span>';
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.navfinagentsub;
                 } else if (link.getAttribute('data-tab') === 'download-api') {
@@ -1325,6 +1399,15 @@
             if (chartTitles[2]) chartTitles[2].textContent = t.tdChart;
             if (chartTitles[3]) chartTitles[3].textContent = t.sbvChart;
             if (chartTitles[4]) chartTitles[4].textContent = t.globalChart;
+
+            // Update Fintel Agent tab
+            const fintelTab = document.getElementById('fintel-agent-for-hire');
+            if (fintelTab) {
+                fintelTab.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (t[key]) el.textContent = t[key];
+                });
+            }
 
             // Update API button
             document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
