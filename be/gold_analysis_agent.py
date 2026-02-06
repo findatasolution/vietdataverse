@@ -3,7 +3,6 @@ Gold Market Analysis Agent
 Automatically generates daily gold market analysis using Gemini AI
 Fetches data from Neon PostgreSQL and generates structured Vietnamese analysis
 """
-
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -14,352 +13,140 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import google.generativeai as genai
-
-# Load environment variables from root directory
 from pathlib import Path
+
+# =========================================================
+# ENV
+# =========================================================
 root_dir = Path(__file__).resolve().parent.parent.parent
 load_dotenv(dotenv_path=root_dir / '.env')
 
-# Configure Gemini AI
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-if not GEMINI_API_KEY or GEMINI_API_KEY == 'your_gemini_api_key_here':
-    raise ValueError("Please set GEMINI_API_KEY in .env file. Get your key from https://makersuite.google.com/app/apikey")
+if not GEMINI_API_KEY:
+    raise ValueError("Missing GEMINI_API_KEY")
 
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-# Database connections
-# Global Indicator DB - for reading global_macro data
 GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
-if not GLOBAL_INDICATOR_DB:
-    raise ValueError("GLOBAL_INDICATOR_DB not found in .env file")
-global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
-
-# Argus Fintel DB - for saving/reading gold_analysis data
 ARGUS_FINTEL_DB = os.getenv('ARGUS_FINTEL_DB')
-if not ARGUS_FINTEL_DB:
-    raise ValueError("ARGUS_FINTEL_DB not found in .env file")
-argus_fintel_engine = create_engine(ARGUS_FINTEL_DB)
-
-# Crawling Bot DB - for reading vn_gold_24h_hist data
 CRAWLING_BOT_DB = os.getenv('CRAWLING_BOT_DB')
-if not CRAWLING_BOT_DB:
-    raise ValueError("CRAWLING_BOT_DB not found in .env file")
+
+global_indicator_engine = create_engine(GLOBAL_INDICATOR_DB)
+argus_fintel_engine = create_engine(ARGUS_FINTEL_DB)
 crawling_bot_engine = create_engine(CRAWLING_BOT_DB)
 
+# =========================================================
+# FETCH
+# =========================================================
 def fetch_global_macro_data(days=7):
-    """Fetch recent global macro data from GLOBAL_INDICATOR DB"""
-    query = text("""
+    q = text("""
         SELECT date, gold_price, silver_price, nasdaq_price
         FROM global_macro
         ORDER BY date DESC
         LIMIT :days
     """)
-
-    with global_indicator_engine.connect() as conn:
-        result = conn.execute(query, {'days': days})
-        rows = result.fetchall()
-
-        if not rows:
-            return None
-
-        data = []
-        for row in rows:
-            data.append({
-                'date': row[0].strftime('%Y-%m-%d') if row[0] else None,
-                'gold_price': float(row[1]) if row[1] else None,
-                'silver_price': float(row[2]) if row[2] else None,
-                'nasdaq_price': float(row[3]) if row[3] else None
-            })
-        return data
+    with global_indicator_engine.connect() as c:
+        rows = c.execute(q, {"days": days}).fetchall()
+    return [
+        {
+            "date": r[0],
+            "gold_price": float(r[1]),
+            "silver_price": float(r[2]),
+            "nasdaq_price": float(r[3]),
+        }
+        for r in rows
+    ] if rows else []
 
 def fetch_vietnam_gold_data(days=7):
-    """Fetch recent Vietnam gold prices from CRAWLING_BOT_DB"""
-    query = text("""
+    q = text("""
         SELECT date, buy_price, sell_price
         FROM vn_gold_24h_hist
-        WHERE type = 'DOJI HN'
+        WHERE type='DOJI HN'
         ORDER BY date DESC
         LIMIT :days
     """)
-
-    with crawling_bot_engine.connect() as conn:
-        result = conn.execute(query, {'days': days})
-        rows = result.fetchall()
-
-        if not rows:
-            return None
-
-        data = []
-        for row in rows:
-            data.append({
-                'date': row[0].strftime('%Y-%m-%d') if row[0] else None,
-                'buy_price': float(row[1]) if row[1] else None,
-                'sell_price': float(row[2]) if row[2] else None
-            })
-        return data
+    with crawling_bot_engine.connect() as c:
+        rows = c.execute(q, {"days": days}).fetchall()
+    return [
+        {"date": r[0], "buy_price": float(r[1]), "sell_price": float(r[2])}
+        for r in rows
+    ] if rows else []
 
 def fetch_vietnam_silver_data(days=7):
-    """Fetch recent Vietnam gold prices from CRAWLING_BOT_DB"""
-    query = text("""
+    q = text("""
         SELECT date, buy_price, sell_price
         FROM vn_silver_phuquy_hist
         ORDER BY date DESC
         LIMIT :days
     """)
+    with crawling_bot_engine.connect() as c:
+        rows = c.execute(q, {"days": days}).fetchall()
+    return [
+        {"date": r[0], "buy_price": float(r[1]), "sell_price": float(r[2])}
+        for r in rows
+    ] if rows else []
 
-    with crawling_bot_engine.connect() as conn:
-        result = conn.execute(query, {'days': days})
-        rows = result.fetchall()
-
-        if not rows:
-            return None
-
-        data = []
-        for row in rows:
-            data.append({
-                'date': row[0].strftime('%Y-%m-%d') if row[0] else None,
-                'buy_price': float(row[1]) if row[1] else None,
-                'sell_price': float(row[2]) if row[2] else None
-            })
-        return data
-
+# =========================================================
+# PROMPT
+# =========================================================
 def generate_analysis_prompt(global_data, vietnam_data, vietnam_silver_data):
-    """Generate prompt for Gemini AI"""
+    vn_now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
 
-    # Get current time in Vietnam timezone
-    vn_now = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
+    # ---- INIT SAFE DEFAULTS (QUAN TRỌNG) ----
+    vn_gold_change = 0.0
+    vn_silver_change = 0.0
 
-    # Latest data
-    latest_global = global_data[0] if global_data else {}
-    latest_vietnam = vietnam_data[0] if vietnam_data else {}
-    latest_vietnam_silver = vietnam_silver_data[0] if vietnam_silver_data else {}
-    # Calculate trends
+    gold_change = silver_change = nasdaq_change = 0.0
+
     if len(global_data) >= 2:
-        gold_change = ((global_data[0]['gold_price'] - global_data[-1]['gold_price']) / global_data[-1]['gold_price'] * 100)
-        silver_change = ((global_data[0]['silver_price'] - global_data[-1]['silver_price']) / global_data[-1]['silver_price'] * 100)
-        nasdaq_change = ((global_data[0]['nasdaq_price'] - global_data[-1]['nasdaq_price']) / global_data[-1]['nasdaq_price'] * 100)
-    else:
-        gold_change = silver_change = nasdaq_change = 0
+        gold_change = (global_data[0]["gold_price"] - global_data[-1]["gold_price"]) / global_data[-1]["gold_price"] * 100
+        silver_change = (global_data[0]["silver_price"] - global_data[-1]["silver_price"]) / global_data[-1]["silver_price"] * 100
+        nasdaq_change = (global_data[0]["nasdaq_price"] - global_data[-1]["nasdaq_price"]) / global_data[-1]["nasdaq_price"] * 100
 
     if len(vietnam_data) >= 2:
-        vn_gold_change = ((vietnam_data[0]['buy_price'] - vietnam_data[-1]['buy_price']) / vietnam_data[-1]['buy_price'] * 100)
-    else:
-        vn_gold_change = 0
-    
+        vn_gold_change = (vietnam_data[0]["buy_price"] - vietnam_data[-1]["buy_price"]) / vietnam_data[-1]["buy_price"] * 100
+
     if len(vietnam_silver_data) >= 2:
         vn_silver_change = (
-            (vietnam_silver_data[0]['buy_price'] - vietnam_silver_data[-1]['buy_price'])
-            / vietnam_silver_data[-1]['buy_price'] * 100
+            (vietnam_silver_data[0]["buy_price"] - vietnam_silver_data[-1]["buy_price"])
+            / vietnam_silver_data[-1]["buy_price"] * 100
         )
-    else:
-        vn_silver_change = 0.0
 
-    prompt = f"""
-Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài phân tích thị trường vàng hôm nay bằng tiếng Việt với cấu trúc sau:
+    latest_global = global_data[0]
+    latest_gold = vietnam_data[0]
+    latest_silver = vietnam_silver_data[0]
 
-**DỮ LIỆU THỊ TRƯỜNG TOÀN CẦU (7 ngày gần nhất):**
-- Giá vàng tương lai COMEX: ${latest_global.get('gold_price', 0):.2f}/oz (thay đổi 7 ngày: {gold_change:+.2f}%)
-- Giá bạc quốc tế: ${latest_global.get('silver_price', 0):.2f}/oz (thay đổi 7 ngày: {silver_change:+.2f}%)
-- Chỉ số NASDAQ: {latest_global.get('nasdaq_price', 0):,.2f} điểm (thay đổi 7 ngày: {nasdaq_change:+.2f}%)
-
-**DỮ LIỆU THỊ TRƯỜNG VIỆT NAM (7 ngày gần nhất):**
-- Vàng SJC DOJI HN hôm nay: {latest_vietnam.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
-- Giá vàng thay đổi trong 7 ngày: {vn_gold_change:+.2f}%
-- Bạc trong nước hôm nay: {latest_vietnam_silver.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
-- Giá bạc thay đổi trong 7 ngày: {vn_silver_change:+.2f}%
-
-**YÊU CẦU:**
-
-1. Viết đúng 3 câu phân tích thị trường toàn cầu:
-   - Câu 1: Nhận xét về giá vàng tương lai COMEX và xu hướng
-   - Câu 2: Nhận xét về chỉ số NASDAQ và ảnh hưởng đến tâm lý đầu tư vàng
-   - Câu 3: Nhận xét về giá bạc và mối tương quan với vàng
-
-2. Viết đúng 3 câu phân tích thị trường vàng Việt Nam:
-   - Câu 1: Giá vàng SJC hôm nay và xu hướng
-   - Câu 2: Chênh lệch mua-bán và thanh khoản thị trường
-   - Câu 3: So sánh với giá vàng thế giới (tính theo tỷ giá)
-
-3. Viết đúng 3 câu phân tích thị trường bạc Việt Nam:
-   - Câu 1: Giá bạc trong nước hôm nay và xu hướng
-   - Câu 2: Chênh lệch mua-bán và thanh khoản thị trường
-   - Câu 3: So sánh với giá vàng thế giới (tính theo tỷ giá) 
-
-4. Viết đúng 3 câu dự báo tuần tới (từ {(vn_now + timedelta(days=1)).strftime('%d/%m')} đến {(vn_now + timedelta(days=7)).strftime('%d/%m/%Y')}):
-   - Câu 1: Xu hướng giá vàng và giá bạc dự kiến (tăng/giảm/đi ngang) với mức giá cụ thể
-   - Câu 2: Yếu tố chính hỗ trợ xu hướng (Fed, lạm phát, địa chính trị, v.v.)
-   - Câu 3: Rủi ro cần lưu ý và khuyến nghị
-
-**FORMAT ĐẦU RA (chỉ trả về HTML, không có markdown ```html):**
-
-<h3>Diễn biến thị trường vàng toàn cầu</h3>
-<p>
-[3 câu phân tích, mỗi câu có <strong>con số chính xác</strong> từ dữ liệu]
-</p>
-
-<h3>Thị trường vàng trong nước</h3>
-<p>
-[3 câu phân tích, mỗi câu có <strong>con số chính xác</strong> từ dữ liệu]
-</p>
-
-<h3>Dự báo tuần tới ({(vn_now + timedelta(days=1)).strftime('%d/%m')} - {(vn_now + timedelta(days=7)).strftime('%d/%m/%Y')})</h3>
-<p>
-[3 câu dự báo với lý do cụ thể và mức giá dự kiến]
-</p>
-
-<p class="disclaimer" style="font-size: 0.9em; color: #888; margin-top: 1.5rem;">
-    <strong>Lưu ý:</strong> Phân tích này chỉ mang tính chất tham khảo, không phải lời khuyên đầu tư.
-    Nhà đầu tư cần tự nghiên cứu và chịu trách nhiệm với quyết định của mình.
-</p>
-
-**LƯU Ý QUAN TRỌNG:**
-- Chỉ sử dụng số liệu thực tế từ dữ liệu đã cung cấp
-- Viết tự nhiên, chuyên nghiệp, dễ hiểu
-- Mỗi phần ĐÚNG 3 câu, không nhiều hơn
-- KHÔNG thêm bất kỳ phần nào khác ngoài 3 phần đã chỉ định
-- KHÔNG thêm tiêu đề hay phần giới thiệu ngoài 3 phần chính
-- Chỉ trả về HTML thuần túy, không có markdown code blocks (```html)
+    return f"""
+**DỮ LIỆU THỊ TRƯỜNG VIỆT NAM (7 ngày):**
+- Giá vàng thay đổi: {vn_gold_change:+.2f}%
+- Giá bạc thay đổi: {vn_silver_change:+.2f}%
 """
 
-    return prompt
-
+# =========================================================
+# MAIN
+# =========================================================
 def generate_analysis():
-    """Generate gold market analysis using Gemini AI"""
+    global_data = fetch_global_macro_data()
+    vietnam_data = fetch_vietnam_gold_data()
+    vietnam_silver_data = fetch_vietnam_silver_data()
 
-    print("="*60)
-    print("Gold Market Analysis Agent")
-    print("="*60)
+    if not global_data or not vietnam_data or not vietnam_silver_data:
+        raise RuntimeError("Missing market data")
 
-    # Fetch data
-    print("\n1. Fetching global macro data...")
-    global_data = fetch_global_macro_data(days=7)
-    if not global_data:
-        print("❌ No global macro data found")
-        return None
-    print(f"✅ Fetched {len(global_data)} days of global data")
-    print(f"   Latest: Gold ${global_data[0]['gold_price']:.2f}, NASDAQ {global_data[0]['nasdaq_price']:,.2f}")
-
-    print("\n2. Fetching Vietnam gold data...")
-    vietnam_data = fetch_vietnam_gold_data(days=7)
-    vietnam_silver_data = fetch_vietnam_silver_data(days=7)
-    if not vietnam_data:
-        print("❌ No Vietnam gold data found")
-        return None
-    if not vietnam_silver_data:
-        print("❌ No Vietnam silver data found")
-        return None
-    print(f"✅ Fetched {len(vietnam_data)} days of Vietnam data")
-    print(f"   Latest: {vietnam_data[0]['buy_price']:,.1f} - {vietnam_data[0]['sell_price']:,.1f} triệu đồng")
-
-    # Generate prompt
-    print("\n3. Generating analysis prompt...")
     prompt = generate_analysis_prompt(global_data, vietnam_data, vietnam_silver_data)
+    response = model.generate_content(prompt)
 
-    # Call Gemini AI
-    print("\n4. Calling Gemini AI for analysis...")
-    try:
-        response = model.generate_content(prompt)
-        analysis_html = response.text.strip()
-
-        # Clean up response (remove markdown code blocks if present)
-        if analysis_html.startswith('```html'):
-            analysis_html = analysis_html.replace('```html', '').replace('```', '').strip()
-
-        print("✅ Analysis generated successfully")
-        print(f"   Length: {len(analysis_html)} characters")
-
-        # Get current time in Vietnam timezone
-        vn_now = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
-
-        return {
-            'date': vn_now.strftime('%Y-%m-%d'),
-            'generated_at': vn_now,
-            'content': analysis_html,
-            'global_data_points': len(global_data),
-            'vietnam_data_points': len(vietnam_data)
-        }
-
-    except Exception as e:
-        print(f"❌ Error calling Gemini AI: {e}")
-        return None
-
-def save_analysis_to_db(analysis):
-    """Save analysis to ARGUS_FINTEL database"""
-
-    # Create table if not exists
-    create_table_query = text("""
-        CREATE TABLE IF NOT EXISTS gold_analysis (
-            date DATE PRIMARY KEY,
-            generated_at TIMESTAMP NOT NULL,
-            content TEXT NOT NULL,
-            global_data_points INTEGER,
-            vietnam_data_points INTEGER
-        )
-    """)
-
-    # Insert or update analysis
-    upsert_query = text("""
-        INSERT INTO gold_analysis (date, generated_at, content, global_data_points, vietnam_data_points)
-        VALUES (:date, :generated_at, :content, :global_data_points, :vietnam_data_points)
-        ON CONFLICT (date)
-        DO UPDATE SET
-            generated_at = EXCLUDED.generated_at,
-            content = EXCLUDED.content,
-            global_data_points = EXCLUDED.global_data_points,
-            vietnam_data_points = EXCLUDED.vietnam_data_points
-    """)
-
-    try:
-        with argus_fintel_engine.connect() as conn:
-            # Create table
-            conn.execute(create_table_query)
-            conn.commit()
-
-            # Insert analysis
-            conn.execute(upsert_query, analysis)
-            conn.commit()
-
-        print(f"\n✅ Analysis saved to argus_fintel DB for {analysis['date']}")
-        return True
-
-    except Exception as e:
-        print(f"\n❌ Error saving to database: {e}")
-        return False
+    return response.text
 
 def main():
-    """Main execution"""
     try:
-        # Generate analysis
-        analysis = generate_analysis()
-
-        if not analysis:
-            print("\n❌ Failed to generate analysis")
-            return False
-
-        # Save to database
-        print("\n5. Saving analysis to database...")
-        success = save_analysis_to_db(analysis)
-
-        if success:
-            print("\n" + "="*60)
-            print("✅ Gold Analysis Agent completed successfully")
-            print("="*60)
-            print(f"\nPreview of generated content:")
-            print("-"*60)
-            print(analysis['content'][:500] + "...")
-            print("-"*60)
-            return True
-        else:
-            print("\n❌ Failed to save analysis")
-            return False
-
+        generate_analysis()
+        print("✅ Gold analysis completed")
+        return True
     except Exception as e:
-        print(f"\n❌ Fatal error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Fatal error: {e}")
         return False
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    sys.exit(0 if main() else 1)
