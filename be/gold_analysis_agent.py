@@ -148,9 +148,13 @@ def generate_analysis_prompt(global_data, vietnam_data, vietnam_silver_data):
         vn_gold_change = 0
     
     if len(vietnam_silver_data) >= 2:
-        vietnam_silver_data = ((vietnam_silver_data[0]['buy_price'] - vietnam_silver_data[-1]['buy_price']) / vietnam_silver_data[-1]['buy_price'] * 100)
+        vn_silver_change = (
+            (vietnam_silver_data[0]['buy_price'] - vietnam_silver_data[-1]['buy_price'])
+            / vietnam_silver_data[-1]['buy_price'] * 100
+        )
     else:
-        vn_silver_change = 0
+        vn_silver_change = 0.0
+
     prompt = f"""
 Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài phân tích thị trường vàng hôm nay bằng tiếng Việt với cấu trúc sau:
 
@@ -162,7 +166,7 @@ Bạn là chuyên gia phân tích thị trường vàng. Hãy viết một bài 
 **DỮ LIỆU THỊ TRƯỜNG VIỆT NAM (7 ngày gần nhất):**
 - Vàng SJC DOJI HN hôm nay: {latest_vietnam.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
 - Giá vàng thay đổi trong 7 ngày: {vn_gold_change:+.2f}%
-- Bạc trong nước hôm nay: {latest_vietnam.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
+- Bạc trong nước hôm nay: {latest_vietnam_silver.get('buy_price', 0):,.1f} - {latest_vietnam.get('sell_price', 0):,.1f} triệu đồng/lượng
 - Giá bạc thay đổi trong 7 ngày: {vn_silver_change:+.2f}%
 
 **YÊU CẦU:**
