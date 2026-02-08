@@ -231,14 +231,6 @@
                         </a>
                     </li>
 
-                    <!-- ── INFO ── -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html#about-terms">
-                            <div class="nav-btm-content">
-                                <h4>About & Terms</h4>
-                            </div>
-                        </a>
-                    </li>
                 </ul>
             </div>
             <div class="sidebar-section mobile-only">
@@ -269,6 +261,11 @@
                     <span>Đăng xuất</span>
                 </button>
             </div>
+
+            <!-- About & Terms — pinned to sidebar bottom -->
+            <a class="sidebar-bottom-link" href="index.html#about-terms">
+                <span>About & Terms</span>
+            </a>
         </aside>
 
         <!-- Main Content -->
@@ -284,44 +281,8 @@
 
                 <!-- Partners Grid -->
                 <div class="partners-grid">
-
-                    <!-- VPBS -->
-                    <a href="https://vpbanks.onelink.me/XNEk/g35tk1c1" target="_blank" rel="noopener noreferrer" class="partner-card-link">
-                        <div class="partner-card">
-                            <div class="partner-header">
-                                <div class="partner-logo">
-                                    <img src="assets/vpblogo.png" alt="VPB Logo">
-                                </div>
-                                <div class="partner-info">
-                                    <h3 class="partner-name">VPBank Securities</h3>
-                                    <p class="partner-desc">Công ty Chứng khoán VPBank - Dịch vụ tích hợp ngân hàng</p>
-                                </div>
-                            </div>
-                            <div class="partner-features">
-                                <div class="partner-feature">
-                                    <i class="fas fa-link"></i>
-                                    <span>Tích hợp ngân hàng VPBank</span>
-                                </div>
-                                <div class="partner-feature">
-                                    <i class="fas fa-wallet"></i>
-                                    <span>Tiền gửi và rút nhanh</span>
-                                </div>
-                                <div class="partner-feature">
-                                    <i class="fas fa-percentage"></i>
-                                    <span>Phí giao dịch cạnh tranh</span>
-                                </div>
-                            </div>
-                            <div class="partner-actions">
-                                <button class="partner-btn primary">
-                                    <i class="fas fa-external-link-alt"></i>
-                                    <span>Đăng ký ngay</span>
-                                </button>
-                            </div>
-                        </div>
-                    </a>
-
                     <!-- SSI -->
-                    <a href="https://ssi.com.vn/khach-hang-ca-nhan/mo-tai-khoan?mgm=N8QX" target="_blank" rel="noopener noreferrer" class="partner-card-link">
+                    <a href="https://vpbanks.onelink.me/XNEk/sz1nu4u1" target="_blank" rel="noopener noreferrer" class="partner-card-link">
                         <div class="partner-card">
                             <div class="partner-header">
                                 <div class="partner-logo">
@@ -344,6 +305,41 @@
                                 <div class="partner-feature">
                                     <i class="fas fa-chart-pie"></i>
                                     <span>Phân tích thị trường chuyên nghiệp</span>
+                                </div>
+                            </div>
+                            <div class="partner-actions">
+                                <button class="partner-btn primary">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>Đăng ký ngay</span>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+                    <!-- VPBS -->
+                    <a href="pages/vpbank_register_guild.html" target="_blank" rel="noopener noreferrer" class="partner-card-link">
+                    <!-- <a href="https://vpbanks.onelink.me/XNEk/g35tk1c1" target="_blank" rel="noopener noreferrer" class="partner-card-link"> -->
+                        <div class="partner-card">
+                            <div class="partner-header">
+                                <div class="partner-logo">
+                                    <img src="assets/vpblogo.png" alt="VPB Logo">
+                                </div>
+                                <div class="partner-info">
+                                    <h3 class="partner-name">VPBank Securities</h3>
+                                    <p class="partner-desc">Công ty Chứng khoán VPBank - Dịch vụ tích hợp ngân hàng</p>
+                                </div>
+                            </div>
+                            <div class="partner-features">
+                                <div class="partner-feature">
+                                    <i class="fas fa-link"></i>
+                                    <span>Tích hợp ngân hàng VPBank</span>
+                                </div>
+                                <div class="partner-feature">
+                                    <i class="fas fa-wallet"></i>
+                                    <span>Tiền gửi và rút nhanh</span>
+                                </div>
+                                <div class="partner-feature">
+                                    <i class="fas fa-percentage"></i>
+                                    <span>Phí giao dịch cạnh tranh</span>
                                 </div>
                             </div>
                             <div class="partner-actions">
@@ -402,8 +398,6 @@
 
                         </div>
                     </a>
-
-
 
                 </div>
 
@@ -707,9 +701,6 @@
                 } else if (href.includes('#download-api')) {
                     if (h4) h4.textContent = t.navDownloadApi;
                     if (meta) meta.textContent = t.navDownloadApiMeta;
-                } else if (href.includes('#about-terms')) {
-                    if (h4) h4.textContent = t.navAboutTerms;
-                    if (meta) meta.textContent = t.navAboutTermsMeta;
                 } else if (href === 'partners.html') {
                     if (h4) h4.textContent = t.navPartners;
                     if (meta) meta.textContent = t.navPartnersMeta;
@@ -719,6 +710,10 @@
             // Update separator label
             const sep = document.querySelector('.nav-separator span');
             if (sep) sep.textContent = t.navSeparator;
+
+            // Update sidebar bottom link
+            const btmLink = document.querySelector('.sidebar-bottom-link span');
+            if (btmLink) btmLink.textContent = t.navAboutTerms;
 
             // Main title & subtitle
             const mainSection = document.querySelector('#partners-portal .section-header');

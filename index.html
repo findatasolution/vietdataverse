@@ -325,14 +325,6 @@
                         </a>
                     </li>
 
-                    <!-- ── INFO ── -->
-                    <li class="nav-item">
-                        <a class="nav-link" data-tab="about-terms">
-                            <div class="nav-btm-content">
-                                <h4>About & Terms</h4>
-                            </div>
-                        </a>
-                    </li>
                 </ul>
             </div>
             <div class="sidebar-section mobile-only">
@@ -363,6 +355,11 @@
                     <span>Đăng xuất</span>
                 </button>
             </div>
+
+            <!-- About & Terms — pinned to sidebar bottom -->
+            <a class="sidebar-bottom-link" data-tab="about-terms">
+                <span>About & Terms</span>
+            </a>
         </aside>
 
         <!-- Main Content -->
@@ -1259,10 +1256,6 @@
                     link.querySelector('h4').textContent = t.navDownloadApi;
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.navDownloadApiMeta;
-                } else if (link.getAttribute('data-tab') === 'about-terms') {
-                    link.querySelector('h4').textContent = t.navAboutTerms;
-                    const meta = link.querySelector('.nav-meta');
-                    if (meta) meta.textContent = t.navAboutTermsMeta;
                 } else if (link.getAttribute('href') === 'partners.html') {
                     link.querySelector('h4').textContent = t.navPartners;
                     const meta = link.querySelector('.nav-meta');
@@ -1273,6 +1266,10 @@
             // Update separator label
             const sep = document.querySelector('.nav-separator span');
             if (sep) sep.textContent = t.navSeparator;
+
+            // Update sidebar bottom link
+            const btmLink = document.querySelector('.sidebar-bottom-link span');
+            if (btmLink) btmLink.textContent = t.navAboutTerms;
 
             // Update main title & subtitle (SEO optimized)
             const mainSection = document.querySelector('#data-portal .section-header');
@@ -1585,53 +1582,71 @@ function initMobileMenu() {
 /* =========================================================
    SIDEBAR TABS (main-level only)
 ========================================================= */
-function initSidebarTabs() {
-    document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
-        link.addEventListener('click', () => {
-            const tabId = link.dataset.tab;
+function activateTab(tabId) {
+    const tabLabels = {
+        'data-portal': 'Open Economic Data',
+        '1smarket-portal': '1s Market Pulse',
+        'fintel-agent-for-hire': 'Fintel AI Agent',
+        'download-api': 'Download & API',
+        'about-terms': 'About & Terms'
+    };
 
-            // GA4: track tab view
-            if (typeof gtag === 'function') {
-                const tabLabels = {
-                    'data-portal': 'Open Economic Data',
-                    '1smarket-portal': '1s Market Pulse',
-                    'fintel-agent-for-hire': 'Fintel AI Agent',
-                    'download-api': 'Download & API',
-                    'about-terms': 'About & Terms'
-                };
-                gtag('event', 'tab_view', {
-                    tab_id: tabId,
-                    tab_name: tabLabels[tabId] || tabId,
-                    product_type: (tabId === 'fintel-agent-for-hire') ? 'profit' : 'free'
-                });
-            }
-
-            // Only toggle main-level nav-links
-            document.querySelectorAll('.nav-link[data-tab]').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-
-            // Only toggle top-level tab-content (direct children of .main-content)
-            document.querySelectorAll('.main-content > .tab-content').forEach(c => c.classList.remove('active'));
-            const target = document.getElementById(tabId);
-            if (target) target.classList.add('active');
-
-            // If switching to data-portal, restore the inner chart tab
-            if (tabId === 'data-portal') {
-                const activeChartTab = document.querySelector('.chart-tab-btn.active');
-                if (activeChartTab) {
-                    const innerTabId = activeChartTab.dataset.tab;
-                    const innerTarget = document.getElementById(innerTabId);
-                    if (innerTarget) innerTarget.classList.add('active');
-                }
-            }
-
-            // Close mobile sidebar
-            const sidebar = document.querySelector('.sidebar');
-            const mobileOverlay = document.getElementById('mobile-overlay');
-            if (sidebar) sidebar.classList.remove('active');
-            if (mobileOverlay) mobileOverlay.classList.remove('active');
+    // GA4: track tab view
+    if (typeof gtag === 'function') {
+        gtag('event', 'tab_view', {
+            tab_id: tabId,
+            tab_name: tabLabels[tabId] || tabId,
+            product_type: (tabId === 'fintel-agent-for-hire') ? 'profit' : 'free'
         });
+    }
+
+    // Toggle nav-links
+    document.querySelectorAll('.nav-link[data-tab]').forEach(l => l.classList.remove('active'));
+    const activeNav = document.querySelector(`.nav-link[data-tab="${tabId}"]`);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Toggle tab-content
+    document.querySelectorAll('.main-content > .tab-content').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+
+    // If switching to data-portal, restore the inner chart tab
+    if (tabId === 'data-portal') {
+        const activeChartTab = document.querySelector('.chart-tab-btn.active');
+        if (activeChartTab) {
+            const innerTabId = activeChartTab.dataset.tab;
+            const innerTarget = document.getElementById(innerTabId);
+            if (innerTarget) innerTarget.classList.add('active');
+        }
+    }
+
+    // Close mobile sidebar
+    const sidebar = document.querySelector('.sidebar');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+    if (sidebar) sidebar.classList.remove('active');
+    if (mobileOverlay) mobileOverlay.classList.remove('active');
+}
+
+function initSidebarTabs() {
+    // Nav-link tab clicks
+    document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+        link.addEventListener('click', () => activateTab(link.dataset.tab));
     });
+
+    // Sidebar bottom link (About & Terms)
+    const bottomLink = document.querySelector('.sidebar-bottom-link[data-tab]');
+    if (bottomLink) {
+        bottomLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            activateTab(bottomLink.dataset.tab);
+        });
+    }
+
+    // Handle URL hash on page load (e.g. index.html#about-terms from partners.html)
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(hash)) {
+        activateTab(hash);
+    }
 }
 
 /* =========================================================
