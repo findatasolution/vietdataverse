@@ -366,6 +366,11 @@ body {
 .nav-content {
     flex: 1;
 }
+.nav-btm-content{
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 200;
+}
 
 .nav-content h4 {
     font-size: 0.9375rem;
@@ -1537,4 +1542,529 @@ body {
     border-radius: 6px;
 
     vertical-align: middle;
+}
+
+/* ===============================
+   CARD
+================================ */
+.partner-card {
+    position: relative;
+    background: #0f1115;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ===============================
+   HEADER – 1 TRỤC RÕ
+================================ */
+.partner-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.partner-logo img {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+}
+
+.partner-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.partner-name {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.partner-desc {
+    color: #b9bec7;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* ===============================
+   FEATURES – THẲNG HÀNG
+================================ */
+.partner-features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.partner-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.partner-feature i {
+    color: #c9a75f;
+    width: 16px;
+    text-align: center;
+}
+
+.partner-feature span {
+    color: #d9dce2;
+    font-size: 13px;
+}
+
+/* ===============================
+   CTA
+================================ */
+.partner-actions {
+    margin-top: 6px;
+}
+
+.partner-btn.primary {
+    width: 100%;
+}
+
+/* ===============================
+   BADGE – TREO GÓC PHẢI
+================================ */
+.comingsoon-badge.pinned {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+
+    color: #1a1406;
+    background: linear-gradient(180deg, #e6c87a, #c9a75f);
+
+    border-radius: 999px;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.25) inset,
+        0 4px 12px rgba(201,167,95,0.35);
+}
+
+/* ===============================
+   DISABLED
+================================ */
+.partner-card-link.is-coming-soon {
+    pointer-events: none;
+}
+
+/* ===============================
+   END
+================================ */
+
+/* Partners Page Styles */
+/* .partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+} */
+
+.partners-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+@media (max-width: 1024px) {
+    .partners-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
+}
+
+@media (max-width: 640px) {
+    .partners-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.partner-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;     /* giữ tỷ lệ logo */
+}
+
+/*  */
+
+.partner-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.partner-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--gold-accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+.partner-card:hover {
+    border-color: rgba(201, 165, 91, 0.3);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.partner-card:hover::before {
+    transform: scaleX(1);
+}
+
+.partner-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.partner-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: var(--gold-accent);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.partner-card:hover .partner-logo {
+    background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+    color: var(--bg-dark);
+    transform: scale(1.05);
+}
+
+.partner-info {
+    flex: 1;
+}
+
+.partner-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.partner-desc {
+    font-size: 0.9375rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.partner-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.partner-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.partner-feature i {
+    color: var(--gold-primary);
+    font-size: 1rem;
+    width: 20px;
+}
+
+.partner-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.partner-btn {
+    flex: 1;
+    padding: 0.875rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    border: none;
+}
+
+.partner-btn.primary {
+    background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+    color: var(--bg-dark);
+}
+.partner-btn.commingsoon {
+    background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+    color: var(--bg-dark);
+}
+
+
+.partner-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201, 165, 91, 0.4);
+}
+
+.partner-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.partner-btn.secondary:hover {
+    border-color: var(--gold-primary);
+    color: var(--gold-accent);
+    background: rgba(201, 165, 91, 0.05);
+}
+
+/* Partner Card Link */
+.partner-card-link {
+    text-decoration: none;
+    display: block;
+    color: inherit;
+}
+
+.partner-card-link:hover .partner-card {
+    border-color: rgba(201, 165, 91, 0.3);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.partner-card-link:hover .partner-card::before {
+    transform: scaleX(1);
+}
+
+/* Benefits Section */
+.benefits-section {
+    background: rgba(201, 165, 91, 0.03);
+    border: 1px solid rgba(201, 165, 91, 0.1);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    margin-bottom: 3rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.benefit-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.benefit-card:hover {
+    border-color: rgba(201, 165, 91, 0.3);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.benefit-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--gold-accent);
+    flex-shrink: 0;
+}
+
+.benefit-content {
+    flex: 1;
+}
+
+.benefit-content h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.benefit-content p {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+}
+
+/* FAQ Section */
+.faq-section {
+    margin-bottom: 3rem;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.faq-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+    border-color: rgba(201, 165, 91, 0.3);
+    box-shadow: var(--shadow-sm);
+}
+
+.faq-question {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: var(--text-primary);
+    user-select: none;
+}
+
+.faq-question:hover {
+    background: rgba(201, 165, 91, 0.05);
+}
+
+.faq-question i {
+    color: var(--gold-primary);
+    transition: transform 0.3s ease;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding: 0 2rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 300px;
+    padding: 0 2rem 1.5rem;
+}
+
+.faq-answer p {
+    margin-bottom: 1rem;
+    font-size: 0.9375rem;
+}
+
+.faq-answer ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.faq-answer li {
+    padding: 0.25rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    font-size: 0.875rem;
+}
+
+.faq-answer li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--gold-primary);
+    font-weight: bold;
+}
+
+/* Responsive for Partners Page */
+@media (max-width: 1200px) {
+    .partners-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+
+    .benefits-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 968px) {
+    .partners-grid,
+    .benefits-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .partner-card,
+    .benefit-card {
+        padding: 1.5rem;
+    }
+
+    .benefits-section {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .partner-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .partner-logo {
+        margin-bottom: 1rem;
+    }
+
+    .partner-actions {
+        flex-direction: column;
+    }
+
+    .faq-question {
+        padding: 1rem 1.5rem;
+        font-size: 0.9375rem;
+    }
+
+    .faq-answer {
+        padding: 0 1.5rem;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 0 1.5rem 1rem;
+    }
+}
