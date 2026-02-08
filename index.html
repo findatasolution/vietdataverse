@@ -281,8 +281,8 @@
         <aside class="sidebar">
             <!-- Mobile User Controls Section -->
             <div class="sidebar-section">
-                <h2 class="sidebar-heading">Navigation</h2>
                 <ul class="nav-list">
+                    <!-- ── FREE (hooks) ── -->
                     <li class="nav-item">
                         <a class="nav-link active" data-tab="data-portal">
                             <div class="nav-content">
@@ -300,11 +300,11 @@
                             </div>
                         </a>
                     </li>
+
+
+                    <!-- ── PROFIT (monetization) ── -->
                     <li class="nav-item nav-ai-agent">
                         <a class="nav-link" data-tab="fintel-agent-for-hire">
-                            <!-- <div class="ai-icon">
-                                <i class="fas fa-robot"></i>
-                            </div> -->
                             <div class="nav-content">
                                 <h4 data-i18n="navfinagent">
                                     Fintel AI Agent
@@ -316,20 +316,20 @@
                             </div>
                         </a>
                     </li>
-
                     <li class="nav-item">
-                        <a class="nav-link" data-tab="download-api">
+                        <a class="nav-link" href="partners.html">
                             <div class="nav-content">
-                                <h4>Download & API</h4>
-                                <span class="nav-meta">Tải dữ liệu & API access</span>
+                                <h4>Đối Tác</h4>
+                                <span class="nav-meta">Nhà cung cấp dịch vụ uy tín</span>
                             </div>
                         </a>
                     </li>
+
+                    <!-- ── INFO ── -->
                     <li class="nav-item">
                         <a class="nav-link" data-tab="about-terms">
-                            <div class="nav-content">
+                            <div class="nav-btm-content">
                                 <h4>About & Terms</h4>
-                                <span class="nav-meta">Về dự án & Điều khoản</span>
                             </div>
                         </a>
                     </li>
@@ -513,8 +513,45 @@
                                 </div>
                             </div>
                         </article> -->
-                    </div>
 
+                        <!-- Download Section Gold, Silver-->
+                        <div class="datasets-grid">
+                            <!-- Gold Dataset -->
+                            <div class="dataset-card">
+                                <div class="dataset-top">
+                                    <div class="dataset-info">
+                                        <h3>Lịch Sử Giá Vàng Trong Nước</h3>
+                                    </div>
+                                </div>
+                                <div class="dataset-actions">
+                                    <button class="btn btn-primary" data-download="gold" title="Tải lịch sử giá vàng">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button class="btn btn-secondary" data-api="gold" title="Vietnam gold price API">
+                                        <i class="fas fa-code"></i> API
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Silver Dataset -->
+                            <div class="dataset-card">
+                                <div class="dataset-top">
+                                    <div class="dataset-info">
+                                        <h3>Giá Bạc Phú Quý</h3>
+                                    </div>
+                                </div>
+                                <div class="dataset-actions">
+                                    <button class="btn btn-primary" data-download="silver">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button class="btn btn-secondary" data-api="silver">
+                                        <i class="fas fa-code"></i> API
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Tab 2: Tiền tệ VN (Lazy load) -->
                     <div class="tab-content" id="tab-currency">
                         <!-- TD Chart - Term Deposit Interest Rates -->
@@ -582,6 +619,69 @@
                                             <div class="skeleton skeleton-bar" style="height: 60%"></div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        <!-- Download Section Gold, Silver-->
+                        <div class="datasets-grid">
+                            <!-- SBV Interbank -->
+                            <div class="dataset-card">
+                                <div class="dataset-top">
+                                    <div class="dataset-info">
+                                        <h3>Lãi Suất Liên Ngân Hàng SBV</h3>
+                                    </div>
+                                    <button class="save-interest-btn" data-interest="sbv-data" title="Lưu quan tâm">
+                                        <i class="fas fa-bookmark"></i>
+                                    </button>
+                                </div>
+                                <p class="dataset-desc">
+                                    Lãi suất liên ngân hàng chính thức được Ngân hàng Nhà nước Việt Nam (SBV) công bố, bao gồm các kỳ hạn từ overnight đến 9 tháng.
+                                </p>
+                                <div class="dataset-stats">
+                                    <span class="stat-item">
+                                        2025 - Present
+                                    </span>
+                                    <span class="stat-item">
+                                        45+ updates
+                                    </span>
+                                </div>
+                                <div class="dataset-actions">
+                                    <button class="btn btn-primary" data-download="sbv">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button class="btn btn-secondary" data-api="sbv">
+                                        <i class="fas fa-code"></i> API
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Term Deposit -->
+                            <div class="dataset-card disabled">
+                                <div class="dataset-top">
+                                    <div class="dataset-info">
+                                        <h3>Bank Term Deposit Rates</h3>
+                                    </div>
+                                    <button class="save-interest-btn" data-interest="termdepo-data" title="Lưu quan tâm">
+                                        <i class="fas fa-bookmark"></i>
+                                    </button>
+                                </div>
+                                <p class="dataset-desc">
+                                    Savings interest rates from Vietnam's 8 largest commercial banks (VCB, VTB, TCB, MB, ACB, TPB, VPB, AGR).
+                                </p>
+                                <div class="dataset-stats">
+                                    <span class="stat-item">
+                                        In Development
+                                    </span>
+                                    <span class="stat-item">
+                                        Q1 2026
+                                    </span>
+                                </div>
+                                <div class="dataset-actions">
+                                    <button class="btn btn-primary" disabled>
+                                        Coming Soon
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -864,195 +964,7 @@
                         <button class="pricing-btn secondary" data-i18n="pricingBtnContact">Contact Sales</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Download & API Tab -->
-            <div class="tab-content" id="download-api">
-                <div class="section-header">
-                    <h2 class="section-title">Tải Lịch Sử Giá Vàng - Download Vietnam Gold Price Data</h2>
-                    <p class="section-subtitle">
-                        <strong>Tải dữ liệu lịch sử giá vàng</strong> SJC, DOJI, PNJ, giá bạc, lãi suất ngân hàng miễn phí.
-                        <strong>Download Vietnam historical gold price</strong> từ 2015 đến nay hoặc truy cập dữ liệu realtime với API key.
-                    </p>
-                </div>
-                <div class="datasets-grid">
-                    <!-- Gold Dataset -->
-                    <div class="dataset-card">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Lịch Sử Giá Vàng Trong Nước</h3>
-                            </div>
-                            <button class="save-interest-btn" data-interest="gold-data" title="Lưu quan tâm">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                        <p class="dataset-desc">
-                            <strong>Tải lịch sử giá vàng</strong> SJC, DOJI, PNJ 24K từ 2015 đến nay. <strong>Download Vietnam historical gold price</strong> miễn phí.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                <i class="fas fa-calendar-alt"></i>
-                                2015 - Present
-                            </span>
-                            <span class="stat-item">
-                                <i class="fas fa-database"></i>
-                                1000+ records
-                            </span>
-                        </div>
-                        <div class="dataset-actions">
-                            <button class="btn btn-primary" data-download="gold" title="Tải lịch sử giá vàng">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                            <button class="btn btn-secondary" data-api="gold" title="Vietnam gold price API">
-                                <i class="fas fa-code"></i> API
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Silver Dataset -->
-                    <div class="dataset-card">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Giá Bạc Phú Quý</h3>
-                            </div>
-                            <button class="save-interest-btn" data-interest="silver-data" title="Lưu quan tâm">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                        <p class="dataset-desc">
-                            Giá bạc thỏi Phú Quý tại thị trường trong nước, cập nhật 2 lần mỗi ngày (8:30 sáng và 1:30 chiều) với kiểm tra chất lượng tự động từ nguồn công khai.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                2023 - Present
-                            </span>
-                            <span class="stat-item">
-                                560 records
-                            </span>
-                        </div>
-                        <div class="dataset-actions">
-                            <button class="btn btn-primary" data-download="silver">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                            <button class="btn btn-secondary" data-api="silver">
-                                <i class="fas fa-code"></i> API
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- SBV Interbank -->
-                    <div class="dataset-card">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Lãi Suất Liên Ngân Hàng SBV</h3>
-                            </div>
-                            <button class="save-interest-btn" data-interest="sbv-data" title="Lưu quan tâm">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                        <p class="dataset-desc">
-                            Lãi suất liên ngân hàng chính thức được Ngân hàng Nhà nước Việt Nam (SBV) công bố, bao gồm các kỳ hạn từ overnight đến 9 tháng.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                2025 - Present
-                            </span>
-                            <span class="stat-item">
-                                45+ updates
-                            </span>
-                        </div>
-                        <div class="dataset-actions">
-                            <button class="btn btn-primary" data-download="sbv">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                            <button class="btn btn-secondary" data-api="sbv">
-                                <i class="fas fa-code"></i> API
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Term Deposit -->
-                    <div class="dataset-card disabled">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>Bank Term Deposit Rates</h3>
-                            </div>
-                            <button class="save-interest-btn" data-interest="termdepo-data" title="Lưu quan tâm">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                        <p class="dataset-desc">
-                            Savings interest rates from Vietnam's 8 largest commercial banks (VCB, VTB, TCB, MB, ACB, TPB, VPB, AGR).
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                In Development
-                            </span>
-                            <span class="stat-item">
-                                Q1 2026
-                            </span>
-                        </div>
-                        <div class="dataset-actions">
-                            <button class="btn btn-primary" disabled>
-                                Coming Soon
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- VN30 Financials -->
-                    <div class="dataset-card disabled">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>VN30 Financial Statements</h3>
-                            </div>
-                            <button class="save-interest-btn" data-interest="vn30-data" title="Lưu quan tâm">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                        <p class="dataset-desc">
-                            Fundamental financial data for Vietnam's top 30 stocks by market cap, including balance sheets and key ratios.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                In Development
-                            </span>
-                            <span class="stat-item">
-                                Q2 2026
-                            </span>
-                        </div>
-                        <div class="dataset-actions">
-                            <button class="btn btn-primary" disabled>
-                                Coming Soon
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- News Sentiment -->
-                    <div class="dataset-card disabled">
-                        <div class="dataset-top">
-                            <div class="dataset-info">
-                                <h3>News Sentiment Indicators</h3>
-                            </div>
-                        </div>
-                        <p class="dataset-desc">
-                            Economic news from 6 major outlets with AI-powered sentiment analysis on gold, silver, VN-Index and VN30 stocks.
-                        </p>
-                        <div class="dataset-stats">
-                            <span class="stat-item">
-                                In Development
-                            </span>
-                            <span class="stat-item">
-                                Q2 2026
-                            </span>
-                        </div>
-                        <div class="dataset-actions">
-                            <button class="btn btn-primary" disabled>
-                                Coming Soon
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </div> 
 
             <!-- About & Terms Tab -->
             <div class="tab-content" id="about-terms">
@@ -1062,7 +974,7 @@
                 </div>
 
                 <!-- Về Viet Dataverse -->
-                <div style="background: rgba(201, 165, 91, 0.05); border-left: 3px solid var(--gold-primary); padding: 1.5rem; margin: 2rem 0; border-radius: 8px; line-height: 1.8;">
+                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
                     <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Viet Dataverse</h2>
                     <p style="color: var(--text-secondary); margin-bottom: 1rem;">
                         <strong>Viet Dataverse</strong> là nền tảng dữ liệu kinh tế Việt Nam miễn phí, cung cấp thông tin <strong>giá vàng</strong>,
@@ -1180,6 +1092,9 @@
                 navDownloadApiMeta: 'Tải dữ liệu & API access',
                 navAboutTerms: 'Giới thiệu Viet Dataverse',
                 navAboutTermsMeta: 'Về dự án & Điều khoản',
+                navPartners: 'Đối Tác',
+                navPartnersMeta: 'Nhà cung cấp dịch vụ uy tín',
+                navSeparator: 'Dịch vụ',
                 mainTitle: 'Dữ Liệu Kinh Tế Mở',
                 mainSubtitle: '<strong>Tải lịch sử giá vàng</strong> trong nước từ 2015 miễn phí. <strong>Download Vietnam historical gold price data</strong>, giá bạc, lãi suất liên ngân hàng. API & CSV export hoàn toàn miễn phí cho phân tích và nghiên cứu kinh tế.',
                 sectionTitle: 'Dữ Liệu Kinh Tế Mở',
@@ -1250,6 +1165,9 @@
                 navDownloadApiMeta: 'Free Download & API',
                 navAboutTerms: 'About & Terms',
                 navAboutTermsMeta: 'About project & Terms',
+                navPartners: 'Partners',
+                navPartnersMeta: 'Trusted service providers',
+                navSeparator: 'Services',
                 mainTitle: 'Open Economic Data',
                 mainSubtitle: '<strong>Download Vietnam historical gold price data</strong> (SJC, DOJI, PNJ) from 2015 for free. Access silver prices, SBV interest rates updated twice daily. Free API & CSV export for economic research and analysis.',
                 sectionTitle: 'Open Economic Data',
@@ -1341,8 +1259,20 @@
                     link.querySelector('h4').textContent = t.navDownloadApi;
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.navDownloadApiMeta;
+                } else if (link.getAttribute('data-tab') === 'about-terms') {
+                    link.querySelector('h4').textContent = t.navAboutTerms;
+                    const meta = link.querySelector('.nav-meta');
+                    if (meta) meta.textContent = t.navAboutTermsMeta;
+                } else if (link.getAttribute('href') === 'partners.html') {
+                    link.querySelector('h4').textContent = t.navPartners;
+                    const meta = link.querySelector('.nav-meta');
+                    if (meta) meta.textContent = t.navPartnersMeta;
                 }
             });
+
+            // Update separator label
+            const sep = document.querySelector('.nav-separator span');
+            if (sep) sep.textContent = t.navSeparator;
 
             // Update main title & subtitle (SEO optimized)
             const mainSection = document.querySelector('#data-portal .section-header');
@@ -1501,6 +1431,18 @@ async function initAuth0AndUpdateUI() {
             // Get user info from Auth0
             const user = await getUser();
 
+            // GA4: track login + set user identity
+            if (typeof gtag === 'function' && user) {
+                gtag('set', 'user_properties', {
+                    user_email: user.email || ''
+                });
+                gtag('event', 'login', {
+                    method: 'auth0',
+                    user_email: user.email || '',
+                    user_name: user.name || ''
+                });
+            }
+
             // Sync user with backend DB by calling /me endpoint
             try {
                 const token = await getToken();
@@ -1647,6 +1589,22 @@ function initSidebarTabs() {
     document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
         link.addEventListener('click', () => {
             const tabId = link.dataset.tab;
+
+            // GA4: track tab view
+            if (typeof gtag === 'function') {
+                const tabLabels = {
+                    'data-portal': 'Open Economic Data',
+                    '1smarket-portal': '1s Market Pulse',
+                    'fintel-agent-for-hire': 'Fintel AI Agent',
+                    'download-api': 'Download & API',
+                    'about-terms': 'About & Terms'
+                };
+                gtag('event', 'tab_view', {
+                    tab_id: tabId,
+                    tab_name: tabLabels[tabId] || tabId,
+                    product_type: (tabId === 'fintel-agent-for-hire') ? 'profit' : 'free'
+                });
+            }
 
             // Only toggle main-level nav-links
             document.querySelectorAll('.nav-link[data-tab]').forEach(l => l.classList.remove('active'));
@@ -2588,29 +2546,59 @@ function isInterestSaved(interestType) {
 async function saveInterest(btn, interestType) {
     if (!btn || !interestType) return;
 
-    // Check if already saved
+    // Build auth headers if user is logged in
+    let authHeaders = {};
+    let userEmail = null;
+    try {
+        const token = await getToken();
+        if (token) {
+            authHeaders['Authorization'] = 'Bearer ' + token;
+            const user = await getUser();
+            if (user) userEmail = user.email || null;
+        }
+    } catch (e) { /* anonymous fallback */ }
+
+    // Check if already saved — toggle off (unsave)
     if (isInterestSaved(interestType)) {
-        // Toggle off - unsave
         const saved = getSavedInterests();
         delete saved[interestType];
         localStorage.setItem(SAVED_INTERESTS_KEY, JSON.stringify(saved));
         btn.classList.remove('saved');
         btn.title = 'Lưu quan tâm';
+
+        // GA4: track unsave event
+        if (typeof gtag === 'function') {
+            gtag('event', 'unsave_interest', {
+                interest_type: interestType,
+                user_email: userEmail || 'anonymous'
+            });
+        }
+
+        // Notify backend to remove interest
+        try {
+            await fetch(`${API_BASE}/api/v1/interest/${interestType}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ fingerprint: getFingerprint() })
+            });
+        } catch (err) {
+            console.error('Delete interest error:', err);
+        }
         return;
     }
 
     // Save interest
     btn.disabled = true;
-    const originalHTML = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     try {
         const fingerprint = getFingerprint();
         await fetch(`${API_BASE}/api/v1/interest/${interestType}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({
                 fingerprint: fingerprint,
+                email: userEmail,
                 source: 'web',
                 user_agent: navigator.userAgent,
                 language: navigator.language
@@ -2618,6 +2606,14 @@ async function saveInterest(btn, interestType) {
         });
     } catch (err) {
         console.error('Save interest error:', err);
+    }
+
+    // GA4: track save event
+    if (typeof gtag === 'function') {
+        gtag('event', 'save_interest', {
+            interest_type: interestType,
+            user_email: userEmail || 'anonymous'
+        });
     }
 
     // Always mark as saved locally (even if API fails)
