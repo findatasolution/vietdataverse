@@ -859,13 +859,22 @@
             }
 
             // GA4: track partner Register Now clicks
-            document.querySelectorAll('.partner-card-link:not(.is-coming-soon)').forEach(link => {
+            const partnerIdMap = {
+                'SSI Securities': 'SSI',
+                'VPBank Securities': 'VPBS'
+            };
+            document.querySelectorAll('.partner-card-link:not(.is-coming-soon)').forEach((link, idx) => {
                 link.addEventListener('click', () => {
-                    const name = link.querySelector('.partner-name')?.textContent || 'unknown';
+                    const name = link.querySelector('.partner-name')?.textContent?.trim() || 'unknown';
+                    const partnerId = partnerIdMap[name] || name;
+                    const isLoggedIn = !!localStorage.getItem('auth_token');
                     if (typeof gtag === 'function') {
-                        gtag('event', 'partner_click', {
-                            partner_name: name.trim(),
-                            link_url: link.href
+                        gtag('event', 'partner_register_click', {
+                            partner_name: name,
+                            partner_id: partnerId,
+                            link_url: link.href,
+                            card_position: idx + 1,
+                            is_authenticated: isLoggedIn
                         });
                     }
                 });
