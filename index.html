@@ -1582,23 +1582,36 @@ function initMobileMenu() {
 /* =========================================================
    SIDEBAR TABS (main-level only)
 ========================================================= */
-function activateTab(tabId) {
-    const tabLabels = {
-        'data-portal': 'Open Economic Data',
-        '1smarket-portal': '1s Market Pulse',
-        'fintel-agent-for-hire': 'Fintel AI Agent',
-        'download-api': 'Download & API',
-        'about-terms': 'About & Terms'
-    };
+let _tabDwellTimer = null;
+const TAB_LABELS = {
+    'data-portal': 'Open Economic Data',
+    '1smarket-portal': '1s Market Pulse',
+    'fintel-agent-for-hire': 'Fintel AI Agent',
+    'download-api': 'Download & API',
+    'about-terms': 'About & Terms'
+};
 
+function activateTab(tabId) {
     // GA4: track tab view
     if (typeof gtag === 'function') {
         gtag('event', 'tab_view', {
             tab_id: tabId,
-            tab_name: tabLabels[tabId] || tabId,
+            tab_name: TAB_LABELS[tabId] || tabId,
             product_type: (tabId === 'fintel-agent-for-hire') ? 'profit' : 'free'
         });
     }
+
+    // GA4: track tab engagement (stayed 5s+)
+    if (_tabDwellTimer) clearTimeout(_tabDwellTimer);
+    _tabDwellTimer = setTimeout(() => {
+        if (typeof gtag === 'function') {
+            gtag('event', 'tab_engaged', {
+                tab_id: tabId,
+                tab_name: TAB_LABELS[tabId] || tabId,
+                dwell_seconds: 5
+            });
+        }
+    }, 5000);
 
     // Toggle nav-links
     document.querySelectorAll('.nav-link[data-tab]').forEach(l => l.classList.remove('active'));
@@ -1902,6 +1915,15 @@ async function downloadData(dataType) {
         document.body.removeChild(link);
 
         console.log(`Downloaded ${dataType} data successfully`);
+
+        // GA4: track file download
+        if (typeof gtag === 'function') {
+            gtag('event', 'file_download', {
+                file_name: `vietdataverse_${dataType}`,
+                file_type: 'csv',
+                data_type: dataType
+            });
+        }
 
     } catch (error) {
         console.error('Download failed:', error);
