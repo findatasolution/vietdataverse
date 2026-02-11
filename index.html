@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <!-- Google search -->
+    <meta name="google-site-verification" content="w7LUdUQqy_s1GEK4xpKPy8KSuyNMWFLz9bMuMyhtnNQ" />
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-YB3PKHN2E5"></script>
     <script>
@@ -62,6 +64,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
+    <link rel="dns-prefetch" href="https://api.vietdataverse.online">
     <link rel="preload" href="style.css" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -260,6 +264,25 @@
     <script src="auth.js"></script>
 </head>
 <body>
+    <!-- SEO: noscript fallback for crawlers that don't execute JavaScript -->
+    <noscript>
+        <div style="max-width:800px;margin:2rem auto;padding:1rem;font-family:sans-serif;">
+            <h1>Tải Lịch Sử Giá Vàng Miễn Phí | Download Vietnam Gold Price CSV</h1>
+            <p>Viet Dataverse cung cấp dữ liệu lịch sử giá vàng SJC, DOJI, BTMC từ 2015 hoàn toàn miễn phí. Download Vietnam gold price data CSV, giá bạc Phú Quý, lãi suất ngân hàng SBV. Cập nhật 2 lần mỗi ngày.</p>
+            <h2>Dữ liệu có sẵn để tải</h2>
+            <ul>
+                <li><strong>Giá Vàng Trong Nước</strong> - Tải lịch sử giá vàng SJC, DOJI HN, DOJI SG, BTMC, PNJ từ 2015</li>
+                <li><strong>Giá Bạc Phú Quý</strong> - Lịch sử giá bạc thỏi tại thị trường Việt Nam</li>
+                <li><strong>Lãi Suất Liên Ngân Hàng SBV</strong> - Lãi suất qua đêm, 1 tuần, 1-9 tháng</li>
+                <li><strong>Lãi Suất Gửi Tiết Kiệm</strong> - ACB, VCB, CTG, SHB</li>
+            </ul>
+            <h2>Download Gold Price Vietnam</h2>
+            <p>Free API access: <a href="https://api.vietdataverse.online/api/docs">api.vietdataverse.online/api/docs</a></p>
+            <p>Download gold price CSV, silver price, SBV interbank rates from 2015 to present. Updated twice daily.</p>
+            <h2>Đối Tác Chứng Khoán</h2>
+            <p><a href="partners.html">Mở tài khoản chứng khoán SSI, VPBank Securities miễn phí</a></p>
+        </div>
+    </noscript>
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
@@ -1424,6 +1447,10 @@
         location.hostname === 'localhost' || location.hostname === '127.0.0.1'
             ? 'http://127.0.0.1:8000/api/v1'
             : 'https://api.vietdataverse.online/api/v1';
+    // Warm up API connection early (triggers DNS + TLS handshake)
+    if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        fetch('https://api.vietdataverse.online/api/v1/health', { mode: 'cors', cache: 'no-store' }).catch(() => {});
+    }
 })();
 
 /* =========================================================
@@ -1731,19 +1758,20 @@ function loadChartsForTab(tabId) {
 
     loadedTabs[tabId] = true;
 
-    // Load charts based on tab ID
+    // Load charts in parallel for each tab
     if (tabId === 'tab-gold-silver') {
-        // Load gold and silver charts with default period (1 month)
         const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
-        loadChartData('gold', '1m', goldType);
-        loadChartData('silver', '1m');
+        Promise.all([
+            loadChartData('gold', '1m', goldType),
+            loadChartData('silver', '1m')
+        ]);
     } else if (tabId === 'tab-currency') {
-        // Load term deposit and SBV rate charts
         const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
-        loadChartData('td', '1y', null, bankCode);
-        loadChartData('sbv', '1m');
+        Promise.all([
+            loadChartData('td', '1y', null, bankCode),
+            loadChartData('sbv', '1m')
+        ]);
     } else if (tabId === 'tab-global') {
-        // Load global markets chart
         loadChartData('global', '1m');
     }
 }
@@ -1991,36 +2019,6 @@ const CHART_API_ENDPOINTS = {
     global: 'global-macro'
 };
 
-// Static CDN base URL (same domain, /data folder)
-const STATIC_CDN_BASE = './data';
-
-// Build static file URL for chart type
-function getStaticFileUrl(chartType, period, goldType, bankCode) {
-    if (chartType === 'gold') {
-        const safeType = goldType.replace(/ /g, '_').replace(/\//g, '_');
-        return `${STATIC_CDN_BASE}/gold_${safeType}_${period}.json`;
-    }
-    if (chartType === 'silver') return `${STATIC_CDN_BASE}/silver_${period}.json`;
-    if (chartType === 'sbv') return `${STATIC_CDN_BASE}/sbv_${period}.json`;
-    if (chartType === 'td') return `${STATIC_CDN_BASE}/termdepo_${bankCode}_${period}.json`;
-    return null;
-}
-
-// Transform static data format to API format
-function transformStaticData(chartType, staticData) {
-    const d = staticData.data || staticData;
-    if (chartType === 'gold' || chartType === 'silver') {
-        return { success: true, data: { dates: d.dates, buy_prices: d.buy_prices, sell_prices: d.sell_prices }, type: d.type, period: d.period, count: d.count };
-    }
-    if (chartType === 'sbv') {
-        return { success: true, data: { dates: d.dates, overnight: d.overnight, month_1: d.month_1, month_3: d.month_3, rediscount: d.rediscount, refinancing: d.refinancing }, period: d.period, count: d.count };
-    }
-    if (chartType === 'td') {
-        return { success: true, data: { dates: d.dates, term_1m: d.term_1m, term_3m: d.term_3m, term_6m: d.term_6m, term_12m: d.term_12m, term_24m: d.term_24m }, bank: d.bank, period: d.period, count: d.count };
-    }
-    return staticData;
-}
-
 /* =========================================================
    FETCH CHART DATA - STATIC CDN FIRST, API FALLBACK
 ========================================================= */
@@ -2043,27 +2041,14 @@ async function loadChartData(chartType, period = '1m', goldType = 'DOJI HN', ban
 
     let data = null;
     try {
-        // STRATEGY 1: Try static CDN first (instant, no cold start)
-        const staticUrl = getStaticFileUrl(chartType, period, goldType, bankCode);
-        if (staticUrl) {
-            try {
-                const staticRes = await fetch(staticUrl, { cache: 'default' });
-                if (staticRes.ok) {
-                    data = transformStaticData(chartType, await staticRes.json());
-                    console.log(`[${chartType}] Loaded from static CDN`);
-                }
-            } catch (e) { console.log(`[${chartType}] Static unavailable, trying API...`); }
-        }
-
-        // STRATEGY 2: Fallback to API if static failed
-        if (!data && base) {
+        // Fetch directly from API
+        if (base) {
             let apiUrl = `${base}/${endpoint}?period=${period}`;
             if (chartType === 'gold' && goldType) apiUrl += `&type=${encodeURIComponent(goldType)}`;
             if (chartType === 'td' && bankCode) apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
             const res = await fetch(apiUrl);
             if (!res.ok) throw new Error(`API error: ${res.status}`);
             data = await res.json();
-            console.log(`[${chartType}] Loaded from API`);
         }
 
         if (data) { chartCache[cacheKey] = data; renderChart(chartType, data, period); }
@@ -2502,25 +2487,12 @@ async function loadMarketPulse() {
     let data = null;
 
     try {
-        // Try static file first (instant, no cold start)
-        try {
-            const staticRes = await fetch('./data/market_pulse.json', { cache: 'default' });
-            if (staticRes.ok) {
-                const staticJson = await staticRes.json();
-                data = staticJson.data?.data || staticJson.data || [];
-                console.log('[MarketPulse] Loaded from static');
-            }
-        } catch (e) { /* static unavailable */ }
-
-        // Fallback to API
-        if (!data || data.length === 0) {
-            if (base) {
-                const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`);
-                if (res.ok) {
-                    const json = await res.json();
-                    data = json.data || [];
-                    console.log('[MarketPulse] Loaded from API');
-                }
+        // Fetch directly from API
+        if (base) {
+            const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`);
+            if (res.ok) {
+                const json = await res.json();
+                data = json.data || [];
             }
         }
 
