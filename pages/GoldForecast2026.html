@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Báo Giá Vàng 2026 — Phân Tích Chiến Lược Toàn Diện</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #0f0f0f; color: #e8e6e1; }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+        .chart-container { position: relative; width: 100%; height: 400px; }
+        .gold-gradient { background: linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #daa520 100%); }
+        .gold-text { background: linear-gradient(135deg, #ffd700, #daa520); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .card-active { border-color: #d4af37 !important; background-color: rgba(212,175,55,0.08) !important; box-shadow: 0 0 30px rgba(212,175,55,0.15); }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.06); }
+        .glass-gold { background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.15); }
+        .highlight-box { background: rgba(212,175,55,0.08); border-left: 4px solid #d4af37; padding: 20px 24px; border-radius: 0 12px 12px 0; }
+        .source-ref { color: #d4af37; font-weight: 700; cursor: pointer; font-size: 0.75em; vertical-align: super; text-decoration: none; transition: color 0.2s; }
+        .source-ref:hover { color: #ffd700; text-decoration: underline; }
+        sup.ref a { color: #d4af37; font-weight: bold; text-decoration: none; transition: color 0.2s; }
+        sup.ref a:hover { color: #ffd700; text-decoration: underline; }
+        .ticker-bar { animation: ticker 30s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .fade-up { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .slider-gold::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #ffd700; cursor: pointer; box-shadow: 0 0 12px rgba(255,215,0,0.5); }
+        .slider-gold::-webkit-slider-runnable-track { height: 6px; background: #333; border-radius: 3px; }
+        .slider-gold { -webkit-appearance: none; width: 100%; background: transparent; }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn:hover { transform: translateY(-2px); }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        sup.ref { color: #d4af37; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; }
+        th { background: rgba(212,175,55,0.15); color: #ffd700; }
+        td, th { padding: 14px 18px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .nav-link { position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #d4af37; transition: width 0.3s; }
+        .nav-link:hover::after { width: 100%; }
+        @media (max-width: 768px) {
+            .chart-container { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 gold-gradient rounded-xl flex items-center justify-center">
+                    <span class="text-black font-bold text-lg">Au</span>
+                </div>
+                <div>
+                    <span class="text-lg font-bold tracking-tight">Gold Insight</span>
+                    <span class="text-amber-500 font-bold ml-1">2026</span>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-stone-400">
+                <a href="#overview" class="nav-link hover:text-amber-400 transition">Tổng quan</a>
+                <a href="#analysis" class="nav-link hover:text-amber-400 transition">Phân tích Q1</a>
+                <a href="#quarterly" class="nav-link hover:text-amber-400 transition">Dự báo Quý</a>
+                <a href="#drivers" class="nav-link hover:text-amber-400 transition">Động lực</a>
+                <a href="#vietnam" class="nav-link hover:text-amber-400 transition">Việt Nam</a>
+                <a href="#simulator" class="nav-link hover:text-amber-400 transition">Mô phỏng</a>
+            </div>
+            <div class="text-right hidden sm:block">
+                <div class="flex items-center gap-2">
+                    <!-- <span class="pulse-dot w-2 h-2 bg-emerald-400 rounded-full inline-block"></span> -->
+                    <span class="text-[10px] text-stone-500 uppercase font-bold">Report Date 14/02/2026</span>
+                </div>
+                <span class="text-xl font-bold text-white">$5,041.20<span class="text-emerald-400 text-sm ml-2">+$63.00</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- TICKER BAR -->
+    <div class="fixed top-[72px] w-full z-40 bg-black/60 backdrop-blur border-b border-white/5 overflow-hidden py-2">
+        <div class="ticker-bar whitespace-nowrap text-xs text-stone-500 font-medium">
+            <span class="inline-block px-8">SPOT GOLD: $5,041.20/oz <span class="text-emerald-400">▲ +1.27%</span></span>
+            <span class="inline-block px-8">SJC: 181,000,000 VND/lượng</span>
+            <span class="inline-block px-8">NHẪN 9999: 180,500,000 VND/lượng</span>
+            <span class="inline-block px-8">J.P. Morgan Target: $6,300/oz</span>
+            <span class="inline-block px-8">Goldman Sachs Target: $5,400/oz</span>
+            <span class="inline-block px-8">UBS Target: $6,200/oz</span>
+            <span class="inline-block px-8">│</span>
+            <span class="inline-block px-8">SPOT GOLD: $5,041.20/oz <span class="text-emerald-400">▲ +1.27%</span></span>
+            <span class="inline-block px-8">SJC: 181,000,000 VND/lượng</span>
+            <span class="inline-block px-8">NHẪN 9999: 180,500,000 VND/lượng</span>
+            <span class="inline-block px-8">J.P. Morgan Target: $6,300/oz</span>
+            <span class="inline-block px-8">Goldman Sachs Target: $5,400/oz</span>
+            <span class="inline-block px-8">UBS Target: $6,200/oz</span>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-6 pt-32">
+
+        <!-- ============================================ -->
+        <!-- SECTION 1: HERO / TỔNG QUAN -->
+        <!-- ============================================ -->
+        <section id="overview" class="mb-24 fade-up">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center">
+                <div class="lg:col-span-3">
+                    <p class="text-amber-500 text-sm font-bold uppercase tracking-widest mb-4">Báo cáo Chiến lược &bull; Cập nhật 14/02/2026</p>
+                    <h1 class="text-4xl md:text-6xl font-black leading-tight mb-6">
+                        Kỷ Nguyên Vàng Mới:<br>
+                        <span class="gold-text">Hướng Tới $6,300</span>
+                    </h1>
+                    <p class="text-stone-400 text-lg leading-relaxed mb-8 max-w-2xl">
+                        Thị trường vàng thế giới đang đứng trước một cuộc tái định giá mang tính bước ngoặt — chuyển mình từ công cụ phòng vệ rủi ro truyền thống sang tài sản dự trữ chiến lược trung lập trong hệ thống tài chính đa cực. Các ngưỡng giá từng được coi là không thể chạm tới nay đã trở thành các mốc hỗ trợ cấu trúc bền vững.<sup class="ref"><a href="https://finance.yahoo.com/news/goldman-raises-end-gold-forecast-045714847.html" target="_blank" title="Goldman Raises Year-End Gold Forecast to $5,400/oz — Yahoo Finance">[1]</a></sup>
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="glass-gold rounded-xl p-4 text-center">
+                            <span class="block text-[10px] text-stone-500 uppercase font-bold mb-1">Giá hiện tại</span>
+                            <span class="text-xl font-bold text-white">$5,041</span>
+                        </div>
+                        <div class="glass-gold rounded-xl p-4 text-center">
+                            <span class="block text-[10px] text-stone-500 uppercase font-bold mb-1">Mục tiêu JPM</span>
+                            <span class="text-xl font-bold text-amber-400">$6,300</span>
+                        </div>
+                        <div class="glass-gold rounded-xl p-4 text-center">
+                            <span class="block text-[10px] text-stone-500 uppercase font-bold mb-1">Mục tiêu GS</span>
+                            <span class="text-xl font-bold text-amber-400">$5,400</span>
+                        </div>
+                        <div class="glass-gold rounded-xl p-4 text-center">
+                            <span class="block text-[10px] text-stone-500 uppercase font-bold mb-1">Tăng trưởng</span>
+                            <span class="text-xl font-bold text-emerald-400">+25%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 glass rounded-2xl p-6 relative overflow-hidden">
+                    <h3 class="text-white text-lg font-bold mb-2">So sánh Mục tiêu Giá 2026</h3>
+                    <p class="text-stone-500 text-xs mb-4">Các định chế tài chính hàng đầu</p>
+                    <div class="chart-container" style="height: 320px;">
+                        <canvas id="targetCompareChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 2: BẢNG SỐ LIỆU THỊ TRƯỜNG -->
+        <!-- ============================================ -->
+        <section class="mb-24 fade-up">
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="p-6 border-b border-white/5">
+                    <h2 class="text-2xl font-bold">Bảng Số liệu Thị trường Vàng</h2>
+                    <p class="text-stone-500 text-sm mt-1">Cập nhật ngày 14/02/2026</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="font-bold text-sm">Chỉ số</th>
+                                <th class="font-bold text-sm">Giá trị</th>
+                                <th class="font-bold text-sm">Nguồn</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-stone-300">
+                            <tr>
+                                <td>Giá vàng thế giới giao ngay (Spot Gold)</td>
+                                <td class="font-bold text-white">$5,041.20/oz</td>
+                                <td><a class="source-ref" href="https://www.fxstreet.com/news/gold-recovers-swiftly-from-weekly-low-climbs-back-closer-to-5-000-ahead-of-us-cpi-202602130443" target="_blank" rel="sponsored noopener noreferrer" title="FXStreet: Gold price data 14/02/2026">[3]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Giá vàng miếng SJC (Việt Nam)</td>
+                                <td class="font-bold text-white">181,000,000 VND/lượng</td>
+                                <td><a class="source-ref" href="https://www.fxstreet.com/news/gold-recovers-swiftly-from-weekly-low-climbs-back-closer-to-5-000-ahead-of-us-cpi-202602130443" target="_blank" rel="sponsored noopener noreferrer" title="FXStreet: Gold price data 14/02/2026">[3]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Giá vàng nhẫn 9999 (Việt Nam)</td>
+                                <td class="font-bold text-white">180,500,000 VND/lượng</td>
+                                <td><a class="source-ref" href="https://www.fxstreet.com/news/gold-recovers-swiftly-from-weekly-low-climbs-back-closer-to-5-000-ahead-of-us-cpi-202602130443" target="_blank" rel="sponsored noopener noreferrer" title="FXStreet: Gold price data 14/02/2026">[3]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Mục tiêu cuối năm 2026 — J.P. Morgan</td>
+                                <td class="font-bold text-amber-400">$6,300.00/oz</td>
+                                <td><a class="source-ref" href="https://www.kitco.com/news/off-the-wire/2026-02-02/jp-morgan-expects-gold-prices-reach-6300oz-end-2026" target="_blank" rel="sponsored noopener noreferrer" title="Kitco: J.P. Morgan expects gold $6,300/oz by end of 2026">[5]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Mục tiêu cuối năm 2026 — Goldman Sachs</td>
+                                <td class="font-bold text-amber-400">$5,400.00/oz</td>
+                                <td><a class="source-ref" href="https://finance.yahoo.com/news/goldman-raises-end-gold-forecast-045714847.html" target="_blank" rel="sponsored noopener noreferrer" title="Goldman Sachs raises gold forecast to $5,400/oz">[1]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Mục tiêu Q3 2026 — UBS</td>
+                                <td class="font-bold text-amber-400">$6,200.00/oz</td>
+                                <td><a class="source-ref" href="https://www.investing.com/news/commodities-news/ubs-raises-gold-price-target-for-2026-here-are-the-new-forecasts-4474171" target="_blank" rel="sponsored noopener noreferrer" title="UBS raises gold price target to $6,200 — Investing.com">[15]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Nhu cầu NHTW dự kiến 2026</td>
+                                <td class="font-bold text-white">585 tấn/quý</td>
+                                <td><a class="source-ref" href="https://www.jpmorgan.com/insights/global-research/commodities/gold-prices" target="_blank" rel="sponsored noopener noreferrer" title="J.P. Morgan: Gold price predictions — Central bank demand 585 tonnes/quarter">[11]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Dòng vốn ETF dự kiến 2026</td>
+                                <td class="font-bold text-white">250 tấn</td>
+                                <td><a class="source-ref" href="https://www.jpmorgan.com/insights/global-research/commodities/gold-prices" target="_blank" rel="sponsored noopener noreferrer" title="J.P. Morgan: Gold price predictions — Central bank demand 585 tonnes/quarter">[11]</a></td>
+                            </tr>
+                            <tr>
+                                <td>Chỉ số Mật độ Đồng thuận (CDI)</td>
+                                <td class="font-bold text-red-400">0.87 (Cực đoan)</td>
+                                <td><a class="source-ref" href="https://www.gold.org/goldhub/research/gold-outlook-2026" target="_blank" rel="sponsored noopener noreferrer" title="World Gold Council: Gold Outlook 2026">[19]</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 3: PHÂN TÍCH CÚ SỐC Q1/2026 -->
+        <!-- ============================================ -->
+        <section id="analysis" class="mb-24 fade-up">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div>
+                    <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">Phân tích chuyên sâu</p>
+                    <h2 class="text-3xl font-bold mb-6 leading-snug">Cú sốc Hệ thống<br>& Sự Phục hồi Kỹ thuật Q1</h2>
+                    <div class="space-y-5 text-stone-400 leading-relaxed">
+                        <p>
+                            Giai đoạn đầu năm 2026 ghi nhận một trong những chu kỳ biến động mạnh nhất trong lịch sử kim loại quý. Sau khi kết thúc năm 2025 với mức tăng trưởng ngoạn mục <strong class="text-white">hơn 60%</strong>, vàng đã bùng nổ trong ba tuần đầu năm 2026, tăng thêm <strong class="text-white">12%</strong> và thiết lập đỉnh cao mọi thời đại tại mức <strong class="text-amber-400">$4,888/oz</strong> trước khi tiến sát ngưỡng <strong class="text-amber-400">$5,500/oz</strong>.<sup class="ref"><a href="https://finance.yahoo.com/news/goldman-raises-end-gold-forecast-045714847.html" target="_blank" title="Goldman Sachs nâng dự báo giá vàng cuối năm 2026 lên $5,400/oz">[1]</a></sup>
+                        </p>
+                        <p>
+                            Sự kiện được giới phân tích gọi là <em>"vụ sụp đổ lịch sử"</em> diễn ra ngày <strong class="text-white">30/01/2026</strong>, khi giá vàng lao dốc hơn <strong class="text-red-400">12%</strong> chỉ trong một phiên duy nhất — mức giảm phần trăm hàng ngày lớn nhất kể từ những năm 1980.<sup class="ref"><a href="https://www.cnbc.com/2026/01/30/silver-gold-fall-price-usd-dollar-fed-warsh-chair-trump-metals.html" target="_blank" title="CNBC: Silver plunges 30%, gold tumbles as Warsh pick — 30/01/2026">[2]</a></sup>
+                        </p>
+                        <p>
+                            Nguyên nhân không đến từ thay đổi yếu tố cơ bản dài hạn, mà là sự hội tụ của yếu tố kỹ thuật: việc đề cử <strong class="text-white">Kevin Warsh</strong> làm Chủ tịch Fed được diễn giải là tín hiệu <em>diều hâu cực đoan</em>.<sup class="ref"><a href="https://www.cnbc.com/2026/01/30/silver-gold-fall-price-usd-dollar-fed-warsh-chair-trump-metals.html" target="_blank" title="CNBC: Silver plunges 30%, gold tumbles as Warsh pick — 30/01/2026">[2]</a></sup> Đồng thời, CME tăng yêu cầu ký quỹ từ <strong class="text-white">6% lên 8%</strong>, buộc các nhà đầu cơ đòn bẩy cao tất toán vị thế hàng loạt.<sup class="ref"><a href="https://www.cnbc.com/2026/01/30/silver-gold-fall-price-usd-dollar-fed-warsh-chair-trump-metals.html" target="_blank" title="CNBC: Silver plunges 30%, gold tumbles as Warsh pick — 30/01/2026">[2]</a></sup>
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <div class="glass rounded-2xl p-6 mb-6">
+                        <h3 class="text-white text-lg font-bold mb-4">Biến động Giá Vàng — Tháng 1-2/2026</h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="volatilityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="highlight-box rounded-r-xl">
+                        <p class="text-stone-300 text-sm leading-relaxed">
+                            <strong class="text-amber-400">Sự phục hồi nhanh chóng:</strong> Tính đến 14/02/2026, giá vàng đã hồi phục lên <strong>$5,041.2/oz</strong>, tăng <strong>$63</strong> so với phiên trước. CPI tháng 1 của Mỹ thấp hơn kỳ vọng (+0.2% vs dự báo +0.3%) củng cố niềm tin Fed sẽ cắt giảm lãi suất vào <strong>tháng 7/2026</strong> với tổng mức cắt giảm khoảng <strong>63 điểm cơ bản</strong>.<sup class="ref"><a href="https://www.fxstreet.com/news/gold-recovers-swiftly-from-weekly-low-climbs-back-closer-to-5-000-ahead-of-us-cpi-202602130443" target="_blank" title="FXStreet: Gold holds near $5,000 — CPI data 14/02/2026">[3]</a></sup>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 4: ĐỘNG LỰC VĨ MÔ -->
+        <!-- ============================================ -->
+        <section id="drivers" class="mb-24 fade-up">
+            <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">Động lực vĩ mô</p>
+            <h2 class="text-3xl font-bold mb-10">Từ Phòng thủ sang Tái cấu trúc Dự trữ Toàn cầu</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <!-- Card 1: NHTW -->
+                <div class="glass rounded-2xl p-8 hover:border-amber-500/30 transition-all">
+                    <div class="w-12 h-12 gold-gradient rounded-xl flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Ngân hàng Trung ương & Phi đô-la hóa</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed mb-4">
+                        Động lực bền bỉ nhất thúc đẩy giá vàng năm 2026 là nhu cầu từ các NHTW thị trường mới nổi. Goldman Sachs nhận định đây là sự thay đổi mang tính cấu trúc trong quản lý dự trữ, không có dấu hiệu đảo ngược.<sup class="ref"><a href="https://www.goldmansachs.com/insights/articles/gold-forecast-to-rise-by-the-middle-of-2026" target="_blank" title="Goldman Sachs: Gold forecast to rise 6% by mid-2026">[9]</a></sup>
+                    </p>
+                    <div class="bg-black/30 rounded-lg p-3">
+                        <span class="text-xs text-stone-500">Nhu cầu NHTW dự kiến</span>
+                        <span class="block text-lg font-bold text-amber-400">585 tấn/quý</span>
+                        <span class="text-xs text-stone-500">Cao hơn 17% so với trung bình trước 2022<sup class="ref"><a href="https://www.jpmorgan.com/insights/global-research/commodities/gold-prices" target="_blank" title="J.P. Morgan Global Research: Gold price predictions">[11]</a></sup></span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Địa chính trị -->
+                <div class="glass rounded-2xl p-8 hover:border-red-500/30 transition-all">
+                    <div class="w-12 h-12 bg-gradient-to-br from-red-600 to-red-400 rounded-xl flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Rủi ro Địa chính trị</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed mb-4">
+                        Các xung đột dai dẳng tại Ukraine, Trung Đông, cùng các tuyên bố về Greenland, rủi ro quân sự tại Venezuela và bất ổn Iran đã đẩy giá vượt các mốc kháng cự kỹ thuật.<sup class="ref"><a href="https://www.cnbc.com/2026/01/12/gold-record-haven-powell-venezuela-iran.html" target="_blank" title="CNBC: Gold hits new record as Venezuela, Iran crisis ignites demand">[12]</a></sup>
+                    </p>
+                    <div class="bg-black/30 rounded-lg p-3">
+                        <span class="text-xs text-stone-500">Vàng hiện được coi là</span>
+                        <span class="block text-lg font-bold text-red-400">"Tài sản trung lập tối cao"</span>
+                        <span class="text-xs text-stone-500">Bảo vệ trước đóng băng tài sản & trừng phạt<sup class="ref"><a href="https://www.xs.com/en/blog/gold-price-prediction/" target="_blank" title="XS.com: Gold Price Predictions 2026-2030">[14]</a></sup></span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Phương pháp luận -->
+                <div class="glass rounded-2xl p-8 hover:border-blue-500/30 transition-all">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-400 rounded-xl flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Phương pháp Dự báo</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed mb-4">
+                        J.P. Morgan sử dụng mô hình <em>"Notional Shift"</em> — tập trung vào giá trị danh nghĩa của dòng vốn. Khi giá $5,000, áp lực mua bằng tiền mặt mới là thứ đẩy giá đi lên.<sup class="ref"><a href="https://www.jpmorgan.com/insights/global-research/commodities/gold-prices" target="_blank" title="J.P. Morgan Global Research: Gold price predictions">[11]</a></sup>
+                    </p>
+                    <div class="bg-black/30 rounded-lg p-3">
+                        <span class="text-xs text-stone-500">Dòng vốn ETF dự kiến 2026</span>
+                        <span class="block text-lg font-bold text-blue-400">250 tấn</span>
+                        <span class="text-xs text-stone-500">CDI đạt 0.87 — mức cực đoan<sup class="ref"><a href="https://www.gold.org/goldhub/research/gold-outlook-2026" target="_blank" title="World Gold Council: Gold Outlook 2026">[19]</a></sup></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar Chart -->
+            <div class="glass rounded-2xl p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Trọng số các Động lực Thị trường</h3>
+                        <p class="text-stone-400 leading-relaxed mb-6">
+                            Quỹ đạo giá vàng năm 2026 không còn bị chi phối đơn lẻ bởi lợi suất thực hay sức mạnh USD. Một <em>"trình tự đa nhân tố"</em> đang vận hành, nơi các biến số địa chính trị và sự xói mòn niềm tin vào nợ công Mỹ đóng vai trò trung tâm.<sup class="ref"><a href="https://www.goldmansachs.com/insights/articles/gold-forecast-to-rise-by-the-middle-of-2026" target="_blank" title="Goldman Sachs: Gold forecast to rise 6% by mid-2026">[9]</a></sup>
+                        </p>
+                        <p class="text-stone-400 leading-relaxed">
+                            Khi giá vàng tăng lên $4,000 - $5,000/oz, các NHTW không cần mua nhiều tấn vàng như trước để đạt được cùng tỷ lệ phần trăm trong tổng dự trữ. Điều này giải thích tại sao khối lượng mua giảm nhẹ nhưng giá trị danh nghĩa vẫn duy trì kỷ lục.<sup class="ref"><a href="https://www.jpmorgan.com/insights/global-research/commodities/gold-prices" target="_blank" title="J.P. Morgan Global Research: Gold price predictions">[11]</a></sup>
+                        </p>
+                    </div>
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 5: DỰ BÁO THEO QUÝ (INTERACTIVE) -->
+        <!-- ============================================ -->
+        <section id="quarterly" class="mb-24 fade-up">
+            <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">Lộ trình chi tiết</p>
+            <h2 class="text-3xl font-bold mb-3">Dự báo Thay đổi Giá theo từng Quý</h2>
+            <p class="text-stone-500 mb-8">Tổng hợp từ Goldman Sachs, J.P. Morgan, UBS và Deutsche Bank. Nhấn vào từng quý để xem chi tiết.</p>
+
+            <!-- Quarter Tabs -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="quarterTabs"></div>
+
+            <!-- Quarter Detail Panel -->
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-5">
+                    <div class="lg:col-span-3 p-8">
+                        <h3 id="qTitle" class="text-3xl font-bold gold-text mb-4">---</h3>
+                        <p id="qDescription" class="text-stone-400 leading-relaxed text-base">---</p>
+                    </div>
+                    <div class="lg:col-span-2 bg-black/30 p-8 space-y-4">
+                        <div class="glass-gold rounded-xl p-4">
+                            <span class="text-[10px] font-bold text-stone-500 uppercase">Mức giá dự kiến cuối quý</span>
+                            <div id="qPrice" class="text-3xl font-bold text-amber-400 mt-1">$0</div>
+                        </div>
+                        <div class="glass rounded-xl p-4">
+                            <span class="text-[10px] font-bold text-stone-500 uppercase">Biến số chính</span>
+                            <div id="qKeyFactor" class="text-sm font-medium text-white mt-1">---</div>
+                        </div>
+                        <div class="glass rounded-xl p-4">
+                            <span class="text-[10px] font-bold text-stone-500 uppercase">Nguồn tham chiếu</span>
+                            <div id="qSources" class="text-sm font-medium text-stone-400 mt-1">---</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quarterly Forecast Chart -->
+            <div class="glass rounded-2xl p-6 mt-8">
+                <h3 class="text-white text-lg font-bold mb-4">Xu hướng Dự báo Giá Vàng Thế Giới theo Quý</h3>
+                <div class="chart-container">
+                    <canvas id="mainForecastChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 6: THỊ TRƯỜNG VIỆT NAM -->
+        <!-- ============================================ -->
+        <section id="vietnam" class="mb-24 fade-up">
+            <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">Thị trường nội địa</p>
+            <h2 class="text-3xl font-bold mb-3">Phân tích Thị trường Vàng Việt Nam</h2>
+            <p class="text-stone-500 mb-8">Biến động SJC & Vàng nhẫn 9999 — Tuần 07/02 đến 14/02/2026</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass rounded-2xl p-6">
+                    <h3 class="text-white text-lg font-bold mb-4">Dự báo Giá Vàng SJC theo Quý</h3>
+                    <div class="chart-container" style="height: 320px;">
+                        <canvas id="vietnamChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="glass-gold rounded-2xl p-6">
+                        <h4 class="text-lg font-bold text-amber-400 mb-4">Lộ trình Giá Vàng SJC 2026</h4>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                                <span class="text-stone-400 text-sm">Cuối Quý I/2026</span>
+                                <span class="font-bold text-white">~185 triệu VND/lượng</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                                <span class="text-stone-400 text-sm">Cuối Quý II/2026</span>
+                                <span class="font-bold text-white">190 - 195 triệu VND/lượng</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                                <span class="text-stone-400 text-sm">Cuối Quý III/2026</span>
+                                <span class="font-bold text-amber-400">~210 triệu VND/lượng</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-stone-400 text-sm">Cuối Quý IV/2026</span>
+                                <span class="font-bold text-amber-400">205 - 215 triệu VND/lượng</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <p class="text-stone-400 text-sm leading-relaxed">
+                            Giá vàng trong nước năm 2026 phụ thuộc vào giá thế giới quy đổi (dự kiến $6,300/oz), sự vận hành của <strong class="text-white">sàn giao dịch vàng mới</strong> và các chính sách thuế tiềm năng. Sàn giao dịch vàng dự kiến giúp thu hẹp chênh lệch giá nội-ngoại, nhưng giai đoạn đầu có thể gây thêm biến động do thanh khoản đang được thiết lập.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 7: TRÌNH MÔ PHỎNG TƯƠNG TÁC -->
+        <!-- ============================================ -->
+        <section id="simulator" class="mb-24 fade-up">
+            <div class="glass-gold rounded-2xl p-8 md:p-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div>
+                        <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mb-3">Công cụ tương tác</p>
+                        <h2 class="text-3xl font-bold text-white mb-4">Trình Mô phỏng Biến động</h2>
+                        <p class="text-stone-400 mb-10 leading-relaxed">Điều chỉnh các biến số vĩ mô để xem tác động lên giá vàng cuối năm 2026. Mô hình dựa trên phương pháp đa nhân tố của J.P. Morgan và Goldman Sachs.</p>
+
+                        <div class="space-y-8">
+                            <!-- Slider 1: Central Bank -->
+                            <div>
+                                <div class="flex justify-between mb-3">
+                                    <span class="text-sm font-medium text-stone-300">Phi đô-la hóa (Central Bank Buying)</span>
+                                    <span id="cbVal" class="text-amber-400 font-bold text-sm">Mạnh</span>
+                                </div>
+                                <input type="range" id="cbSlider" min="0" max="200" value="100" class="slider-gold">
+                            </div>
+
+                            <!-- Slider 2: Geopolitical -->
+                            <div>
+                                <div class="flex justify-between mb-3">
+                                    <span class="text-sm font-medium text-stone-300">Rủi ro Địa chính trị</span>
+                                    <span id="geoVal" class="text-red-400 font-bold text-sm">Cao</span>
+                                </div>
+                                <input type="range" id="geoSlider" min="0" max="200" value="100" class="slider-gold">
+                            </div>
+
+                            <!-- Slider 3: Fed Rate -->
+                            <div>
+                                <div class="flex justify-between mb-3">
+                                    <span class="text-sm font-medium text-stone-300">Fed cắt giảm Lãi suất</span>
+                                    <span id="fedVal" class="text-blue-400 font-bold text-sm">63 bps</span>
+                                </div>
+                                <input type="range" id="fedSlider" min="0" max="200" value="100" class="slider-gold">
+                            </div>
+
+                            <!-- Slider 4: ETF Flows -->
+                            <div>
+                                <div class="flex justify-between mb-3">
+                                    <span class="text-sm font-medium text-stone-300">Dòng vốn ETF phương Tây</span>
+                                    <span id="etfVal" class="text-emerald-400 font-bold text-sm">Trung bình</span>
+                                </div>
+                                <input type="range" id="etfSlider" min="0" max="200" value="100" class="slider-gold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col justify-center">
+                        <div class="bg-black/40 rounded-2xl p-8 text-center mb-6">
+                            <span class="block text-xs uppercase text-stone-500 font-bold mb-2">Giá Vàng Mô phỏng — Cuối 2026</span>
+                            <div id="simPrice" class="text-6xl md:text-7xl font-black gold-text mb-3">$6,175</div>
+                            <div class="flex justify-center gap-6 text-sm">
+                                <div>
+                                    <span class="text-stone-500">Thay đổi</span>
+                                    <span id="simChange" class="block font-bold text-emerald-400">+22.5%</span>
+                                </div>
+                                <div>
+                                    <span class="text-stone-500">Kịch bản</span>
+                                    <span id="simScenario" class="block font-bold text-amber-400">Cơ sở</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-black/30 rounded-xl p-4 text-center">
+                                <span class="text-[10px] text-stone-500 uppercase font-bold">Thận trọng</span>
+                                <span class="block text-lg font-bold text-stone-400">$4,800</span>
+                            </div>
+                            <div class="bg-black/30 rounded-xl p-4 text-center border border-amber-500/30">
+                                <span class="text-[10px] text-amber-500 uppercase font-bold">Cơ sở</span>
+                                <span class="block text-lg font-bold text-amber-400">$6,175</span>
+                            </div>
+                            <div class="bg-black/30 rounded-xl p-4 text-center">
+                                <span class="text-[10px] text-stone-500 uppercase font-bold">Lạc quan</span>
+                                <span class="block text-lg font-bold text-emerald-400">$7,200</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 8: KẾT LUẬN -->
+        <!-- ============================================ -->
+        <section class="mb-24 fade-up">
+            <div class="glass rounded-2xl p-8 md:p-12">
+                <h2 class="text-3xl font-bold mb-6">Kết luận & Khuyến nghị Chiến lược</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="text-stone-400 leading-relaxed space-y-4">
+                        <p>
+                            Thị trường vàng năm 2026 đang vận hành trong một kỷ nguyên mới. Việc giá vượt mốc <strong class="text-amber-400">$5,000/oz</strong> vào tháng 2/2026 chỉ là khởi đầu. Mục tiêu cuối năm nằm trong khoảng <strong class="text-amber-400">$6,000 - $6,350/oz</strong> cho thị trường thế giới và trên <strong class="text-amber-400">200 triệu đồng/lượng</strong> cho thị trường Việt Nam.
+                        </p>
+                        <p>
+                            Các nhà đầu tư cần tận dụng các đợt điều chỉnh kỹ thuật để tích lũy thay vì mua đuổi. Vùng <strong class="text-white">$4,000/oz</strong> đã chính thức được thiết lập như ngưỡng hỗ trợ dài hạn mới.<sup class="ref"><a href="https://www.investing.com/analysis/golds-2026-outlook-scenarios-breakout-zones-that-could-trigger-next-major-move-200672438" target="_blank" title="Investing.com: Gold's 2026 Outlook — Scenarios & Breakout Zones">[7]</a></sup>
+                        </p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="highlight-box rounded-r-xl">
+                            <strong class="text-amber-400">Chiến lược "Mua khi điều chỉnh":</strong>
+                            <p class="text-stone-400 text-sm mt-2">Các đợt sụt giảm hiện nay được coi là cơ hội mua vào chiến lược hơn là tín hiệu thị trường gấu. Tỷ lệ phân bổ khuyến nghị: 10-15% danh mục cho vàng.</p>
+                        </div>
+                        <div class="highlight-box rounded-r-xl" style="border-color: #ef4444;">
+                            <strong class="text-red-400">Cảnh báo rủi ro CDI = 0.87:</strong>
+                            <p class="text-stone-400 text-sm mt-2">Mật độ đồng thuận cực đoan cảnh báo về sự "mong manh của sự đồng thuận". Nếu dữ liệu kinh tế Mỹ tốt hơn mong đợi, có thể dẫn đến bán tháo chốt lời.<sup class="ref"><a href="https://www.gold.org/goldhub/research/gold-outlook-2026" target="_blank" title="World Gold Council: Gold Outlook 2026">[19]</a></sup></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- SECTION 9: NGUỒN THAM CHIẾU -->
+        <!-- ============================================ -->
+        <section class="mb-16 fade-up">
+            <div class="glass rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6">Nguồn Tham chiếu</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[1]</span>
+                        <a href="https://finance.yahoo.com/news/goldman-raises-end-gold-forecast-045714847.html" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Goldman Raises Year-End Gold Forecast to $5,400 an Ounce — Yahoo Finance / Bloomberg</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[2]</span>
+                        <a href="https://www.cnbc.com/2026/01/30/silver-gold-fall-price-usd-dollar-fed-warsh-chair-trump-metals.html" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Silver plunges 30%, gold tumbles as Warsh pick eases Fed independence fear — CNBC</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[3]</span>
+                        <a href="https://www.fxstreet.com/news/gold-recovers-swiftly-from-weekly-low-climbs-back-closer-to-5-000-ahead-of-us-cpi-202602130443" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold holds near $5,000 as traders await US CPI — FXStreet (14/02/2026)</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[5]</span>
+                        <a href="https://www.kitco.com/news/off-the-wire/2026-02-02/jp-morgan-expects-gold-prices-reach-6300oz-end-2026" target="_blank" class="text-stone-400 hover:text-amber-400 transition">J.P. Morgan expects gold prices to reach $6,300/oz by end of 2026 — Kitco News</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[6]</span>
+                        <a href="https://www.kitco.com/news/article/2026-01-23/forget-5000-bank-america-sees-gold-price-hitting-6000oz-spring-2026" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Bank of America sees gold price hitting $6,000/oz by Spring 2026 — Kitco News</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[7]</span>
+                        <a href="https://www.investing.com/analysis/golds-2026-outlook-scenarios-breakout-zones-that-could-trigger-next-major-move-200672438" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold's 2026 Outlook: Scenarios, Breakout Zones That Could Trigger Next Major Move — Investing.com</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[9]</span>
+                        <a href="https://www.goldmansachs.com/insights/articles/gold-forecast-to-rise-by-the-middle-of-2026" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold Is Forecast to Rise 6% by the Middle of 2026 — Goldman Sachs Insights</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[11]</span>
+                        <a href="https://www.jpmorgan.com/insights/global-research/commodities/gold-prices" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold price predictions from J.P. Morgan Global Research</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[12]</span>
+                        <a href="https://www.cnbc.com/2026/01/12/gold-record-haven-powell-venezuela-iran.html" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold hits new record as Powell probe, Venezuela, Iran crisis ignites demand — CNBC</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[14]</span>
+                        <a href="https://www.xs.com/en/blog/gold-price-prediction/" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold Price Predictions 2026, 2027, 2028, 2029, 2030 — XS.com</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[15]</span>
+                        <a href="https://www.investing.com/news/commodities-news/ubs-raises-gold-price-target-for-2026-here-are-the-new-forecasts-4474171" target="_blank" class="text-stone-400 hover:text-amber-400 transition">UBS raises gold price target for 2026 to $6,200/oz — Investing.com</a>
+                    </div>
+                    <div class="flex gap-3 items-start py-2 border-b border-white/5">
+                        <span class="text-amber-400 font-bold shrink-0">[19]</span>
+                        <a href="https://www.gold.org/goldhub/research/gold-outlook-2026" target="_blank" class="text-stone-400 hover:text-amber-400 transition">Gold Outlook 2026: Push ahead or pull back — World Gold Council</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="py-10 border-t border-white/5 text-center">
+            <p class="text-stone-600 text-sm mb-4">
+                Báo cáo được tổng hợp dựa trên dữ liệu thị trường và phân tích từ <strong>Goldman Sachs, J.P. Morgan, UBS, Deutsche Bank, BofA Merrill Lynch</strong> và các nguồn tin trong nước.<br>Cập nhật ngày 14/02/2026.
+            </p>
+            <p class="text-stone-700 text-xs">
+                &copy; 2026 Gold Insight. Đây là mô hình dự báo kinh tế dựa trên dữ liệu tổng hợp và xu hướng thị trường. Không phải khuyến nghị đầu tư.
+            </p>
+        </footer>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================ -->
+    <script>
+        // =============================================
+        // GLOBAL CHART CONFIG
+        // =============================================
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
+        Chart.defaults.color = '#888';
+
+        // =============================================
+        // 1. TARGET COMPARISON CHART (Bar)
+        // =============================================
+        new Chart(document.getElementById('targetCompareChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Giá hiện tại', 'Goldman Sachs', 'UBS', 'J.P. Morgan'],
+                datasets: [{
+                    label: 'USD/oz',
+                    data: [5041, 5400, 6200, 6300],
+                    backgroundColor: [
+                        'rgba(255,255,255,0.15)',
+                        'rgba(212,175,55,0.4)',
+                        'rgba(212,175,55,0.6)',
+                        'rgba(255,215,0,0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255,255,255,0.3)',
+                        'rgba(212,175,55,0.8)',
+                        'rgba(212,175,55,1)',
+                        'rgba(255,215,0,1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 4000, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + v.toLocaleString() } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // =============================================
+        // 2. VOLATILITY CHART (Line with annotations)
+        // =============================================
+        new Chart(document.getElementById('volatilityChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['01/01', '08/01', '15/01', '22/01', '30/01', '05/02', '10/02', '14/02'],
+                datasets: [
+                    {
+                        label: 'Giá Vàng Spot',
+                        data: [4360, 4600, 4888, 5200, 4500, 4750, 4980, 5041],
+                        borderColor: '#ffd700',
+                        backgroundColor: 'rgba(255,215,0,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: [4, 4, 6, 4, 8, 4, 4, 6],
+                        pointBackgroundColor: ['#fff','#fff','#22c55e','#fff','#ef4444','#fff','#fff','#22c55e'],
+                        pointBorderColor: ['#ffd700','#ffd700','#22c55e','#ffd700','#ef4444','#ffd700','#ffd700','#22c55e']
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => '$' + ctx.parsed.y.toLocaleString() + '/oz',
+                            afterLabel: ctx => {
+                                if (ctx.dataIndex === 2) return '▲ ATH $4,888';
+                                if (ctx.dataIndex === 4) return '▼ Flash Crash -12%';
+                                if (ctx.dataIndex === 7) return '● Hồi phục +$63';
+                                return '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { min: 4000, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + v.toLocaleString() } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // =============================================
+        // 3. RADAR CHART
+        // =============================================
+        new Chart(document.getElementById('radarChart').getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['Phi đô-la hóa', 'Lạm phát', 'Địa chính trị', 'Nợ công Mỹ', 'Cung-Cầu VL', 'Dòng ETF'],
+                datasets: [{
+                    label: 'Trọng số Tác động',
+                    data: [95, 75, 85, 90, 60, 70],
+                    backgroundColor: 'rgba(255,215,0,0.15)',
+                    borderColor: '#ffd700',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffd700',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255,255,255,0.08)' },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        suggestedMin: 0, suggestedMax: 100,
+                        ticks: { display: false },
+                        pointLabels: { color: '#aaa', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // =============================================
+        // 4. QUARTERLY DATA & INTERACTIVE TABS
+        // =============================================
+        const quarterlyData = [
+            {
+                q: "Q1 2026", priceRange: "$5,100 - $5,250", priceMid: 5175,
+                title: "Hấp thụ Cú sốc & Thiết lập Nền tảng",
+                desc: "Sau biến động \"flash crash\" cuối tháng 1, quý I là giai đoạn thị trường hấp thụ các cú sốc và thiết lập mặt bằng giá mới. Vàng đang lấy lại vai trò lịch sử khi sự thèm muốn đối với đồng USD như tài sản an toàn suy giảm rõ rệt. Sự hồi phục giữa tháng 2 sau dữ liệu CPI yếu xác nhận tâm lý thị trường vẫn thiên về phía tăng giá. Giá dự kiến ổn định và chốt quý ở mức $5,100 - $5,250/oz.",
+                factor: "Phục hồi sau cú sốc kỹ thuật, CPI Mỹ thấp",
+                sources: "Goldman Sachs [1], XS.com [14]"
+            },
+            {
+                q: "Q2 2026", priceRange: "$5,400 - $5,600", priceMid: 5500,
+                title: "Động lực ETF & Kỳ vọng Nới lỏng",
+                desc: "Sự chú ý chuyển sang lộ trình lãi suất thực của Mỹ. Fed được kỳ vọng giảm lãi suất vào tháng 7 khiến nhà đầu tư bắt đầu định giá sớm từ Q2. Chi phí cơ hội giữ vàng giảm thúc đẩy dòng vốn quay lại các quỹ ETF phương Tây. Goldman Sachs nâng mục tiêu trung hạn từ $4,900 lên $5,400.",
+                factor: "ETF inflows, kỳ vọng Fed cắt giảm lãi suất",
+                sources: "Goldman Sachs [1][9], Fed Data [3]"
+            },
+            {
+                q: "Q3 2026", priceRange: "$5,800 - $6,200", priceMid: 6000,
+                title: "Đỉnh điểm Căng thẳng & Re-rating Tài sản",
+                desc: "Quý III có thể là giai đoạn vàng đạt mức cao kỷ lục mới do sự hội tụ của đợt cắt giảm lãi suất thực tế và rủi ro địa chính trị gia tăng. UBS nâng mục tiêu tháng 9/2026 lên $6,200/oz. BofA Merrill Lynch dự báo đây sẽ là giai đoạn bùng nổ mạnh mẽ nhất khi lợi suất thực âm sâu hơn kết hợp với khủng hoảng niềm tin nợ công.",
+                factor: "Thực thi cắt giảm lãi suất, địa chính trị",
+                sources: "UBS [15], BofA [6]"
+            },
+            {
+                q: "Q4 2026", priceRange: "$6,000 - $6,350", priceMid: 6175,
+                title: "Hội tụ Mục tiêu Dài hạn",
+                desc: "Cuối năm 2026, thị trường đối mặt với tác động bầu cử giữa nhiệm kỳ Mỹ. J.P. Morgan đặt cột mốc mới tại $6,300/oz cho cuối năm. Các NHTW thị trường mới nổi tiếp tục tích lũy vàng ở mức 585 tấn/quý. Đa dạng hóa dự trữ dài hạn và rủi ro tài khóa là động lực duy trì xu hướng tăng.",
+                factor: "Đa dạng hóa dự trữ dài hạn, rủi ro tài khóa",
+                sources: "J.P. Morgan [5][11], Deutsche Bank"
+            }
+        ];
+
+        const tabContainer = document.getElementById('quarterTabs');
+
+        function initTabs() {
+            quarterlyData.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn p-5 rounded-xl border border-white/10 text-left transition-all ${idx === 0 ? 'card-active' : 'glass hover:border-amber-500/30'}`;
+                btn.innerHTML = `
+                    <span class="block text-[10px] font-bold text-stone-500 uppercase tracking-wider">${item.q}</span>
+                    <span class="text-xl font-bold text-white">${item.priceRange}</span>
+                `;
+                btn.onclick = () => {
+                    Array.from(tabContainer.children).forEach(b => {
+                        b.classList.remove('card-active');
+                        b.classList.add('glass');
+                    });
+                    btn.classList.add('card-active');
+                    btn.classList.remove('glass');
+                    updatePanel(idx);
+                };
+                tabContainer.appendChild(btn);
+            });
+            updatePanel(0);
+        }
+
+        function updatePanel(idx) {
+            const d = quarterlyData[idx];
+            document.getElementById('qTitle').textContent = d.title;
+            document.getElementById('qDescription').textContent = d.desc;
+            document.getElementById('qPrice').textContent = d.priceRange;
+            document.getElementById('qKeyFactor').textContent = d.factor;
+            document.getElementById('qSources').textContent = d.sources;
+        }
+
+        // =============================================
+        // 5. MAIN FORECAST CHART (Line)
+        // =============================================
+        new Chart(document.getElementById('mainForecastChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['14/02/2026', 'Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026'],
+                datasets: [
+                    {
+                        label: 'Dự báo Trung bình',
+                        data: [5041, 5175, 5500, 6000, 6175],
+                        borderColor: '#ffd700',
+                        backgroundColor: 'rgba(255,215,0,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#0f0f0f',
+                        pointBorderColor: '#ffd700',
+                        pointBorderWidth: 3
+                    },
+                    {
+                        label: 'Giới hạn trên',
+                        data: [5041, 5250, 5600, 6200, 6350],
+                        borderColor: 'rgba(34,197,94,0.4)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#22c55e'
+                    },
+                    {
+                        label: 'Giới hạn dưới',
+                        data: [5041, 5100, 5400, 5800, 6000],
+                        borderColor: 'rgba(239,68,68,0.4)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ef4444'
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { boxWidth: 12, padding: 20 } },
+                    tooltip: {
+                        callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString() + '/oz' }
+                    }
+                },
+                scales: {
+                    y: { min: 4800, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + v.toLocaleString() } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // =============================================
+        // 6. VIETNAM CHART
+        // =============================================
+        new Chart(document.getElementById('vietnamChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['14/02', 'Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026'],
+                datasets: [{
+                    label: 'Giá Vàng SJC (Triệu VNĐ/Lượng)',
+                    data: [181, 185, 192.5, 210, 210],
+                    fill: true,
+                    backgroundColor: 'rgba(244,63,94,0.1)',
+                    borderColor: '#f43f5e',
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#0f0f0f',
+                    pointBorderColor: '#f43f5e',
+                    pointBorderWidth: 3,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' Triệu VNĐ/Lượng' } }
+                },
+                scales: {
+                    y: { min: 170, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + 'M' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // =============================================
+        // 7. SIMULATOR LOGIC
+        // =============================================
+        const cbSlider = document.getElementById('cbSlider');
+        const geoSlider = document.getElementById('geoSlider');
+        const fedSlider = document.getElementById('fedSlider');
+        const etfSlider = document.getElementById('etfSlider');
+
+        function simulate() {
+            const cb = parseInt(cbSlider.value);
+            const geo = parseInt(geoSlider.value);
+            const fed = parseInt(fedSlider.value);
+            const etf = parseInt(etfSlider.value);
+
+            // Labels
+            document.getElementById('cbVal').textContent = cb > 150 ? "Rất mạnh" : (cb > 80 ? "Mạnh" : (cb > 40 ? "Trung bình" : "Yếu"));
+            document.getElementById('geoVal').textContent = geo > 150 ? "Cực đoan" : (geo > 80 ? "Cao" : (geo > 40 ? "Trung bình" : "Ổn định"));
+            document.getElementById('fedVal').textContent = fed > 150 ? "100+ bps" : (fed > 80 ? "63 bps" : (fed > 40 ? "25 bps" : "Không cắt"));
+            document.getElementById('etfVal').textContent = etf > 150 ? "Rất mạnh" : (etf > 80 ? "Trung bình" : (etf > 40 ? "Yếu" : "Rút ròng"));
+
+            // Calculation: base $6,175 (midpoint of $6,000-$6,350)
+            const base = 6175;
+            const impact = ((cb - 100) * 4) + ((geo - 100) * 6) + ((fed - 100) * 5) + ((etf - 100) * 3);
+            const finalPrice = Math.round(base + impact);
+
+            document.getElementById('simPrice').textContent = '$' + finalPrice.toLocaleString();
+
+            const changePercent = ((finalPrice - 5041) / 5041 * 100).toFixed(1);
+            document.getElementById('simChange').textContent = (changePercent > 0 ? '+' : '') + changePercent + '%';
+            document.getElementById('simChange').className = 'block font-bold ' + (changePercent > 0 ? 'text-emerald-400' : 'text-red-400');
+
+            if (finalPrice > 6800) {
+                document.getElementById('simScenario').textContent = 'Siêu lạc quan';
+                document.getElementById('simScenario').className = 'block font-bold text-emerald-400';
+            } else if (finalPrice > 6000) {
+                document.getElementById('simScenario').textContent = 'Cơ sở';
+                document.getElementById('simScenario').className = 'block font-bold text-amber-400';
+            } else if (finalPrice > 5200) {
+                document.getElementById('simScenario').textContent = 'Thận trọng';
+                document.getElementById('simScenario').className = 'block font-bold text-orange-400';
+            } else {
+                document.getElementById('simScenario').textContent = 'Bi quan';
+                document.getElementById('simScenario').className = 'block font-bold text-red-400';
+            }
+        }
+
+        cbSlider.oninput = simulate;
+        geoSlider.oninput = simulate;
+        fedSlider.oninput = simulate;
+        etfSlider.oninput = simulate;
+
+        // =============================================
+        // 8. SCROLL ANIMATION
+        // =============================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        // =============================================
+        // INIT
+        // =============================================
+        window.onload = () => {
+            initTabs();
+            simulate();
+        };
+    </script>
+</body>
+</html>

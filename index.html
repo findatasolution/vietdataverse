@@ -14,9 +14,9 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tải Lịch Sử Giá Vàng Miễn Phí | Download Gold Price Vietnam CSV | Viet Dataverse</title>
-    <meta name="description" content="Tải lịch sử giá vàng SJC, DOJI, BTMC miễn phí từ 2015. Download Vietnam gold price CSV, giá bạc Phú Quý, lãi suất ngân hàng. Cập nhật 2 lần/ngày, hỗ trợ API & export.">
-    <meta name="keywords" content="tải giá vàng, download gold price, tải lịch sử giá vàng, download vietnam gold price, giá vàng hôm nay, gold price today vietnam, tải giá vàng csv, download gold price csv, lịch sử giá vàng sjc, giá vàng sjc hôm nay, gold price api, tải giá vàng miễn phí, free gold price download, vàng doji, vàng btmc, giá vàng pnj, download silver price vietnam, tải giá bạc, lãi suất ngân hàng, vietnam economic data, vietdataverse, viet dataverse">
+    <title>Tải Lịch Sử Giá Vàng Miễn Phí | Vietnam Gold Price & Economic Data Download</title>
+    <meta name="description" content="Viet Dataverse provides free Vietnam economic data. Download Vietnam gold price history (SJC, DOJI, BTMC) in CSV format. Real-time API for gold, silver, and interbank rates.">
+    <meta name="keywords" content="Viet dataverse, Vietnam gold price, vietnam economic data, download gold price, tải giá vàng, lịch sử giá vàng SJC, vietnam finance data api">
     <meta name="author" content="Viet Dataverse">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="language" content="Vietnamese">
@@ -305,7 +305,7 @@
             </ul>
             <h2>Download Gold Price Vietnam</h2>
             <p>Free API access: <a href="https://api.vietdataverse.online/api/docs">api.vietdataverse.online/api/docs</a></p>
-            <p>Download gold price CSV, silver price, SBV interbank rates from 2015 to present. Updated twice daily.</p>
+            <p>Download gold price CSV, silver price, SBV interbank rates from 2015 to present.</p>
             <h2>Đối Tác Chứng Khoán</h2>
             <p><a href="partners.html">Mở tài khoản chứng khoán SSI, VPBank Securities miễn phí</a></p>
         </div>
@@ -380,6 +380,15 @@
                         </a>
                     </li>
 
+                    <!-- ── OUTLOOK ── -->
+                    <li class="nav-item" >
+                        <a class="nav-link" data-tab="1s-future-outlook">
+                            <div class="nav-content">
+                                <h4 data-i18n="nav1sFutureOutlook">1s Future Outlook</h4>
+                                <span class="nav-meta" data-i18n="nav1sfuturesub">Dự báo & phân tích tài sản</span>
+                            </div>
+                        </a>
+                    </li>
 
                     <!-- ── PROFIT (monetization) ── -->
                     <li class="nav-item nav-ai-agent">
@@ -460,15 +469,15 @@
                     <div class="chart-tabs">
                         <button class="chart-tab-btn active" data-tab="tab-gold-silver">
                             <i class="fas fa-coins"></i>
-                            <span>Vàng & Bạc</span>
+                            <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
                         </button>
                         <button class="chart-tab-btn" data-tab="tab-currency">
                             <i class="fas fa-university"></i>
-                            <span>Tiền tệ VN</span>
+                            <span data-i18n="tabCurrency">Tiền tệ VN</span>
                         </button>
                         <button class="chart-tab-btn" data-tab="tab-global">
                             <i class="fas fa-globe"></i>
-                            <span>Thị trường Quốc tế</span>
+                            <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
                         </button>
                     </div>
 
@@ -862,6 +871,69 @@
 
             </div>
 
+            <!-- 1s Future Outlook -->
+            <div class="tab-content" id="1s-future-outlook">
+                <div class="section-header">
+                    <h1 class="section-title" style="font-size: 2.5rem;">1s Future Outlook</h1>
+                    <p class="section-subtitle" style="font-size: 1.125rem;">
+                        <strong data-i18n="futureOutlookSubtitle">Phân tích chuyên sâu & Dự báo xu hướng các loại tài sản</strong>
+                    </p>
+                </div>
+
+                <!-- Forecast Cards Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+
+                    <!-- Card: Gold Forecast 2026 -->
+                    <a href="pages/GoldForecast2026.html" style="text-decoration: none; color: inherit; display: block;">
+                        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(0,0,0,0.4) 100%); border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 2rem; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;"
+                             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(212,175,55,0.2)';this.style.borderColor='rgba(212,175,55,0.6)'"
+                             onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(212,175,55,0.3)'">
+                            <!-- Badge -->
+                            <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.2); color: #d4af37; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                                <span style="width: 6px; height: 6px; background: #d4af37; border-radius: 50; display: inline-block;"></span>
+                                Featured Report
+                            </div>
+                            <!-- Icon + Title -->
+                            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4C8;</div>
+                            <h3 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; line-height: 1.3;">
+                                Dự báo Giá Vàng 2026
+                            </h3>
+                            <p style="color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem;">
+                                Phân tích chuyên sâu từ Goldman Sachs, J.P. Morgan, UBS — Mục tiêu $6,300/oz. Biểu đồ tương tác & Trình mô phỏng biến động.
+                            </p>
+                            <!-- Price Tags -->
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                <span style="background: rgba(212,175,55,0.15); color: #d4af37; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Spot: $5,041/oz</span>
+                                <span style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Target: $6,300</span>
+                                <span style="background: rgba(255,255,255,0.08); color: #ccc; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">SJC: 181M VND</span>
+                            </div>
+                            <!-- CTA -->
+                            <div style="display: flex; align-items: center; gap: 0.5rem; color: #d4af37; font-size: 0.85rem; font-weight: 600;">
+                                Xem báo cáo đầy đủ
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Card: Coming Soon - Bất động sản -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; opacity: 0.5;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F3E0;</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">Bất động sản Việt Nam 2026</h3>
+                        <p style="color: #666; font-size: 0.85rem;">Phân tích xu hướng giá, vùng tiềm năng và dự báo thị trường.</p>
+                        <span style="display: inline-block; margin-top: 1rem; background: rgba(255,255,255,0.06); color: #666; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming Soon</span>
+                    </div>
+
+                    <!-- Card: Coming Soon - Chứng khoán -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; opacity: 0.5;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4CA;</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">VN-Index & Cổ phiếu 2026</h3>
+                        <p style="color: #666; font-size: 0.85rem;">Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ danh mục.</p>
+                        <span style="display: inline-block; margin-top: 1rem; background: rgba(255,255,255,0.06); color: #666; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming Soon</span>
+                    </div>
+
+                </div>
+            </div>
+
             <!-- Fintel Agent -->
             <div class="tab-content" id="fintel-agent-for-hire">
                 <!-- Hero Section -->
@@ -1161,6 +1233,9 @@
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
                 nav1sMarketPortal: 'Thời báo 1 giây',
                 nav1smarketsub: 'Tờ báo quan trọng theo MRI',
+                nav1sFutureOutlook: '1s Future Outlook',
+                nav1sfuturesub: 'Dự báo & phân tích tài sản',
+                futureOutlookSubtitle: 'Phân tích chuyên sâu & Dự báo xu hướng các loại tài sản',
                 navfinagent: 'Fintel AI Agent',
                 navfinagentsub: 'AI Agents cho thuê',
                 navDownloadApi: 'Download & API',
@@ -1226,7 +1301,10 @@
                 pricingFeaturePrivate: 'Tích hợp dữ liệu riêng',
                 pricingBtnStart: 'Bắt đầu',
                 pricingBtnUpgrade: 'Nâng cấp Pro',
-                pricingBtnContact: 'Liên hệ Sales'
+                pricingBtnContact: 'Liên hệ Sales',
+                tabGoldSilver: "Vàng & Bạc",
+                tabCurrency: "Tiền tệ VN",
+                tabGlobal: "Thị trường Quốc tế"
             },
             en: {
                 langBtn: 'Vie',
@@ -1234,6 +1312,9 @@
                 navDataPortal: 'Open Economic Data',
                 nav1sMarketPortal: '1s Market Pulse',
                 nav1smarketsub: 'Important updates with Market Response Index',
+                nav1sFutureOutlook: '1s Future Outlook',
+                nav1sfuturesub: 'Asset forecasts & analysis',
+                futureOutlookSubtitle: 'In-depth analysis & Asset trend forecasts',
                 navfinagent: 'Fintel AI Agent',
                 navfinagentsub: 'AI Agents for Hire',
                 navDownloadApi: 'Download & API',
@@ -1244,7 +1325,7 @@
                 navPartnersMeta: 'Trusted service providers',
                 navSeparator: 'Services',
                 mainTitle: 'Download Gold Price & Open Economic Data',
-                mainSubtitle: '<strong>Download Vietnam gold price CSV</strong> (SJC, DOJI, BTMC) from 2015 for free. Access silver prices, SBV interest rates updated twice daily. Free API & CSV export for economic research and analysis.',
+                mainSubtitle: '<strong>Download Vietnam gold price CSV</strong> (SJC, DOJI, BTMC) from 2015 for free. Access silver prices, SBV interest rates and more. Free API & CSV export for economic research and analysis.',
                 sectionTitle: 'Download Gold Price & Open Economic Data',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
@@ -1299,7 +1380,10 @@
                 pricingFeaturePrivate: 'Private data integration',
                 pricingBtnStart: 'Get Started',
                 pricingBtnUpgrade: 'Upgrade to Pro',
-                pricingBtnContact: 'Contact Sales'
+                pricingBtnContact: 'Contact Sales',
+                tabGoldSilver: "Gold & Silver",
+                tabCurrency: "VN Currency",
+                tabGlobal: "Global Market"
             }
         };
 
@@ -1326,6 +1410,10 @@
                     link.querySelector('h4').textContent = t.nav1sMarketPortal;
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.nav1smarketsub;
+                } else if (link.getAttribute('data-tab') === '1s-future-outlook') {
+                    link.querySelector('h4').textContent = t.nav1sFutureOutlook;
+                    const meta = link.querySelector('.nav-meta');
+                    if (meta) meta.textContent = t.nav1sFutureOutlook;
                 } else if (link.getAttribute('data-tab') === 'fintel-agent-for-hire') {
                     link.querySelector('h4').innerHTML = t.navfinagent + ' <span class="beta-badge">BETA</span>';
                     const meta = link.querySelector('.nav-meta');
@@ -1413,7 +1501,11 @@
                     if (t[key]) el.textContent = t[key];
                 });
             }
-
+            // Update Chart Tabs (Gold & Silver / Currency / Global)
+            document.querySelectorAll('.chart-tab-btn span[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
             // Update API button
             document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
 
@@ -1668,6 +1760,7 @@ let _tabDwellTimer = null;
 const TAB_LABELS = {
     'data-portal': 'Open Economic Data',
     '1smarket-portal': '1s Market Pulse',
+    '1s-future-outlook': '1s Future Outlook',
     'fintel-agent-for-hire': 'Fintel AI Agent',
     'download-api': 'Download & API',
     'about-terms': 'About & Terms'

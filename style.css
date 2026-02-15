@@ -2595,3 +2595,36 @@ body {
         padding: 1.25rem;
     }
 }
+
+.footer-disclaimer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05); /* Đường kẻ rất mờ */
+    text-align: center;
+}
+
+.disclaimer-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.disclaimer-content p {
+    font-size: 12px; /* Chữ rất nhỏ */
+    color: #666; /* Màu xám mờ */
+    line-height: 1.5;
+    margin: 0;
+    font-weight: 300;
+}
+
+.disclaimer-content strong {
+    color: #888; /* Chữ tiêu đề đậm hơn một chút nhưng vẫn xám */
+    font-weight: 500;
+}
+
+/* Khi di chuột vào thì rõ lên một chút (tùy chọn) */
+.disclaimer-content p:hover {
+    color: #999;
+}
