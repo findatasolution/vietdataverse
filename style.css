@@ -230,23 +230,26 @@ body {
 }
 
 /* About & Terms — pinned to sidebar bottom */
-.sidebar-bottom-link {
-    margin-top: auto;
-    padding: 0.625rem 0.75rem;
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-    text-decoration: none;
-    cursor: pointer;
-    display: block;
+.sidebar-footer {
+    margin-top: auto; /* Đẩy cả cụm này xuống đáy sidebar */
+    padding: 15px 0;
     border-top: 1px solid var(--border-color);
-    opacity: 0.6;
+    width: 100%;
 }
 
-.sidebar-bottom-link:hover,
-.sidebar-bottom-link:focus {
+.sidebar-bottom-link {
+    /* Bỏ margin-top: auto ở đây nếu còn */
+    padding: 8px 16px; 
+    font-size: 0.75rem;
     color: var(--text-tertiary);
+    display: block;
     text-decoration: none;
-    opacity: 0.6;
+    opacity: 0.7;
+}
+
+.sidebar-bottom-link:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.05); /* Thêm tí highlight khi hover cho sang */
 }
 
 .sidebar-heading {

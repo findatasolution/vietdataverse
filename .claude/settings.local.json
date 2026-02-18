@@ -8,7 +8,9 @@
       "Bash(git check-ignore:*)",
       "Bash(git rm:*)",
       "Bash(git filter-branch:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(API_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzI2MDM0MjIsImlhdCI6MTc3MTMwNzQyMiwic2NvcGUiOiJleGNoYW5nZV9yYXRlIiwicGVybWlzc2lvbiI6MH0.AS4p86vCVdVz0ZaT_nhZAmy9EtgXdDpY5vbAYZn6YWo\")",
+      "Bash(curl:*)"
     ]
   }
 }

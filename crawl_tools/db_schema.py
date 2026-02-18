@@ -63,23 +63,35 @@ class VnSbvInterbankRate(Base):
 
 class VnSbvCentralRate(Base):
     """
-    SBV Central Exchange Rate (USD/VND)
-    Source: https://sbv.gov.vn/vi/ty-gia
-    Crawler: crawl_sbv.py (with 3-layer adaptive parsing)
-    Schedule: Daily 9:30 AM VN
+    Exchange Rates (multi-source, multi-currency)
+    Sources:
+    - SBV Crawl: Central rate from https://sbv.gov.vn/vi/ty-gia (type=USD, source=Crawl, bank=SBV)
+      Crawler: crawl_sbv.py (3-layer adaptive parsing) | Schedule: Daily 9:30 AM VN
+    - VNAppMob API: Commercial bank rates (source=API, bank=BID/TCB)
+      Crawler: crawl_exchange_rate.py | Schedule: Daily 10:00 AM VN
+      Currencies: USD, EUR, JPY, GBP, CNY, AUD, SGD, KRW, THB, CAD, CHF, HKD, NZD, TWD, MYR
 
-    Layers:
-    - Layer 1: Structured Parser (find exchange rate table/spans)
-    - Layer 2: Heuristic Parser (score tables, extract best match)
-    - Layer 3: LLM Parser (Gemini 2.5 Flash for fallback)
+    Prices are in VND per unit of foreign currency.
+    Dedup: per (date, type, source, bank).
     """
     __tablename__ = 'vn_sbv_centralrate'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(Date, nullable=False, unique=True, index=True)
+    date = Column(Date, nullable=False, index=True)
     crawl_time = Column(DateTime, nullable=False)
-    usd_vnd_rate = Column(Float)        # Central rate in VND
-    document_no = Column(String(50))    # Document/decision number
+    type = Column(String(20), nullable=False, default='USD')     # Currency code (USD, EUR, JPY...)
+    source = Column(String(20), nullable=False, default='Crawl') # 'Crawl' or 'API'
+    bank = Column(String(10), default='SBV')                     # SBV, BID, TCB...
+    usd_vnd_rate = Column(Float)        # Central rate / buy_transfer for USD
+    buy_cash = Column(Float)            # Cash buy rate
+    buy_transfer = Column(Float)        # Transfer buy rate
+    sell_rate = Column(Float)           # Sell rate
+    document_no = Column(String(50))    # SBV document number
+
+    __table_args__ = (
+        UniqueConstraint('date', 'type', 'source', 'bank', name='uq_centralrate_date_type_source_bank'),
+        Index('idx_centralrate_date_type_bank', 'date', 'type', 'bank'),
+    )
 
 
 # ======================
@@ -137,10 +149,15 @@ class VnBankTermDepo(Base):
 
 class VnGold24hHist(Base):
     """
-    Gold Prices from 24h.com.vn
-    Source: https://www.24h.com.vn/gia-vang-hom-nay-c425.html
-    Crawler: crawl_gold_silver.py
-    Schedule: 2x Daily (8:30 AM, 2:30 PM VN)
+    Gold Prices (multi-source)
+    Sources:
+    - 24h.com.vn: types like "SJC HN", "DOJI HN", "PNJ HN" etc.
+      Crawler: crawl_gold_silver.py | Schedule: 2x Daily (8:30 AM, 2:30 PM VN)
+    - BTMC API: types prefixed "BTMC " (e.g. "BTMC SJC", "BTMC VRTL", "BTMC Nhẫn Trơn")
+      Crawler: api_gold_btmc.py | Schedule: 2x Daily (9:00 AM, 3:00 PM VN)
+
+    Prices are in VND per chỉ (1/10 lượng = 3.75g).
+    Dedup: per (date, type, hour) — allows 2 intraday snapshots.
     """
     __tablename__ = 'vn_gold_24h_hist'
 

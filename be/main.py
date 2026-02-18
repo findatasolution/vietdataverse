@@ -623,6 +623,86 @@ async def get_sbv_interbank_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch SBV data: {str(e)}")
 
+@app.get("/api/v1/sbv-centralrate")
+async def get_sbv_central_rate(
+    request: Request,
+    period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
+    bank: str = Query("SBV", description="Bank code: SBV, BID, TCB"),
+    currency: str = Query("USD", description="Currency code: USD, EUR, JPY, GBP, etc.")
+):
+    """Get exchange rates - SBV central rate or commercial bank rates"""
+    try:
+        from sqlalchemy import text
+
+        engine_crawl = get_engine_crawl()
+
+        date_filter = get_date_filter(period)
+        bank_upper = bank.upper()
+        currency_upper = currency.upper()
+
+        # For SBV: use usd_vnd_rate field; for commercial banks: use buy_transfer
+        if bank_upper == 'SBV':
+            rate_col = 'usd_vnd_rate'
+        else:
+            rate_col = 'buy_transfer'
+
+        query = f"""
+        SELECT date, {rate_col}, buy_cash, sell_rate
+        FROM (
+            SELECT DISTINCT ON (date) date, {rate_col}, buy_cash, sell_rate, crawl_time
+            FROM vn_sbv_centralrate
+            WHERE date >= '{date_filter}'
+            AND type = '{currency_upper}'
+            AND bank = '{bank_upper}'
+            AND {rate_col} IS NOT NULL
+            ORDER BY date, crawl_time DESC
+        ) subquery
+        ORDER BY date DESC
+        """
+
+        with engine_crawl.connect() as conn:
+            result = conn.execute(text(query))
+            rows = result.fetchall()
+
+        dates = []
+        rates = []
+        buy_cash_list = []
+        sell_list = []
+
+        for row in rows:
+            dates.append(row[0].strftime('%Y-%m-%d') if hasattr(row[0], 'strftime') else str(row[0]))
+            rates.append(float(row[1]) if row[1] else 0)
+            buy_cash_list.append(float(row[2]) if row[2] else None)
+            sell_list.append(float(row[3]) if row[3] else None)
+
+        response_data = {
+            "success": True,
+            "data": {
+                "dates": dates[::-1],
+                "usd_vnd_rate": rates[::-1],
+                "buy_cash": buy_cash_list[::-1],
+                "sell_rate": sell_list[::-1]
+            },
+            "period": period,
+            "bank": bank_upper,
+            "currency": currency_upper,
+            "count": len(dates)
+        }
+
+        json_str = json.dumps(response_data, ensure_ascii=False)
+        json_bytes = json_str.encode('utf-8')
+
+        return Response(
+            content=json_bytes,
+            media_type="application/json",
+            headers={"Content-Length": str(len(json_bytes))}
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch exchange rate: {str(e)}")
+
 @app.get("/api/v1/termdepo")
 async def get_term_deposit_data(
     request: Request,

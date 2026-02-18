@@ -395,16 +395,22 @@ try:
                     id SERIAL PRIMARY KEY,
                     date DATE NOT NULL,
                     crawl_time TIMESTAMP NOT NULL,
+                    type VARCHAR(20) NOT NULL DEFAULT 'USD',
+                    source VARCHAR(20) NOT NULL DEFAULT 'Crawl',
+                    bank VARCHAR(10) DEFAULT 'SBV',
                     usd_vnd_rate FLOAT,
+                    buy_cash FLOAT,
+                    buy_transfer FLOAT,
+                    sell_rate FLOAT,
                     document_no VARCHAR(50),
-                    UNIQUE(date)
+                    UNIQUE(date, type, source, bank)
                 )
             """))
             conn.commit()
 
-            # Check if data for this date exists
+            # Check if data for this date+type+source+bank exists
             result = conn.execute(
-                text("SELECT COUNT(*) FROM vn_sbv_centralrate WHERE date = :date"),
+                text("SELECT COUNT(*) FROM vn_sbv_centralrate WHERE date = :date AND type = 'USD' AND source = 'Crawl' AND bank = 'SBV'"),
                 {'date': issue_date}
             )
             exists = result.scalar() > 0
@@ -413,8 +419,8 @@ try:
                 print(f"    Central rate for {issue_date} already exists, skipping")
             else:
                 conn.execute(text("""
-                    INSERT INTO vn_sbv_centralrate (date, crawl_time, usd_vnd_rate, document_no)
-                    VALUES (:date, :crawl_time, :usd_vnd_rate, :document_no)
+                    INSERT INTO vn_sbv_centralrate (date, crawl_time, type, source, bank, usd_vnd_rate, document_no)
+                    VALUES (:date, :crawl_time, 'USD', 'Crawl', 'SBV', :usd_vnd_rate, :document_no)
                 """), {
                     'date': issue_date,
                     'crawl_time': datetime.now(),
