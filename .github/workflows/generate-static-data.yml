@@ -55,7 +55,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add data/
+        git add -f data/
         git diff --staged --quiet || git commit -m "Update static chart data [skip ci]"
         git push || echo "Nothing to push"
 

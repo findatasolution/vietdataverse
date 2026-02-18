@@ -38,6 +38,8 @@
     <meta name="msapplication-TileColor" content="#C9A55B">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
 
+    <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
+    <link rel="dns-prefetch" href="https://api.vietdataverse.online">
     <link rel="canonical" href="https://vietdataverse.online/">
     <link rel="alternate" hreflang="vi" href="https://vietdataverse.online/">
     <link rel="alternate" hreflang="en" href="https://vietdataverse.online/">
@@ -445,9 +447,17 @@
             </div>
 
             <!-- About & Terms — pinned to sidebar bottom -->
-            <a class="sidebar-bottom-link" data-tab="about-terms">
-                <span>About & Terms</span>
-            </a>
+            <div class="sidebar-footer">
+                <a class="sidebar-bottom-link" data-tab="about-terms">
+                    <span>About & Terms</span>
+                </a>
+                <a class="sidebar-bottom-link" data-tab="privacy-policy">
+                    <span>Privacy Policy</span>
+                </a>
+                <a class="sidebar-bottom-link" data-tab="contact">
+                    <span>Contact</span>
+                </a>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -708,6 +718,38 @@
                         </div>
                         
 
+                        <!-- SBV Central Exchange Rate Chart (USD/VND) -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Tỷ Giá Trung Tâm USD/VND (SBV)
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="fxrate" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="fxrate" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="all">All</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="fxrateChart"></canvas>
+                                <div class="chart-loading" id="fxrateLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 72%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 78%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 74%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 76%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 73%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Download Section Gold, Silver-->
                         <div class="datasets-grid">
                             <!-- SBV Interbank -->
@@ -894,7 +936,7 @@
                                 Featured Report
                             </div>
                             <!-- Icon + Title -->
-                            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4C8;</div>
+                            <!-- <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4C8;</div>s -->
                             <h3 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; line-height: 1.3;">
                                 Dự báo Giá Vàng 2026
                             </h3>
@@ -1173,6 +1215,53 @@
                         <a href="mailto:contact@vietdataverse.online" style="color: var(--gold-primary); text-decoration: none;">Liên hệ</a>
                     </p>
                 </div>
+            </div>
+
+            <!-- Privacy-Policy -->
+            <div class="tab-content" id="privacy-policy">
+                <div class="section-header">
+                    <h1 class="section-title">Chính sách bảo mật (Privacy Policy)</h1>
+                    <p class="section-subtitle">Cập nhật lần cuối: 16 Tháng 2, 2026</p>
+                </div>
+                <div class="prose prose-invert max-w-none text-gray-300">
+                    <p>Chào mừng bạn đến với <strong>Viet Dataverse</strong>. Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn.</p>
+                    
+                    <h3 class="text-white mt-6">1. Thông tin chúng tôi thu thập</h3>
+                    <p>Khi bạn sử dụng dịch vụ của chúng tôi, chúng tôi có thể thu thập:</p>
+                    <ul class="list-disc pl-6">
+                        <li><strong>Thông tin đăng nhập:</strong> Email và tên hiển thị thông qua hệ thống <strong>Auth0</strong>.</li>
+                        <li><strong>Dữ liệu sử dụng:</strong> Thông tin về cách bạn tương tác với web thông qua <strong>Google Analytics</strong> (Địa chỉ IP, loại trình duyệt, thời gian truy cập).</li>
+                    </ul>
+
+                    <h3 class="text-white mt-6">2. Sử dụng Cookie và Quảng cáo</h3>
+                    <p>Chúng tôi sử dụng <strong>Google AdSense</strong> để hiển thị quảng cáo. Google sử dụng cookie để phân phát quảng cáo dựa trên các lượt truy cập trước đó của bạn vào trang web này hoặc các trang web khác.</p>
+                    <p>Bạn có thể chọn không tham gia quảng cáo cá nhân hóa bằng cách truy cập <a href="https://www.google.com/settings/ads" class="text-amber-500">Cài đặt quảng cáo của Google</a>.</p>
+
+                    <h3 class="text-white mt-6">3. Bảo mật dữ liệu</h3>
+                    <p>Chúng tôi không bán hoặc chia sẻ email cá nhân của bạn cho bên thứ ba. Dữ liệu chỉ được sử dụng để cung cấp báo cáo giá vàng và cải thiện trải nghiệm người dùng trên hệ thống Viet Dataverse.</p>
+                </div>
+            </div>
+
+            <!-- Contact-->
+            <div class="tab-content" id="contact">
+                <div class="section-header">
+                    <h1 class="section-title">Liên hệ với chúng tôi</h1>
+                    <p class="section-subtitle">Chúng tôi luôn sẵn sàng lắng nghe ý kiến đóng góp của bạn về dữ liệu tài chính.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                        <h3 class="text-amber-500 font-bold mb-4">Hỗ trợ kỹ thuật & Dữ liệu</h3>
+                        <p class="text-gray-300 mb-2">Nếu bạn gặp lỗi khi tải file CSV hoặc có câu hỏi về mô hình dự báo:</p>
+                        <p class="text-white font-mono">findatasolution@gmail.com</p>
+                    </div>
+                    <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                        <h3 class="text-amber-500 font-bold mb-4">Hợp tác quảng cáo</h3>
+                        <p class="text-gray-300 mb-2">Để đặt banner trực tiếp hoặc hợp tác cung cấp dữ liệu kinh tế:</p>
+                        <p class="text-white font-mono">findatasolution@gmail.com</p>
+                        <p class="text-gray-300 mb-2">Hoặc chọn fast request để gửi yêu cầu ngắn gọn theo yêu cầu sau</p>
+                    </div>
+                </div>
+                <p class="text-center text-gray-500 text-sm mt-12 italic">Viet Dataverse - Economic Intelligence Platform.</p>
             </div>
         </main>
     </div>
@@ -1566,10 +1655,17 @@
         location.hostname === 'localhost' || location.hostname === '127.0.0.1'
             ? 'http://127.0.0.1:8000/api/v1'
             : 'https://api.vietdataverse.online/api/v1';
-    // Warm up API connection early (triggers DNS + TLS handshake)
-    if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        fetch('https://api.vietdataverse.online/api/v1/health', { mode: 'cors', cache: 'no-store' }).catch(() => {});
-    }
+
+    // Prefetch gold & silver data immediately (before DOMContentLoaded)
+    // These promises are consumed by loadChartData() when it runs later
+    const base = window.APP_CONFIG.API_BASE_URL;
+    window._prefetchPromises = {};
+    window._prefetchPromises['gold-1m-DOJI HN'] = fetch(`${base}/gold?period=1m&type=${encodeURIComponent('DOJI HN')}`)
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .catch(e => { console.warn('[prefetch] gold failed:', e); return null; });
+    window._prefetchPromises['silver-1m'] = fetch(`${base}/silver?period=1m`)
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .catch(e => { console.warn('[prefetch] silver failed:', e); return null; });
 })();
 
 /* =========================================================
@@ -1763,7 +1859,10 @@ const TAB_LABELS = {
     '1s-future-outlook': '1s Future Outlook',
     'fintel-agent-for-hire': 'Fintel AI Agent',
     'download-api': 'Download & API',
-    'about-terms': 'About & Terms'
+    'about-terms': 'About & Terms',
+    'privacy-policy': 'Privacy Policy',
+    'contact':'Contact'
+
 };
 
 function activateTab(tabId) {
@@ -1821,14 +1920,13 @@ function initSidebarTabs() {
         link.addEventListener('click', () => activateTab(link.dataset.tab));
     });
 
-    // Sidebar bottom link (About & Terms)
-    const bottomLink = document.querySelector('.sidebar-bottom-link[data-tab]');
-    if (bottomLink) {
-        bottomLink.addEventListener('click', (e) => {
+    // Sidebar bottom links (About & Terms, Privacy Policy, Contact)
+    document.querySelectorAll('.sidebar-bottom-link[data-tab]').forEach(link => {
+        link.addEventListener('click', (e) => {
             e.preventDefault();
-            activateTab(bottomLink.dataset.tab);
+            activateTab(link.dataset.tab);
         });
-    }
+    });
 
     // Handle URL hash on page load (e.g. index.html#about-terms from partners.html)
     const hash = window.location.hash.replace('#', '');
@@ -1889,7 +1987,8 @@ function loadChartsForTab(tabId) {
         const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
         Promise.all([
             loadChartData('td', '1y', null, bankCode),
-            loadChartData('sbv', '1m')
+            loadChartData('sbv', '1m'),
+            loadChartData('fxrate', '1m')
         ]);
     } else if (tabId === 'tab-global') {
         loadChartData('global', '1m');
@@ -1989,15 +2088,31 @@ function initNotifications() {
     // Download buttons -> show login notification if not authenticated, or trigger download
     document.querySelectorAll('[data-download]').forEach(btn => {
         btn.addEventListener('click', async () => {
+            const dataType = btn.dataset.download;
+
+            // GA4: track every download button click (regardless of auth)
+            if (typeof gtag === 'function') {
+                gtag('event', 'download_click', {
+                    data_type: dataType,
+                    authenticated: false // updated below if authed
+                });
+            }
+
             const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
             if (!authed) {
+                // GA4: track blocked download (user not logged in)
+                if (typeof gtag === 'function') {
+                    gtag('event', 'download_blocked', {
+                        data_type: dataType,
+                        reason: 'not_authenticated'
+                    });
+                }
                 const overlay = document.getElementById('notification-overlay');
                 if (overlay) overlay.classList.add('active');
                 return;
             }
 
             // User is authenticated - trigger actual download
-            const dataType = btn.dataset.download;
             await downloadData(dataType);
         });
     });
@@ -2117,6 +2232,7 @@ const chartInstances = {
     silver: null,
     td: null,
     sbv: null,
+    fxrate: null,
     global: null
 };
 
@@ -2136,6 +2252,7 @@ const CHART_API_ENDPOINTS = {
     silver: 'silver',
     td: 'termdepo',
     sbv: 'sbv-interbank',
+    fxrate: 'sbv-centralrate',
     global: 'global-macro'
 };
 
@@ -2161,8 +2278,16 @@ async function loadChartData(chartType, period = '1m', goldType = 'DOJI HN', ban
 
     let data = null;
     try {
-        // Fetch directly from API
-        if (base) {
+        // Check for prefetched data first (fired before DOMContentLoaded)
+        const prefetchKey = (chartType === 'gold') ? `gold-${period}-${goldType}` : `${chartType}-${period}`;
+        if (window._prefetchPromises && window._prefetchPromises[prefetchKey]) {
+            console.log(`[${chartType}] Using prefetched promise`);
+            data = await window._prefetchPromises[prefetchKey];
+            delete window._prefetchPromises[prefetchKey]; // consume once
+        }
+
+        // Fallback: fetch from API if prefetch missed or failed
+        if (!data && base) {
             let apiUrl = `${base}/${endpoint}?period=${period}`;
             if (chartType === 'gold' && goldType) apiUrl += `&type=${encodeURIComponent(goldType)}`;
             if (chartType === 'td' && bankCode) apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
@@ -2207,6 +2332,8 @@ function renderChart(chartType, apiData, period) {
         chartData = parseTDData(apiData);
     } else if (chartType === 'sbv') {
         chartData = parseSBVData(apiData);
+    } else if (chartType === 'fxrate') {
+        chartData = parseFxRateData(apiData);
     } else if (chartType === 'global') {
         chartData = parseGlobalData(apiData);
     }
@@ -2436,6 +2563,71 @@ function parseSBVData(apiData) {
                         color: '#666',
                         callback: function(value) {
                             return value + '%';
+                        }
+                    },
+                    grid: { color: '#2A2A2A' }
+                }
+            }
+        }
+    };
+}
+
+function parseFxRateData(apiData) {
+    // API format: { success: true, data: { dates: [...], usd_vnd_rate: [...] } }
+    if (!apiData || !apiData.data || !apiData.data.dates) {
+        return null;
+    }
+
+    const dates = apiData.data.dates;
+    const rates = apiData.data.usd_vnd_rate;
+
+    return {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'USD/VND',
+                    data: rates,
+                    borderColor: '#C9A55B',
+                    backgroundColor: 'rgba(201, 165, 91, 0.08)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: dates.length > 60 ? 0 : 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#C9A55B'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: '#A0A0A0' }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(ctx) {
+                            return 'USD/VND: ' + ctx.parsed.y.toLocaleString('vi-VN');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#666', maxRotation: 45 },
+                    grid: { color: '#2A2A2A' }
+                },
+                y: {
+                    ticks: {
+                        color: '#666',
+                        callback: function(value) {
+                            return value.toLocaleString('vi-VN');
                         }
                     },
                     grid: { color: '#2A2A2A' }

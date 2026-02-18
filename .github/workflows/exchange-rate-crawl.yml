@@ -1,0 +1,35 @@
+name: Exchange Rate Crawl (Daily)
+
+on:
+  schedule:
+    # Daily at 10:00 AM VN (3:00 AM UTC)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  crawl-exchange-rate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install requests sqlalchemy psycopg2-binary python-dotenv
+
+    - name: Run Exchange Rate crawler
+      env:
+        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+      run: |
+        cd crawl_tools
+        python crawl_exchange_rate.py
+
+    - name: Show results
+      if: always()
+      run: echo "Exchange rate crawl completed at $(date)"
