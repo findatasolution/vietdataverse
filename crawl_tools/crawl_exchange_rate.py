@@ -299,10 +299,11 @@ def crawl_vnappmob():
             print(f"  Error crawling {bank_code.upper()}: {e}")
 
 
-############## ENSURE TABLE EXISTS
+############## ENSURE TABLE EXISTS + MIGRATE SCHEMA
 print(f"\n--- Ensuring table schema ---")
 try:
     with engine.connect() as conn:
+        # Create table if it doesn't exist yet
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS vn_sbv_centralrate (
                 id SERIAL PRIMARY KEY,
@@ -315,11 +316,36 @@ try:
                 buy_cash FLOAT,
                 buy_transfer FLOAT,
                 sell_rate FLOAT,
-                document_no VARCHAR(50),
-                UNIQUE(date, type, source, bank)
+                document_no VARCHAR(50)
             )
         """))
         conn.commit()
+
+        # Add missing columns if the table was created by an older schema (no bank/buy_transfer)
+        for col, definition in [
+            ('bank',         "VARCHAR(10) DEFAULT 'SBV'"),
+            ('buy_transfer', 'FLOAT'),
+            ('buy_cash',     'FLOAT'),
+            ('sell_rate',    'FLOAT'),
+            ('document_no',  'VARCHAR(50)'),
+        ]:
+            try:
+                conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+
+        # Add unique constraint if not present (ignore if already exists)
+        try:
+            conn.execute(text("""
+                ALTER TABLE vn_sbv_centralrate
+                ADD CONSTRAINT vn_sbv_centralrate_date_type_source_bank_key
+                UNIQUE (date, type, source, bank)
+            """))
+            conn.commit()
+        except Exception:
+            conn.rollback()  # constraint already exists
+
     print(f"  Table vn_sbv_centralrate ready")
 except Exception as e:
     print(f"  Table check error: {e}")
