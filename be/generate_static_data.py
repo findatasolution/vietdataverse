@@ -22,6 +22,7 @@ STATIC_DIR.mkdir(exist_ok=True)
 # Database connections
 CRAWLING_BOT_DB = os.getenv('CRAWLING_BOT_DB')
 ARGUS_FINTEL_DB = os.getenv('ARGUS_FINTEL_DB')
+GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
 
 if not CRAWLING_BOT_DB:
     print("ERROR: CRAWLING_BOT_DB not set")
@@ -29,6 +30,7 @@ if not CRAWLING_BOT_DB:
 
 engine_crawl = create_engine(CRAWLING_BOT_DB)
 engine_argus = create_engine(ARGUS_FINTEL_DB) if ARGUS_FINTEL_DB else None
+engine_global = create_engine(GLOBAL_INDICATOR_DB) if GLOBAL_INDICATOR_DB else None
 
 # Time periods
 PERIODS = {
@@ -284,6 +286,99 @@ def generate_market_pulse_data():
 
 
 # ============================================================
+# EXCHANGE RATE DATA (VCB, BID, TCB — from vn_sbv_centralrate)
+# ============================================================
+def generate_fxrate_data():
+    """Generate static JSON for exchange rates (USD/VND from VCB by default)."""
+    print("\n--- Generating Exchange Rate Data ---")
+
+    # Generate for key bank/currency combos
+    combos = [
+        ('VCB', 'USD'),
+        ('VCB', 'EUR'),
+        ('VCB', 'JPY'),
+    ]
+
+    for bank, currency in combos:
+        for period in ['7d', '1m', '1y']:
+            date_filter = get_date_filter(period)
+
+            with engine_crawl.connect() as conn:
+                result = conn.execute(text(f"""
+                    SELECT date, usd_vnd_rate, buy_cash, sell_rate
+                    FROM (
+                        SELECT DISTINCT ON (date) date, usd_vnd_rate, buy_cash, sell_rate, crawl_time
+                        FROM vn_sbv_centralrate
+                        WHERE date >= '{date_filter}'
+                        AND type = '{currency}'
+                        AND bank = '{bank}'
+                        AND usd_vnd_rate IS NOT NULL
+                        ORDER BY date, crawl_time DESC
+                    ) subquery
+                    ORDER BY date ASC
+                """))
+                rows = result.fetchall()
+
+            data = {
+                'bank': bank,
+                'currency': currency,
+                'period': period,
+                'count': len(rows),
+                'dates': [row[0].strftime('%Y-%m-%d') if hasattr(row[0], 'strftime') else str(row[0]) for row in rows],
+                'usd_vnd_rate': [float(row[1]) if row[1] else 0 for row in rows],
+                'buy_cash': [float(row[2]) if row[2] else None for row in rows],
+                'sell_rate': [float(row[3]) if row[3] else None for row in rows],
+            }
+
+            save_json(f'fxrate_{bank}_{currency}_{period}.json', data)
+            print(f"  fxrate_{bank}_{currency}_{period}.json: {len(rows)} rows")
+
+
+# ============================================================
+# GLOBAL MACRO DATA
+# ============================================================
+def generate_global_data():
+    """Generate static JSON for global macro indicators (Gold futures, Silver, NASDAQ)."""
+    print("\n--- Generating Global Macro Data ---")
+
+    if not engine_global:
+        print("  GLOBAL_INDICATOR_DB not set, skipping global macro")
+        return
+
+    try:
+        for period in ['7d', '1m', '1y']:
+            date_filter = get_date_filter(period)
+
+            with engine_global.connect() as conn:
+                result = conn.execute(text(f"""
+                    SELECT date, gold_price, silver_price, nasdaq_price
+                    FROM (
+                        SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, crawl_time
+                        FROM global_macro
+                        WHERE date >= '{date_filter}'
+                        ORDER BY date, crawl_time DESC
+                    ) subquery
+                    ORDER BY date ASC
+                """))
+                rows = result.fetchall()
+
+            data = {
+                'period': period,
+                'count': len(rows),
+                'dates': [row[0].strftime('%Y-%m-%d') if hasattr(row[0], 'strftime') else str(row[0]) for row in rows],
+                'gold_prices': [float(row[1]) if row[1] else 0 for row in rows],
+                'silver_prices': [float(row[2]) if row[2] else 0 for row in rows],
+                'nasdaq_prices': [float(row[3]) if row[3] else 0 for row in rows]
+            }
+
+            save_json(f'global_{period}.json', data)
+            print(f"  global_{period}.json: {len(rows)} rows")
+
+    except Exception as e:
+        print(f"  Error generating global macro data: {e}")
+
+
+# ============================================================
 # MANIFEST FILE
 # ============================================================
 def generate_manifest():
@@ -313,7 +408,9 @@ def main():
         generate_gold_data()
         generate_silver_data()
         generate_sbv_data()
+        generate_fxrate_data()
         generate_termdepo_data()
+        generate_global_data()
         generate_market_pulse_data()
         generate_manifest()
 

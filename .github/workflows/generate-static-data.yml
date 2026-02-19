@@ -4,9 +4,10 @@ on:
   # Run after other crawlers complete
   workflow_run:
     workflows:
-      - "Gold Silver Crawl"
+      - "Gold & Silver Price Crawl (2x Daily)"
       - "Bank Term Deposit Crawl"
       - "SBV Rates Crawl (Daily)"
+      - "Exchange Rate Crawl (Daily)"
     types:
       - completed
 
@@ -42,6 +43,7 @@ jobs:
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
         ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
+        GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
       run: |
         cd be
         python generate_static_data.py
