@@ -62,6 +62,18 @@ RSS_FEEDS = [
         "name": "MarketWatch",
         "url": "https://feeds.marketwatch.com/marketwatch/topstories/"
     },
+    {
+        "name": "Federal Reserve",
+        "url": "https://www.federalreserve.gov/feeds/press_all.xml"
+    },
+    {
+        "name": "Nikkei Asia",
+        "url": "https://asia.nikkei.com/rss/feed/nar"
+    },
+    {
+        "name": "Mining.com",
+        "url": "https://www.mining.com/feed/"
+    },
 ]
 
 
