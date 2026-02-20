@@ -292,6 +292,25 @@ def generate_fxrate_data():
     """Generate static JSON for exchange rates (USD/VND from VCB by default)."""
     print("\n--- Generating Exchange Rate Data ---")
 
+    # Ensure columns exist (table may have been created by older schema)
+    try:
+        with engine_crawl.connect() as conn:
+            for col, definition in [
+                ('type',         "VARCHAR(20) NOT NULL DEFAULT 'USD'"),
+                ('source',       "VARCHAR(20) NOT NULL DEFAULT 'Crawl'"),
+                ('bank',         "VARCHAR(10) DEFAULT 'SBV'"),
+                ('buy_transfer', 'FLOAT'),
+                ('buy_cash',     'FLOAT'),
+                ('sell_rate',    'FLOAT'),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+    except Exception as e:
+        print(f"  Schema migration warning: {e}")
+
     # Generate for key bank/currency combos
     combos = [
         ('VCB', 'USD'),
@@ -303,21 +322,25 @@ def generate_fxrate_data():
         for period in ['7d', '1m', '1y']:
             date_filter = get_date_filter(period)
 
-            with engine_crawl.connect() as conn:
-                result = conn.execute(text(f"""
-                    SELECT date, usd_vnd_rate, buy_cash, sell_rate
-                    FROM (
-                        SELECT DISTINCT ON (date) date, usd_vnd_rate, buy_cash, sell_rate, crawl_time
-                        FROM vn_sbv_centralrate
-                        WHERE date >= '{date_filter}'
-                        AND type = '{currency}'
-                        AND bank = '{bank}'
-                        AND usd_vnd_rate IS NOT NULL
-                        ORDER BY date, crawl_time DESC
-                    ) subquery
-                    ORDER BY date ASC
-                """))
-                rows = result.fetchall()
+            try:
+                with engine_crawl.connect() as conn:
+                    result = conn.execute(text(f"""
+                        SELECT date, usd_vnd_rate, buy_cash, sell_rate
+                        FROM (
+                            SELECT DISTINCT ON (date) date, usd_vnd_rate, buy_cash, sell_rate, crawl_time
+                            FROM vn_sbv_centralrate
+                            WHERE date >= '{date_filter}'
+                            AND type = '{currency}'
+                            AND bank = '{bank}'
+                            AND usd_vnd_rate IS NOT NULL
+                            ORDER BY date, crawl_time DESC
+                        ) subquery
+                        ORDER BY date ASC
+                    """))
+                    rows = result.fetchall()
+            except Exception as e:
+                print(f"  Skipping fxrate_{bank}_{currency}_{period}: {e}")
+                continue
 
             data = {
                 'bank': bank,
