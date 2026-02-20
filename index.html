@@ -492,7 +492,7 @@
                             <source src="ads.mp4" type="video/mp4">
                         </video> -->
                         <!-- ĐỂ DÙNG ẢNH (JPG / PNG / WebP / GIF): -->
-                        <img src="Banner.png" class="hero-video" alt="Advertisement Banner">
+                        <img src="" class="hero-video" alt="Advertisement Banner">
                         
                         <div class="hero-overlay"></div>
                     </div>
@@ -757,11 +757,11 @@
                         </div>
 
 
-                        <!-- SBV Central Exchange Rate Chart (USD/VND) -->
+                        <!-- VCB Exchange Rate Chart (USD/VND) -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="fxrateChart">Tỷ Giá Trung Tâm USD/VND (Ngân hàng Nhà nước)</span>
+                                    <span data-i18n="fxrateChart">Tỷ Giá USD/VND (Vietcombank)</span>
                                     <span class="chart-info-icon" data-tooltip="Tỷ giá USD/VND do Vietcombank công bố hàng ngày. Gồm giá mua tiền mặt, mua chuyển khoản và bán ra. Nguồn: VCB API. Đơn vị: VND/USD.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
@@ -1729,7 +1729,7 @@
                 silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
                 sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng',
                 tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm (NHTM)',
-                fxrateChart: 'Tỷ Giá Trung Tâm USD/VND (Ngân hàng Nhà nước)',
+                fxrateChart: 'Tỷ Giá USD/VND (Vietcombank)',
                 globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
                 downloadTitle: 'Tải Dữ liệu Lịch Sử',
                 downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng trong nước, giá bạc, và dữ liệu vĩ mô tại đây',
@@ -1809,7 +1809,7 @@
                 silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
                 tdChart: 'Commercial Banks Term Deposit History',
-                fxrateChart: 'SBV Central Exchange Rate (USD/VND)',
+                fxrateChart: 'VCB Exchange Rate (USD/VND)',
                 globalChart: 'Global Market Trends (Gold, Silver, NASDAQ)',
                 downloadTitle: 'Download Vietnam Historical Index',
                 downloadSubtitle: 'Download historical gold price data (SJC, DOJI, PNJ), silver prices, bank interest rates for free. Access Vietnam gold price data from 2015 onwards via RESTful API.',
@@ -2800,6 +2800,7 @@
                     let apiUrl = `${base}/${endpoint}?period=${period}`;
                     if (chartType === 'gold' && goldType) apiUrl += `&type=${encodeURIComponent(goldType)}`;
                     if (chartType === 'td' && bankCode) apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
+                    if (chartType === 'fxrate') apiUrl += `&bank=VCB&currency=USD`;
                     const res = await fetch(apiUrl);
                     if (!res.ok) throw new Error(`API error: ${res.status}`);
                     data = await res.json();
