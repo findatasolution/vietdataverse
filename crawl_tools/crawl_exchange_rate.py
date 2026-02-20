@@ -321,8 +321,10 @@ try:
         """))
         conn.commit()
 
-        # Add missing columns if the table was created by an older schema (no bank/buy_transfer)
+        # Add missing columns if the table was created by an older schema
         for col, definition in [
+            ('type',         "VARCHAR(20) NOT NULL DEFAULT 'USD'"),
+            ('source',       "VARCHAR(20) NOT NULL DEFAULT 'Crawl'"),
             ('bank',         "VARCHAR(10) DEFAULT 'SBV'"),
             ('buy_transfer', 'FLOAT'),
             ('buy_cash',     'FLOAT'),

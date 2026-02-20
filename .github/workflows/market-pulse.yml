@@ -22,7 +22,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install python-dotenv sqlalchemy psycopg2-binary google-generativeai feedparser
+        pip install python-dotenv sqlalchemy psycopg2-binary google-genai feedparser
 
     - name: Run market pulse pipeline
       env:
