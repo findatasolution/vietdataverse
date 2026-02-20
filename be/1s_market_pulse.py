@@ -16,7 +16,8 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import feedparser
 
 # Load environment variables
@@ -29,8 +30,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 if not GEMINI_API_KEY or GEMINI_API_KEY == 'your_gemini_api_key_here':
     raise ValueError("Please set GEMINI_API_KEY in .env file")
 
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Database
 ARGUS_FINTEL_DB = os.getenv('ARGUS_FINTEL_DB')
@@ -73,6 +73,10 @@ RSS_FEEDS = [
     {
         "name": "Mining.com",
         "url": "https://www.mining.com/feed/"
+    },
+    {
+        "name": "VnExpress Business",
+        "url": "https://vnexpress.net/rss/kinh-doanh.rss"
     },
 ]
 
@@ -224,41 +228,25 @@ Return ONLY valid JSON (no markdown code blocks):
   "items": [ ... exactly 5 items ... ]
 }}"""
 
-    # Configure generation with higher output token limit
-    generation_config = {
-        "temperature": 0.7,
-        "top_p": 0.95,
-        "top_k": 40,
-        "max_output_tokens": 8192,
-    }
-    response = model.generate_content(prompt, generation_config=generation_config)
+    # response_mime_type='application/json' forces valid JSON output (no truncated strings)
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type='application/json',
+            temperature=0.7,
+            top_p=0.95,
+            max_output_tokens=8192,
+        )
+    )
     raw = response.text.strip()
 
-    # Clean markdown code blocks if present
-    if '```json' in raw:
-        raw = raw.split('```json', 1)[1]
-        raw = raw.split('```', 1)[0]
-    elif raw.startswith('```'):
-        raw = raw.split('\n', 1)[1] if '\n' in raw else raw[3:]
-        if raw.endswith('```'):
-            raw = raw[:-3]
-
-    raw = raw.strip()
-
-    # Try to find JSON object in the response
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as e:
         print(f"   JSON parsing error: {e}")
         print(f"   Raw response (first 500 chars): {raw[:500]}")
-        # Try to extract JSON from the response
-        import re
-        json_match = re.search(r'\{[\s\S]*\}', raw)
-        if json_match:
-            raw = json_match.group(0)
-            data = json.loads(raw)
-        else:
-            raise
+        raise
     items = data.get("items", [])
 
     if len(items) != 5:
