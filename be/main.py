@@ -77,6 +77,33 @@ def get_engine_argus():
         _engine_argus = create_engine(db_url, pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycle=300)
     return _engine_argus
 
+def _migrate_crawl_db():
+    """Ensure vn_sbv_centralrate has all required columns (idempotent)."""
+    try:
+        db_url = os.getenv("CRAWLING_BOT_DB")
+        if not db_url:
+            return
+        eng = create_engine(db_url, pool_pre_ping=True)
+        with eng.connect() as conn:
+            for col, definition in [
+                ('type',         "VARCHAR(20) NOT NULL DEFAULT 'USD'"),
+                ('source',       "VARCHAR(20) NOT NULL DEFAULT 'Crawl'"),
+                ('bank',         "VARCHAR(10) DEFAULT 'SBV'"),
+                ('buy_transfer', 'FLOAT'),
+                ('buy_cash',     'FLOAT'),
+                ('sell_rate',    'FLOAT'),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+        eng.dispose()
+    except Exception as e:
+        print(f"[startup] crawl DB migration warning: {e}")
+
+_migrate_crawl_db()
+
 app = FastAPI(
     title="Agent Finance API",
     description="API for Agent Finance application with Neon database",
