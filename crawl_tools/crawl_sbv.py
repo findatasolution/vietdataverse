@@ -408,6 +408,32 @@ try:
             """))
             conn.commit()
 
+            # Migrate existing table that may be missing new columns
+            for col, definition in [
+                ('type',         "VARCHAR(20) NOT NULL DEFAULT 'USD'"),
+                ('source',       "VARCHAR(20) NOT NULL DEFAULT 'Crawl'"),
+                ('bank',         "VARCHAR(10) DEFAULT 'SBV'"),
+                ('buy_transfer', 'FLOAT'),
+                ('buy_cash',     'FLOAT'),
+                ('sell_rate',    'FLOAT'),
+                ('document_no',  'VARCHAR(50)'),
+            ]:
+                try:
+                    conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+            # Add unique constraint if missing
+            try:
+                conn.execute(text("""
+                    ALTER TABLE vn_sbv_centralrate
+                    ADD CONSTRAINT vn_sbv_centralrate_date_type_source_bank_key
+                    UNIQUE (date, type, source, bank)
+                """))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+
             # Check if data for this date+type+source+bank exists
             result = conn.execute(
                 text("SELECT COUNT(*) FROM vn_sbv_centralrate WHERE date = :date AND type = 'USD' AND source = 'Crawl' AND bank = 'SBV'"),
