@@ -65,7 +65,7 @@ html {
 .header-ad-strip {
     grid-column: 1 / -1;
     position: relative;
-    height: 200px;
+    height: 90px;
     overflow: hidden;
     background-color: var(--bg-dark);
     z-index: 0;
@@ -118,6 +118,16 @@ html {
 .header-ad-badge:hover {
     color: rgba(255, 255, 255, 0.7);
     background: rgba(0, 0, 0, 0.55);
+}
+
+/* Google AdSense container — fills strip, shown when adsbygoogle script is active */
+.header-ad-adsense {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark);
 }
 
 .app-container {
@@ -1537,7 +1547,7 @@ html {
     }
 
     .header-ad-strip {
-        height: 120px;
+        height: 60px;
     }
 
     .mobile-menu-btn {
