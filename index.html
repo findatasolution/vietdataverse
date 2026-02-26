@@ -27,7 +27,7 @@
     <meta name="geo.placename" content="Vietnam">
     <!-- Google Ads -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6080033337103483"
-     crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
     <!-- end Google Ads -->
     <!-- Favicon and Icons (hosted on imagekit.io) -->
     <link rel="icon" type="image/png" sizes="16x16"
@@ -364,6 +364,14 @@
                 style="display:none;">
                 QC <i class="fas fa-external-link-alt" style="font-size:0.55rem;margin-left:3px;"></i>
             </a>
+            <!-- Google AdSense fallback — shown when no in-house ad is configured -->
+            <ins class="adsbygoogle header-ad-adsense"
+                 id="headerAdSense"
+                 style="display:none;"
+                 data-ad-client="ca-pub-6080033337103483"
+                 data-ad-slot="2529535655" 
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
         </div>
 
         <!-- Mobile Overlay -->
@@ -492,14 +500,15 @@
                             <source src="ads.mp4" type="video/mp4">
                         </video> -->
                         <!-- ĐỂ DÙNG ẢNH (JPG / PNG / WebP / GIF): -->
-                        <img src="" class="hero-video" alt="Advertisement Banner">
-                        
+                        <img src="" class="hero-video" alt="Advertisement Banner" style="display:none;">
+
                         <div class="hero-overlay"></div>
                     </div>
                     <div class="hero-content">
                         <h1 class="section-title">
                             <span data-i18n="mainTitle">Tải Dữ Liệu Kinh Tế Mở</span>
-                            <span class="chart-info-icon" data-tooltip="Tải miễn phí lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí">ⓘ</span>
+                            <span class="chart-info-icon"
+                                data-tooltip="Tải miễn phí lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí">ⓘ</span>
                         </h1>
                     </div>
                 </div>
@@ -529,7 +538,8 @@
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="goldChart">Lịch Sử Giá Vàng Việt Nam</span>
-                                    <span class="chart-info-icon" data-tooltip="Giá vàng mua/bán trong nước. Đơn vị: nghìn VND/chỉ (3.75g).">ⓘ</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Giá vàng mua/bán trong nước. Đơn vị: nghìn VND/chỉ (3.75g).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <select id="goldTypeSelect" class="type-select"
@@ -567,7 +577,8 @@
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="silverChart">Lịch Sử Giá Bạc Việt Nam - Phú Quý</span>
-                                    <span class="chart-info-icon" data-tooltip="Giá bạc mua/bán của Phú Quý Group. Nguồn: giabac.vn & phuquygroup.vn. Đơn vị: nghìn VND/lượng (37.5g).">ⓘ</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Giá bạc mua/bán của Phú Quý Group. Nguồn: giabac.vn & phuquygroup.vn. Đơn vị: nghìn VND/lượng (37.5g).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
@@ -689,7 +700,8 @@
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="tdChart">Lãi Suất Gửi Tiết Kiệm</span>
-                                    <span class="chart-info-icon" data-tooltip="Lãi suất gửi tiết kiệm kỳ hạn của các ngân hàng thương mại (ACB, VCB, SHB, CTG...). Nguồn: website chính thức từng ngân hàng. Đơn vị: %/năm.">ⓘ</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Lãi suất gửi tiết kiệm kỳ hạn của các ngân hàng thương mại (ACB, VCB, SHB, CTG...). Nguồn: website chính thức từng ngân hàng. Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <select id="bankTypeSelect" class="type-select"
@@ -728,7 +740,8 @@
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="sbvChart">Lịch Sử Lãi Suất Liên Ngân Hàng SBV</span>
-                                    <span class="chart-info-icon" data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Gồm: qua đêm, 1 tháng, 3 tháng, lãi suất chiết khấu, tái cấp vốn. Đơn vị: %/năm.">ⓘ</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Gồm: qua đêm, 1 tháng, 3 tháng, lãi suất chiết khấu, tái cấp vốn. Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
@@ -762,7 +775,8 @@
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="fxrateChart">Tỷ Giá USD/VND (Vietcombank)</span>
-                                    <span class="chart-info-icon" data-tooltip="Tỷ giá USD/VND do Vietcombank công bố hàng ngày. Gồm giá mua tiền mặt, mua chuyển khoản và bán ra. Nguồn: VCB API. Đơn vị: VND/USD.">ⓘ</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Tỷ giá USD/VND do Vietcombank công bố hàng ngày. Gồm giá mua tiền mặt, mua chuyển khoản và bán ra. Nguồn: VCB API. Đơn vị: VND/USD.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="fxrate" data-period="7d">7 Days</button>
@@ -863,8 +877,10 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)</span>
-                                    <span class="chart-info-icon" data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
+                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc,
+                                        NASDAQ)</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
@@ -903,13 +919,13 @@
                     <div class="section-header">
                         <h1 class="section-title">
                             <span>Thời Báo 1 Giây</span>
-                            <span class="chart-info-icon" data-tooltip="Tổng hợp tin tức tài chính trong nước & quốc tế ảnh hưởng đến thị trường. Được phân loại và đánh giá tác động bởi Fintel AI (MRI score). Danh sách tiêu đề phía dưới chỉ hiển thị các tin có |MRI| ≥ 60, tức là những sự kiện có xác suất tạo biến động đáng kể lên tài sản được gán nhãn liên quan. Giúp ngừoi đọc iết kiệm thời gian đọc tin và tập trung vào các thông tin thực sự ảnh hưởng đến loại tài sản cụ thể. (MRI sử dụng thang -100 đến +100 đại diện khả năng tác động đơn biến của bài báo và được cập nhật gần như tại thời gian thực).">ⓘ</span>
+                            <span class="chart-info-icon"
+                                data-tooltip="Tổng hợp tin tức tài chính trong nước & quốc tế ảnh hưởng đến thị trường. Được phân loại và đánh giá tác động bởi Fintel AI (MRI score). Danh sách tiêu đề phía dưới chỉ hiển thị các tin có |MRI| ≥ 60, tức là những sự kiện có xác suất tạo biến động đáng kể lên tài sản được gán nhãn liên quan. Giúp ngừoi đọc iết kiệm thời gian đọc tin và tập trung vào các thông tin thực sự ảnh hưởng đến loại tài sản cụ thể. (MRI sử dụng thang -100 đến +100 đại diện khả năng tác động đơn biến của bài báo và được cập nhật gần như tại thời gian thực).">ⓘ</span>
                         </h1>
                     </div>
 
                     <!-- Filters -->
-                    <div id="pulse-filters"
-                        style="     display:flex;
+                    <div id="pulse-filters" style="     display:flex;
                                     flex-wrap:wrap;
                                     gap:0.75rem;
                                     margin:1.5rem auto;
@@ -953,7 +969,7 @@
                         <button id="filter-reset"
                             style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:0.85rem;cursor:pointer;">Reset</button>
                     </div>
-                </div>  
+                </div>
 
                 <div id="market-pulse-articles">
                     <!-- Skeleton loading -->
@@ -994,7 +1010,8 @@
                 <div class="section-header">
                     <h1 class="section-title">
                         <span>1s Future Outlook</span>
-                        <span class="chart-info-icon" data-tooltip="Phân tích chuyên sâu xu hướng thị trường tài chính, dự báo giá vàng, ngoại tệ và chứng khoán. Cập nhật định kỳ bởi Fintel AI.">ⓘ</span>
+                        <span class="chart-info-icon"
+                            data-tooltip="Phân tích chuyên sâu xu hướng thị trường tài chính, dự báo giá vàng, ngoại tệ và chứng khoán. Cập nhật định kỳ bởi Fintel AI.">ⓘ</span>
                     </h1>
                 </div>
 
@@ -1538,12 +1555,16 @@
                         <div>
                             <label for="ad-banner-upload"
                                 style="display: block; color: var(--text-primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                                <i class="fas fa-photo-video" style="color: var(--gold-primary); margin-right: 0.4rem;"></i>
-                                Banner (Hình ảnh / Video) <span style="color: var(--text-tertiary); font-weight: 400;">(Tùy chọn)</span>
+                                <i class="fas fa-photo-video"
+                                    style="color: var(--gold-primary); margin-right: 0.4rem;"></i>
+                                Banner (Hình ảnh / Video) <span
+                                    style="color: var(--text-tertiary); font-weight: 400;">(Tùy chọn)</span>
                             </label>
                             <p style="color: var(--text-tertiary); font-size: 0.8rem; margin-bottom: 0.5rem;">
-                                Kích thước tối ưu: <strong style="color: var(--gold-accent);">1920×520 px</strong> (16:9).
-                                Chấp nhận: <strong style="color: var(--gold-accent);">MP4, WebM</strong> (video ≤ 10MB) hoặc
+                                Kích thước tối ưu: <strong style="color: var(--gold-accent);">1920×520 px</strong>
+                                (16:9).
+                                Chấp nhận: <strong style="color: var(--gold-accent);">MP4, WebM</strong> (video ≤ 10MB)
+                                hoặc
                                 <strong style="color: var(--gold-accent);">JPG, PNG, WebP, GIF</strong> (ảnh ≤ 5MB).
                             </p>
                             <div id="ad-banner-dropzone"
@@ -1554,10 +1575,13 @@
                                 ondrop="event.preventDefault(); handleBannerDrop(event); this.style.borderColor='rgba(201,165,91,0.25)'; this.style.background='rgba(0,0,0,0.4)'">
                                 <i class="fas fa-cloud-upload-alt"
                                     style="font-size: 2rem; color: var(--gold-primary); margin-bottom: 0.5rem;"></i>
-                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Kéo & thả hình ảnh hoặc video, hoặc
-                                    <span style="color: var(--gold-accent); text-decoration: underline;">chọn file</span>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Kéo & thả hình ảnh hoặc
+                                    video, hoặc
+                                    <span style="color: var(--gold-accent); text-decoration: underline;">chọn
+                                        file</span>
                                 </p>
-                                <p style="color: var(--text-tertiary); font-size: 0.78rem; margin-top: 0.3rem;">MP4 · WebM · JPG · PNG · WebP · GIF</p>
+                                <p style="color: var(--text-tertiary); font-size: 0.78rem; margin-top: 0.3rem;">MP4 ·
+                                    WebM · JPG · PNG · WebP · GIF</p>
                                 <p id="ad-banner-filename"
                                     style="color: var(--gold-accent); font-size: 0.85rem; margin-top: 0.5rem; display: none;">
                                 </p>
@@ -1570,8 +1594,8 @@
                                 <img id="ad-banner-preview-img"
                                     style="width: 100%; max-height: 200px; object-fit: cover;" alt="Banner preview">
                                 <video id="ad-banner-preview-video"
-                                    style="display: none; width: 100%; max-height: 200px; object-fit: cover;"
-                                    muted playsinline controls></video>
+                                    style="display: none; width: 100%; max-height: 200px; object-fit: cover;" muted
+                                    playsinline controls></video>
                             </div>
                         </div>
 
@@ -1603,18 +1627,11 @@
                                             Hiển thị banner trên trang chủ</li>
                                         <li style="display: flex; align-items: center; gap: 0.5rem;"><i
                                                 class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
-                                            Thời gian: 7 ngày / 30 ngày</li>
-                                        <li style="display: flex; align-items: center; gap: 0.5rem;"><i
-                                                class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
-                                            Traffic: ~2,000-5,000 views/ngày</li>
+                                            Thời gian: đến khi số lượng view đạt limit của gói</li>
                                         <li style="display: flex; align-items: center; gap: 0.5rem;"><i
                                                 class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
                                             Phê duyệt trong 24 giờ</li>
                                     </ul>
-                                    <p style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 0.5rem;">
-                                        <i class="fas fa-info-circle" style="color: var(--gold-primary);"></i>
-                                        Liên hệ email để nhận báo giá chi tiết.
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -2201,8 +2218,8 @@
 
             // Show preview
             const previewWrap = document.getElementById('ad-banner-preview');
-            const previewImg  = document.getElementById('ad-banner-preview-img');
-            const previewVid  = document.getElementById('ad-banner-preview-video');
+            const previewImg = document.getElementById('ad-banner-preview-img');
+            const previewVid = document.getElementById('ad-banner-preview-video');
             const url = URL.createObjectURL(file);
 
             if (isVideo) {
@@ -2242,7 +2259,15 @@
             const adUrl = strip.dataset.adUrl;
 
             if (!videoUrl && !imgUrl) {
-                strip.style.display = 'none';
+                // No in-house ad — show Google AdSense fallback
+                const adUnit = document.getElementById('headerAdSense');
+                if (adUnit) {
+                    adUnit.style.display = 'block';
+                    strip.classList.add('has-ad');
+                    try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+                } else {
+                    strip.style.display = 'none';
+                }
                 return;
             }
 
