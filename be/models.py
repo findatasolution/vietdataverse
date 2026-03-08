@@ -1,6 +1,6 @@
 # models.py
 from sqlalchemy import (
-    Column, Integer, String, Boolean, DateTime, func, JSON
+    Column, Integer, String, Boolean, DateTime, func, JSON, BigInteger
 )
 from database import Base
 
@@ -22,6 +22,8 @@ class User(Base):
     role = Column(String, default="user", nullable=False, index=True)  # user, gceo, bugm
     business_unit = Column(String, nullable=True)  # For BUGM role: APAC, EMEA, Americas
     auth0_metadata = Column(JSON, nullable=True)  # Store additional Auth0 metadata
+    is_premium = Column(Boolean, default=False, nullable=False)
+    premium_expiry = Column(DateTime, nullable=True)  # NULL = no subscription
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
 
@@ -48,3 +50,19 @@ class User(Base):
     def has_business_unit(self, bu: str) -> bool:
         """Check if user has specific business unit"""
         return self.business_unit == bu
+
+
+# ======================
+# Payment Orders - track PayOS/SePay transactions
+# ======================
+class PaymentOrder(Base):
+    __tablename__ = "payment_orders"
+
+    order_code = Column(BigInteger, primary_key=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    plan = Column(String(50), nullable=False)   # monthly | yearly
+    amount = Column(Integer, nullable=False)
+    status = Column(String(20), default="pending", nullable=False)  # pending | paid | cancelled
+    gateway = Column(String(20), default="payos", nullable=False)   # payos | sepay
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)

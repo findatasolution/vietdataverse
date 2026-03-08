@@ -674,6 +674,14 @@ html {
     font-weight: 600;
 }
 
+.article-disclaimer {
+    font-size: 0.875rem;
+    color: var(--text-muted, #666);
+    border-left: 3px solid var(--border-subtle, #333);
+    padding-left: 1rem;
+    margin-top: 1.5rem;
+}
+
 /* Live Indicators View */
 .indicators-grid {
     display: grid;
@@ -3052,16 +3060,11 @@ html {
     justify-content: flex-start;
 
     align-items: center;
-
-    min-height: 420px;
-    max-height: 520px;
 }
 
 
 @media (max-width: 768px) {
     .hero-header {
-        min-height: 280px;
-        max-height: 360px;
         padding: 3rem 1.5rem;
     }
 }
@@ -3159,8 +3162,6 @@ html {
     .hero-header {
         margin: -1.25rem -1rem 2rem -1rem;
         padding: 3rem 1.5rem;
-        min-height: 280px;
-        max-height: 360px;
     }
 
     .hero-content {

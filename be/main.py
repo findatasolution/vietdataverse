@@ -25,6 +25,7 @@ from database import engine, Base, get_db
 from models import User
 from auth import verify_auth0_token, get_user_role, get_user_business_unit, get_user_is_admin, get_auth0_user_info, create_local_user_from_auth0, exchange_code_for_tokens
 from middleware import authenticate_user, get_current_user
+from payment import router as payment_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -104,6 +105,49 @@ def _migrate_crawl_db():
 
 _migrate_crawl_db()
 
+
+def _migrate_user_db():
+    """Add premium columns to users table and ensure payment_orders table exists (idempotent)."""
+    try:
+        db_url = os.getenv("USER_DB") or os.getenv("ARGUS_FINTEL_DB")
+        if not db_url:
+            return
+        eng = create_engine(db_url, pool_pre_ping=True)
+        with eng.connect() as conn:
+            for col, defn in [
+                ("is_premium",     "BOOLEAN NOT NULL DEFAULT FALSE"),
+                ("premium_expiry", "TIMESTAMP"),
+            ]:
+                try:
+                    conn.execute(text(
+                        f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {defn}"
+                    ))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+            try:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS payment_orders (
+                        order_code  BIGINT      PRIMARY KEY,
+                        user_id     INT         NOT NULL,
+                        plan        VARCHAR(50) NOT NULL,
+                        amount      INT         NOT NULL,
+                        status      VARCHAR(20) NOT NULL DEFAULT 'pending',
+                        gateway     VARCHAR(20) NOT NULL DEFAULT 'payos',
+                        created_at  TIMESTAMP   NOT NULL DEFAULT NOW(),
+                        updated_at  TIMESTAMP            DEFAULT NOW()
+                    )
+                """))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+        eng.dispose()
+    except Exception as e:
+        print(f"[startup] user DB migration warning: {e}")
+
+
+_migrate_user_db()
+
 app = FastAPI(
     title="Agent Finance API",
     description="API for Agent Finance application with Neon database",
@@ -121,6 +165,9 @@ app.add_middleware(
 
 # Add gzip compression (compresses responses > 1000 bytes)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Payment routes (PayOS / SePay subscription webhooks)
+app.include_router(payment_router)
 
 # Mount static directories - adjust paths for both local and Render deployment
 import os
@@ -416,6 +463,8 @@ async def get_current_user_info(request: Request):
             "role": db_user.role,
             "is_admin": db_user.is_admin,
             "auth0_id": db_user.auth0_id,
+            "is_premium": getattr(db_user, "is_premium", False),
+            "premium_expiry": db_user.premium_expiry.isoformat() if getattr(db_user, "premium_expiry", None) else None,
             "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
             "updated_at": db_user.updated_at.isoformat() if db_user.updated_at else None,
         }
