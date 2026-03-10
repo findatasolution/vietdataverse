@@ -947,6 +947,42 @@
 
                     <!-- Tab 3: Thị trường Quốc tế (Lazy load) -->
                     <div class="tab-content" id="tab-global">
+                        <!-- Global Macro Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc,
+                                        NASDAQ)</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="global" data-period="1m">1
+                                        Month</button>
+                                    <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="globalChart"></canvas>
+                                <div class="chart-loading" id="globalLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Global Macro Analysis -->
                         <article class="article-featured" id="article-global">
                             <div class="article-header">
@@ -986,42 +1022,6 @@
                                 </div>
                             </div>
                         </article>
-
-                        <!-- Global Macro Chart -->
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3 class="chart-title">
-                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc,
-                                        NASDAQ)</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
-                                </h3>
-                                <div class="chart-filters">
-                                    <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="global" data-period="1m">1
-                                        Month</button>
-                                    <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="global" data-period="all">All</button>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="globalChart"></canvas>
-                                <div class="chart-loading" id="globalLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -2195,6 +2195,10 @@
             window._prefetchPromises['silver-1m'] = fetch(`${base}/silver?period=1m`)
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .catch(e => { console.warn('[prefetch] silver failed:', e); return null; });
+            // Prefetch fxrate from static file (generated daily from SBV data)
+            window._prefetchPromises['fxrate-1m'] = fetch('./data/fxrate_SBV_USD_1m.json')
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .catch(e => { console.warn('[prefetch] fxrate static failed:', e); return null; });
         })();
 
         /* =========================================================
@@ -3222,13 +3226,20 @@
         }
 
         function parseFxRateData(apiData) {
-            // API format: { success: true, data: { dates: [...], usd_vnd_rate: [...] } }
-            if (!apiData || !apiData.data || !apiData.data.dates) {
+            // Support two formats:
+            // - Live API: { success: true, data: { dates: [...], usd_vnd_rate: [...] } }
+            // - Static file: { dates: [...], usd_vnd_rate: [...] }
+            let dates, rates;
+            if (apiData && apiData.data && apiData.data.dates) {
+                dates = apiData.data.dates;
+                rates = apiData.data.usd_vnd_rate;
+            } else if (apiData && apiData.dates) {
+                dates = apiData.dates;
+                rates = apiData.usd_vnd_rate;
+            } else {
                 return null;
             }
-
-            const dates = apiData.data.dates;
-            const rates = apiData.data.usd_vnd_rate;
+            if (!dates || !dates.length) return null;
 
             return {
                 type: 'line',

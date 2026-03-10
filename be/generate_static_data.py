@@ -313,6 +313,7 @@ def generate_fxrate_data():
 
     # Generate for key bank/currency combos
     combos = [
+        ('SBV', 'USD'),
         ('VCB', 'USD'),
         ('VCB', 'EUR'),
         ('VCB', 'JPY'),
