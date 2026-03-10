@@ -2392,8 +2392,14 @@
             const adUrl = strip.dataset.adUrl;
 
             if (!videoUrl && !imgUrl) {
-                // No in-house ad configured — hide strip to avoid layout gap
-                strip.style.display = 'none';
+                // No in-house ad — show AdSense fallback unit
+                const adSenseEl = document.getElementById('headerAdSense');
+                if (adSenseEl) {
+                    adSenseEl.style.display = 'block';
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                } else {
+                    strip.style.display = 'none';
+                }
                 return;
             }
 
