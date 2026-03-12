@@ -155,12 +155,20 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+# CORS_ALLOW_ORIGINS: comma-separated list of allowed origins
+# Fallback chỉ cho localhost (dev). Production phải set env var.
+_raw_cors_origins = os.getenv(
+    "CORS_ALLOW_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:5500"
+)
+ALLOW_ORIGINS = [o.strip() for o in _raw_cors_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=ALLOW_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 # Add gzip compression (compresses responses > 1000 bytes)
@@ -505,22 +513,22 @@ async def get_gold_data(
 
         engine_crawl = get_engine_crawl()
 
-        # Build query - Get latest crawl_time per day
+        # Build query - parameterized to prevent SQL injection
         date_filter = get_date_filter(period)
-        query = f"""
+        query = text("""
         SELECT date, buy_price, sell_price
         FROM (
             SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
             FROM vn_gold_24h_hist
-            WHERE date >= '{date_filter}'
-            AND type = '{type.replace("'", "''")}'
+            WHERE date >= :date_filter
+            AND type = :gold_type
             ORDER BY date, crawl_time DESC
         ) subquery
         ORDER BY date DESC
-        """
+        """)
 
         with engine_crawl.connect() as conn:
-            result = conn.execute(text(query))
+            result = conn.execute(query, {"date_filter": date_filter, "gold_type": type})
             rows = result.fetchall()
 
         # Format data
@@ -572,21 +580,21 @@ async def get_silver_data(
 
         engine_crawl = get_engine_crawl()
 
-        # Build query - Get latest crawl_time per day
+        # Build query - parameterized to prevent SQL injection
         date_filter = get_date_filter(period)
-        query = f"""
+        query = text("""
         SELECT date, buy_price, sell_price
         FROM (
             SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
             FROM vn_silver_phuquy_hist
-            WHERE date >= '{date_filter}'
+            WHERE date >= :date_filter
             ORDER BY date, crawl_time DESC
         ) subquery
         ORDER BY date DESC
-        """
+        """)
 
         with engine_crawl.connect() as conn:
-            result = conn.execute(text(query))
+            result = conn.execute(query, {"date_filter": date_filter})
             rows = result.fetchall()
 
         # Format data
@@ -637,21 +645,21 @@ async def get_sbv_interbank_data(
 
         engine_crawl = get_engine_crawl()
 
-        # Build query - Get latest crawl_time per day
+        # Build query - parameterized to prevent SQL injection
         date_filter = get_date_filter(period)
-        query = f"""
+        query = text("""
         SELECT date, ls_quadem, ls_1m, ls_3m, rediscount_rate, refinancing_rate
         FROM (
             SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_3m, rediscount_rate, refinancing_rate, crawl_time
             FROM vn_sbv_interbankrate
-            WHERE date >= '{date_filter}'
+            WHERE date >= :date_filter
             ORDER BY date, crawl_time DESC
         ) subquery
         ORDER BY date DESC
-        """
+        """)
 
         with engine_crawl.connect() as conn:
-            result = conn.execute(text(query))
+            result = conn.execute(query, {"date_filter": date_filter})
             rows = result.fetchall()
 
         # Format data
@@ -699,6 +707,10 @@ async def get_sbv_interbank_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch SBV data: {str(e)}")
 
+# Allowed values for bank/currency to prevent injection in column name selection
+_ALLOWED_BANKS = frozenset(["SBV", "BID", "TCB", "VCB", "ACB", "VPB", "MBB", "STB", "TPB", "HDB"])
+_ALLOWED_CURRENCIES = frozenset(["USD", "EUR", "JPY", "GBP", "CNY", "AUD", "SGD", "KRW", "THB", "CAD", "CHF", "HKD", "NZD", "TWD", "MYR"])
+
 @app.get("/api/v1/sbv-centralrate")
 async def get_sbv_central_rate(
     request: Request,
@@ -716,28 +728,37 @@ async def get_sbv_central_rate(
         bank_upper = bank.upper()
         currency_upper = currency.upper()
 
+        # Validate against allowlist to safely use in column name selection
+        if bank_upper not in _ALLOWED_BANKS:
+            raise HTTPException(status_code=400, detail=f"Bank không hợp lệ. Cho phép: {sorted(_ALLOWED_BANKS)}")
+        if currency_upper not in _ALLOWED_CURRENCIES:
+            raise HTTPException(status_code=400, detail=f"Currency không hợp lệ. Cho phép: {sorted(_ALLOWED_CURRENCIES)}")
+
         # For SBV: use usd_vnd_rate field; for commercial banks: use buy_transfer
+        # Column name is safe because bank_upper is validated against allowlist above
         if bank_upper == 'SBV':
             rate_col = 'usd_vnd_rate'
         else:
             rate_col = 'buy_transfer'
 
-        query = f"""
+        # Use parameterized query for all user-supplied values.
+        # rate_col is a column name (not data), validated via allowlist — safe to interpolate.
+        query = text(f"""
         SELECT date, {rate_col}, buy_cash, sell_rate
         FROM (
             SELECT DISTINCT ON (date) date, {rate_col}, buy_cash, sell_rate, crawl_time
             FROM vn_sbv_centralrate
-            WHERE date >= '{date_filter}'
-            AND type = '{currency_upper}'
-            AND bank = '{bank_upper}'
+            WHERE date >= :date_filter
+            AND type = :currency
+            AND bank = :bank
             AND {rate_col} IS NOT NULL
             ORDER BY date, crawl_time DESC
         ) subquery
         ORDER BY date DESC
-        """
+        """)
 
         with engine_crawl.connect() as conn:
-            result = conn.execute(text(query))
+            result = conn.execute(query, {"date_filter": date_filter, "currency": currency_upper, "bank": bank_upper})
             rows = result.fetchall()
 
         dates = []
@@ -792,23 +813,24 @@ async def get_term_deposit_data(
 
         engine_crawl = get_engine_crawl()
 
-        # Build query - Get latest data point per month
+        # Build query - parameterized to prevent SQL injection
         date_filter = get_date_filter(period)
-        query = f"""
-        SELECT date, term_1m, term_3m, term_6m, term_12m, term_24m
+        query = text("""
+        SELECT date, "1m" AS term_1m, "3m" AS term_3m, "6m" AS term_6m,
+               "12m" AS term_12m, "24m" AS term_24m
         FROM (
             SELECT DISTINCT ON (date_trunc('month', date))
-                   date, term_1m, term_3m, term_6m, term_12m, term_24m, crawl_time
+                   date, "1m", "3m", "6m", "12m", "24m", crawl_time
             FROM vn_bank_termdepo
-            WHERE date >= '{date_filter}'
-            AND bank_code = '{bank.replace("'", "''")}'
+            WHERE date >= :date_filter
+            AND bank = :bank_code
             ORDER BY date_trunc('month', date), date DESC, crawl_time DESC
         ) subquery
         ORDER BY date DESC
-        """
+        """)
 
         with engine_crawl.connect() as conn:
-            result = conn.execute(text(query))
+            result = conn.execute(query, {"date_filter": date_filter, "bank_code": bank})
             rows = result.fetchall()
 
         # Format data
@@ -869,21 +891,21 @@ async def get_global_macro_data(
 
         engine_global = get_engine_global()
 
-        # Build query - Get latest crawl_time per day
+        # Build query - parameterized to prevent SQL injection
         date_filter = get_date_filter(period)
-        query = f"""
+        query = text("""
         SELECT date, gold_price, silver_price, nasdaq_price
         FROM (
             SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, crawl_time
             FROM global_macro
-            WHERE date >= '{date_filter}'
+            WHERE date >= :date_filter
             ORDER BY date, crawl_time DESC
         ) subquery
         ORDER BY date DESC
-        """
+        """)
 
         with engine_global.connect() as conn:
-            result = conn.execute(text(query))
+            result = conn.execute(query, {"date_filter": date_filter})
             rows = result.fetchall()
 
         # Format data
