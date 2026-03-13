@@ -1,30 +1,24 @@
 """
-Payment module: PayOS & SePay subscription webhook handling.
+Payment module: PayOS subscription webhook handling.
 
 Luồng PayOS:
-  1. Frontend gọi POST /api/v1/payment/create-order (kèm Bearer token)
+  1. Frontend gọi POST /api/v1/payment/create-order (kèm Bearer token) hoặc
+     POST /api/v1/payment/create-order-guest (không cần token, chỉ cần email)
   2. Backend tạo payment link PayOS → trả về { checkout_url, qr_code }
   3. User thanh toán qua VietQR / banking app
   4. PayOS gọi webhook POST /api/v1/payment/payos-webhook
-  5. Backend xác minh chữ ký → cập nhật is_premium + premium_expiry cho user
-
-Luồng SePay (thay thế đơn giản hơn):
-  1. User chuyển khoản với nội dung "VIP{user_id}M" (monthly) hoặc "VIP{user_id}Y" (yearly)
-  2. SePay gọi webhook POST /api/v1/payment/sepay-webhook
-  3. Backend đọc content → lấy user_id + plan → cập nhật DB
+  5. Backend xác minh chữ ký → cập nhật is_premium + premium_expiry + user_level='premium'
 
 Env vars cần thiết:
-  PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY  (PayOS)
-  SEPAY_API_KEY                                         (SePay)
-  FRONTEND_URL                                          (return/cancel URL sau thanh toán)
-  USER_DB hoặc ARGUS_FINTEL_DB                          (Neon DB)
+  PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY
+  FRONTEND_URL  (return/cancel URL sau thanh toán)
+  USER_DB       (Neon DB connection string)
 """
 
 import hashlib
 import hmac as _hmac
 import json
 import os
-import re
 import time
 from datetime import datetime, timedelta
 from typing import Optional
@@ -32,10 +26,11 @@ from typing import Optional
 import requests
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from middleware import authenticate_user
+from core.engines import get_engine_user
 
 router = APIRouter(prefix="/api/v1/payment", tags=["payment"])
 
@@ -47,8 +42,6 @@ PAYOS_API_KEY      = os.getenv("PAYOS_API_KEY", "")
 PAYOS_CHECKSUM_KEY = os.getenv("PAYOS_CHECKSUM_KEY", "")
 PAYOS_BASE_URL     = "https://api-merchant.payos.vn"
 
-SEPAY_API_KEY      = os.getenv("SEPAY_API_KEY", "")
-
 FRONTEND_URL       = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 
 SUBSCRIPTION_PLANS = {
@@ -57,25 +50,11 @@ SUBSCRIPTION_PLANS = {
 }
 
 # ============================================================
-# DB helpers (mirrors main.py — avoids circular import)
+# DB helpers
 # ============================================================
-_engine_user = None
-
 
 def _get_engine():
-    global _engine_user
-    if _engine_user is None:
-        db_url = os.getenv("USER_DB") or os.getenv("ARGUS_FINTEL_DB")
-        if not db_url:
-            raise RuntimeError("USER_DB not configured")
-        _engine_user = create_engine(
-            db_url,
-            pool_pre_ping=True,
-            pool_size=3,
-            max_overflow=5,
-            pool_recycle=300,
-        )
-    return _engine_user
+    return get_engine_user()
 
 
 def _session():
@@ -137,16 +116,23 @@ def _ensure_tables(conn):
     """Idempotent DDL: create payment_orders + add premium columns to users."""
     conn.execute(text("""
         CREATE TABLE IF NOT EXISTS payment_orders (
-            order_code  BIGINT      PRIMARY KEY,
-            user_id     INT         NOT NULL,
-            plan        VARCHAR(50) NOT NULL,
-            amount      INT         NOT NULL,
-            status      VARCHAR(20) NOT NULL DEFAULT 'pending',
-            gateway     VARCHAR(20) NOT NULL DEFAULT 'payos',
-            created_at  TIMESTAMP   NOT NULL DEFAULT NOW(),
-            updated_at  TIMESTAMP            DEFAULT NOW()
+            order_code  BIGINT       PRIMARY KEY,
+            user_id     INT          NOT NULL,
+            plan        VARCHAR(50)  NOT NULL,
+            amount      INT          NOT NULL,
+            status      VARCHAR(20)  NOT NULL DEFAULT 'pending',
+            gateway     VARCHAR(20)  NOT NULL DEFAULT 'payos',
+            payos_ref   VARCHAR(100),
+            created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+            updated_at  TIMESTAMP             DEFAULT NOW()
         )
     """))
+    try:
+        conn.execute(text(
+            "ALTER TABLE payment_orders ADD COLUMN IF NOT EXISTS payos_ref VARCHAR(100)"
+        ))
+    except Exception:
+        pass
     for col, defn in [
         ("is_premium",     "BOOLEAN NOT NULL DEFAULT FALSE"),
         ("premium_expiry", "TIMESTAMP"),
@@ -174,10 +160,29 @@ def _activate_premium(session, user_id: int, plan: str):
 
     session.execute(text("""
         UPDATE users
-        SET is_premium = TRUE, premium_expiry = :expiry, updated_at = NOW()
+        SET is_premium = TRUE, premium_expiry = :expiry,
+            user_level = 'premium', updated_at = NOW()
         WHERE user_id = :uid
     """), {"expiry": new_expiry, "uid": user_id})
     return new_expiry
+
+
+# ============================================================
+# PayOS query helper
+# ============================================================
+
+def _query_payos_order(order_code: int) -> dict:
+    """Call PayOS GET /v2/payment-requests/{orderCode} and return data dict."""
+    headers = {
+        "x-client-id": PAYOS_CLIENT_ID,
+        "x-api-key":   PAYOS_API_KEY,
+    }
+    resp = requests.get(
+        f"{PAYOS_BASE_URL}/v2/payment-requests/{order_code}",
+        headers=headers,
+        timeout=15,
+    )
+    return resp.json()
 
 
 # ============================================================
@@ -185,6 +190,11 @@ def _activate_premium(session, user_id: int, plan: str):
 # ============================================================
 
 class CreateOrderRequest(BaseModel):
+    plan: str  # "monthly" | "yearly"
+
+
+class GuestOrderRequest(BaseModel):
+    email: str
     plan: str  # "monthly" | "yearly"
 
 
@@ -210,7 +220,7 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
 
     plan_info = SUBSCRIPTION_PLANS[body.plan]
 
-    # Lấy user_id từ DB
+    # Lấy hoặc tạo user_id từ DB
     session = _session()
     try:
         with _get_engine().connect() as conn:
@@ -220,9 +230,38 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
             text("SELECT user_id FROM users WHERE auth0_id = :aid"),
             {"aid": auth0_id},
         ).fetchone()
+
         if not row:
-            raise HTTPException(status_code=404, detail="User không tồn tại trong DB")
-        user_db_id = row[0]
+            # Auto-create user từ token nếu chưa có trong DB
+            email = user.get("email", "")
+            # Thử link với anonymous account cùng email
+            existing = session.execute(
+                text("SELECT user_id FROM users WHERE email = :email"),
+                {"email": email},
+            ).fetchone()
+            if existing:
+                session.execute(text("""
+                    UPDATE users SET auth0_id = :aid, registration_type = 'google', updated_at = NOW()
+                    WHERE email = :email
+                """), {"aid": auth0_id, "email": email})
+                session.commit()
+                user_db_id = existing[0]
+            else:
+                result = session.execute(text("""
+                    INSERT INTO users (auth0_id, email, name, picture, email_verified, user_level, registration_type)
+                    VALUES (:aid, :email, :name, :picture, :ev, 'free', 'google')
+                    RETURNING user_id
+                """), {
+                    "aid":     auth0_id,
+                    "email":   email,
+                    "name":    user.get("name"),
+                    "picture": user.get("picture"),
+                    "ev":      user.get("email_verified", False),
+                })
+                session.commit()
+                user_db_id = result.fetchone()[0]
+        else:
+            user_db_id = row[0]
     finally:
         session.close()
 
@@ -287,7 +326,19 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
             detail=f"PayOS lỗi: {resp_data.get('desc', 'Unknown')}",
         )
 
-    data = resp_data["data"]
+    data      = resp_data["data"]
+    payos_ref = data.get("paymentLinkId", "")
+
+    session = _session()
+    try:
+        session.execute(
+            text("UPDATE payment_orders SET payos_ref = :ref WHERE order_code = :oc"),
+            {"ref": payos_ref, "oc": order_code},
+        )
+        session.commit()
+    finally:
+        session.close()
+
     return {
         "order_code":   order_code,
         "plan":         body.plan,
@@ -295,6 +346,189 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
         "checkout_url": data["checkoutUrl"],
         "qr_code":      data.get("qrCode", ""),
     }
+
+
+@router.post("/create-order-guest")
+async def create_payment_order_guest(body: GuestOrderRequest):
+    """
+    Tạo PayOS payment link cho user chưa đăng nhập (guest checkout).
+    Chỉ cần email + plan — không cần Bearer token.
+    Hệ thống tự upsert anonymous user bằng email.
+    """
+    if body.plan not in SUBSCRIPTION_PLANS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Plan không hợp lệ. Chọn: {list(SUBSCRIPTION_PLANS.keys())}",
+        )
+
+    email     = body.email.strip().lower()
+    plan_info = SUBSCRIPTION_PLANS[body.plan]
+
+    with _get_engine().connect() as conn:
+        _ensure_tables(conn)
+
+    session = _session()
+    try:
+        # Upsert anonymous user by email
+        existing = session.execute(
+            text("SELECT user_id FROM users WHERE email = :email"),
+            {"email": email},
+        ).fetchone()
+
+        if existing:
+            user_db_id = existing[0]
+        else:
+            result = session.execute(text("""
+                INSERT INTO users (email, user_level, registration_type, email_verified)
+                VALUES (:email, 'free', 'anonymous', FALSE)
+                RETURNING user_id
+            """), {"email": email})
+            session.commit()
+            user_db_id = result.fetchone()[0]
+    finally:
+        session.close()
+
+    order_code = user_db_id * 1_000_000 + (int(time.time()) % 1_000_000)
+
+    session = _session()
+    try:
+        session.execute(text("""
+            INSERT INTO payment_orders (order_code, user_id, plan, amount, gateway)
+            VALUES (:oc, :uid, :plan, :amount, 'payos')
+        """), {
+            "oc":     order_code,
+            "uid":    user_db_id,
+            "plan":   body.plan,
+            "amount": plan_info["amount"],
+        })
+        session.commit()
+    finally:
+        session.close()
+
+    if not all([PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY]):
+        raise HTTPException(status_code=500, detail="PAYOS_* env vars chưa được cấu hình")
+
+    return_url  = f"{FRONTEND_URL}?payment=success&order={order_code}&email={email}"
+    cancel_url  = f"{FRONTEND_URL}?payment=cancelled"
+    description = plan_info["name"][:25]
+
+    payload = {
+        "orderCode":   order_code,
+        "amount":      plan_info["amount"],
+        "description": description,
+        "returnUrl":   return_url,
+        "cancelUrl":   cancel_url,
+        "signature":   _payos_checksum(
+            plan_info["amount"], cancel_url, description, order_code, return_url
+        ),
+    }
+    headers = {
+        "x-client-id":  PAYOS_CLIENT_ID,
+        "x-api-key":    PAYOS_API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    try:
+        resp      = requests.post(f"{PAYOS_BASE_URL}/v2/payment-requests",
+                                  json=payload, headers=headers, timeout=15)
+        resp_data = resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Không thể kết nối PayOS: {e}")
+
+    if resp_data.get("code") != "00":
+        raise HTTPException(
+            status_code=502,
+            detail=f"PayOS lỗi: {resp_data.get('desc', 'Unknown')}",
+        )
+
+    data      = resp_data["data"]
+    payos_ref = data.get("paymentLinkId", "")
+
+    session = _session()
+    try:
+        session.execute(
+            text("UPDATE payment_orders SET payos_ref = :ref WHERE order_code = :oc"),
+            {"ref": payos_ref, "oc": order_code},
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    return {
+        "order_code":   order_code,
+        "plan":         body.plan,
+        "amount":       plan_info["amount"],
+        "checkout_url": data["checkoutUrl"],
+        "qr_code":      data.get("qrCode", ""),
+        "note":         "Thanh toán xong, đăng nhập bằng email này để kích hoạt Premium.",
+    }
+
+
+@router.post("/verify-order/{order_code}")
+async def verify_order(order_code: int):
+    """
+    Chủ động query PayOS API để kiểm tra trạng thái thanh toán và kích hoạt Premium.
+    Gọi endpoint này sau khi user redirect về từ PayOS (không cần auth).
+    """
+    if not all([PAYOS_CLIENT_ID, PAYOS_API_KEY]):
+        raise HTTPException(status_code=500, detail="PayOS chưa được cấu hình")
+
+    try:
+        resp_data = _query_payos_order(order_code)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Không thể kết nối PayOS: {e}")
+
+    if resp_data.get("code") != "00":
+        raise HTTPException(status_code=502, detail=f"PayOS lỗi: {resp_data.get('desc')}")
+
+    payos_data = resp_data["data"]
+    payos_status = payos_data.get("status")
+    payos_ref    = payos_data.get("id", "")  # PayOS's own payment link ID
+
+    session = _session()
+    try:
+        order = session.execute(
+            text("SELECT user_id, plan, status FROM payment_orders WHERE order_code = :oc"),
+            {"oc": order_code},
+        ).fetchone()
+
+        if not order:
+            raise HTTPException(status_code=404, detail=f"Order {order_code} không tìm thấy trong DB")
+
+        user_id, plan, current_status = order
+
+        # Lưu payos_ref nếu chưa có
+        if payos_ref:
+            session.execute(
+                text("UPDATE payment_orders SET payos_ref = :ref WHERE order_code = :oc AND payos_ref IS NULL"),
+                {"ref": payos_ref, "oc": order_code},
+            )
+
+        if current_status == "paid":
+            session.commit()
+            return {"success": True, "activated": False, "already_paid": True, "status": "paid"}
+
+        if payos_status == "PAID":
+            new_expiry = _activate_premium(session, user_id, plan)
+            session.execute(text("""
+                UPDATE payment_orders SET status = 'paid', updated_at = NOW()
+                WHERE order_code = :oc
+            """), {"oc": order_code})
+            session.commit()
+            print(f"[verify-order] ✅ Premium activated user_id={user_id} đến {new_expiry}")
+            return {
+                "success":        True,
+                "activated":      True,
+                "premium_expiry": new_expiry.isoformat(),
+                "status":         "paid",
+            }
+
+        # Chưa thanh toán hoặc bị huỷ
+        session.commit()
+        return {"success": True, "activated": False, "status": payos_status}
+
+    finally:
+        session.close()
 
 
 @router.post("/payos-webhook")
@@ -354,84 +588,6 @@ async def payos_webhook(request: Request):
 
     return {"success": True}
 
-
-@router.post("/sepay-webhook")
-async def sepay_webhook(request: Request):
-    """
-    Nhận webhook từ SePay khi phát hiện chuyển khoản vào tài khoản ngân hàng.
-
-    User cần chuyển khoản với nội dung (content) có chứa mã dạng:
-      VIP{user_id}M   → gói monthly (99.000đ)
-      VIP{user_id}Y   → gói yearly  (990.000đ)
-    Ví dụ: "VIP42M" hoặc "THANH TOAN VIP42Y"
-
-    SePay gọi với header: Authorization: apikey {SEPAY_API_KEY}
-    """
-    # Xác thực API key SePay
-    if SEPAY_API_KEY:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header != f"apikey {SEPAY_API_KEY}":
-            raise HTTPException(status_code=401, detail="API key không hợp lệ")
-
-    try:
-        body = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Body không hợp lệ")
-
-    content        = body.get("content", "") or ""
-    transfer_type  = body.get("transferType", "")
-    transfer_amount = body.get("transferAmount", 0)
-
-    # Chỉ xử lý tiền vào
-    if transfer_type != "in":
-        return {"success": True}
-
-    # Parse mã từ nội dung chuyển khoản
-    match = re.search(r"VIP(\d+)([MY])", content.upper())
-    if not match:
-        print(f"[sepay-webhook] Không tìm thấy mã VIP trong: '{content}'")
-        return {"success": True}
-
-    user_id   = int(match.group(1))
-    plan_code = match.group(2)
-    plan      = "monthly" if plan_code == "M" else "yearly"
-    expected_amount = SUBSCRIPTION_PLANS[plan]["amount"]
-
-    if transfer_amount < expected_amount:
-        print(f"[sepay-webhook] Số tiền {transfer_amount} < {expected_amount} cho plan={plan}")
-        return {"success": True}
-
-    session = _session()
-    try:
-        # Kiểm tra user tồn tại
-        exists = session.execute(
-            text("SELECT 1 FROM users WHERE user_id = :uid"),
-            {"uid": user_id},
-        ).fetchone()
-        if not exists:
-            print(f"[sepay-webhook] user_id={user_id} không tồn tại")
-            return {"success": True}
-
-        # Tạo order record (SePay không có orderCode → dùng timestamp)
-        order_code = user_id * 1_000_000 + (int(time.time()) % 1_000_000)
-        session.execute(text("""
-            INSERT INTO payment_orders (order_code, user_id, plan, amount, status, gateway)
-            VALUES (:oc, :uid, :plan, :amount, 'paid', 'sepay')
-        """), {
-            "oc":     order_code,
-            "uid":    user_id,
-            "plan":   plan,
-            "amount": transfer_amount,
-        })
-
-        new_expiry = _activate_premium(session, user_id, plan)
-        session.commit()
-        print(f"[sepay-webhook] ✅ Premium user_id={user_id} đến {new_expiry} (SePay)")
-
-    finally:
-        session.close()
-
-    return {"success": True}
 
 
 @router.get("/status")
