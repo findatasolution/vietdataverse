@@ -45,8 +45,10 @@ PAYOS_BASE_URL     = "https://api-merchant.payos.vn"
 FRONTEND_URL       = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 
 SUBSCRIPTION_PLANS = {
-    "monthly": {"amount": 99_000,  "days": 30,  "name": "VIP 1 Thang"},
-    "yearly":  {"amount": 990_000, "days": 365, "name": "VIP 1 Nam"},
+    "premium_monthly": {"amount": 99_000,    "days": 30,  "level": "premium",           "name": "Premium 1 Thang"},
+    "premium_yearly":  {"amount": 990_000,   "days": 360, "level": "premium",           "name": "Premium 1 Nam"},
+    "dev_monthly":     {"amount": 375_000,   "days": 30,  "level": "premium_developer", "name": "Dev Premium 1 Thang"},
+    "dev_yearly":      {"amount": 4_500_000, "days": 360, "level": "premium_developer", "name": "Dev Premium 1 Nam"},
 }
 
 # ============================================================
@@ -148,7 +150,9 @@ def _ensure_tables(conn):
 
 def _activate_premium(session, user_id: int, plan: str):
     """Extend premium_expiry for a user. Stacks on top of existing subscription."""
-    plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["monthly"])
+    plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["premium_monthly"])
+    new_level  = plan_info["level"]  # "premium" | "premium_developer"
+
     row = session.execute(
         text("SELECT premium_expiry FROM users WHERE user_id = :uid"),
         {"uid": user_id},
@@ -161,9 +165,9 @@ def _activate_premium(session, user_id: int, plan: str):
     session.execute(text("""
         UPDATE users
         SET is_premium = TRUE, premium_expiry = :expiry,
-            user_level = 'premium', updated_at = NOW()
+            user_level = :lvl, updated_at = NOW()
         WHERE user_id = :uid
-    """), {"expiry": new_expiry, "uid": user_id})
+    """), {"expiry": new_expiry, "lvl": new_level, "uid": user_id})
     return new_expiry
 
 
@@ -670,7 +674,7 @@ async def require_premium(request: Request):
         session.close()
 
     if not row or not row[0]:
-        raise HTTPException(status_code=403, detail="Yêu cầu gói Premium")
+        raise HTTPException(status_code=403, detail="Yêu cầu gói Premium hoặc Premium Developer")
 
     if row[1] and row[1] < datetime.now():
         raise HTTPException(status_code=403, detail="Gói Premium đã hết hạn")
