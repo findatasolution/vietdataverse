@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nâng cấp Premium | Viet Dataverse</title>
-    <meta name="description" content="Đăng ký gói Premium để truy cập toàn bộ dữ liệu tài chính cao cấp trên Viet Dataverse.">
+    <meta name="description" content="Chọn gói phù hợp để truy cập dữ liệu tài chính cao cấp trên Viet Dataverse.">
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,31 +12,31 @@
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="../auth.js" defer></script>
     <style>
-        /* ── Page layout ───────────────────────────────────── */
         .pricing-page {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 64px 16px 80px;
-            background: radial-gradient(ellipse 80% 60% at 50% -10%,
+            padding: 48px 16px 80px;
+            background: radial-gradient(ellipse 80% 50% at 50% -10%,
                 rgba(201,165,91,0.10) 0%, transparent 70%);
         }
 
-        .pricing-back {
-            align-self: flex-start;
-            margin-left: max(16px, calc(50% - 560px));
-            margin-bottom: 32px;
+        .page-nav {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 18px 20px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color .2s;
+            justify-content: space-between;
         }
-        .pricing-back:hover { color: var(--gold-primary); }
-        .pricing-back svg { width:16px; height:16px; }
+        .nav-logo {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gold-primary);
+            text-decoration: none;
+        }
 
         .pricing-badge {
             display: inline-flex;
@@ -51,11 +51,11 @@
             color: var(--gold-accent);
             letter-spacing: .04em;
             text-transform: uppercase;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .pricing-title {
-            font-size: clamp(28px, 5vw, 42px);
+            font-size: clamp(26px, 5vw, 40px);
             font-weight: 700;
             text-align: center;
             margin-bottom: 10px;
@@ -68,25 +68,24 @@
         .pricing-subtitle {
             color: var(--text-secondary);
             text-align: center;
-            font-size: 15px;
-            max-width: 420px;
-            margin-bottom: 40px;
+            font-size: 14px;
+            max-width: 480px;
+            margin-bottom: 36px;
             line-height: 1.7;
         }
 
-        /* ── Toggle monthly / yearly ────────────────────────── */
-        .plan-toggle {
+        /* ── Billing toggle ─────────────────────────────────── */
+        .billing-toggle {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 4px;
             background: var(--bg-elevated);
             border: 1px solid var(--border-subtle);
             border-radius: 99px;
             padding: 4px;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
         }
-
-        .plan-toggle button {
+        .billing-toggle button {
             background: none;
             border: none;
             color: var(--text-secondary);
@@ -97,223 +96,228 @@
             cursor: pointer;
             transition: all .2s;
             white-space: nowrap;
+            font-family: inherit;
         }
-
-        .plan-toggle button.active {
+        .billing-toggle button.active {
             background: rgba(201,165,91,.15);
             color: var(--gold-primary);
         }
-
-        .plan-toggle .save-badge {
-            background: rgba(76,175,80,.15);
-            color: #81c784;
+        .billing-toggle .save-tag {
             font-size: 11px;
             font-weight: 600;
+            color: #81c784;
+            background: rgba(76,175,80,.12);
             padding: 2px 8px;
             border-radius: 99px;
             pointer-events: none;
         }
 
-        /* ── Cards ──────────────────────────────────────────── */
+        /* ── Cards grid ─────────────────────────────────────── */
         .plans-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
             width: 100%;
-            max-width: 760px;
+            max-width: 1000px;
             margin-bottom: 40px;
+            align-items: start;
         }
 
         .plan-card {
             background: var(--bg-elevated);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-xl);
-            padding: 32px;
+            padding: 28px 24px 24px;
             position: relative;
-            transition: border-color .25s, transform .25s;
+            transition: border-color .25s, transform .2s;
             cursor: pointer;
         }
-
-        .plan-card:hover {
-            border-color: rgba(201,165,91,.3);
-            transform: translateY(-2px);
-        }
-
+        .plan-card:hover { border-color: rgba(201,165,91,.3); transform: translateY(-2px); }
         .plan-card.selected {
             border-color: var(--gold-primary);
             box-shadow: 0 0 0 1px var(--gold-primary), var(--shadow-gold);
         }
-
-        .plan-card.recommended::before {
+        .plan-card.highlighted {
+            border-color: rgba(201,165,91,.4);
+            background: linear-gradient(160deg, rgba(201,165,91,.05) 0%, var(--bg-elevated) 60%);
+        }
+        .plan-card.highlighted::before {
             content: 'Phổ biến nhất';
             position: absolute;
-            top: -12px;
-            left: 50%;
+            top: -12px; left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(90deg, var(--gold-dark), var(--gold-primary));
             color: #0A0A0C;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            padding: 4px 14px;
+            padding: 3px 12px;
             border-radius: 99px;
             letter-spacing: .05em;
             white-space: nowrap;
         }
 
-        .plan-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            letter-spacing: .06em;
+        .plan-tier-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .08em;
             text-transform: uppercase;
-            margin-bottom: 12px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            margin-bottom: 14px;
+        }
+        .badge-free     { background: rgba(150,150,160,.12); color: var(--text-tertiary); }
+        .badge-premium  { background: rgba(201,165,91,.15);  color: var(--gold-accent); }
+        .badge-dev      { background: rgba(124,77,255,.15);  color: #b39ddb; }
+
+        .plan-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .plan-tagline {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 18px;
+            line-height: 1.5;
         }
 
+        .plan-price-block { margin-bottom: 6px; }
         .plan-price {
             display: flex;
             align-items: baseline;
-            gap: 4px;
-            margin-bottom: 6px;
+            gap: 3px;
         }
-
-        .plan-price .amount {
-            font-size: 36px;
+        .price-amount {
+            font-size: 32px;
             font-weight: 700;
             color: var(--text-primary);
             font-variant-numeric: tabular-nums;
         }
-
-        .plan-price .currency {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .plan-price .period {
+        .price-free { color: var(--text-tertiary); font-size: 24px; }
+        .price-currency, .price-period {
             font-size: 13px;
             color: var(--text-secondary);
         }
-
-        .plan-original {
-            font-size: 12px;
+        .price-yearly-note {
+            font-size: 11px;
             color: var(--text-tertiary);
-            text-decoration: line-through;
-            margin-bottom: 4px;
-            min-height: 18px;
+            margin-top: 2px;
+            min-height: 16px;
         }
-
-        .plan-saving {
-            font-size: 12px;
+        .price-saving {
+            font-size: 11px;
             color: #81c784;
             font-weight: 500;
-            margin-bottom: 20px;
-            min-height: 18px;
+            margin-bottom: 18px;
+            min-height: 16px;
         }
 
-        .plan-features {
+        /* ── Feature list ────────────────────────────────────── */
+        .feature-divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 18px 0 16px;
+        }
+        .feature-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 10px;
+        }
+        .features-list {
             list-style: none;
-            margin-bottom: 28px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            margin-bottom: 22px;
         }
-
-        .plan-features li {
+        .features-list li {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            font-size: 13px;
+            gap: 8px;
+            font-size: 12px;
             color: var(--text-secondary);
             line-height: 1.5;
         }
-
-        .plan-features li .check {
+        .features-list li .icon {
             flex-shrink: 0;
-            width: 16px;
-            height: 16px;
-            color: var(--gold-primary);
+            width: 14px;
+            height: 14px;
             margin-top: 1px;
         }
+        .icon-check { color: var(--gold-primary); }
+        .icon-limit { color: #888; }
+        .icon-api   { color: #b39ddb; }
 
-        .plan-select-indicator {
+        /* ── CTA button ─────────────────────────────────────── */
+        .btn-plan {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-tertiary);
-            transition: color .2s;
+            gap: 7px;
+            border: none;
         }
-
-        .plan-card.selected .plan-select-indicator {
-            color: var(--gold-primary);
+        .btn-plan:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-free {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
         }
+        .btn-premium {
+            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-primary) 100%);
+            color: #0A0A0C;
+        }
+        .btn-premium:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-dev {
+            background: linear-gradient(135deg, #4a148c, #7b1fa2);
+            color: #e1bee7;
+        }
+        .btn-dev:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
 
-        .plan-select-indicator .radio {
-            width: 16px;
-            height: 16px;
+        .btn-plan .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,.2);
+            border-top-color: currentColor;
             border-radius: 50%;
-            border: 2px solid var(--text-tertiary);
-            transition: border-color .2s, background .2s;
-            position: relative;
-            flex-shrink: 0;
+            animation: spin .7s linear infinite;
+            display: none;
         }
+        .btn-plan.loading .spinner { display: block; }
+        .btn-plan.loading .btn-text { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .plan-card.selected .plan-select-indicator .radio {
-            border-color: var(--gold-primary);
-            background: var(--gold-primary);
-        }
-
-        .plan-card.selected .plan-select-indicator .radio::after {
-            content: '';
-            position: absolute;
-            inset: 3px;
-            border-radius: 50%;
-            background: var(--bg-elevated);
-        }
-
-        /* ── Checkout form ──────────────────────────────────── */
-        .checkout-box {
+        /* ── Guest email modal / inline ─────────────────────── */
+        #guest-email-area {
+            display: none;
             width: 100%;
-            max-width: 460px;
-        }
-
-        .checkout-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            color: var(--text-tertiary);
-            font-size: 12px;
-        }
-        .checkout-divider::before,
-        .checkout-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border-subtle);
-        }
-
-        /* ── Guest email form ───────────────────────────────── */
-        #guest-form {
+            max-width: 420px;
             background: var(--bg-elevated);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-lg);
             padding: 24px;
             margin-bottom: 12px;
         }
-
-        #guest-form label {
+        #guest-email-area.visible { display: block; }
+        #guest-email-area label {
             display: block;
             font-size: 12px;
             font-weight: 500;
             color: var(--text-secondary);
             margin-bottom: 8px;
-            letter-spacing: .03em;
         }
-
-        #guest-form input[type="email"] {
+        #guest-email-area input[type="email"] {
             width: 100%;
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
@@ -323,378 +327,246 @@
             color: var(--text-primary);
             outline: none;
             transition: border-color .2s;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-family: inherit;
+            box-sizing: border-box;
         }
-
-        #guest-form input[type="email"]:focus {
-            border-color: rgba(201,165,91,.4);
-        }
-
-        .field-hint {
-            font-size: 11px;
-            color: var(--text-tertiary);
-            line-height: 1.5;
-        }
-
-        /* ── Buttons ────────────────────────────────────────── */
-        .btn-pay {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: 15px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all .2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: linear-gradient(135deg, var(--gold-dark) 0%, var(--gold-primary) 100%);
-            color: #0A0A0C;
-        }
-
-        .btn-pay:hover:not(:disabled) {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-        }
-
-        .btn-pay:disabled {
-            opacity: .5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-pay .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(0,0,0,.2);
-            border-top-color: #0A0A0C;
-            border-radius: 50%;
-            animation: spin .7s linear infinite;
-            display: none;
-        }
-
-        .btn-pay.loading .spinner { display: block; }
-        .btn-pay.loading .btn-text { display: none; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .btn-login-cta {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(201,165,91,.3);
-            border-radius: var(--radius-md);
-            background: none;
-            color: var(--gold-primary);
+        #guest-email-area input[type="email"]:focus { border-color: rgba(201,165,91,.4); }
+        .guest-area-title {
             font-size: 14px;
-            font-weight: 500;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all .2s;
-            margin-bottom: 12px;
-        }
-        .btn-login-cta:hover { background: rgba(201,165,91,.07); }
-
-        /* ── Order summary ──────────────────────────────────── */
-        .order-summary {
-            background: rgba(201,165,91,.04);
-            border: 1px solid rgba(201,165,91,.12);
-            border-radius: var(--radius-md);
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        .order-summary-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-            color: var(--text-secondary);
-        }
-
-        .order-summary-row.total {
-            border-top: 1px solid var(--border-subtle);
-            margin-top: 8px;
-            padding-top: 12px;
-            font-size: 15px;
             font-weight: 600;
             color: var(--text-primary);
+            margin-bottom: 14px;
         }
-
-        .order-summary-row.total .price {
-            color: var(--gold-primary);
+        .guest-plan-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
         }
-
-        /* ── Security note ──────────────────────────────────── */
-        .security-note {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--text-tertiary);
-            margin-top: 12px;
+        .guest-area-actions { display: flex; gap: 8px; }
+        .btn-ghost {
+            flex: 1; padding: 10px; border-radius: var(--radius-sm);
+            background: none; border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer; transition: all .2s;
         }
-        .security-note svg { width: 12px; height: 12px; }
+        .btn-ghost:hover { color: var(--text-primary); }
+        .btn-proceed {
+            flex: 2; padding: 10px; border-radius: var(--radius-sm);
+            border: none; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all .2s;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            color: #0A0A0C;
+        }
+        .btn-proceed.dev-proceed {
+            background: linear-gradient(135deg, #4a148c, #7b1fa2);
+            color: #e1bee7;
+        }
+        .btn-proceed:hover { filter: brightness(1.1); }
 
-        /* ── Result states ──────────────────────────────────── */
+        /* ── Result banner ──────────────────────────────────── */
         #result-banner {
             display: none;
             width: 100%;
-            max-width: 460px;
+            max-width: 560px;
             border-radius: var(--radius-lg);
-            padding: 24px 28px;
+            padding: 28px;
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
         }
-
-        #result-banner.success {
-            display: block;
-            background: rgba(76,175,80,.08);
-            border: 1px solid rgba(76,175,80,.25);
-        }
-
-        #result-banner.cancelled {
-            display: block;
-            background: rgba(255,100,80,.06);
-            border: 1px solid rgba(255,100,80,.2);
-        }
-
-        #result-banner .result-icon {
-            font-size: 40px;
-            line-height: 1;
-            margin-bottom: 12px;
-        }
-
-        #result-banner .result-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
+        #result-banner.success { display: block; background: rgba(76,175,80,.07); border: 1px solid rgba(76,175,80,.22); }
+        #result-banner.cancelled { display: block; background: rgba(255,100,80,.05); border: 1px solid rgba(255,100,80,.18); }
+        .result-icon { font-size: 38px; line-height: 1; margin-bottom: 10px; }
+        .result-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
         #result-banner.success .result-title { color: #81c784; }
         #result-banner.cancelled .result-title { color: #ef9a9a; }
-
-        #result-banner .result-desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 16px;
-        }
-
+        .result-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
         .result-actions a, .result-actions button {
-            padding: 8px 18px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            font-weight: 500;
-            font-family: inherit;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all .2s;
+            padding: 8px 18px; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 500; font-family: inherit;
+            cursor: pointer; text-decoration: none; transition: all .2s;
         }
-
-        .result-actions .btn-home {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-        }
-        .result-actions .btn-home:hover { color: var(--text-primary); }
-
-        .result-actions .btn-primary-sm {
-            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
-            border: none;
-            color: #0A0A0C;
-        }
+        .btn-home { background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+        .btn-home:hover { color: var(--text-primary); }
+        .btn-primary-sm { background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary)); border: none; color: #0A0A0C; }
 
         /* ── Error ──────────────────────────────────────────── */
         .error-msg {
-            display: none;
-            color: #ef9a9a;
-            font-size: 12px;
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: rgba(255,100,80,.06);
-            border-radius: 6px;
+            display: none; color: #ef9a9a; font-size: 12px;
+            margin-top: 8px; padding: 8px 12px;
+            background: rgba(255,100,80,.06); border-radius: 6px;
             border: 1px solid rgba(255,100,80,.15);
         }
         .error-msg.visible { display: block; }
 
-        /* ── Nav ────────────────────────────────────────────── */
-        .page-nav {
-            width: 100%;
-            max-width: 1120px;
-            margin: 0 auto 0;
-            padding: 18px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* ── Security note ──────────────────────────────────── */
+        .security-note {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; font-size: 11px; color: var(--text-tertiary); margin-top: 8px;
         }
 
-        .nav-logo {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--gold-primary);
-            text-decoration: none;
-            letter-spacing: .02em;
+        /* ── FAQ / compare row ──────────────────────────────── */
+        .compare-note {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: -24px;
+            margin-bottom: 32px;
         }
 
-        @media (max-width: 600px) {
-            .plans-grid { grid-template-columns: 1fr; }
+        @media (max-width: 768px) {
+            .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
         }
     </style>
 </head>
 <body>
 
-<!-- Nav -->
 <nav class="page-nav">
     <a class="nav-logo" href="/index.html">Viet Dataverse</a>
     <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
 </nav>
 
-<!-- Main -->
 <main class="pricing-page">
 
-    <!-- Result banner (shown on redirect back from PayOS) -->
+    <!-- Result banner -->
     <div id="result-banner"></div>
 
     <!-- Header -->
     <span class="pricing-badge">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
-            <path d="M8 1l1.9 3.8 4.2.6-3 3 .7 4.2L8 10.5l-3.8 2 .7-4.2-3-3 4.2-.6z"/>
-        </svg>
-        Premium
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 1l1.9 3.8 4.2.6-3 3 .7 4.2L8 10.5l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+        Gói dịch vụ
     </span>
+    <h1 class="pricing-title">Chọn gói phù hợp với bạn</h1>
+    <p class="pricing-subtitle">Dữ liệu tài chính Việt Nam theo thời gian thực — từ nhà đầu tư cá nhân đến nhà phát triển chuyên nghiệp.</p>
 
-    <h1 class="pricing-title">Nâng cấp trải nghiệm</h1>
-    <p class="pricing-subtitle">Truy cập toàn bộ dữ liệu phân tích tài chính, xuất CSV không giới hạn và ưu tiên cập nhật thời gian thực.</p>
-
-    <!-- Monthly / Yearly toggle -->
-    <div class="plan-toggle">
-        <button id="btn-monthly" class="active" onclick="selectBilling('monthly')">Hàng tháng</button>
-        <button id="btn-yearly" onclick="selectBilling('yearly')">
-            Hàng năm
-            <span class="save-badge">–17%</span>
+    <!-- Billing toggle -->
+    <div class="billing-toggle">
+        <button id="btn-monthly" class="active" onclick="setBilling('monthly')">Hàng tháng</button>
+        <button id="btn-yearly" onclick="setBilling('yearly')">
+            Hàng năm &nbsp;<span class="save-tag">Tiết kiệm ~17%</span>
         </button>
     </div>
 
-    <!-- Plan cards -->
+    <!-- Plans -->
     <div class="plans-grid">
 
-        <!-- Monthly card -->
-        <div class="plan-card" id="card-monthly" onclick="choosePlan('monthly')">
-            <p class="plan-name">Tháng</p>
-            <div class="plan-price">
-                <span class="amount" id="price-monthly">99.000</span>
-                <span class="currency">₫</span>
-                <span class="period">/tháng</span>
+        <!-- FREE -->
+        <div class="plan-card" id="card-free">
+            <span class="plan-tier-badge badge-free">Miễn phí</span>
+            <div class="plan-name">Free</div>
+            <div class="plan-tagline">Dành cho sinh viên & người mới tìm hiểu</div>
+            <div class="plan-price-block">
+                <div class="plan-price">
+                    <span class="price-amount price-free">0₫</span>
+                </div>
+                <div class="price-yearly-note"></div>
+                <div class="price-saving"></div>
             </div>
-            <p class="plan-original" id="original-monthly"></p>
-            <p class="plan-saving" id="saving-monthly"></p>
-            <ul class="plan-features">
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Tất cả dữ liệu vàng, bạc, ngoại tệ</li>
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Xuất CSV không giới hạn</li>
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Phân tích AI Market Pulse</li>
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>API không giới hạn request</li>
+            <button class="btn-plan btn-free" onclick="handleFreePlan()">
+                <span class="btn-text">Bắt đầu miễn phí</span>
+            </button>
+            <div class="feature-divider"></div>
+            <div class="feature-label">Bao gồm</div>
+            <ul class="features-list">
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Macro charts (giới hạn)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Download dữ liệu (giới hạn)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Market Pulse (giới hạn)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Future Outlook (giới hạn)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>VN30 Score View (giới hạn)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>API giới hạn (Student Account)</li>
             </ul>
-            <div class="plan-select-indicator">
-                <span class="radio"></span>
-                <span>Chọn gói này</span>
-            </div>
         </div>
 
-        <!-- Yearly card -->
-        <div class="plan-card recommended" id="card-yearly" onclick="choosePlan('yearly')">
-            <p class="plan-name">Năm</p>
-            <div class="plan-price">
-                <span class="amount" id="price-yearly">990.000</span>
-                <span class="currency">₫</span>
-                <span class="period">/năm</span>
+        <!-- PREMIUM -->
+        <div class="plan-card highlighted" id="card-premium">
+            <span class="plan-tier-badge badge-premium">Premium</span>
+            <div class="plan-name">Premium</div>
+            <div class="plan-tagline">Nhà đầu tư, researcher & trader</div>
+            <div class="plan-price-block">
+                <div class="plan-price">
+                    <span class="price-amount" id="price-premium">99.000</span>
+                    <span class="price-currency">₫</span>
+                    <span class="price-period" id="period-premium">/tháng</span>
+                </div>
+                <div class="price-yearly-note" id="note-premium"></div>
+                <div class="price-saving" id="saving-premium"></div>
             </div>
-            <p class="plan-original" id="original-yearly"></p>
-            <p class="plan-saving" id="saving-yearly">Tiết kiệm 198.000₫</p>
-            <ul class="plan-features">
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Tất cả quyền lợi gói Tháng</li>
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Tiết kiệm 2 tháng miễn phí</li>
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Hỗ trợ ưu tiên</li>
-                <li><svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Sớm truy cập tính năng mới</li>
+            <button class="btn-plan btn-premium" id="btn-premium" onclick="startCheckout('premium')">
+                <span class="spinner"></span>
+                <span class="btn-text">Nâng cấp Premium →</span>
+            </button>
+            <div class="error-msg" id="error-premium"></div>
+            <div class="feature-divider"></div>
+            <div class="feature-label">Tất cả trong Free, cộng thêm</div>
+            <ul class="features-list">
+                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Full live datasets download + Excel</li>
+                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Market Pulse realtime view</li>
+                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Future Outlook reports view</li>
+                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>VN30 Score View (giới hạn gói Tháng, full gói Năm)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Không bao gồm API access</li>
             </ul>
-            <div class="plan-select-indicator">
-                <span class="radio"></span>
-                <span>Chọn gói này</span>
+        </div>
+
+        <!-- PREMIUM DEVELOPER -->
+        <div class="plan-card" id="card-dev">
+            <span class="plan-tier-badge badge-dev">Developer</span>
+            <div class="plan-name">Premium Developer</div>
+            <div class="plan-tagline">Developer, quant trader & data scientist</div>
+            <div class="plan-price-block">
+                <div class="plan-price">
+                    <span class="price-amount" id="price-dev">375.000</span>
+                    <span class="price-currency">₫</span>
+                    <span class="price-period" id="period-dev">/tháng</span>
+                </div>
+                <div class="price-yearly-note" id="note-dev"></div>
+                <div class="price-saving" id="saving-dev"></div>
             </div>
+            <button class="btn-plan btn-dev" id="btn-dev" onclick="startCheckout('dev')">
+                <span class="spinner"></span>
+                <span class="btn-text">Nâng cấp Developer →</span>
+            </button>
+            <div class="error-msg" id="error-dev"></div>
+            <div class="feature-divider"></div>
+            <div class="feature-label">Tất cả trong Premium, cộng thêm</div>
+            <ul class="features-list">
+                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Full dataset downloads & API</li>
+                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Market Pulse realtime view & API</li>
+                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Future Outlook reports view & API</li>
+                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>VN30 Score (API)</li>
+            </ul>
         </div>
 
     </div>
 
-    <!-- Checkout box -->
-    <div class="checkout-box">
+    <p class="compare-note">Tất cả gói năm = 360 ngày · Tự động gia hạn không bắt buộc</p>
 
-        <!-- Order summary -->
-        <div class="order-summary" id="order-summary">
-            <div class="order-summary-row">
-                <span id="summary-plan-name">Gói Tháng</span>
-                <span id="summary-plan-period">1 tháng</span>
-            </div>
-            <div class="order-summary-row total">
-                <span>Tổng thanh toán</span>
-                <span class="price" id="summary-total">99.000₫</span>
-            </div>
-        </div>
-
-        <!-- Logged-in: pay with one click -->
-        <div id="auth-checkout" style="display:none;">
-            <button class="btn-pay" id="btn-pay-auth" onclick="payAuthenticated()">
-                <span class="spinner"></span>
-                <span class="btn-text">Thanh toán với PayOS →</span>
-            </button>
-            <div class="error-msg" id="error-auth"></div>
-        </div>
-
-        <!-- Guest: enter email -->
-        <div id="guest-checkout" style="display:none;">
-            <button class="btn-login-cta" onclick="login()">
-                Đăng nhập để thanh toán nhanh hơn
-            </button>
-
-            <div class="checkout-divider">hoặc tiếp tục với email</div>
-
-            <div id="guest-form">
-                <label for="guest-email">Email của bạn</label>
-                <input type="email" id="guest-email" placeholder="ten@example.com" autocomplete="email">
-                <p class="field-hint">Đăng ký tài khoản sau khi thanh toán bằng email này để kích hoạt Premium.</p>
-            </div>
-
-            <button class="btn-pay" id="btn-pay-guest" onclick="payGuest()">
-                <span class="spinner"></span>
-                <span class="btn-text">Tiếp tục thanh toán →</span>
-            </button>
-            <div class="error-msg" id="error-guest"></div>
-        </div>
-
-        <!-- Loading placeholder while checking auth -->
-        <div id="auth-loading" style="text-align:center;padding:24px;color:var(--text-tertiary);font-size:13px;">
-            Đang kiểm tra đăng nhập…
-        </div>
-
-        <p class="security-note">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="3" y="7" width="10" height="7" rx="1.5"/>
-                <path d="M5 7V5a3 3 0 016 0v2"/>
-            </svg>
-            Thanh toán an toàn qua PayOS · VietQR · Napas
+    <!-- Guest email area (shown when not logged in) -->
+    <div id="guest-email-area">
+        <div class="guest-area-title" id="guest-title">Nhập email để thanh toán</div>
+        <div class="guest-plan-label" id="guest-plan-label"></div>
+        <label for="guest-email-input">Email của bạn</label>
+        <input type="email" id="guest-email-input" placeholder="ten@example.com" autocomplete="email">
+        <p style="font-size:11px;color:var(--text-tertiary);margin-bottom:14px;line-height:1.5;">
+            Tạo tài khoản sau khi thanh toán bằng email này để kích hoạt Premium.
         </p>
-
+        <div class="guest-area-actions">
+            <button class="btn-ghost" onclick="closeGuestArea()">Huỷ</button>
+            <button class="btn-proceed" id="btn-guest-proceed" onclick="submitGuestCheckout()">
+                Tiếp tục thanh toán →
+            </button>
+        </div>
+        <div class="error-msg" id="error-guest"></div>
     </div>
+
+    <p class="security-note">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12">
+            <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+            <path d="M5 7V5a3 3 0 016 0v2"/>
+        </svg>
+        Thanh toán an toàn qua PayOS · VietQR · Napas
+    </p>
+
 </main>
 
 <script>
@@ -703,12 +575,36 @@
         : 'https://api.vietdataverse.online';
 
     const PLANS = {
-        monthly: { amount: 99000,  label: 'Gói Tháng', period: '1 tháng',  display: '99.000₫'  },
-        yearly:  { amount: 990000, label: 'Gói Năm',   period: '1 năm',    display: '990.000₫' },
+        premium: {
+            monthly: { key: 'premium_monthly', amount: 99_000,    display: '99.000',    period: '/tháng', saving: '',                      note: '' },
+            yearly:  { key: 'premium_yearly',  amount: 990_000,   display: '990.000',   period: '/năm',   saving: 'Tiết kiệm 198.000₫/năm', note: '≈ 82.500₫/tháng' },
+        },
+        dev: {
+            monthly: { key: 'dev_monthly', amount: 375_000,   display: '375.000',   period: '/tháng', saving: '',                          note: '' },
+            yearly:  { key: 'dev_yearly',  amount: 4_500_000, display: '4.500.000', period: '/năm',   saving: 'Tiết kiệm 1.000.000₫/năm', note: '≈ 375.000₫/tháng' },
+        },
     };
 
-    let selectedPlan = 'monthly';
-    let billingCycle = 'monthly';
+    let billing      = 'monthly';   // 'monthly' | 'yearly'
+    let pendingTier  = null;         // 'premium' | 'dev' — plan being checked out
+
+    // ── Billing toggle ────────────────────────────────────────────────
+    function setBilling(cycle) {
+        billing = cycle;
+        document.getElementById('btn-monthly').classList.toggle('active', cycle === 'monthly');
+        document.getElementById('btn-yearly').classList.toggle('active',  cycle === 'yearly');
+        updatePrices();
+    }
+
+    function updatePrices() {
+        for (const tier of ['premium', 'dev']) {
+            const p = PLANS[tier][billing];
+            document.getElementById(`price-${tier}`).textContent  = p.display;
+            document.getElementById(`period-${tier}`).textContent = p.period;
+            document.getElementById(`note-${tier}`).textContent   = p.note;
+            document.getElementById(`saving-${tier}`).textContent = p.saving;
+        }
+    }
 
     // ── Handle PayOS redirect result ─────────────────────────────────
     (async function handleRedirect() {
@@ -720,53 +616,36 @@
         const banner = document.getElementById('result-banner');
 
         if (payment === 'success' && orderCode) {
-            // Show pending state while verifying
             banner.className = 'success';
             banner.innerHTML = `
                 <div class="result-icon" style="font-size:28px">⏳</div>
                 <div class="result-title" style="color:var(--gold-primary)">Đang xác nhận thanh toán…</div>
                 <p class="result-desc">Vui lòng chờ trong giây lát.</p>`;
-
             try {
                 const res  = await fetch(`${API}/api/v1/payment/verify-order/${orderCode}`, { method: 'POST' });
                 const data = await res.json();
-
                 if (data.activated || data.already_paid) {
                     banner.innerHTML = `
                         <div class="result-icon">🎉</div>
                         <div class="result-title">Thanh toán thành công!</div>
-                        <p class="result-desc">
-                            Premium đã được kích hoạt thành công.<br>
-                            Đăng nhập để xem trạng thái tài khoản.
-                        </p>
+                        <p class="result-desc">Premium đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
                         <div class="result-actions">
                             <a class="btn-home" href="/index.html">Về trang chủ</a>
                             <button class="btn-primary-sm" onclick="login()">Đăng nhập ngay</button>
                         </div>`;
                 } else {
-                    // PayOS chưa xác nhận (PENDING/PROCESSING)
                     banner.innerHTML = `
                         <div class="result-icon">⏳</div>
                         <div class="result-title" style="color:var(--gold-primary)">Đang xử lý thanh toán</div>
-                        <p class="result-desc">
-                            Giao dịch đang được xác nhận (thường dưới 5 phút).<br>
-                            Premium sẽ tự động kích hoạt sau khi xử lý xong.
-                        </p>
-                        <div class="result-actions">
-                            <a class="btn-home" href="/index.html">Về trang chủ</a>
-                        </div>`;
+                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>Premium sẽ tự động kích hoạt sau khi xử lý xong.</p>
+                        <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
                 }
             } catch {
                 banner.innerHTML = `
                     <div class="result-icon">🎉</div>
                     <div class="result-title">Thanh toán đã ghi nhận!</div>
-                    <p class="result-desc">
-                        Premium sẽ được kích hoạt sớm.<br>
-                        Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.
-                    </p>
-                    <div class="result-actions">
-                        <a class="btn-home" href="/index.html">Về trang chủ</a>
-                    </div>`;
+                    <p class="result-desc">Premium sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
+                    <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
             }
         } else if (payment === 'cancelled') {
             banner.className = 'cancelled';
@@ -774,61 +653,24 @@
                 <div class="result-icon">✕</div>
                 <div class="result-title">Thanh toán đã huỷ</div>
                 <p class="result-desc">Bạn có thể thử lại bất cứ lúc nào.</p>
-                <div class="result-actions">
-                    <a class="btn-home" href="/index.html">Về trang chủ</a>
-                </div>`;
+                <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
         }
 
-        // Clean URL
         window.history.replaceState({}, '', window.location.pathname);
     })();
 
-    // ── Plan selection ────────────────────────────────────────────────
-    function choosePlan(plan) {
-        selectedPlan = plan;
-        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-        document.getElementById('card-' + plan).classList.add('selected');
-        updateSummary();
-    }
-
-    function selectBilling(cycle) {
-        billingCycle = cycle;
-        document.getElementById('btn-monthly').classList.toggle('active', cycle === 'monthly');
-        document.getElementById('btn-yearly').classList.toggle('active',  cycle === 'yearly');
-        choosePlan(cycle);
-    }
-
-    function updateSummary() {
-        const p = PLANS[selectedPlan];
-        document.getElementById('summary-plan-name').textContent = p.label;
-        document.getElementById('summary-plan-period').textContent = p.period;
-        document.getElementById('summary-total').textContent = p.display;
-    }
-
-    // Default: select yearly (recommended)
-    choosePlan('yearly');
-    selectBilling('yearly');
-
-    // ── Auth check ────────────────────────────────────────────────────
+    // ── Auth check on load ────────────────────────────────────────────
     async function initPage() {
-        const authEl  = document.getElementById('auth-checkout');
-        const guestEl = document.getElementById('guest-checkout');
-        const loadEl  = document.getElementById('auth-loading');
-
         try {
             const authed = await isAuthenticated();
-            loadEl.style.display = 'none';
             if (authed) {
-                authEl.style.display = 'block';
                 const user = await getUser();
                 updateNavAuth(user);
             } else {
-                guestEl.style.display = 'block';
                 updateNavAuth(null);
             }
         } catch {
-            loadEl.style.display = 'none';
-            guestEl.style.display = 'block';
+            updateNavAuth(null);
         }
     }
 
@@ -838,20 +680,36 @@
             nav.innerHTML = `
                 <img src="${user.picture || ''}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
                 <span style="color:var(--text-secondary)">${user.email || user.name || ''}</span>
-                <button onclick="logout()" style="background:none;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">Đăng xuất</button>
-            `;
+                <button onclick="logout()" style="background:none;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Đăng xuất</button>`;
         } else {
             nav.innerHTML = `
-                <button onclick="login()" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-primary));border:none;color:#0A0A0C;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>
-            `;
+                <button onclick="login()" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-primary));border:none;color:#0A0A0C;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>`;
         }
     }
 
-    // ── Authenticated payment ─────────────────────────────────────────
-    async function payAuthenticated() {
-        const btn = document.getElementById('btn-pay-auth');
-        const err = document.getElementById('error-auth');
-        err.classList.remove('visible');
+    // ── Free plan ─────────────────────────────────────────────────────
+    function handleFreePlan() {
+        window.location.href = '/index.html';
+    }
+
+    // ── Start checkout (premium or dev) ──────────────────────────────
+    async function startCheckout(tier) {
+        const planKey = PLANS[tier][billing].key;
+        const errEl   = document.getElementById(`error-${tier}`);
+        errEl.classList.remove('visible');
+
+        const authed = await isAuthenticated().catch(() => false);
+
+        if (authed) {
+            await checkoutAuthenticated(tier, planKey);
+        } else {
+            showGuestEmailArea(tier);
+        }
+    }
+
+    async function checkoutAuthenticated(tier, planKey) {
+        const btn = document.getElementById(`btn-${tier}`);
+        const err = document.getElementById(`error-${tier}`);
         setLoading(btn, true);
 
         try {
@@ -864,12 +722,11 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ plan: selectedPlan }),
+                body: JSON.stringify({ plan: planKey }),
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
-
             window.location.href = data.checkout_url;
         } catch (e) {
             setLoading(btn, false);
@@ -877,34 +734,63 @@
         }
     }
 
-    // ── Guest payment ─────────────────────────────────────────────────
-    async function payGuest() {
-        const btn   = document.getElementById('btn-pay-guest');
-        const err   = document.getElementById('error-guest');
-        const email = document.getElementById('guest-email').value.trim();
-        err.classList.remove('visible');
+    // ── Guest email area ──────────────────────────────────────────────
+    function showGuestEmailArea(tier) {
+        pendingTier = tier;
+        const planInfo = PLANS[tier][billing];
+        document.getElementById('guest-title').textContent =
+            tier === 'dev' ? 'Thanh toán Premium Developer' : 'Thanh toán Premium';
+        document.getElementById('guest-plan-label').textContent =
+            `Gói đã chọn: ${planInfo.display}₫${planInfo.period}`;
+
+        const proceedBtn = document.getElementById('btn-guest-proceed');
+        if (tier === 'dev') {
+            proceedBtn.classList.add('dev-proceed');
+        } else {
+            proceedBtn.classList.remove('dev-proceed');
+        }
+
+        document.getElementById('guest-email-area').classList.add('visible');
+        document.getElementById('guest-email-input').focus();
+        document.getElementById('guest-email-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function closeGuestArea() {
+        pendingTier = null;
+        document.getElementById('guest-email-area').classList.remove('visible');
+        document.getElementById('guest-email-input').value = '';
+        document.getElementById('error-guest').classList.remove('visible');
+    }
+
+    async function submitGuestCheckout() {
+        const email  = document.getElementById('guest-email-input').value.trim();
+        const errEl  = document.getElementById('error-guest');
+        const btn    = document.getElementById('btn-guest-proceed');
+        errEl.classList.remove('visible');
 
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showError(err, 'Vui lòng nhập email hợp lệ.');
+            showError(errEl, 'Vui lòng nhập email hợp lệ.');
             return;
         }
 
-        setLoading(btn, true);
+        const planKey = PLANS[pendingTier][billing].key;
+        const origText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Đang xử lý…';
 
         try {
             const res = await fetch(`${API}/api/v1/payment/create-order-guest`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, plan: selectedPlan }),
+                body: JSON.stringify({ email, plan: planKey }),
             });
-
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
-
             window.location.href = data.checkout_url;
         } catch (e) {
-            setLoading(btn, false);
-            showError(err, e.message);
+            btn.disabled = false;
+            btn.textContent = origText;
+            showError(errEl, e.message);
         }
     }
 
@@ -919,7 +805,6 @@
         el.classList.add('visible');
     }
 
-    // Init on load
     window.addEventListener('load', initPage);
 </script>
 
