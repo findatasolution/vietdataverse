@@ -469,12 +469,12 @@
             <div class="feature-divider"></div>
             <div class="feature-label">Bao gồm</div>
             <ul class="features-list">
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Macro charts (giới hạn)</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Download dữ liệu (giới hạn)</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Market Pulse (giới hạn)</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Future Outlook (giới hạn)</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>VN30 Score View (giới hạn)</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>API giới hạn (Student Account)</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Macro charts view</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Limited downloads data</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Market Pulse — top 1 news</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Future Outlook — title only</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>VN30 Score View — title only</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Student API: 5 request/account (lifetime)</li>
             </ul>
         </div>
 
@@ -503,8 +503,7 @@
                 <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Full live datasets download + Excel</li>
                 <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Market Pulse realtime view</li>
                 <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Future Outlook reports view</li>
-                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>VN30 Score View (giới hạn gói Tháng, full gói Năm)</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Không bao gồm API access</li>
+                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>VN30 Score — limited (Tháng), full (Năm)</li>
             </ul>
         </div>
 
@@ -534,7 +533,9 @@
                 <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Market Pulse realtime view & API</li>
                 <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Future Outlook reports view & API</li>
                 <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>VN30 Score (API)</li>
+                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>API Key riêng — không giới hạn request</li>
             </ul>
+            <a href="/pages/developer.html" id="link-devpage" style="display:none;font-size:12px;color:#b39ddb;text-decoration:none;margin-top:4px;opacity:.8;">→ Quản lý API Key của bạn</a>
         </div>
 
     </div>
@@ -666,6 +667,19 @@
             if (authed) {
                 const user = await getUser();
                 updateNavAuth(user);
+                // Show dev page link if user is already premium_developer
+                try {
+                    const token = await getToken();
+                    const res = await fetch(`${API}/api/v1/payment/status`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const d = await res.json();
+                        if (d.user_level === 'premium_developer') {
+                            document.getElementById('link-devpage').style.display = 'inline';
+                        }
+                    }
+                } catch { /* non-critical */ }
             } else {
                 updateNavAuth(null);
             }

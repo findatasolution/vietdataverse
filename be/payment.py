@@ -136,8 +136,9 @@ def _ensure_tables(conn):
     except Exception:
         pass
     for col, defn in [
-        ("is_premium",     "BOOLEAN NOT NULL DEFAULT FALSE"),
-        ("premium_expiry", "TIMESTAMP"),
+        ("is_premium",          "BOOLEAN NOT NULL DEFAULT FALSE"),
+        ("premium_expiry",      "TIMESTAMP"),
+        ("api_request_count",   "INT NOT NULL DEFAULT 0"),
     ]:
         try:
             conn.execute(text(
@@ -145,6 +146,17 @@ def _ensure_tables(conn):
             ))
         except Exception:
             pass
+
+    conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS api_keys (
+            key_id       SERIAL PRIMARY KEY,
+            user_id      INT         NOT NULL,
+            key_value    VARCHAR(64) UNIQUE NOT NULL,
+            created_at   TIMESTAMP   NOT NULL DEFAULT NOW(),
+            last_used_at TIMESTAMP,
+            is_active    BOOLEAN     NOT NULL DEFAULT TRUE
+        )
+    """))
     conn.commit()
 
 
@@ -609,31 +621,32 @@ async def subscription_status(request: Request):
             _ensure_tables(conn)
 
         row = session.execute(
-            text("SELECT is_premium, premium_expiry FROM users WHERE auth0_id = :aid"),
+            text("SELECT is_premium, premium_expiry, user_level FROM users WHERE auth0_id = :aid"),
             {"aid": auth0_id},
         ).fetchone()
 
         if not row:
-            return _status_response(False, None)
+            return _status_response(False, None, "free")
 
-        is_premium, premium_expiry = row
+        is_premium, premium_expiry, user_level = row
 
         # Auto-expire nếu đã quá hạn
         if is_premium and premium_expiry and premium_expiry < datetime.now():
             session.execute(text("""
-                UPDATE users SET is_premium = FALSE, updated_at = NOW()
+                UPDATE users SET is_premium = FALSE, user_level = 'free', updated_at = NOW()
                 WHERE auth0_id = :aid
             """), {"aid": auth0_id})
             session.commit()
             is_premium = False
+            user_level  = "free"
 
-        return _status_response(is_premium, premium_expiry)
+        return _status_response(is_premium, premium_expiry, user_level)
 
     finally:
         session.close()
 
 
-def _status_response(is_premium: bool, premium_expiry: Optional[datetime]) -> dict:
+def _status_response(is_premium: bool, premium_expiry: Optional[datetime], user_level: str = "free") -> dict:
     days_remaining = 0
     if is_premium and premium_expiry:
         days_remaining = max(0, (premium_expiry - datetime.now()).days)
@@ -641,6 +654,7 @@ def _status_response(is_premium: bool, premium_expiry: Optional[datetime]) -> di
         "is_premium":     is_premium,
         "premium_expiry": premium_expiry.isoformat() if premium_expiry else None,
         "days_remaining": days_remaining,
+        "user_level":     user_level,
         "plans": {
             k: {"amount": v["amount"], "days": v["days"], "name": v["name"]}
             for k, v in SUBSCRIPTION_PLANS.items()
