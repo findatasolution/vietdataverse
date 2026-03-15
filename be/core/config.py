@@ -3,7 +3,7 @@ import os
 # CORS
 _raw_cors_origins = os.getenv(
     "CORS_ALLOW_ORIGINS",
-    "https://vietdataverse.online,https://www.vietdataverse.online,http://localhost:3000,http://127.0.0.1:5500"
+    "https://vietdataverse.online,https://www.vietdataverse.online,http://localhost:3000,http://localhost:8080,http://127.0.0.1:5500,http://127.0.0.1:8080"
 )
 ALLOW_ORIGINS = [o.strip() for o in _raw_cors_origins.split(",") if o.strip()]
 
