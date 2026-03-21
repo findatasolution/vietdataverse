@@ -25,3 +25,13 @@ Thumbs.db
 
 #data
 /data/
+
+# Virtual environments
+.venv*/
+venv/
+
+# Pyenv local version
+.python-version
+
+# One-time scripts
+_backfill_*.py

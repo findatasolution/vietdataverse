@@ -21,8 +21,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables
-root_dir = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
 
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
@@ -80,7 +79,7 @@ try:
         # Check if exists in same hour from same source
         with engine.connect() as conn:
             result = conn.execute(
-                text("""SELECT COUNT(*) FROM vn_silver_phuquy_hist
+                text("""SELECT COUNT(*) FROM vn_macro_silver_daily
                         WHERE date = :date AND source = 'giabac.vn'
                         AND crawl_time >= :start_time AND crawl_time < :end_time"""),
                 {
@@ -96,7 +95,7 @@ try:
         else:
             with engine.connect() as conn:
                 conn.execute(
-                    text("""INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price, source)
+                    text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source)
                             VALUES (:date, :crawl_time, :buy_price, :sell_price, 'giabac.vn')"""),
                     {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price, 'sell_price': sell_price}
                 )
@@ -145,7 +144,7 @@ try:
         with engine.connect() as conn:
             # Check duplicate for this source
             result = conn.execute(
-                text("""SELECT COUNT(*) FROM vn_silver_phuquy_hist
+                text("""SELECT COUNT(*) FROM vn_macro_silver_daily
                         WHERE date = :date AND source = 'phuquygroup.vn'
                         AND crawl_time >= :s AND crawl_time < :e"""),
                 {
@@ -158,7 +157,7 @@ try:
                 print(f"  Silver (phuquygroup.vn) for {date_str} this hour already exists")
             else:
                 conn.execute(
-                    text("""INSERT INTO vn_silver_phuquy_hist (date, crawl_time, buy_price, sell_price, source)
+                    text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source)
                             VALUES (:date, :crawl_time, :buy_price, :sell_price, 'phuquygroup.vn')"""),
                     {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price_pq, 'sell_price': sell_price_pq}
                 )
@@ -227,7 +226,7 @@ try:
             with engine.connect() as conn:
                 result = conn.execute(
                     text("""
-                        SELECT COUNT(*) FROM vn_gold_24h_hist
+                        SELECT COUNT(*) FROM vn_macro_gold_daily
                         WHERE date = :date
                         AND type = :type
                         AND crawl_time >= :start_time
@@ -247,7 +246,7 @@ try:
 
                 conn.execute(
                     text("""
-                        INSERT INTO vn_gold_24h_hist (date, type, buy_price, sell_price, crawl_time)
+                        INSERT INTO vn_macro_gold_daily (date, type, buy_price, sell_price, crawl_time)
                         VALUES (:date, :type, :buy_price, :sell_price, :crawl_time)
                     """),
                     record

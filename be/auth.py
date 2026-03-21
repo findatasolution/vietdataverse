@@ -30,52 +30,75 @@ def get_jwks():
 
 def verify_auth0_token(token: str) -> dict:
     """
-    Verify an Auth0 JWT access token using JWKS.
-    Returns the decoded payload if valid.
-    Raises JWTError if invalid.
+    Verify an Auth0 token — supports both JWT (when audience is set) and
+    opaque tokens (when audience is omitted in SPA config).
+
+    JWT path  : verify signature via JWKS (RS256).
+    Opaque path: call Auth0 /userinfo to validate and get user info.
+
+    Returns a dict with at least 'sub' and email fields.
+    Raises JWTError if the token is invalid.
     """
-    jwks = get_jwks()
-    unverified_header = jwt.get_unverified_header(token)
+    # Detect format: JWT has exactly 3 dot-separated parts
+    if len(token.split('.')) == 3:
+        # ── JWT verification via JWKS ────────────────────────────────
+        jwks = get_jwks()
+        unverified_header = jwt.get_unverified_header(token)
 
-    # Find the matching RSA key by kid
-    rsa_key = {}
-    for key in jwks["keys"]:
-        if key["kid"] == unverified_header.get("kid"):
-            rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"],
-            }
-            break
+        rsa_key = {}
+        for key in jwks["keys"]:
+            if key["kid"] == unverified_header.get("kid"):
+                rsa_key = {
+                    "kty": key["kty"],
+                    "kid": key["kid"],
+                    "use": key["use"],
+                    "n":   key["n"],
+                    "e":   key["e"],
+                }
+                break
 
-    if not rsa_key:
-        raise JWTError("Unable to find appropriate signing key")
+        if not rsa_key:
+            raise JWTError("Unable to find appropriate signing key")
 
-    payload = jwt.decode(
-        token,
-        rsa_key,
-        algorithms=AUTH0_ALGORITHMS,
-        audience=AUTH0_API_AUDIENCE,
-        issuer=f"https://{AUTH0_DOMAIN}/",
+        return jwt.decode(
+            token,
+            rsa_key,
+            algorithms=AUTH0_ALGORITHMS,
+            audience=AUTH0_API_AUDIENCE,
+            issuer=f"https://{AUTH0_DOMAIN}/",
+        )
+
+    # ── Opaque token: validate via Auth0 /userinfo ───────────────────
+    import requests as _req
+    resp = _req.get(
+        f"https://{AUTH0_DOMAIN}/userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=5,
     )
+    if resp.status_code != 200:
+        raise JWTError(f"Invalid opaque token: /userinfo returned {resp.status_code}")
 
-    return payload
+    info = resp.json()
+    # Normalise to the same shape that JWT path returns
+    return {
+        "sub":                          info.get("sub"),
+        f"{NAMESPACE}/email":           info.get("email"),
+        "email":                        info.get("email"),
+        "name":                         info.get("name"),
+        "picture":                      info.get("picture"),
+        "email_verified":               info.get("email_verified", False),
+        f"{NAMESPACE}/role":            info.get(f"{NAMESPACE}/role", "free"),
+        f"{NAMESPACE}/is_admin":        info.get(f"{NAMESPACE}/is_admin", False),
+    }
 
 
-def get_user_role(payload: dict) -> str:
-    """Extract role from Auth0 token custom claims"""
-    return payload.get(f"{NAMESPACE}/role", "user")
-
-
-def get_user_business_unit(payload: dict):
-    """Extract business unit from Auth0 token custom claims"""
-    return payload.get(f"{NAMESPACE}/business_unit", None)
+def get_user_level(payload: dict) -> str:
+    """Extract user_level from Auth0 token custom claims (falls back to 'free')."""
+    return payload.get(f"{NAMESPACE}/role", "free")
 
 
 def get_user_is_admin(payload: dict) -> bool:
-    """Check if user is admin from Auth0 token custom claims"""
+    """Check if user is admin from Auth0 token custom claims."""
     return payload.get(f"{NAMESPACE}/is_admin", False)
 
 
@@ -116,7 +139,7 @@ def create_local_user_from_auth0(auth0_info: dict) -> dict:
         "name": auth0_info.get("name"),
         "picture": auth0_info.get("picture"),
         "email_verified": auth0_info.get("email_verified", False),
-        "role": "user",  # Default role
+        "user_level": "free",
         "is_admin": False,  # Default admin status
         "auth0_metadata": {
             "nickname": auth0_info.get("nickname"),

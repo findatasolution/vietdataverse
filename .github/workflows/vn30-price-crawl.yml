@@ -1,0 +1,35 @@
+name: VN30 Stock Price Crawl (Daily)
+
+on:
+  schedule:
+    # 17:15 VN = 10:15 UTC (Mon-Fri after HSX close)
+    - cron: '15 10 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  crawl-vn30-price:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install pandas requests sqlalchemy psycopg2-binary python-dotenv vnstock3
+
+    - name: Run VN30 price crawler
+      env:
+        CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+      run: |
+        cd crawl_tools
+        python crawl_vn30_price.py
+
+    - name: Show results
+      if: always()
+      run: echo "VN30 price crawl completed at $(date)"

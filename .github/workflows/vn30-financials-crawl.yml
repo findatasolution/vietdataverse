@@ -1,0 +1,54 @@
+name: VN30 Financials Crawl (Quarterly + Monthly Profile)
+
+on:
+  schedule:
+    # Financial statements: 15th of Jan, Apr, Jul, Oct at 08:00 UTC
+    - cron: '0 8 15 1,4,7,10 *'
+    # Company profile refresh: 1st of each month at 07:00 UTC
+    - cron: '0 7 1 * *'
+    # Ratios: Daily 17:30 VN = 10:30 UTC (Mon-Fri)
+    - cron: '30 10 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  crawl-vn30-profile:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install pandas requests sqlalchemy psycopg2-binary python-dotenv vnstock3
+
+    - name: Run VN30 company profile crawler
+      env:
+        CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+      run: |
+        cd crawl_tools
+        python crawl_vn30_profile.py
+
+    - name: Run VN30 financial statements crawler
+      env:
+        CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+      run: |
+        cd crawl_tools
+        python crawl_vn30_financials.py
+
+    - name: Run VN30 ratios crawler
+      env:
+        CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+      run: |
+        cd crawl_tools
+        python crawl_vn30_ratios.py
+
+    - name: Show results
+      if: always()
+      run: echo "VN30 financials crawl completed at $(date)"

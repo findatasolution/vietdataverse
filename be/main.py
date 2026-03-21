@@ -2,6 +2,9 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+
 from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +15,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, developer
+from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_score, vn30_data
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -43,6 +46,8 @@ app.include_router(auth_routes.router)
 app.include_router(interest.router)
 app.include_router(admin.router)
 app.include_router(developer.router)
+app.include_router(vn30_score.router)
+app.include_router(vn30_data.router)
 
 # ── Static files ──────────────────────────────────────────────────────────────
 _cur  = os.path.dirname(os.path.abspath(__file__))

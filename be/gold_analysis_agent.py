@@ -61,7 +61,7 @@ def fetch_global_macro_data(days=7):
 def fetch_vietnam_gold_data(days=7):
     q = text("""
         SELECT date, buy_price, sell_price
-        FROM vn_gold_24h_hist
+        FROM vn_macro_gold_daily
         WHERE type='DOJI HN'
         ORDER BY date DESC
         LIMIT :days
@@ -76,7 +76,7 @@ def fetch_vietnam_gold_data(days=7):
 def fetch_vietnam_silver_data(days=7):
     q = text("""
         SELECT date, buy_price, sell_price
-        FROM vn_silver_phuquy_hist
+        FROM vn_macro_silver_daily
         ORDER BY date DESC
         LIMIT :days
     """)

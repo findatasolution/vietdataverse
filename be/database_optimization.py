@@ -42,24 +42,24 @@
 #     # Indexes for CRAWLING_BOT_DB
 #     crawling_bot_indexes = [
 #         # Gold price indexes
-#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_date_type ON vn_gold_24h_hist(date, type)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_type ON vn_gold_24h_hist(type)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_date ON vn_gold_24h_hist(date)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_crawl_time ON vn_gold_24h_hist(crawl_time)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_date_type ON vn_macro_gold_daily(date, type)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_type ON vn_macro_gold_daily(type)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_date ON vn_macro_gold_daily(date)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_gold_crawl_time ON vn_macro_gold_daily(crawl_time)",
         
 #         # Silver price indexes
-#         "CREATE INDEX IF NOT EXISTS idx_vn_silver_date ON vn_silver_phuquy_hist(date)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_silver_crawl_time ON vn_silver_phuquy_hist(crawl_time)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_silver_date ON vn_macro_silver_daily(date)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_silver_crawl_time ON vn_macro_silver_daily(crawl_time)",
         
 #         # SBV interbank indexes
-#         "CREATE INDEX IF NOT EXISTS idx_vn_sbv_date ON vn_sbv_interbankrate(date)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_sbv_crawl_time ON vn_sbv_interbankrate(crawl_time)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_sbv_date ON vn_macro_sbv_rate_daily(date)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_sbv_crawl_time ON vn_macro_sbv_rate_daily(crawl_time)",
         
 #         # Term deposit indexes
-#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_date_bank ON vn_bank_termdepo(date, bank_code)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_bank ON vn_bank_termdepo(bank_code)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_date ON vn_bank_termdepo(date)",
-#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_crawl_time ON vn_bank_termdepo(crawl_time)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_date_bank ON vn_macro_termdepo_daily(date, bank_code)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_bank ON vn_macro_termdepo_daily(bank_code)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_date ON vn_macro_termdepo_daily(date)",
+#         "CREATE INDEX IF NOT EXISTS idx_vn_termdepo_crawl_time ON vn_macro_termdepo_daily(crawl_time)",
 #     ]
     
 #     # Indexes for GLOBAL_INDICATOR_DB
@@ -109,7 +109,7 @@
 #     CREATE MATERIALIZED VIEW IF NOT EXISTS mv_latest_gold_prices AS
 #     SELECT DISTINCT ON (date, type) 
 #         date, type, buy_price, sell_price, crawl_time
-#     FROM vn_gold_24h_hist
+#     FROM vn_macro_gold_daily
 #     ORDER BY date DESC, type, crawl_time DESC;
 #     """
     
@@ -118,7 +118,7 @@
 #     CREATE MATERIALIZED VIEW IF NOT EXISTS mv_latest_silver_prices AS
 #     SELECT DISTINCT ON (date) 
 #         date, buy_price, sell_price, crawl_time
-#     FROM vn_silver_phuquy_hist
+#     FROM vn_macro_silver_daily
 #     ORDER BY date DESC, crawl_time DESC;
 #     """
     
@@ -210,28 +210,28 @@
 #         COUNT(*) as record_count,
 #         MIN(date) as oldest_date,
 #         MAX(date) as newest_date
-#     FROM vn_gold_24h_hist
+#     FROM vn_macro_gold_daily
 #     UNION ALL
 #     SELECT 
 #         'silver_query' as query_type,
 #         COUNT(*) as record_count,
 #         MIN(date) as oldest_date,
 #         MAX(date) as newest_date
-#     FROM vn_silver_phuquy_hist
+#     FROM vn_macro_silver_daily
 #     UNION ALL
 #     SELECT 
 #         'sbv_query' as query_type,
 #         COUNT(*) as record_count,
 #         MIN(date) as oldest_date,
 #         MAX(date) as newest_date
-#     FROM vn_sbv_interbankrate
+#     FROM vn_macro_sbv_rate_daily
 #     UNION ALL
 #     SELECT 
 #         'termdepo_query' as query_type,
 #         COUNT(*) as record_count,
 #         MIN(date) as oldest_date,
 #         MAX(date) as newest_date
-#     FROM vn_bank_termdepo
+#     FROM vn_macro_termdepo_daily
 #     UNION ALL
 #     SELECT 
 #         'global_macro_query' as query_type,

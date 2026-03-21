@@ -28,7 +28,7 @@ async def get_gold_data(
             SELECT date, buy_price, sell_price
             FROM (
                 SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
-                FROM vn_gold_24h_hist
+                FROM vn_macro_gold_daily
                 WHERE date >= :date_filter AND type = :gold_type
                 ORDER BY date, crawl_time DESC
             ) s ORDER BY date DESC
@@ -56,7 +56,7 @@ async def get_gold_types(request: Request):
     try:
         with get_engine_crawl().connect() as conn:
             rows = conn.execute(text(
-                "SELECT DISTINCT type FROM vn_gold_24h_hist WHERE type IS NOT NULL ORDER BY type"
+                "SELECT DISTINCT type FROM vn_macro_gold_daily WHERE type IS NOT NULL ORDER BY type"
             )).fetchall()
         return _json_response({"success": True, "types": [r[0] for r in rows if r[0]]})
     except HTTPException:
@@ -76,7 +76,7 @@ async def get_silver_data(
             SELECT date, buy_price, sell_price
             FROM (
                 SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
-                FROM vn_silver_phuquy_hist
+                FROM vn_macro_silver_daily
                 WHERE date >= :date_filter
                 ORDER BY date, crawl_time DESC
             ) s ORDER BY date DESC
@@ -111,7 +111,7 @@ async def get_sbv_interbank_data(
             FROM (
                 SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_3m,
                        rediscount_rate, refinancing_rate, crawl_time
-                FROM vn_sbv_interbankrate
+                FROM vn_macro_sbv_rate_daily
                 WHERE date >= :date_filter
                 ORDER BY date, crawl_time DESC
             ) s ORDER BY date DESC
@@ -165,7 +165,7 @@ async def get_sbv_central_rate(
             SELECT date, {rate_col}, buy_cash, sell_rate
             FROM (
                 SELECT DISTINCT ON (date) date, {rate_col}, buy_cash, sell_rate, crawl_time
-                FROM vn_sbv_centralrate
+                FROM vn_macro_fxrate_daily
                 WHERE date >= :date_filter AND type = :currency AND bank = :bank
                   AND {rate_col} IS NOT NULL
                 ORDER BY date, crawl_time DESC
@@ -210,7 +210,7 @@ async def get_term_deposit_data(
             FROM (
                 SELECT DISTINCT ON (date_trunc('month', date))
                        date, "1m", "3m", "6m", "12m", "24m", crawl_time
-                FROM vn_bank_termdepo
+                FROM vn_macro_termdepo_daily
                 WHERE date >= :date_filter AND bank = :bank_code
                 ORDER BY date_trunc('month', date), date DESC, crawl_time DESC
             ) s ORDER BY date DESC
@@ -244,7 +244,7 @@ async def get_bank_types(request: Request):
     try:
         with get_engine_crawl().connect() as conn:
             rows = conn.execute(text(
-                "SELECT DISTINCT bank_code FROM vn_bank_termdepo WHERE bank_code IS NOT NULL ORDER BY bank_code"
+                "SELECT DISTINCT bank_code FROM vn_macro_termdepo_daily WHERE bank_code IS NOT NULL ORDER BY bank_code"
             )).fetchall()
         return _json_response({"success": True, "banks": [r[0] for r in rows if r[0]]})
     except HTTPException:
