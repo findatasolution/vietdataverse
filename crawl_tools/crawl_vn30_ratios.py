@@ -73,17 +73,29 @@ def _safe_float(val):
         return None
 
 
+def _kbs_find(lookup: dict, *suffixes):
+    """Find value by exact key or suffix match (handles 'r_1.p_e' → 'p_e')."""
+    for suffix in suffixes:
+        if suffix in lookup:
+            return lookup[suffix]
+        for k, v in lookup.items():
+            if k.endswith('.' + suffix) or k.endswith('_' + suffix):
+                return v
+    return None
+
+
 def _parse_kbs_ratio(df) -> dict:
     """Parse wide-format KBS ratio DataFrame (item_id as lookup key)."""
-    lookup = dict(zip(df['item_id'], df.iloc[:, 2]))  # col 2 = most recent quarter
+    # Use col index 2 = most recent period; fallback to last non-null column
+    lookup = dict(zip(df['item_id'], df.iloc[:, 2]))
     return {
-        'pe':             _safe_float(lookup.get('p_e')),
-        'pb':             _safe_float(lookup.get('p_b')),
+        'pe':             _safe_float(_kbs_find(lookup, 'p_e', 'pe', 'price_to_earnings')),
+        'pb':             _safe_float(_kbs_find(lookup, 'p_b', 'pb', 'price_to_book')),
         'ps':             None,
-        'roe':            _safe_float(lookup.get('roe_trailling') or lookup.get('roe')),
-        'roa':            _safe_float(lookup.get('roa_trailling') or lookup.get('roa')),
-        'eps':            _safe_float(lookup.get('trailing_eps') or lookup.get('eps')),
-        'dividend_yield': _safe_float(lookup.get('dividend_yield')),
+        'roe':            _safe_float(_kbs_find(lookup, 'roe_trailling', 'roe_trailing', 'roe')),
+        'roa':            _safe_float(_kbs_find(lookup, 'roa_trailling', 'roa_trailing', 'roa')),
+        'eps':            _safe_float(_kbs_find(lookup, 'trailing_eps', 'eps', 'basic_eps', 'diluted_eps')),
+        'dividend_yield': _safe_float(_kbs_find(lookup, 'dividend_yield', 'div_yield')),
         'market_cap_billion': None,
     }
 

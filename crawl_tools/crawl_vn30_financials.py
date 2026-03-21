@@ -115,50 +115,60 @@ def _pivot_kbs_wide(df) -> list:
     return records
 
 
+def _kbs_find(r: dict, *suffixes):
+    """Find value by exact key or suffix match (handles 'n_3.net_revenue' → 'net_revenue')."""
+    for suffix in suffixes:
+        if suffix in r:
+            return r[suffix]
+        for k, v in r.items():
+            if k == suffix or k.endswith('.' + suffix) or k.endswith('_' + suffix):
+                return v
+    return None
+
+
 def _kbs_income_row(r: dict) -> dict:
     """Map KBS item_ids to income statement fields (handles banking + industrial)."""
-    # Try industrial fields first, then banking proxies
-    revenue = (r.get('net_revenue') or r.get('revenue') or
-               r.get('i.net_interest_income') or r.get('total_operating_income'))
-    gross   = (r.get('gross_profit') or r.get('ii.net_operating_income'))
-    ebit    = (r.get('operating_profit') or r.get('ebit') or
-               r.get('ix.operating_profit_before_provision_for_credit_losses') or
-               r.get('profit_before_provision'))
-    net_inc = (r.get('profit_after_tax') or r.get('net_profit_after_tax') or
-               r.get('xiii.net_profit_after_tax') or r.get('net_income'))
-    eps_val = r.get('earning_per_share_vnd') or r.get('eps')
+    revenue = _kbs_find(r, 'net_revenue', 'revenue', 'net_interest_income', 'total_operating_income')
+    gross   = _kbs_find(r, 'gross_profit', 'net_operating_income', 'net_fee_and_commission_income')
+    ebit    = _kbs_find(r, 'operating_profit', 'ebit',
+                        'operating_profit_before_provision_for_credit_losses',
+                        'profit_before_provision', 'profit_before_tax')
+    net_inc = _kbs_find(r, 'net_profit_after_tax', 'profit_after_tax', 'net_income',
+                        'profit_after_tax_for_shareholders_of_parent_company',
+                        'net_profit_atttributable_to_the_equity_holders_of_the_bank')
+    eps_val = _kbs_find(r, 'earnings_per_share_vnd', 'earning_per_share_vnd', 'eps',
+                        'diluted_earnings_per_share')
     return {
-        'revenue': _safe_float(revenue),
+        'revenue':      _safe_float(revenue),
         'gross_profit': _safe_float(gross),
-        'ebit': _safe_float(ebit),
-        'net_income': _safe_float(net_inc),
-        'eps': _safe_float(eps_val),
+        'ebit':         _safe_float(ebit),
+        'net_income':   _safe_float(net_inc),
+        'eps':          _safe_float(eps_val),
     }
 
 
 def _kbs_bs_row(r: dict) -> dict:
-    total_assets = (r.get('total_assets') or r.get('i.total_assets'))
-    total_liab   = (r.get('total_liabilities') or r.get('total_debt') or
-                    r.get('ii.total_liabilities'))
-    equity       = (r.get('owners_equity') or r.get('equity') or
-                    r.get('iii.owners_equity') or r.get('total_equity'))
-    cash         = (r.get('cash_and_cash_equivalents') or r.get('cash') or
-                    r.get('i_1.cash_and_gold'))
+    total_assets = _kbs_find(r, 'total_assets')
+    total_liab   = _kbs_find(r, 'total_liabilities', 'total_debt', 'liabilities')
+    equity       = _kbs_find(r, 'owners_equity', 'equity', 'total_equity',
+                             'shareholders_equity', 'owner_equity')
+    cash         = _kbs_find(r, 'cash_and_cash_equivalents', 'cash_and_gold',
+                             'cash', 'cash_and_short_term_investments')
     return {
-        'total_assets': _safe_float(total_assets),
+        'total_assets':      _safe_float(total_assets),
         'total_liabilities': _safe_float(total_liab),
-        'equity': _safe_float(equity),
-        'cash': _safe_float(cash),
+        'equity':            _safe_float(equity),
+        'cash':              _safe_float(cash),
     }
 
 
 def _kbs_cf_row(r: dict) -> dict:
-    cfo = (r.get('net_cash_from_operating_activities') or r.get('cfo') or
-           r.get('i.net_cash_flows_from_operating_activities'))
-    cfi = (r.get('net_cash_from_investing_activities') or r.get('cfi') or
-           r.get('ii.net_cash_flows_from_investing_activities'))
-    cff = (r.get('net_cash_from_financing_activities') or r.get('cff') or
-           r.get('iii.net_cash_flows_from_financing_activities'))
+    cfo = _kbs_find(r, 'net_cash_flows_from_operating_activities',
+                    'cash_flows_from_operating_activities', 'cfo')
+    cfi = _kbs_find(r, 'net_cash_flows_from_investing_activities',
+                    'cash_flows_from_investing_activities', 'cfi')
+    cff = _kbs_find(r, 'net_cash_flows_from_financing_activities',
+                    'cash_flows_from_financing_activities', 'cff')
     cfo_f = _safe_float(cfo)
     cfi_f = _safe_float(cfi)
     return {
