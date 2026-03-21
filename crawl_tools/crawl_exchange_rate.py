@@ -12,7 +12,7 @@ Sources:
    Requires bearer token (auto-requested, expires 15 days).
    Current-day only (date param ignored).
 
-Stores into vn_sbv_centralrate table with source='API', bank=VCB/BID/TCB.
+Stores into vn_macro_fxrate_daily table with source='API', bank=VCB/BID/TCB.
 First run backfills VCB historical data (1 year).
 Subsequent runs only insert today's data.
 
@@ -33,8 +33,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables
-root_dir = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
 
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
@@ -90,7 +89,7 @@ def insert_record(record):
     """Insert a single exchange rate record with dedup check. Returns True if inserted."""
     with engine.connect() as conn:
         result = conn.execute(
-            text("SELECT COUNT(*) FROM vn_sbv_centralrate WHERE date = :date AND type = :type AND bank = :bank"),
+            text("SELECT COUNT(*) FROM vn_macro_fxrate_daily WHERE date = :date AND type = :type AND bank = :bank"),
             {'date': record['date'], 'type': record['type'], 'bank': record['bank']}
         )
         if result.scalar() > 0:
@@ -98,7 +97,7 @@ def insert_record(record):
 
         conn.execute(
             text("""
-                INSERT INTO vn_sbv_centralrate
+                INSERT INTO vn_macro_fxrate_daily
                     (date, crawl_time, type, source, bank, usd_vnd_rate, buy_cash, buy_transfer, sell_rate)
                 VALUES
                     (:date, :crawl_time, :type, :source, :bank, :usd_vnd_rate, :buy_cash, :buy_transfer, :sell_rate)
@@ -165,7 +164,7 @@ def crawl_vcb_historical():
 
     # Check how many VCB records already exist
     with engine.connect() as conn:
-        result = conn.execute(text("SELECT COUNT(DISTINCT date) FROM vn_sbv_centralrate WHERE bank = 'VCB'"))
+        result = conn.execute(text("SELECT COUNT(DISTINCT date) FROM vn_macro_fxrate_daily WHERE bank = 'VCB'"))
         existing_days = result.scalar()
 
     if existing_days >= 200:
@@ -305,7 +304,7 @@ try:
     with engine.connect() as conn:
         # Create table if it doesn't exist yet
         conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS vn_sbv_centralrate (
+            CREATE TABLE IF NOT EXISTS vn_macro_fxrate_daily (
                 id SERIAL PRIMARY KEY,
                 date DATE NOT NULL,
                 crawl_time TIMESTAMP NOT NULL,
@@ -332,7 +331,7 @@ try:
             ('document_no',  'VARCHAR(50)'),
         ]:
             try:
-                conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                conn.execute(text(f"ALTER TABLE vn_macro_fxrate_daily ADD COLUMN IF NOT EXISTS {col} {definition}"))
                 conn.commit()
             except Exception:
                 conn.rollback()
@@ -340,15 +339,15 @@ try:
         # Add unique constraint if not present (ignore if already exists)
         try:
             conn.execute(text("""
-                ALTER TABLE vn_sbv_centralrate
-                ADD CONSTRAINT vn_sbv_centralrate_date_type_source_bank_key
+                ALTER TABLE vn_macro_fxrate_daily
+                ADD CONSTRAINT vn_macro_fxrate_daily_date_type_source_bank_key
                 UNIQUE (date, type, source, bank)
             """))
             conn.commit()
         except Exception:
             conn.rollback()  # constraint already exists
 
-    print(f"  Table vn_sbv_centralrate ready")
+    print(f"  Table vn_macro_fxrate_daily ready")
 except Exception as e:
     print(f"  Table check error: {e}")
 

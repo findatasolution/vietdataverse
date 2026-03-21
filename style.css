@@ -3177,3 +3177,119 @@ html {
         max-width: 100%;
     }
 }
+
+/* ============================================================
+   VN30 SCORE
+   ============================================================ */
+.vn30-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.vn30-row {
+    display: grid;
+    grid-template-columns: 2.5rem 5rem 6rem 1fr 4rem 2.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    transition: background 0.2s;
+}
+.vn30-row:hover {
+    background: rgba(201,165,91,0.06);
+    border-color: rgba(201,165,91,0.2);
+}
+.vn30-row.locked {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.vn30-rank {
+    font-size: 0.8rem;
+    color: var(--text-tertiary, #666);
+    font-weight: 600;
+    text-align: center;
+}
+.vn30-ticker {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary, #f0f0f2);
+    letter-spacing: 0.03em;
+}
+.vn30-signal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.vn30-signal.buy  { background: rgba(34,197,94,0.15);  color: #22c55e; }
+.vn30-signal.neu  { background: rgba(234,179,8,0.15);   color: #eab308; }
+.vn30-signal.sell { background: rgba(239,68,68,0.15);   color: #ef4444; }
+
+.vn30-bar-wrap {
+    background: rgba(255,255,255,0.07);
+    border-radius: 3px;
+    height: 6px;
+    overflow: hidden;
+}
+.vn30-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+
+.vn30-score {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary, #f0f0f2);
+    text-align: right;
+}
+
+.vn30-history-btn {
+    background: rgba(201,165,91,0.1);
+    border: 1px solid rgba(201,165,91,0.25);
+    color: var(--gold-primary, #C9A55B);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.vn30-history-btn:hover {
+    background: rgba(201,165,91,0.2);
+}
+
+.vn30-gate-overlay {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(180deg, transparent 0%, rgba(8,8,10,0.95) 40%);
+    margin-top: -60px;
+    position: relative;
+    z-index: 10;
+    border-radius: 0 0 16px 16px;
+}
+
+.vn30-sparkline-panel {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(201,165,91,0.2);
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 0.25rem 0 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .vn30-row {
+        grid-template-columns: 2rem 4rem 5rem 1fr 3.5rem;
+    }
+    .vn30-history-btn { display: none; }
+}

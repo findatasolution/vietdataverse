@@ -4,6 +4,7 @@ python-dotenv
 python-jose[cryptography]
 cryptography
 sqlalchemy
+alembic
 uvicorn
 google-generativeai
 email-validator

@@ -4,3 +4,5 @@ sqlalchemy
 psycopg2-binary
 beautifulsoup4
 yfinance
+vnstock3
+python-dotenv

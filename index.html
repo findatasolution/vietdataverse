@@ -459,20 +459,17 @@
                         </a>
                     </li>
 
-                    <!-- ── PROFIT (monetization) ── -->
-                    <li class="nav-item nav-ai-agent">
-                        <a class="nav-link" data-tab="fintel-agent-for-hire">
+                    <!-- ── VN30 SCORE ── -->
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="vn30-score">
                             <div class="nav-content">
-                                <h4 data-i18n="navfinagent">
-                                    Fintel AI Agent
-                                    <span class="beta-badge">BETA</span>
-                                </h4>
-                                <span class="nav-meta" data-i18n="navfinagentsub">
-                                    AI Agents for Hire
-                                </span>
+                                <h4 data-i18n="navVN30Score">VN30 Score <span class="beta-badge">NEW</span></h4>
+                                <span class="nav-meta" data-i18n="navVN30ScoreSub">Xác suất tăng giá cổ phiếu</span>
                             </div>
                         </a>
                     </li>
+
+                    <!-- ── PROFIT (monetization) ── -->
                     <li class="nav-item">
                         <a class="nav-link" href="partners.html">
                             <div class="nav-content">
@@ -1149,7 +1146,8 @@
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
 
                     <!-- Card: Gold Forecast 2026 -->
-                    <a href="pages/GoldForecast2026.html"
+                    <a href="pages/GoldForecast2026.html" id="card-gold-forecast-2026"
+                        onclick="return openPremiumReport(event, 'pages/GoldForecast2026.html')"
                         style="text-decoration: none; color: inherit; display: block;">
                         <div style="background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(0,0,0,0.4) 100%); border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 2rem; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;"
                             onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(212,175,55,0.2)';this.style.borderColor='rgba(212,175,55,0.6)'"
@@ -1224,192 +1222,51 @@
                 </div>
             </div>
 
-            <!-- Fintel Agent -->
-            <div class="tab-content" id="fintel-agent-for-hire">
-                <!-- Hero Section -->
-                <div class="fintel-hero">
-                    <div class="fintel-hero-badge">
-                        <i class="fas fa-sparkles"></i>
-                        <span data-i18n="fintelHeroBadge">Powered by Advanced AI</span>
-                    </div>
-                    <h1 class="fintel-hero-title" data-i18n="fintelHeroTitle">Fintel AI Agents</h1>
-                    <p class="fintel-hero-subtitle" data-i18n="fintelHeroSubtitle">
-                        AI Agents chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch.
-                        Tích hợp dễ dàng qua API, nhận cảnh báo real-time qua webhook.
+            <!-- VN30 Score Tab -->
+            <div class="tab-content" id="vn30-score">
+                <div class="section-header">
+                    <h1 class="section-title">
+                        <span data-i18n="navVN30Score">VN30 Score</span>
+                        <span class="chart-info-icon"
+                            data-tooltip="Xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình XGBoost. Score 0-100%: ≥60 MUA, 40-59 TRUNG TÍNH, &lt;40 BÁN. Cập nhật hàng tuần.">ⓘ</span>
+                    </h1>
+                    <p style="color:var(--text-secondary);margin-top:0.5rem;font-size:0.95rem;max-width:680px;">
+                        Bảng xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình Machine Learning.
+                        <strong style="color:var(--gold-primary);">Premium</strong> — xem đầy đủ 30 mã &amp; lịch sử điểm từng mã.
                     </p>
+                    <p id="vn30-meta-info" style="color:var(--text-tertiary,#555);font-size:0.78rem;margin-top:0.4rem;"></p>
                 </div>
 
-                <!-- Agents Grid -->
-                <div class="agents-grid">
-                    <!-- Market Analysis Agent -->
-                    <div class="agent-card">
-                        <div class="agent-card-icon purple">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="agent-card-header">
-                            <div>
-                                <h3 class="agent-card-title" data-i18n="agentMarketTitle">Market Analysis Agent</h3>
+                <!-- Score table wrapper -->
+                <div style="position:relative;">
+                    <!-- Skeleton loader -->
+                    <div id="vn30-skeleton" style="display:none;">
+                        <div class="vn30-table">
+                            <div class="vn30-row" style="opacity:0.3;" aria-hidden="true">
+                                <span class="vn30-rank">#1</span><span class="vn30-ticker skeleton" style="width:4rem;height:1rem;display:block;border-radius:4px;background:rgba(255,255,255,0.1);"></span>
+                                <span style="width:5rem;height:1.4rem;display:block;border-radius:20px;background:rgba(255,255,255,0.08);"></span>
+                                <div class="vn30-bar-wrap"><div class="vn30-bar" style="width:60%;background:rgba(255,255,255,0.1);"></div></div>
+                                <span class="vn30-score" style="opacity:0.3;">--.-%</span>
+                                <span></span>
                             </div>
-                            <span class="agent-card-status coming-soon" data-i18n="agentStatusComingSoon">Coming
-                                Soon</span>
                         </div>
-                        <p class="agent-card-desc" data-i18n="agentMarketDesc">
-                            Phân tích thị trường tự động - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và
-                            cảnh báo biến động bất thường 24/7.
-                        </p>
-                        <div class="agent-card-features">
-                            <span class="agent-feature-tag">Technical Analysis</span>
-                            <span class="agent-feature-tag">Trend Detection</span>
-                            <span class="agent-feature-tag">Alert System</span>
-                        </div>
-                        <div class="agent-card-footer">
-                            <span class="agent-card-meta"><i class="fas fa-chart-area"></i> VN-Index, VN30</span>
-                            <span class="agent-card-meta"><i class="fas fa-bolt"></i> Real-time</span>
-                            <button class="save-interest-btn" data-interest="agent-market-analysis" title="Lưu quan tâm"
-                                style="margin-left: auto;">
-                                <i class="fas fa-bookmark"></i>
+                    </div>
+
+                    <!-- Rendered rows -->
+                    <div id="vn30-table-wrapper" class="vn30-table"></div>
+
+                    <!-- Gate overlay + CTA -->
+                    <div id="vn30-gate-cta" class="vn30-gate-overlay" style="display:none;">
+                        <div style="background:rgba(201,165,91,0.07);border:1px solid rgba(201,165,91,0.22);border-radius:16px;padding:2rem;max-width:420px;margin:0 auto;">
+                            <i class="fas fa-lock" style="font-size:1.5rem;color:var(--gold-primary);margin-bottom:1rem;display:block;"></i>
+                            <h3 style="color:var(--text-primary);margin-bottom:0.5rem;font-size:1.1rem;">Xem đầy đủ 30 cổ phiếu VN30</h3>
+                            <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;">
+                                Nâng cấp <strong style="color:var(--gold-primary);">Premium</strong> để xem toàn bộ bảng xếp hạng, lịch sử điểm số từng mã và tín hiệu mua/bán.
+                            </p>
+                            <button onclick="login()" style="background:linear-gradient(135deg,var(--gold-primary),var(--gold-accent,#f2dfa0));color:#08080A;font-weight:700;padding:0.75rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;width:100%;">
+                                Đăng nhập / Nâng cấp Premium
                             </button>
                         </div>
-                    </div>
-
-                    <!-- Gold Trading Agent -->
-                    <div class="agent-card">
-                        <div class="agent-card-icon amber">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="agent-card-header">
-                            <div>
-                                <h3 class="agent-card-title" data-i18n="agentGoldTitle">Gold Trading Agent</h3>
-                            </div>
-                            <span class="agent-card-status coming-soon" data-i18n="agentStatusComingSoon">Coming
-                                Soon</span>
-                        </div>
-                        <p class="agent-card-desc" data-i18n="agentGoldDesc">
-                            Theo dõi giá vàng - So sánh giá vàng SJC, DOJI, PNJ với giá quốc tế, cảnh báo chênh lệch và
-                            thời điểm mua/bán tối ưu.
-                        </p>
-                        <div class="agent-card-features">
-                            <span class="agent-feature-tag">Price Arbitrage</span>
-                            <span class="agent-feature-tag">Buy/Sell Signals</span>
-                            <span class="agent-feature-tag">Spread Analysis</span>
-                        </div>
-                        <div class="agent-card-footer">
-                            <span class="agent-card-meta"><i class="fas fa-coins"></i> SJC, DOJI, PNJ</span>
-                            <span class="agent-card-meta"><i class="fas fa-globe"></i> XAU/USD</span>
-                            <button class="save-interest-btn" data-interest="agent-gold-trading" title="Lưu quan tâm"
-                                style="margin-left: auto;">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- News Sentiment Agent -->
-                    <div class="agent-card">
-                        <div class="agent-card-icon blue">
-                            <i class="fas fa-newspaper"></i>
-                        </div>
-                        <div class="agent-card-header">
-                            <div>
-                                <h3 class="agent-card-title" data-i18n="agentNewsTitle">News Sentiment Agent</h3>
-                            </div>
-                            <span class="agent-card-status coming-soon" data-i18n="agentStatusComingSoon">Coming
-                                Soon</span>
-                        </div>
-                        <p class="agent-card-desc" data-i18n="agentNewsDesc">
-                            Phân tích tin tức - Quét tin tức tài chính 24/7, đánh giá sentiment và dự báo tác động đến
-                            thị trường VN bằng AI.
-                        </p>
-                        <div class="agent-card-features">
-                            <span class="agent-feature-tag">Multi-source</span>
-                            <span class="agent-feature-tag">MRI Score</span>
-                            <span class="agent-feature-tag">Impact Prediction</span>
-                        </div>
-                        <div class="agent-card-footer">
-                            <span class="agent-card-meta"><i class="fas fa-rss"></i> 50+ Sources</span>
-                            <span class="agent-card-meta"><i class="fas fa-brain"></i> NLP/LLM</span>
-                            <button class="save-interest-btn" data-interest="agent-news-sentiment" title="Lưu quan tâm"
-                                style="margin-left: auto;">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Custom Agent -->
-                    <div class="agent-card custom-card">
-                        <div class="agent-card-icon green">
-                            <i class="fas fa-wand-magic-sparkles"></i>
-                        </div>
-                        <div class="agent-card-header">
-                            <div>
-                                <h3 class="agent-card-title" data-i18n="agentCustomTitle">Custom Agent</h3>
-                            </div>
-                            <span class="agent-card-status on-request" data-i18n="agentStatusOnRequest">On
-                                Request</span>
-                        </div>
-                        <p class="agent-card-desc" data-i18n="agentCustomDesc">
-                            Agent tùy chỉnh - Xây dựng AI agent theo yêu cầu riêng của doanh nghiệp: tích hợp dữ liệu
-                            nội bộ, workflow tự động, báo cáo định kỳ.
-                        </p>
-                        <div class="agent-card-features">
-                            <span class="agent-feature-tag">Private Data</span>
-                            <span class="agent-feature-tag">Custom Workflow</span>
-                            <span class="agent-feature-tag">Enterprise</span>
-                        </div>
-                        <div class="agent-card-footer">
-                            <span class="agent-card-meta"><i class="fas fa-cogs"></i> Custom Logic</span>
-                            <span class="agent-card-meta"><i class="fas fa-plug"></i> API Integration</span>
-                            <button class="save-interest-btn" data-interest="agent-custom" title="Lưu quan tâm"
-                                style="margin-left: auto;">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pricing Section -->
-                <div class="section-header" style="margin-top: 64px;">
-                    <h2 class="section-title" data-i18n="pricingTitle">Pricing Plans</h2>
-                </div>
-                <div class="pricing-grid">
-                    <!-- Free Plan -->
-                    <div class="pricing-card">
-                        <p class="pricing-card-name" data-i18n="pricingStarter">Starter</p>
-                        <p class="pricing-card-price" data-i18n="pricingFree">Free</p>
-                        <ul class="pricing-card-features">
-                            <li data-i18n="pricingFeature1Agent">1 Agent access</li>
-                            <li data-i18n="pricingFeature1kCalls">1,000 API calls/month</li>
-                            <li data-i18n="pricingFeatureEmail">Email alerts</li>
-                            <li data-i18n="pricingFeatureCommunity">Community support</li>
-                        </ul>
-                        <button class="pricing-btn secondary" data-i18n="pricingBtnStart">Get Started</button>
-                    </div>
-
-                    <!-- Pro Plan -->
-                    <div class="pricing-card featured">
-                        <p class="pricing-card-name" data-i18n="pricingPro">Pro</p>
-                        <p class="pricing-card-price">$9.9<span>/month</span></p>
-                        <ul class="pricing-card-features">
-                            <li data-i18n="pricingFeature3Agents">All 3 Agents</li>
-                            <li data-i18n="pricingFeatureUnlimited">Unlimited API calls</li>
-                            <li data-i18n="pricingFeatureWebhook">Real-time webhooks</li>
-                            <li data-i18n="pricingFeaturePriority">Priority support</li>
-                            <li data-i18n="pricingFeatureCustomAlerts">Custom alerts</li>
-                        </ul>
-                        <button class="pricing-btn primary" data-i18n="pricingBtnUpgrade">Upgrade to Pro</button>
-                    </div>
-
-                    <!-- Enterprise Plan -->
-                    <div class="pricing-card">
-                        <p class="pricing-card-name" data-i18n="pricingEnterprise">Enterprise</p>
-                        <p class="pricing-card-price" data-i18n="pricingCustom">Custom</p>
-                        <ul class="pricing-card-features">
-                            <li data-i18n="pricingFeatureCustomAgents">Custom Agents</li>
-                            <li data-i18n="pricingFeatureOnPremise">On-premise deployment</li>
-                            <li data-i18n="pricingFeatureSLA">SLA guarantee</li>
-                            <li data-i18n="pricingFeatureDedicated">Dedicated support</li>
-                            <li data-i18n="pricingFeaturePrivate">Private data integration</li>
-                        </ul>
-                        <button class="pricing-btn secondary" data-i18n="pricingBtnContact">Contact Sales</button>
                     </div>
                 </div>
             </div>
@@ -1855,7 +1712,7 @@
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
                 nav1sMarketPortal: 'Thời báo 1 giây',
                 nav1smarketsub: 'Tờ báo quan trọng theo MRI',
-                nav1sFutureOutlook: '1s Future Outlook',
+                nav1sFutureOutlook: '1s Dự đoán thị trường',
                 nav1sfuturesub: 'Dự báo & phân tích tài sản',
                 futureOutlookSubtitle: 'Phân tích chuyên sâu & Dự báo xu hướng các loại tài sản',
                 navfinagent: 'Fintel AI Agent',
@@ -1889,7 +1746,6 @@
                 apiBtn: 'Đăng nhập',
                 // Fintel Agent Tab
                 fintelHeroBadge: 'Được hỗ trợ bởi AI tiên tiến',
-                fintelHeroTitle: 'Fintel AI Agents',
                 fintelHeroSubtitle: 'AI Agents chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch. Tích hợp dễ dàng qua API, nhận cảnh báo real-time qua webhook.',
                 agentMarketTitle: 'Market Analysis Agent',
                 agentMarketDesc: 'Phân tích thị trường tự động - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và cảnh báo biến động bất thường 24/7.',
@@ -1927,7 +1783,9 @@
                 pricingBtnContact: 'Liên hệ Sales',
                 tabGoldSilver: "Vàng & Bạc",
                 tabCurrency: "Tiền tệ VN",
-                tabGlobal: "Thị trường Quốc tế"
+                tabGlobal: "Thị trường Quốc tế",
+                navVN30Score: 'VN30 Score',
+                navVN30ScoreSub: 'Xác suất tăng giá cổ phiếu',
             },
             en: {
                 langBtn: 'Vie',
@@ -1969,7 +1827,6 @@
                 apiBtn: 'Login',
                 // Fintel Agent Tab
                 fintelHeroBadge: 'Powered by Advanced AI',
-                fintelHeroTitle: 'Fintel AI Agents',
                 fintelHeroSubtitle: 'Specialized AI Agents for financial analysis, market forecasting, and trade automation. Easy API integration, real-time alerts via webhook.',
                 agentMarketTitle: 'Market Analysis Agent',
                 agentMarketDesc: 'Automated market analysis - Track VN-Index, technical analysis, trend detection and abnormal volatility alerts 24/7.',
@@ -2007,7 +1864,9 @@
                 pricingBtnContact: 'Contact Sales',
                 tabGoldSilver: "Gold & Silver",
                 tabCurrency: "VN Currency",
-                tabGlobal: "Global Market"
+                tabGlobal: "Global Market",
+                navVN30Score: 'VN30 Score',
+                navVN30ScoreSub: 'Stock gain probability',
             }
         };
 
@@ -2038,10 +1897,15 @@
                     link.querySelector('h4').textContent = t.nav1sFutureOutlook;
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.nav1sFutureOutlook;
-                } else if (link.getAttribute('data-tab') === 'fintel-agent-for-hire') {
-                    link.querySelector('h4').innerHTML = t.navfinagent + ' <span class="beta-badge">BETA</span>';
+                } else if (link.getAttribute('data-tab') === 'vn30-score') {
+                    const h4 = link.querySelector('h4');
+                    const badge = h4 ? h4.querySelector('.beta-badge') : null;
+                    if (h4) {
+                        h4.childNodes[0].textContent = t.navVN30Score + ' ';
+                        if (!badge) { const b = document.createElement('span'); b.className = 'beta-badge'; b.textContent = 'NEW'; h4.appendChild(b); }
+                    }
                     const meta = link.querySelector('.nav-meta');
-                    if (meta) meta.textContent = t.navfinagentsub;
+                    if (meta) meta.textContent = t.navVN30ScoreSub;
                 } else if (link.getAttribute('data-tab') === 'download-api') {
                     link.querySelector('h4').textContent = t.navDownloadApi;
                     const meta = link.querySelector('.nav-meta');
@@ -2126,14 +1990,6 @@
             setTitle(chartTitles[4], t.fxrateChart);
             setTitle(chartTitles[5], t.globalChart);
 
-            // Update Fintel Agent tab
-            const fintelTab = document.getElementById('fintel-agent-for-hire');
-            if (fintelTab) {
-                fintelTab.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (t[key]) el.textContent = t[key];
-                });
-            }
             // Update Chart Tabs (Gold & Silver / Currency / Global)
             document.querySelectorAll('.chart-tab-btn span[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -2260,10 +2116,10 @@
                     }
 
                     // Sync user with backend DB by calling /me endpoint
+                    // NOTE: /me route has no /api/v1 prefix — use API_BASE_URL (from auth.js)
                     try {
                         const token = await getToken();
-                        const apiBase = window.APP_CONFIG.API_BASE_URL;
-                        const response = await fetch(`${apiBase}/me`, {
+                        const response = await fetch(`${API_BASE_URL}/me`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
@@ -2272,7 +2128,11 @@
 
                         if (response.ok) {
                             const dbUser = await response.json();
+                            window._vdvUserLevel = dbUser.user_level || 'free';
+                            localStorage.setItem('vdv_user_level', dbUser.user_level || 'free');
                             console.log('User synced with backend:', dbUser);
+                            // Reload Market Pulse now that auth is confirmed and user_level is known
+                            loadMarketPulse();
                         } else {
                             console.warn('Failed to sync user with backend:', response.status);
                         }
@@ -2293,6 +2153,7 @@
                     if (logoutBtn) {
                         logoutBtn.style.display = 'block';
                         logoutBtn.addEventListener('click', () => {
+                            localStorage.removeItem('vdv_user_level');
                             logout();
                         });
                     }
@@ -2523,7 +2384,7 @@
             'data-portal': 'Open Economic Data',
             '1smarket-portal': '1s Market Pulse',
             '1s-future-outlook': '1s Future Outlook',
-            'fintel-agent-for-hire': 'Fintel AI Agent',
+            'vn30-score': 'VN30 Score',
             'download-api': 'Download & API',
             'about-terms': 'About & Terms',
             'privacy-policy': 'Privacy Policy',
@@ -2532,15 +2393,6 @@
         };
 
         function activateTab(tabId) {
-            // GA4: track tab view
-            if (typeof gtag === 'function') {
-                gtag('event', 'tab_view', {
-                    tab_id: tabId,
-                    tab_name: TAB_LABELS[tabId] || tabId,
-                    product_type: (tabId === 'fintel-agent-for-hire') ? 'profit' : 'free'
-                });
-            }
-
             // GA4: track tab engagement (stayed 5s+)
             if (_tabDwellTimer) clearTimeout(_tabDwellTimer);
             _tabDwellTimer = setTimeout(() => {
@@ -2575,6 +2427,12 @@
                     const innerTarget = document.getElementById(innerTabId);
                     if (innerTarget) innerTarget.classList.add('active');
                 }
+            }
+
+            // Lazy-load VN30 Score on first visit
+            if (tabId === 'vn30-score' && !window._vn30Loaded) {
+                window._vn30Loaded = true;
+                loadVN30Scores();
             }
 
             // Close mobile sidebar
@@ -3468,6 +3326,27 @@
     </article>`;
         }
 
+        // ============================================================
+        // FUTURE OUTLOOK — Premium gate
+        // ============================================================
+        function openPremiumReport(event, url) {
+            const level = window._vdvUserLevel || 'free';
+            if (level === 'premium' || level === 'premium_developer' || level === 'admin') {
+                return true; // allow navigation
+            }
+            event.preventDefault();
+            document.getElementById('premium-gate-modal').style.display = 'flex';
+            return false;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('premium-gate-modal');
+            if (!modal) return;
+            modal.addEventListener('click', e => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+        });
+
         // Market Pulse data cache for filtering
         let pulseDataCache = [];
 
@@ -3482,7 +3361,9 @@
             try {
                 // Fetch directly from API
                 if (base) {
-                    const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`);
+                    const token = await getToken();
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`, { headers });
                     if (res.ok) {
                         const json = await res.json();
                         data = json.data || [];
@@ -3536,6 +3417,158 @@
                 renderFilteredPulse();
             });
         });
+
+        // ============================================================
+        // VN30 SCORE
+        // ============================================================
+        const _vn30SignalClass = { 'MUA': 'buy', 'TRUNG TÍNH': 'neu', 'BÁN': 'sell' };
+        const _vn30BarColor = { 'MUA': '#22c55e', 'TRUNG TÍNH': '#eab308', 'BÁN': '#ef4444' };
+        let _vn30SparklineCharts = {};
+
+        function _vn30RenderRow(item, rank, isLocked) {
+            const signal = item.signal || 'TRUNG TÍNH';
+            const cls = _vn30SignalClass[signal] || 'neu';
+            const barColor = _vn30BarColor[signal] || '#eab308';
+            const score = item.score != null ? item.score.toFixed(1) : '--.-';
+            const histBtn = !isLocked
+                ? `<button class="vn30-history-btn" onclick="loadVN30TickerHistory('${item.ticker}')" title="Xem lịch sử">↗</button>`
+                : '<span></span>';
+            return `<div class="vn30-row${isLocked ? ' locked' : ''}" id="vn30-row-${rank}">
+                <span class="vn30-rank">#${rank}</span>
+                <span class="vn30-ticker">${item.ticker}</span>
+                <span class="vn30-signal ${cls}">${signal}</span>
+                <div class="vn30-bar-wrap"><div class="vn30-bar" style="width:${score}%;background:${barColor};"></div></div>
+                <span class="vn30-score">${score}%</span>
+                ${histBtn}
+            </div>
+            <div class="vn30-sparkline-panel" id="spark-${item.ticker}" style="display:none;grid-column:1/-1;"></div>`;
+        }
+
+        function _vn30RenderLockedRow(rank) {
+            const fakePct = 45 + Math.floor(Math.random() * 30);
+            return `<div class="vn30-row locked">
+                <span class="vn30-rank">#${rank}</span>
+                <span class="vn30-ticker">---</span>
+                <span class="vn30-signal neu">---</span>
+                <div class="vn30-bar-wrap"><div class="vn30-bar" style="width:${fakePct}%;background:rgba(255,255,255,0.15);"></div></div>
+                <span class="vn30-score">--.-%</span>
+                <span></span>
+            </div>`;
+        }
+
+        async function loadVN30Scores() {
+            const base = window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL;
+            const wrapper = document.getElementById('vn30-table-wrapper');
+            const skeleton = document.getElementById('vn30-skeleton');
+            const cta = document.getElementById('vn30-gate-cta');
+            const metaEl = document.getElementById('vn30-meta-info');
+            if (!wrapper) return;
+
+            if (skeleton) skeleton.style.display = 'block';
+            wrapper.innerHTML = '';
+            if (cta) cta.style.display = 'none';
+
+            let authHeaders = {};
+            try {
+                const token = await getToken();
+                if (token) authHeaders['Authorization'] = 'Bearer ' + token;
+            } catch(e) { /* anonymous */ }
+
+            try {
+                const res = await fetch(`${base}/vn30-scores`, { headers: authHeaders });
+                if (!res.ok) throw new Error(res.status);
+                const json = await res.json();
+
+                if (skeleton) skeleton.style.display = 'none';
+
+                if (!json.data || json.data.length === 0) {
+                    wrapper.innerHTML = '<p style="text-align:center;color:var(--text-tertiary,#555);padding:3rem;">Chưa có dữ liệu điểm số VN30.</p>';
+                    return;
+                }
+
+                // Render visible rows
+                wrapper.innerHTML = json.data.map((item, i) => _vn30RenderRow(item, i + 1, false)).join('');
+
+                // Meta info
+                if (metaEl && json.updated_at) {
+                    const d = new Date(json.updated_at);
+                    metaEl.textContent = `Cập nhật: Q${json.quarter}/${json.year} — ${d.toLocaleDateString('vi-VN')}`;
+                }
+
+                // Gated: add blurred placeholder rows + CTA
+                if (json.is_gated) {
+                    const total = 30;
+                    const shown = json.data.length;
+                    const locked = Array.from({length: total - shown}, (_, i) => _vn30RenderLockedRow(shown + i + 1)).join('');
+                    wrapper.innerHTML += locked;
+                    if (cta) cta.style.display = 'block';
+                }
+            } catch(e) {
+                if (skeleton) skeleton.style.display = 'none';
+                wrapper.innerHTML = '<p style="text-align:center;color:var(--text-tertiary,#555);padding:3rem;">Không thể tải dữ liệu VN30 Score.</p>';
+            }
+        }
+
+        async function loadVN30TickerHistory(ticker) {
+            const panel = document.getElementById('spark-' + ticker);
+            if (!panel) return;
+
+            // Toggle: close if already open
+            if (panel.style.display !== 'none') {
+                panel.style.display = 'none';
+                if (_vn30SparklineCharts[ticker]) { _vn30SparklineCharts[ticker].destroy(); delete _vn30SparklineCharts[ticker]; }
+                return;
+            }
+
+            panel.style.display = 'block';
+            panel.innerHTML = '<p style="color:var(--text-tertiary,#555);font-size:0.8rem;padding:0.5rem;">Đang tải...</p>';
+
+            const base = window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL;
+            let authHeaders = {};
+            try { const t = await getToken(); if (t) authHeaders['Authorization'] = 'Bearer ' + t; } catch(e) {}
+
+            try {
+                const res = await fetch(`${base}/vn30-scores/ticker/${ticker}?limit=8`, { headers: authHeaders });
+                if (res.status === 403) {
+                    panel.innerHTML = '<p style="color:var(--text-tertiary,#555);font-size:0.8rem;padding:0.5rem;">Cần tài khoản Premium để xem lịch sử.</p>';
+                    return;
+                }
+                const json = await res.json();
+                const hist = (json.data || []).reverse();
+                if (!hist.length) { panel.innerHTML = '<p style="color:var(--text-tertiary,#555);font-size:0.8rem;padding:0.5rem;">Không có dữ liệu lịch sử.</p>'; return; }
+
+                const canvasId = 'spark-canvas-' + ticker;
+                panel.innerHTML = `<div style="font-size:0.75rem;color:var(--gold-primary);font-weight:600;margin-bottom:0.5rem;">${ticker} — Lịch sử điểm (${hist.length} tuần)</div><canvas id="${canvasId}" height="80"></canvas>`;
+
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                if (_vn30SparklineCharts[ticker]) _vn30SparklineCharts[ticker].destroy();
+                _vn30SparklineCharts[ticker] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: hist.map(h => h.report_date || ''),
+                        datasets: [{
+                            data: hist.map(h => h.score),
+                            borderColor: '#C9A55B',
+                            backgroundColor: 'rgba(201,165,91,0.08)',
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#C9A55B',
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 0, max: 100, ticks: { color: '#666', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { ticks: { color: '#666', font: { size: 10 } }, grid: { display: false } }
+                        }
+                    }
+                });
+            } catch(e) {
+                panel.innerHTML = '<p style="color:var(--text-tertiary,#555);font-size:0.8rem;padding:0.5rem;">Lỗi tải lịch sử.</p>';
+            }
+        }
 
         // ============================================================
         // SAVE INTEREST - Per-item bookmark buttons for tracking
@@ -3725,6 +3758,20 @@
             }
         })();
     </script>
+
+    <!-- Premium Gate Modal -->
+    <div id="premium-gate-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+        <div style="background:#1a1a1a; border:1px solid rgba(212,175,55,0.4); border-radius:20px; padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative;">
+            <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+            <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
+            <h3 style="font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:0.5rem;">Nội dung Premium</h3>
+            <p style="color:#a0a0a0;font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem;">Báo cáo <strong style="color:#d4af37;">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
+            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+                <a href="pages/pricing.html" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;font-weight:700;padding:0.6rem 1.5rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">Xem gói Premium</a>
+                <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:rgba(255,255,255,0.08);color:#ccc;border:1px solid rgba(255,255,255,0.15);font-weight:600;padding:0.6rem 1.5rem;border-radius:10px;cursor:pointer;font-size:0.9rem;">Để sau</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 

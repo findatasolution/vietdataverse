@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def migrate_crawl_db():
-    """Ensure vn_sbv_centralrate has all required columns (idempotent).
+    """Ensure vn_macro_fxrate_daily has all required columns (idempotent).
 
     CRAWLING_BOT_DB không được quản lý bởi Alembic (do crawler tự maintain),
     nên ALTER TABLE vẫn cần chạy thủ công ở đây.
@@ -26,7 +26,7 @@ def migrate_crawl_db():
                 ("sell_rate",    "FLOAT"),
             ]:
                 try:
-                    conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                    conn.execute(text(f"ALTER TABLE vn_macro_fxrate_daily ADD COLUMN IF NOT EXISTS {col} {definition}"))
                     conn.commit()
                 except Exception:
                     conn.rollback()

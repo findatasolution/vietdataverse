@@ -27,8 +27,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 # Load environment variables
-root_dir = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
 
 # CLI arguments
 parser = argparse.ArgumentParser(description='Bank Term Deposit Rates Crawler')
@@ -354,7 +353,7 @@ def save_bank_data(bank_code, data, force=False):
     with engine.connect() as conn:
         if not force:
             result = conn.execute(
-                text("SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = :bank AND date = :date"),
+                text("SELECT COUNT(*) FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
             if result.scalar() > 0:
@@ -363,19 +362,19 @@ def save_bank_data(bank_code, data, force=False):
 
         if force:
             conn.execute(
-                text("DELETE FROM vn_bank_termdepo WHERE bank_code = :bank AND date = :date"),
+                text("DELETE FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
 
         # Generate next id (table has no auto-increment)
-        next_id = conn.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM vn_bank_termdepo")).scalar()
+        next_id = conn.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM vn_macro_termdepo_daily")).scalar()
         record['id'] = next_id
 
         columns = [k for k, v in record.items() if v is not None]
         placeholders = ', '.join([f':{c}' for c in columns])
         col_names = ', '.join(columns)
         filtered = {k: v for k, v in record.items() if v is not None}
-        conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), filtered)
+        conn.execute(text(f"INSERT INTO vn_macro_termdepo_daily ({col_names}) VALUES ({placeholders})"), filtered)
         conn.commit()
 
     return True

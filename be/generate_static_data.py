@@ -69,7 +69,7 @@ def generate_gold_data():
     # Get available gold types
     with engine_crawl.connect() as conn:
         result = conn.execute(text("""
-            SELECT DISTINCT type FROM vn_gold_24h_hist
+            SELECT DISTINCT type FROM vn_macro_gold_daily
             WHERE type IS NOT NULL
             ORDER BY type
         """))
@@ -87,7 +87,7 @@ def generate_gold_data():
                     SELECT date, buy_price, sell_price
                     FROM (
                         SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
-                        FROM vn_gold_24h_hist
+                        FROM vn_macro_gold_daily
                         WHERE date >= '{date_filter}'
                         AND type = :gold_type
                         ORDER BY date, crawl_time DESC
@@ -128,7 +128,7 @@ def generate_silver_data():
                 SELECT date, buy_price, sell_price
                 FROM (
                     SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
-                    FROM vn_silver_phuquy_hist
+                    FROM vn_macro_silver_daily
                     WHERE date >= '{date_filter}'
                     ORDER BY date, crawl_time DESC
                 ) subquery
@@ -163,7 +163,7 @@ def generate_sbv_data():
                 FROM (
                     SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_3m,
                            rediscount_rate, refinancing_rate, crawl_time
-                    FROM vn_sbv_interbankrate
+                    FROM vn_macro_sbv_rate_daily
                     WHERE date >= '{date_filter}'
                     ORDER BY date, crawl_time DESC
                 ) subquery
@@ -195,7 +195,7 @@ def generate_termdepo_data():
     # Get available banks
     with engine_crawl.connect() as conn:
         result = conn.execute(text("""
-            SELECT DISTINCT bank_code FROM vn_bank_termdepo
+            SELECT DISTINCT bank_code FROM vn_macro_termdepo_daily
             WHERE bank_code IS NOT NULL
             ORDER BY bank_code
         """))
@@ -212,7 +212,7 @@ def generate_termdepo_data():
                     SELECT date, term_1m, term_3m, term_6m, term_12m, term_24m
                     FROM (
                         SELECT DISTINCT ON (date) date, term_1m, term_3m, term_6m, term_12m, term_24m, crawl_time
-                        FROM vn_bank_termdepo
+                        FROM vn_macro_termdepo_daily
                         WHERE date >= '{date_filter}'
                         AND bank_code = :bank
                         ORDER BY date, crawl_time DESC
@@ -286,7 +286,7 @@ def generate_market_pulse_data():
 
 
 # ============================================================
-# EXCHANGE RATE DATA (VCB, BID, TCB — from vn_sbv_centralrate)
+# EXCHANGE RATE DATA (VCB, BID, TCB — from vn_macro_fxrate_daily)
 # ============================================================
 def generate_fxrate_data():
     """Generate static JSON for exchange rates (USD/VND from VCB by default)."""
@@ -304,7 +304,7 @@ def generate_fxrate_data():
                 ('sell_rate',    'FLOAT'),
             ]:
                 try:
-                    conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                    conn.execute(text(f"ALTER TABLE vn_macro_fxrate_daily ADD COLUMN IF NOT EXISTS {col} {definition}"))
                     conn.commit()
                 except Exception:
                     conn.rollback()
@@ -329,7 +329,7 @@ def generate_fxrate_data():
                         SELECT date, usd_vnd_rate, buy_cash, sell_rate
                         FROM (
                             SELECT DISTINCT ON (date) date, usd_vnd_rate, buy_cash, sell_rate, crawl_time
-                            FROM vn_sbv_centralrate
+                            FROM vn_macro_fxrate_daily
                             WHERE date >= '{date_filter}'
                             AND type = '{currency}'
                             AND bank = '{bank}'

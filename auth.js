@@ -12,13 +12,13 @@ const AUTH0_CONFIG = {
     clientId: 'EDXXS3TBQpJ3HhWilLLgEHNB8SsAvG0O',
     authorizationParams: {
         redirect_uri: window.location.origin + '/index.html',
-        // audience: 'https://api.vietdataverse.online',  // Temporarily commented out for testing
+        // audience: 'https://api.vietdataverse.online',  // Enable after adding Auth0 Action to inject email into JWT
         scope: 'openid profile email',
     },
     cacheLocation: 'localstorage',
 };
 
-const API_BASE_URL = window.location.hostname === 'localhost'
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://127.0.0.1:8000'
     : 'https://api.vietdataverse.online';
 

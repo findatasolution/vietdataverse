@@ -4,7 +4,7 @@ services:
     env: python
     region: singapore
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY
@@ -15,10 +15,12 @@ services:
         sync: false
       - key: ARGUS_FINTEL_DB
         sync: false
+      - key: USER_DB
+        sync: false
       - key: DB_SCHEMA
         value: public
       - key: CORS_ALLOW_ORIGINS
-        value: https://vietdataverse.online,https://www.vietdataverse.online,https://findatasolution.github.io,http://localhost:3000,http://127.0.0.1:5500
+        value: https://vietdataverse.online,https://www.vietdataverse.online,http://localhost:3000,http://127.0.0.1:5500
       - key: AUTH0_DOMAIN
         sync: false
       - key: AUTH0_CLIENT_ID
@@ -31,3 +33,11 @@ services:
         value: https://api.vietdataverse.online/callback
       - key: LOGOUT_URL
         value: https://vietdataverse.online/index.html
+      - key: PAYOS_CLIENT_ID
+        sync: false
+      - key: PAYOS_API_KEY
+        sync: false
+      - key: PAYOS_CHECKSUM_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: https://vietdataverse.online/pages/pricing.html

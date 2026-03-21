@@ -1,11 +1,12 @@
 import json
 import os
 import subprocess
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from sqlalchemy import text
 
 from core.engines import get_engine_argus
+from middleware import authenticate_user_optional
 
 router = APIRouter()
 
@@ -51,6 +52,7 @@ async def get_market_pulse(
     request: Request,
     lang: str = Query("vi", description="Language: vi or en"),
     limit: int = Query(10, ge=1, le=50, description="Number of articles"),
+    _auth: None = Depends(authenticate_user_optional),
 ):
     # Gate: free / unauthenticated users get only 1 article
     user = getattr(request.state, "user", None)

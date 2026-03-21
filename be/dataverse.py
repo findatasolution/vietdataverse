@@ -29,26 +29,26 @@ engine = create_engine(CRAWLING_BOT_DB, poolclass=NullPool)
 # Dataset configuration
 DATASET_CONFIG = {
     'VNGold': {
-        'table': 'vn_gold_24h_hist',
-        'query': "SELECT * FROM vn_gold_24h_hist WHERE type IN ('DOJI HN', 'BTTMC SJC') ORDER BY date DESC",
+        'table': 'vn_macro_gold_daily',
+        'query': "SELECT * FROM vn_macro_gold_daily WHERE type IN ('DOJI HN', 'BTTMC SJC') ORDER BY date DESC",
         'filename': 'vn_gold_prices.csv',
         'description': 'Vietnamese Gold Prices (DOJI HN 24k)'
     },
     'VNSilver': {
-        'table': 'vn_silver_phuquy_hist',
-        'query': 'SELECT * FROM vn_silver_phuquy_hist ORDER BY date DESC',
+        'table': 'vn_macro_silver_daily',
+        'query': 'SELECT * FROM vn_macro_silver_daily ORDER BY date DESC',
         'filename': 'vn_silver_prices.csv',
         'description': 'Vietnamese Silver Prices (Phu Quy)'
     },
     'SBVInterbank': {
-        'table': 'vn_sbv_interbankrate',
-        'query': 'SELECT * FROM vn_sbv_interbankrate ORDER BY date DESC',
+        'table': 'vn_macro_sbv_rate_daily',
+        'query': 'SELECT * FROM vn_macro_sbv_rate_daily ORDER BY date DESC',
         'filename': 'vn_sbv_interbank_rates.csv',
         'description': 'State Bank of Vietnam Interbank Rates'
     },
     'VNTermDeposit': {
-        'table': 'vn_term_deposit',
-        'query': 'SELECT bank_code, date, term_1m, term_6m, term_12m, term_24m, term_noterm FROM vn_term_deposit GROUP BY  bank_code, date ORDER BY date DESC',
+        'table': 'vn_macro_termdepo_daily',
+        'query': 'SELECT bank, date, "1m", "6m", "12m", "24m" FROM vn_macro_termdepo_daily ORDER BY date DESC',
         'filename': 'vn_term_deposit_rates.csv',
         'description': 'Vietnamese Term Deposit Rates'
     },
