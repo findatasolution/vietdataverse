@@ -43,6 +43,17 @@ VN30_TICKERS = [
 # KBS returns data in nghìn đồng (thousand VND). Divide by this to get tỷ VND.
 KBS_TO_TY = 1_000_000   # nghìn đồng ÷ 1e6 = tỷ VND
 
+# Set FINANCIALS_MAX_PAGES=15 for full 15-year historical backfill (≈ 60 quarters).
+# Default=1 fetches only the most recent year (4 quarters) — used for regular quarterly runs.
+FINANCIALS_MAX_PAGES = int(os.getenv('FINANCIALS_MAX_PAGES', '1'))
+
+# KBS report type → Content section key mapping
+_KBS_CONTENT_KEYS = {
+    'KQKD': 'Kết quả kinh doanh',
+    'CDKT': 'Cân đối kế toán',
+    'LCTT': None,   # varies by company (direct vs indirect method) — resolved at runtime
+}
+
 
 def ensure_tables():
     with engine.connect() as conn:
@@ -272,6 +283,51 @@ def _kbs_call_with_retry(fn, label: str, max_retries=3):
             raise
 
 
+# ── multi-page fetch ──────────────────────────────────────────────────────────
+
+def _kbs_fetch_all_pages(ds, report_type: str, max_pages: int):
+    """Fetch up to max_pages quarterly pages from KBS and return combined DataFrame.
+
+    Each page covers 1 year (4 quarters). page=1 → most recent year.
+    Returns None if no data. Stops early if a page returns empty results.
+    """
+    import pandas as pd
+
+    all_dfs = []
+    for page in range(1, max_pages + 1):
+        try:
+            def _fn(p=page):
+                resp = ds._fetch_financial_data(report_type=report_type, period_type=2, page=p)
+                if not resp or 'Content' not in resp or not resp['Content']:
+                    return None
+                report_key = list(resp['Content'].keys())[0]
+                return ds._parse_financial_response(resp, report_key)
+
+            df = _kbs_call_with_retry(_fn, f'{report_type} p{page}')
+            if df is None or df.empty:
+                break   # no more data
+
+            all_dfs.append(df)
+            if page < max_pages:
+                time.sleep(4)   # ~15 req/min — safely under KBS 20 req/min limit
+        except Exception as e:
+            print(f"    page {page} error: {e}")
+            break
+
+    if not all_dfs:
+        return None
+    if len(all_dfs) == 1:
+        return all_dfs[0]
+
+    # Merge all pages: same item_id rows, different quarter columns
+    base = all_dfs[0]
+    for df in all_dfs[1:]:
+        new_q_cols = [c for c in df.columns if re.match(r'\d{4}-Q\d', str(c))]
+        if new_q_cols:
+            base = base.merge(df[['item_id'] + new_q_cols], on='item_id', how='left')
+    return base
+
+
 # ── main fetch ───────────────────────────────────────────────────────────────
 
 def fetch_and_store_financials(ticker: str, crawl_time: datetime):
@@ -281,12 +337,13 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
     try:
         from vnstock import Vnstock as VnstockNew
         stock_kbs = VnstockNew().stock(symbol=ticker, source='KBS')
+        ds = stock_kbs.finance.data_source   # KBS Finance — exposes _fetch_financial_data(page=N)
+
+        pages_label = f'{FINANCIALS_MAX_PAGES}p'
 
         # Income statement
         try:
-            def _fetch_income():
-                return stock_kbs.finance.income_statement(period='quarter')
-            inc_df = _kbs_call_with_retry(_fetch_income, f'[{ticker}] income')
+            inc_df = _kbs_fetch_all_pages(ds, 'KQKD', FINANCIALS_MAX_PAGES)
             if inc_df is not None and not inc_df.empty:
                 rows = _pivot_kbs_wide(inc_df)
                 with engine.connect() as conn:
@@ -294,7 +351,7 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
                         _upsert_income(conn, ticker, r['year'], r['quarter'],
                                        _kbs_income_row(r), crawl_time)
                     conn.commit()
-                print(f"  [{ticker}] Income (KBS): {len(rows)} quarters")
+                print(f"  [{ticker}] Income (KBS/{pages_label}): {len(rows)} quarters")
         except Exception as e:
             print(f"  [{ticker}] KBS income error: {e}")
 
@@ -302,9 +359,7 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
 
         # Balance sheet
         try:
-            def _fetch_bs():
-                return stock_kbs.finance.balance_sheet(period='quarter')
-            bs_df = _kbs_call_with_retry(_fetch_bs, f'[{ticker}] balance_sheet')
+            bs_df = _kbs_fetch_all_pages(ds, 'CDKT', FINANCIALS_MAX_PAGES)
             if bs_df is not None and not bs_df.empty:
                 rows = _pivot_kbs_wide(bs_df)
                 with engine.connect() as conn:
@@ -312,7 +367,7 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
                         _upsert_bs(conn, ticker, r['year'], r['quarter'],
                                    _kbs_bs_row(r), crawl_time)
                     conn.commit()
-                print(f"  [{ticker}] Balance sheet (KBS): {len(rows)} quarters")
+                print(f"  [{ticker}] Balance sheet (KBS/{pages_label}): {len(rows)} quarters")
         except Exception as e:
             print(f"  [{ticker}] KBS balance sheet error: {e}")
 
@@ -320,9 +375,7 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
 
         # Cash flow
         try:
-            def _fetch_cf():
-                return stock_kbs.finance.cash_flow(period='quarter')
-            cf_df = _kbs_call_with_retry(_fetch_cf, f'[{ticker}] cashflow')
+            cf_df = _kbs_fetch_all_pages(ds, 'LCTT', FINANCIALS_MAX_PAGES)
             if cf_df is not None and not cf_df.empty:
                 rows = _pivot_kbs_wide(cf_df)
                 non_null = 0
@@ -334,7 +387,7 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
                                        fields, crawl_time)
                             non_null += 1
                     conn.commit()
-                print(f"  [{ticker}] Cash flow (KBS): {len(rows)} quarters ({non_null} non-null)")
+                print(f"  [{ticker}] Cash flow (KBS/{pages_label}): {len(rows)} quarters ({non_null} non-null)")
         except Exception as e:
             print(f"  [{ticker}] KBS cash flow error: {e}")
 
@@ -432,6 +485,9 @@ def main():
     crawl_time = datetime.now()
     success = 0
     errors = 0
+
+    print(f"Mode: {'BACKFILL' if FINANCIALS_MAX_PAGES > 1 else 'incremental'} "
+          f"({FINANCIALS_MAX_PAGES} page(s) per statement ≈ {FINANCIALS_MAX_PAGES * 4} quarters max)")
 
     for ticker in VN30_TICKERS:
         print(f"\n  [{ticker}] Fetching financial statements...")
