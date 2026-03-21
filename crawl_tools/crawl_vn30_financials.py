@@ -1,8 +1,12 @@
 """
 VN30 Quarterly Financial Statements Crawler (Income, Balance Sheet, Cash Flow)
-Source: vnstock3 (SSI/TCBS data)
-Schedule: Quarterly — 15th of Jan, Apr, Jul, Oct (15:00 VN = 08:00 UTC)
-Also supports backfill of last N quarters.
+Source: vnstock (KBS) — works from VN IP (Mac/local)
+Schedule: Quarterly — 15th of Jan, Apr, Jul, Oct (08:00 local)
+
+UNIT CONVENTION (stored in DB):
+  - Monetary columns (revenue, assets, cfo, etc.): tỷ VND (billion VND)
+  - EPS: VND per share (not converted)
+  - KBS raw data is in nghìn đồng → divide by 1e6 to get tỷ VND
 """
 
 import sys
@@ -10,6 +14,7 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 import os
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -35,7 +40,8 @@ VN30_TICKERS = [
     'VCB', 'VHM', 'VIB', 'VIC', 'VJC', 'VPB'
 ]
 
-BACKFILL_QUARTERS = 8  # Backfill last 8 quarters by default
+# KBS returns data in nghìn đồng (thousand VND). Divide by this to get tỷ VND.
+KBS_TO_TY = 1_000_000   # nghìn đồng ÷ 1e6 = tỷ VND
 
 
 def ensure_tables():
@@ -46,11 +52,11 @@ def ensure_tables():
                 ticker VARCHAR(10) NOT NULL,
                 year INTEGER NOT NULL,
                 quarter INTEGER NOT NULL,
-                revenue FLOAT,
-                gross_profit FLOAT,
-                ebit FLOAT,
-                net_income FLOAT,
-                eps FLOAT,
+                revenue FLOAT,        -- tỷ VND
+                gross_profit FLOAT,   -- tỷ VND
+                ebit FLOAT,           -- tỷ VND
+                net_income FLOAT,     -- tỷ VND
+                eps FLOAT,            -- VND per share
                 crawl_time TIMESTAMP NOT NULL,
                 UNIQUE (ticker, year, quarter)
             )
@@ -61,10 +67,10 @@ def ensure_tables():
                 ticker VARCHAR(10) NOT NULL,
                 year INTEGER NOT NULL,
                 quarter INTEGER NOT NULL,
-                total_assets FLOAT,
-                total_liabilities FLOAT,
-                equity FLOAT,
-                cash FLOAT,
+                total_assets FLOAT,       -- tỷ VND
+                total_liabilities FLOAT,  -- tỷ VND
+                equity FLOAT,             -- tỷ VND
+                cash FLOAT,               -- tỷ VND
                 crawl_time TIMESTAMP NOT NULL,
                 UNIQUE (ticker, year, quarter)
             )
@@ -75,32 +81,40 @@ def ensure_tables():
                 ticker VARCHAR(10) NOT NULL,
                 year INTEGER NOT NULL,
                 quarter INTEGER NOT NULL,
-                cfo FLOAT,
-                cfi FLOAT,
-                cff FLOAT,
-                free_cashflow FLOAT,
+                cfo FLOAT,           -- tỷ VND (operating)
+                cfi FLOAT,           -- tỷ VND (investing)
+                cff FLOAT,           -- tỷ VND (financing)
+                free_cashflow FLOAT, -- tỷ VND (cfo + cfi)
                 crawl_time TIMESTAMP NOT NULL,
                 UNIQUE (ticker, year, quarter)
             )
         """))
         conn.commit()
-    print("Tables vn30_income_stmt_quarterly, vn30_balance_sheet_quarterly, vn30_cashflow_quarterly ready.")
+    print("Tables ready (unit: tỷ VND for monetary cols, VND/share for EPS).")
 
+
+# ── helpers ──────────────────────────────────────────────────────────────────
 
 def _safe_float(val):
     try:
         if val is None:
             return None
-        return float(val)
+        f = float(val)
+        return None if (f != f) else f   # catch NaN
     except (ValueError, TypeError):
         return None
 
 
+def _to_ty(val):
+    """Convert KBS nghìn đồng → tỷ VND. Returns None if val is None/NaN."""
+    f = _safe_float(val)
+    return None if f is None else f / KBS_TO_TY
+
+
 def _pivot_kbs_wide(df) -> list:
-    """Convert KBS wide-format (items as rows, quarters as cols) to list of dicts.
-    Returns: [{'year': 2025, 'quarter': 4, 'item_id_1': val, ...}, ...]
+    """Convert KBS wide-format DataFrame (items as rows, quarters as cols)
+    to list of row-dicts keyed by item_id.
     """
-    import re
     quarter_cols = [c for c in df.columns if re.match(r'\d{4}-Q\d', str(c))]
     records = []
     for col in quarter_cols:
@@ -115,21 +129,39 @@ def _pivot_kbs_wide(df) -> list:
     return records
 
 
+def _is_valid(v) -> bool:
+    """Return True if v is a non-None, non-NaN value."""
+    if v is None:
+        return False
+    try:
+        f = float(v)
+        return f == f   # NaN != NaN
+    except (TypeError, ValueError):
+        return False
+
+
 def _kbs_find(r: dict, *suffixes):
-    """Find value by exact key or suffix match (handles 'n_3.net_revenue' → 'net_revenue')."""
+    """Find first non-NaN value by exact key or suffix match.
+    Handles prefixed item_ids like 'n_3.net_revenue' → matches 'net_revenue'.
+    Skips NaN/None section-header rows so real leaf rows are found instead.
+    """
     for suffix in suffixes:
-        if suffix in r:
+        # 1. Exact key match (skip NaN)
+        if suffix in r and _is_valid(r[suffix]):
             return r[suffix]
+        # 2. Suffix match on dot/underscore-prefixed keys
         for k, v in r.items():
-            if k == suffix or k.endswith('.' + suffix) or k.endswith('_' + suffix):
+            if (k.endswith('.' + suffix) or k.endswith('_' + suffix)) and _is_valid(v):
                 return v
     return None
 
 
 def _kbs_income_row(r: dict) -> dict:
-    """Map KBS item_ids to income statement fields (handles banking + industrial)."""
-    revenue = _kbs_find(r, 'net_revenue', 'revenue', 'net_interest_income', 'total_operating_income')
-    gross   = _kbs_find(r, 'gross_profit', 'net_operating_income', 'net_fee_and_commission_income')
+    """Map KBS item_ids → income stmt fields. Handles banking + industrial."""
+    revenue = _kbs_find(r, 'net_revenue', 'revenue',
+                        'net_interest_income', 'total_operating_income')
+    gross   = _kbs_find(r, 'gross_profit', 'net_operating_income',
+                        'net_fee_and_commission_income')
     ebit    = _kbs_find(r, 'operating_profit', 'ebit',
                         'operating_profit_before_provision_for_credit_losses',
                         'profit_before_provision', 'profit_before_tax')
@@ -139,26 +171,30 @@ def _kbs_income_row(r: dict) -> dict:
     eps_val = _kbs_find(r, 'earnings_per_share_vnd', 'earning_per_share_vnd', 'eps',
                         'diluted_earnings_per_share')
     return {
-        'revenue':      _safe_float(revenue),
-        'gross_profit': _safe_float(gross),
-        'ebit':         _safe_float(ebit),
-        'net_income':   _safe_float(net_inc),
-        'eps':          _safe_float(eps_val),
+        'revenue':      _to_ty(revenue),
+        'gross_profit': _to_ty(gross),
+        'ebit':         _to_ty(ebit),
+        'net_income':   _to_ty(net_inc),
+        'eps':          _safe_float(eps_val),   # VND/share — no unit conversion
     }
 
 
 def _kbs_bs_row(r: dict) -> dict:
     total_assets = _kbs_find(r, 'total_assets')
     total_liab   = _kbs_find(r, 'total_liabilities', 'total_debt', 'liabilities')
-    equity       = _kbs_find(r, 'owners_equity', 'equity', 'total_equity',
+    equity       = _kbs_find(r,
+                             'capital_and_reserves',        # banks (ACB, VCB, BID, ...)
+                             'owners_equity', 'equity', 'total_equity',
                              'shareholders_equity', 'owner_equity')
-    cash         = _kbs_find(r, 'cash_and_cash_equivalents', 'cash_and_gold',
+    cash         = _kbs_find(r,
+                             'cash_gold_and_silver_precious_stones',  # banks
+                             'cash_and_cash_equivalents', 'cash_and_gold',
                              'cash', 'cash_and_short_term_investments')
     return {
-        'total_assets':      _safe_float(total_assets),
-        'total_liabilities': _safe_float(total_liab),
-        'equity':            _safe_float(equity),
-        'cash':              _safe_float(cash),
+        'total_assets':      _to_ty(total_assets),
+        'total_liabilities': _to_ty(total_liab),
+        'equity':            _to_ty(equity),
+        'cash':              _to_ty(cash),
     }
 
 
@@ -169,14 +205,17 @@ def _kbs_cf_row(r: dict) -> dict:
                     'cash_flows_from_investing_activities', 'cfi')
     cff = _kbs_find(r, 'net_cash_flows_from_financing_activities',
                     'cash_flows_from_financing_activities', 'cff')
-    cfo_f = _safe_float(cfo)
-    cfi_f = _safe_float(cfi)
+    cfo_ty = _to_ty(cfo)
+    cfi_ty = _to_ty(cfi)
     return {
-        'cfo': cfo_f, 'cfi': cfi_f,
-        'cff': _safe_float(cff),
-        'free_cashflow': (cfo_f + cfi_f) if (cfo_f is not None and cfi_f is not None) else None,
+        'cfo': cfo_ty,
+        'cfi': cfi_ty,
+        'cff': _to_ty(cff),
+        'free_cashflow': (cfo_ty + cfi_ty) if (cfo_ty is not None and cfi_ty is not None) else None,
     }
 
+
+# ── upserts ──────────────────────────────────────────────────────────────────
 
 def _upsert_income(conn, ticker, year, quarter, fields, crawl_time):
     conn.execute(text("""
@@ -212,15 +251,42 @@ def _upsert_cf(conn, ticker, year, quarter, fields, crawl_time):
     """), {'ticker': ticker, 'year': year, 'quarter': quarter, **fields, 'crawl_time': crawl_time})
 
 
+# ── rate-limit-aware fetch ───────────────────────────────────────────────────
+
+def _kbs_call_with_retry(fn, label: str, max_retries=3):
+    """Call fn(); on rate-limit (including SystemExit) sleep 40s and retry."""
+    for attempt in range(max_retries + 1):
+        try:
+            return fn()
+        except BaseException as e:
+            msg = str(e).lower()
+            is_rate_limit = ('rate limit' in msg or 'giới hạn' in msg
+                             or '429' in msg or isinstance(e, SystemExit))
+            if is_rate_limit and attempt < max_retries:
+                wait = 40 + attempt * 20   # 40s, 60s, 80s
+                print(f"  {label} rate limit — waiting {wait}s (attempt {attempt+1}/{max_retries})...")
+                time.sleep(wait)
+                continue
+            if isinstance(e, SystemExit):
+                raise RuntimeError(f"KBS rate limit exhausted for {label}") from e
+            raise
+
+
+# ── main fetch ───────────────────────────────────────────────────────────────
+
 def fetch_and_store_financials(ticker: str, crawl_time: datetime):
-    """Fetch income statement, balance sheet, and cash flow for a ticker."""
-    # --- Layer 1: vnstock 3.5+ (KBS — works from any IP) ---
+    """Fetch income stmt, balance sheet, cash flow for ticker via KBS → VCI fallback."""
+
+    # --- Layer 1: vnstock 3.5+ (KBS — works from VN IP) ---
     try:
         from vnstock import Vnstock as VnstockNew
         stock_kbs = VnstockNew().stock(symbol=ticker, source='KBS')
 
+        # Income statement
         try:
-            inc_df = stock_kbs.finance.income_statement(period='quarter')
+            def _fetch_income():
+                return stock_kbs.finance.income_statement(period='quarter')
+            inc_df = _kbs_call_with_retry(_fetch_income, f'[{ticker}] income')
             if inc_df is not None and not inc_df.empty:
                 rows = _pivot_kbs_wide(inc_df)
                 with engine.connect() as conn:
@@ -232,10 +298,13 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
         except Exception as e:
             print(f"  [{ticker}] KBS income error: {e}")
 
-        time.sleep(0.3)
+        time.sleep(5)
 
+        # Balance sheet
         try:
-            bs_df = stock_kbs.finance.balance_sheet(period='quarter')
+            def _fetch_bs():
+                return stock_kbs.finance.balance_sheet(period='quarter')
+            bs_df = _kbs_call_with_retry(_fetch_bs, f'[{ticker}] balance_sheet')
             if bs_df is not None and not bs_df.empty:
                 rows = _pivot_kbs_wide(bs_df)
                 with engine.connect() as conn:
@@ -247,40 +316,45 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
         except Exception as e:
             print(f"  [{ticker}] KBS balance sheet error: {e}")
 
-        time.sleep(0.3)
+        time.sleep(5)
 
+        # Cash flow
         try:
-            cf_df = stock_kbs.finance.cash_flow(period='quarter')
+            def _fetch_cf():
+                return stock_kbs.finance.cash_flow(period='quarter')
+            cf_df = _kbs_call_with_retry(_fetch_cf, f'[{ticker}] cashflow')
             if cf_df is not None and not cf_df.empty:
                 rows = _pivot_kbs_wide(cf_df)
+                non_null = 0
                 with engine.connect() as conn:
                     for r in rows:
-                        _upsert_cf(conn, ticker, r['year'], r['quarter'],
-                                   _kbs_cf_row(r), crawl_time)
+                        fields = _kbs_cf_row(r)
+                        if any(v is not None for v in fields.values()):
+                            _upsert_cf(conn, ticker, r['year'], r['quarter'],
+                                       fields, crawl_time)
+                            non_null += 1
                     conn.commit()
-                print(f"  [{ticker}] Cash flow (KBS): {len(rows)} quarters")
+                print(f"  [{ticker}] Cash flow (KBS): {len(rows)} quarters ({non_null} non-null)")
         except Exception as e:
             print(f"  [{ticker}] KBS cash flow error: {e}")
 
-        return  # KBS succeeded, skip VCI layer
+        return  # KBS succeeded — skip VCI
 
     except ImportError:
         pass
     except Exception as e:
         print(f"  [{ticker}] KBS init error: {e}")
 
-    # --- Layer 2: vnstock3 (VCI source) ---
+    # --- Layer 2: vnstock3 VCI (fallback, VN IP only) ---
     try:
         from vnstock3 import Vnstock
     except ImportError:
-        raise RuntimeError(
-            "vnstock/vnstock3 không khả dụng. "
-            "Crawler này sẽ chạy tự động trên server khi deploy."
-        )
+        raise RuntimeError("vnstock/vnstock3 not available")
+
     try:
         stock = Vnstock().stock(symbol=ticker, source='VCI')
 
-        # --- Income Statement ---
+        # VCI returns values in tỷ VND directly — no unit conversion needed
         try:
             income_df = stock.finance.income_statement(period='quarter', lang='en')
             if income_df is not None and not income_df.empty:
@@ -290,37 +364,20 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
                         quarter = int(row.get('quarter', 0)) if row.get('quarter') else None
                         if not year or not quarter:
                             continue
-                        conn.execute(text("""
-                            INSERT INTO vn30_income_stmt_quarterly
-                                (ticker, year, quarter, revenue, gross_profit, ebit, net_income, eps, crawl_time)
-                            VALUES
-                                (:ticker, :year, :quarter, :revenue, :gross_profit, :ebit, :net_income, :eps, :crawl_time)
-                            ON CONFLICT (ticker, year, quarter) DO UPDATE SET
-                                revenue = EXCLUDED.revenue,
-                                gross_profit = EXCLUDED.gross_profit,
-                                ebit = EXCLUDED.ebit,
-                                net_income = EXCLUDED.net_income,
-                                eps = EXCLUDED.eps,
-                                crawl_time = EXCLUDED.crawl_time
-                        """), {
-                            'ticker': ticker,
-                            'year': year,
-                            'quarter': quarter,
-                            'revenue': _safe_float(row.get('revenue') or row.get('Net Revenue')),
+                        _upsert_income(conn, ticker, year, quarter, {
+                            'revenue':      _safe_float(row.get('revenue') or row.get('Net Revenue')),
                             'gross_profit': _safe_float(row.get('gross_profit') or row.get('Gross Profit')),
-                            'ebit': _safe_float(row.get('ebit') or row.get('EBIT')),
-                            'net_income': _safe_float(row.get('net_income') or row.get('Net Income')),
-                            'eps': _safe_float(row.get('eps') or row.get('EPS')),
-                            'crawl_time': crawl_time,
-                        })
+                            'ebit':         _safe_float(row.get('ebit') or row.get('EBIT')),
+                            'net_income':   _safe_float(row.get('net_income') or row.get('Net Income')),
+                            'eps':          _safe_float(row.get('eps') or row.get('EPS')),
+                        }, crawl_time)
                     conn.commit()
-                print(f"  [{ticker}] Income stmt: {len(income_df)} quarters")
+                print(f"  [{ticker}] Income stmt (VCI): {len(income_df)} quarters")
         except Exception as e:
-            print(f"  [{ticker}] Income stmt error: {e}")
+            print(f"  [{ticker}] VCI income error: {e}")
 
-        time.sleep(0.3)
+        time.sleep(2)
 
-        # --- Balance Sheet ---
         try:
             bs_df = stock.finance.balance_sheet(period='quarter', lang='en')
             if bs_df is not None and not bs_df.empty:
@@ -330,35 +387,19 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
                         quarter = int(row.get('quarter', 0)) if row.get('quarter') else None
                         if not year or not quarter:
                             continue
-                        conn.execute(text("""
-                            INSERT INTO vn30_balance_sheet_quarterly
-                                (ticker, year, quarter, total_assets, total_liabilities, equity, cash, crawl_time)
-                            VALUES
-                                (:ticker, :year, :quarter, :total_assets, :total_liabilities, :equity, :cash, :crawl_time)
-                            ON CONFLICT (ticker, year, quarter) DO UPDATE SET
-                                total_assets = EXCLUDED.total_assets,
-                                total_liabilities = EXCLUDED.total_liabilities,
-                                equity = EXCLUDED.equity,
-                                cash = EXCLUDED.cash,
-                                crawl_time = EXCLUDED.crawl_time
-                        """), {
-                            'ticker': ticker,
-                            'year': year,
-                            'quarter': quarter,
-                            'total_assets': _safe_float(row.get('total_assets') or row.get('Total Assets')),
+                        _upsert_bs(conn, ticker, year, quarter, {
+                            'total_assets':      _safe_float(row.get('total_assets') or row.get('Total Assets')),
                             'total_liabilities': _safe_float(row.get('total_liabilities') or row.get('Total Liabilities')),
-                            'equity': _safe_float(row.get('equity') or row.get('Equity')),
-                            'cash': _safe_float(row.get('cash') or row.get('Cash')),
-                            'crawl_time': crawl_time,
-                        })
+                            'equity':            _safe_float(row.get('equity') or row.get('Equity')),
+                            'cash':              _safe_float(row.get('cash') or row.get('Cash')),
+                        }, crawl_time)
                     conn.commit()
-                print(f"  [{ticker}] Balance sheet: {len(bs_df)} quarters")
+                print(f"  [{ticker}] Balance sheet (VCI): {len(bs_df)} quarters")
         except Exception as e:
-            print(f"  [{ticker}] Balance sheet error: {e}")
+            print(f"  [{ticker}] VCI balance sheet error: {e}")
 
-        time.sleep(0.3)
+        time.sleep(2)
 
-        # --- Cash Flow ---
         try:
             cf_df = stock.finance.cash_flow(period='quarter', lang='en')
             if cf_df is not None and not cf_df.empty:
@@ -371,37 +412,18 @@ def fetch_and_store_financials(ticker: str, crawl_time: datetime):
                         cfo = _safe_float(row.get('cfo') or row.get('Operating Cash Flow'))
                         cfi = _safe_float(row.get('cfi') or row.get('Investing Cash Flow'))
                         cff = _safe_float(row.get('cff') or row.get('Financing Cash Flow'))
-                        fcf = (cfo + cfi) if (cfo is not None and cfi is not None) else None
-                        conn.execute(text("""
-                            INSERT INTO vn30_cashflow_quarterly
-                                (ticker, year, quarter, cfo, cfi, cff, free_cashflow, crawl_time)
-                            VALUES
-                                (:ticker, :year, :quarter, :cfo, :cfi, :cff, :free_cashflow, :crawl_time)
-                            ON CONFLICT (ticker, year, quarter) DO UPDATE SET
-                                cfo = EXCLUDED.cfo,
-                                cfi = EXCLUDED.cfi,
-                                cff = EXCLUDED.cff,
-                                free_cashflow = EXCLUDED.free_cashflow,
-                                crawl_time = EXCLUDED.crawl_time
-                        """), {
-                            'ticker': ticker,
-                            'year': year,
-                            'quarter': quarter,
-                            'cfo': cfo,
-                            'cfi': cfi,
-                            'cff': cff,
-                            'free_cashflow': fcf,
-                            'crawl_time': crawl_time,
-                        })
+                        _upsert_cf(conn, ticker, year, quarter, {
+                            'cfo': cfo, 'cfi': cfi, 'cff': cff,
+                            'free_cashflow': (cfo + cfi) if (cfo is not None and cfi is not None) else None,
+                        }, crawl_time)
                     conn.commit()
-                print(f"  [{ticker}] Cash flow: {len(cf_df)} quarters")
+                print(f"  [{ticker}] Cash flow (VCI): {len(cf_df)} quarters")
         except Exception as e:
-            print(f"  [{ticker}] Cash flow error: {e}")
+            print(f"  [{ticker}] VCI cash flow error: {e}")
 
     except Exception as e:
         import traceback
-        print(f"  [{ticker}] FATAL: {e}")
-        print(f"  {traceback.format_exc()}")
+        print(f"  [{ticker}] FATAL: {e}\n  {traceback.format_exc()}")
         raise
 
 
@@ -416,12 +438,13 @@ def main():
         try:
             fetch_and_store_financials(ticker, crawl_time)
             success += 1
-            time.sleep(1.0)   # Polite delay between tickers
+            time.sleep(5)  # inter-ticker pause — stay under 12 req/min
         except Exception:
             errors += 1
 
     print(f"\n{'='*60}")
     print(f"VN30 Financials Crawler done. Success: {success}, Errors: {errors}")
+    print(f"Unit: tỷ VND (monetary), VND/share (EPS)")
     print(f"Completed at {datetime.now().strftime('%H:%M:%S')}")
     print(f"{'='*60}")
 
