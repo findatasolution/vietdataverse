@@ -120,30 +120,33 @@ def fetch_ohlcv_vnstock(ticker: str, start_date: str, end_date: str) -> list:
     return []
 
 
-def upsert_records(records: list[dict], crawl_time: datetime, batch_size: int = 200):
-    """Batch upsert to avoid holding DB connection for too long (timeout on 2600+ row inserts)."""
+def upsert_records(records: list[dict], crawl_time: datetime):
+    """Bulk upsert via psycopg2 execute_values — single round-trip, no timeout on large datasets."""
     if not records:
         return 0
-    inserted = 0
-    for i in range(0, len(records), batch_size):
-        batch = records[i:i + batch_size]
-        with engine.connect() as conn:
-            for rec in batch:
-                conn.execute(text("""
-                    INSERT INTO vn30_ohlcv_daily (ticker, date, open, high, low, close, volume, value, crawl_time)
-                    VALUES (:ticker, :date, :open, :high, :low, :close, :volume, :value, :crawl_time)
-                    ON CONFLICT (ticker, date) DO UPDATE SET
-                        open = EXCLUDED.open,
-                        high = EXCLUDED.high,
-                        low = EXCLUDED.low,
-                        close = EXCLUDED.close,
-                        volume = EXCLUDED.volume,
-                        value = EXCLUDED.value,
-                        crawl_time = EXCLUDED.crawl_time
-                """), {**rec, 'crawl_time': crawl_time})
-                inserted += 1
-            conn.commit()
-    return inserted
+    from psycopg2.extras import execute_values
+    rows = [
+        (r['ticker'], r['date'], r.get('open'), r.get('high'), r.get('low'),
+         r.get('close'), r.get('volume'), r.get('value'), crawl_time)
+        for r in records
+    ]
+    sql = """
+        INSERT INTO vn30_ohlcv_daily
+            (ticker, date, open, high, low, close, volume, value, crawl_time)
+        VALUES %s
+        ON CONFLICT (ticker, date) DO UPDATE SET
+            open=EXCLUDED.open, high=EXCLUDED.high, low=EXCLUDED.low,
+            close=EXCLUDED.close, volume=EXCLUDED.volume,
+            value=EXCLUDED.value, crawl_time=EXCLUDED.crawl_time
+    """
+    raw_conn = engine.raw_connection()
+    try:
+        with raw_conn.cursor() as cur:
+            execute_values(cur, sql, rows, page_size=500)
+        raw_conn.commit()
+    finally:
+        raw_conn.close()
+    return len(rows)
 
 
 def main():
