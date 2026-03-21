@@ -120,26 +120,29 @@ def fetch_ohlcv_vnstock(ticker: str, start_date: str, end_date: str) -> list:
     return []
 
 
-def upsert_records(records: list[dict], crawl_time: datetime):
+def upsert_records(records: list[dict], crawl_time: datetime, batch_size: int = 200):
+    """Batch upsert to avoid holding DB connection for too long (timeout on 2600+ row inserts)."""
     if not records:
         return 0
     inserted = 0
-    with engine.connect() as conn:
-        for rec in records:
-            conn.execute(text("""
-                INSERT INTO vn30_ohlcv_daily (ticker, date, open, high, low, close, volume, value, crawl_time)
-                VALUES (:ticker, :date, :open, :high, :low, :close, :volume, :value, :crawl_time)
-                ON CONFLICT (ticker, date) DO UPDATE SET
-                    open = EXCLUDED.open,
-                    high = EXCLUDED.high,
-                    low = EXCLUDED.low,
-                    close = EXCLUDED.close,
-                    volume = EXCLUDED.volume,
-                    value = EXCLUDED.value,
-                    crawl_time = EXCLUDED.crawl_time
-            """), {**rec, 'crawl_time': crawl_time})
-            inserted += 1
-        conn.commit()
+    for i in range(0, len(records), batch_size):
+        batch = records[i:i + batch_size]
+        with engine.connect() as conn:
+            for rec in batch:
+                conn.execute(text("""
+                    INSERT INTO vn30_ohlcv_daily (ticker, date, open, high, low, close, volume, value, crawl_time)
+                    VALUES (:ticker, :date, :open, :high, :low, :close, :volume, :value, :crawl_time)
+                    ON CONFLICT (ticker, date) DO UPDATE SET
+                        open = EXCLUDED.open,
+                        high = EXCLUDED.high,
+                        low = EXCLUDED.low,
+                        close = EXCLUDED.close,
+                        volume = EXCLUDED.volume,
+                        value = EXCLUDED.value,
+                        crawl_time = EXCLUDED.crawl_time
+                """), {**rec, 'crawl_time': crawl_time})
+                inserted += 1
+            conn.commit()
     return inserted
 
 
