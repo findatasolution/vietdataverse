@@ -107,9 +107,9 @@ async def get_sbv_interbank_data(
     try:
         date_filter = get_date_filter(period)
         query = text("""
-            SELECT date, ls_quadem, ls_1m, ls_3m, rediscount_rate, refinancing_rate
+            SELECT date, quadem, "1m", "3m", rediscount_rate, refinancing_rate
             FROM (
-                SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_3m,
+                SELECT DISTINCT ON (date) date, quadem, "1m", "3m",
                        rediscount_rate, refinancing_rate, crawl_time
                 FROM vn_macro_sbv_rate_daily
                 WHERE date >= :date_filter
@@ -244,7 +244,7 @@ async def get_bank_types(request: Request):
     try:
         with get_engine_crawl().connect() as conn:
             rows = conn.execute(text(
-                "SELECT DISTINCT bank_code FROM vn_macro_termdepo_daily WHERE bank_code IS NOT NULL ORDER BY bank_code"
+                "SELECT DISTINCT bank FROM vn_macro_termdepo_daily WHERE bank IS NOT NULL ORDER BY bank"
             )).fetchall()
         return _json_response({"success": True, "banks": [r[0] for r in rows if r[0]]})
     except HTTPException:
