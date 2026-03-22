@@ -342,7 +342,7 @@ HTML:
 def save_bank_data(bank_code, data, force=False):
     """Save bank data to DB. Deletes existing row first if force=True."""
     record = {
-        'bank_code': bank_code,
+        'bank': bank_code,
         'date': date_str,
         'crawl_time': datetime.now(),
     }
@@ -353,7 +353,7 @@ def save_bank_data(bank_code, data, force=False):
     with engine.connect() as conn:
         if not force:
             result = conn.execute(
-                text("SELECT COUNT(*) FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
+                text("SELECT COUNT(*) FROM vn_macro_termdepo_daily WHERE bank = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
             if result.scalar() > 0:
@@ -362,7 +362,7 @@ def save_bank_data(bank_code, data, force=False):
 
         if force:
             conn.execute(
-                text("DELETE FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
+                text("DELETE FROM vn_macro_termdepo_daily WHERE bank = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
 
