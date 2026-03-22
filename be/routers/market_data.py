@@ -205,8 +205,7 @@ async def get_term_deposit_data(
     try:
         date_filter = get_date_filter(period)
         query = text("""
-            SELECT date, "1m" AS term_1m, "3m" AS term_3m, "6m" AS term_6m,
-                   "12m" AS term_12m, "24m" AS term_24m
+            SELECT date, "1m", "3m", "6m", "12m", "24m"
             FROM (
                 SELECT DISTINCT ON (date_trunc('month', date))
                        date, "1m", "3m", "6m", "12m", "24m", crawl_time
