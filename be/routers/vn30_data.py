@@ -359,3 +359,110 @@ async def get_macro_trade(
         return _json_response({"success": True, "count": len(data), "data": data})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch trade data: {e}")
+
+
+# ─────────────────────────────────────────────────────────────
+# BULK DOWNLOAD ENDPOINTS (for Download tab CSV export)
+# ─────────────────────────────────────────────────────────────
+
+@router.get("/api/v1/vn30/download/profile")
+async def download_vn30_profile(
+    request: Request,
+    _auth: None = Depends(authenticate_user_optional),
+):
+    """VN30 company profile — free, full table."""
+    try:
+        with get_engine_crawl().connect() as conn:
+            rows = conn.execute(text("""
+                SELECT ticker, company_name, exchange, icb_sector, icb_industry,
+                       market_cap_billion, listed_date
+                FROM vn30_company_profile
+                ORDER BY ticker ASC
+            """)).fetchall()
+        data = [{"ticker": r[0], "company_name": r[1], "exchange": r[2],
+                 "icb_sector": r[3], "icb_industry": r[4],
+                 "market_cap_billion": r[5], "listed_date": str(r[6]) if r[6] else None}
+                for r in rows]
+        return _json_response({"success": True, "count": len(data), "data": data})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed: {e}")
+
+
+@router.get("/api/v1/vn30/download/prices")
+async def download_vn30_prices(
+    request: Request,
+    period: str = Query(default="1y", description="7d, 1m, 1y, all"),
+    _auth: None = Depends(authenticate_user_optional),
+):
+    """VN30 OHLCV prices all tickers — premium."""
+    if not _is_premium(request):
+        raise HTTPException(status_code=403, detail="Premium required")
+    days_map = {"7d": 7, "1m": 30, "1y": 365}
+    date_filter = f"CURRENT_DATE - INTERVAL '{days_map.get(period, 365)} days'" if period != "all" else "'2000-01-01'::date"
+    try:
+        with get_engine_crawl().connect() as conn:
+            rows = conn.execute(text(f"""
+                SELECT ticker, date, open, high, low, close, volume, value
+                FROM vn30_ohlcv_daily
+                WHERE date >= {date_filter}
+                ORDER BY ticker ASC, date ASC
+            """)).fetchall()
+        data = [{"ticker": r[0], "date": str(r[1]), "open": r[2], "high": r[3],
+                 "low": r[4], "close": r[5], "volume": r[6], "value": r[7]}
+                for r in rows]
+        return _json_response({"success": True, "count": len(data), "data": data})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed: {e}")
+
+
+@router.get("/api/v1/vn30/download/financials")
+async def download_vn30_financials(
+    request: Request,
+    _auth: None = Depends(authenticate_user_optional),
+):
+    """VN30 quarterly income statement all tickers — premium."""
+    if not _is_premium(request):
+        raise HTTPException(status_code=403, detail="Premium required")
+    try:
+        with get_engine_crawl().connect() as conn:
+            rows = conn.execute(text("""
+                SELECT ticker, year, quarter, revenue, gross_profit,
+                       ebit, net_income, eps
+                FROM vn30_income_stmt_quarterly
+                ORDER BY ticker ASC, year DESC, quarter DESC
+            """)).fetchall()
+        data = [{"ticker": r[0], "year": r[1], "quarter": r[2], "revenue": r[3],
+                 "gross_profit": r[4], "ebit": r[5], "net_income": r[6], "eps": r[7]}
+                for r in rows]
+        return _json_response({"success": True, "count": len(data), "data": data})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed: {e}")
+
+
+@router.get("/api/v1/vn30/download/ratios")
+async def download_vn30_ratios(
+    request: Request,
+    period: str = Query(default="1y", description="1m, 1y, all"),
+    _auth: None = Depends(authenticate_user_optional),
+):
+    """VN30 daily financial ratios all tickers — premium."""
+    if not _is_premium(request):
+        raise HTTPException(status_code=403, detail="Premium required")
+    days_map = {"1m": 30, "1y": 365}
+    date_filter = f"CURRENT_DATE - INTERVAL '{days_map.get(period, 365)} days'" if period != "all" else "'2000-01-01'::date"
+    try:
+        with get_engine_crawl().connect() as conn:
+            rows = conn.execute(text(f"""
+                SELECT ticker, date, pe, pb, ps, roe, roa, eps,
+                       dividend_yield, market_cap_billion
+                FROM vn30_ratio_daily
+                WHERE date >= {date_filter}
+                ORDER BY ticker ASC, date ASC
+            """)).fetchall()
+        data = [{"ticker": r[0], "date": str(r[1]), "pe": r[2], "pb": r[3],
+                 "ps": r[4], "roe": r[5], "roa": r[6], "eps": r[7],
+                 "dividend_yield": r[8], "market_cap_billion": r[9]}
+                for r in rows]
+        return _json_response({"success": True, "count": len(data), "data": data})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed: {e}")

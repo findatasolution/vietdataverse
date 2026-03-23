@@ -1282,9 +1282,42 @@
                                 </div>
                             </div>
 
+                            <!-- Category: VN30 Stock Data -->
+                            <p class="dl-cat-label" style="margin-top:1.5rem;">📈 VN30 – Dữ Liệu Cổ Phiếu</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span>Tên bảng</span><span>Mô tả</span><span>Quyền</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-building" style="color:#42A5F5;margin-right:6px;"></i>VN30 Company Profile</span>
+                                    <span>Danh sách 30 mã: tên, sàn, ngành ICB, vốn hóa</span>
+                                    <span style="color:#66BB6A;font-size:0.75rem;font-weight:600;">FREE</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-profile')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-chart-candlestick" style="color:#C9A55B;margin-right:6px;"></i>VN30 OHLCV Prices</span>
+                                    <span>Giá mở/cao/thấp/đóng + khối lượng – toàn bộ 30 mã</span>
+                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-prices')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-file-invoice-dollar" style="color:#EF5350;margin-right:6px;"></i>VN30 Income Statement</span>
+                                    <span>Doanh thu, lợi nhuận gộp, EBIT, lợi nhuận ròng, EPS theo quý</span>
+                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-financials')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-percent" style="color:#AB47BC;margin-right:6px;"></i>VN30 Financial Ratios</span>
+                                    <span>P/E, P/B, P/S, ROE, ROA, EPS, Dividend Yield – toàn bộ 30 mã</span>
+                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-ratios')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
                             <p style="font-size:0.75rem;color:var(--text-tertiary);margin-top:1.25rem;padding-top:1rem;border-top:1px solid #2a2a2a;">
                                 <i class="fas fa-info-circle" style="margin-right:4px;"></i>
                                 Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột.
+                                Dữ liệu <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium.
                                 Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.
                             </p>
                         </div>
@@ -3048,14 +3081,43 @@
                 } else if (datasetId === 'sbv-interbank') {
                     url = `${base}/sbv-interbank?period=all`;
                     filename = 'sbv_interbank_rates';
-                    rows2csv = d => 'Date,Overnight(%),1M(%),9M(%),Rediscount(%),Refinancing(%)\n' +
-                        d.dates.map((dt,i) => `${dt},${d.overnight[i]??''},${d.month_1[i]??''},${d.month_9[i]??''},${d.rediscount[i]??''},${d.refinancing[i]??''}`).join('\n');
+                    rows2csv = d => {
+                        // API may return month_9 (new) or month_3 (old column name)
+                        const col3 = d.month_9 ?? d.month_3;
+                        const label3 = d.month_9 ? '9M(%)' : '3M(%)';
+                        return `Date,Overnight(%),1M(%),${label3},Rediscount(%),Refinancing(%)\n` +
+                            d.dates.map((dt,i) => `${dt},${d.overnight[i]??''},${d.month_1[i]??''},${col3[i]??''},${d.rediscount[i]??''},${d.refinancing[i]??''}`).join('\n');
+                    };
 
                 } else if (datasetId === 'global-macro') {
                     url = `${base}/global-macro?period=all`;
                     filename = 'global_macro';
                     rows2csv = d => 'Date,Gold (USD/oz),Silver (USD/oz),NASDAQ\n' +
                         d.dates.map((dt,i) => `${dt},${d.gold_prices[i]??''},${d.silver_prices[i]??''},${d.nasdaq_prices[i]??''}`).join('\n');
+
+                } else if (datasetId === 'vn30-profile') {
+                    url = `${base}/vn30/download/profile`;
+                    filename = 'vn30_company_profile';
+                    rows2csv = d => 'Ticker,Company Name,Exchange,ICB Sector,ICB Industry,Market Cap (tỷ VND),Listed Date\n' +
+                        d.map(r => `${r.ticker},"${r.company_name ?? ''}",${r.exchange ?? ''},${r.icb_sector ?? ''},${r.icb_industry ?? ''},${r.market_cap_billion ?? ''},${r.listed_date ?? ''}`).join('\n');
+
+                } else if (datasetId === 'vn30-prices') {
+                    url = `${base}/vn30/download/prices?period=all`;
+                    filename = 'vn30_ohlcv_prices';
+                    rows2csv = d => 'Ticker,Date,Open,High,Low,Close,Volume,Value (VND)\n' +
+                        d.map(r => `${r.ticker},${r.date},${r.open??''},${r.high??''},${r.low??''},${r.close??''},${r.volume??''},${r.value??''}`).join('\n');
+
+                } else if (datasetId === 'vn30-financials') {
+                    url = `${base}/vn30/download/financials`;
+                    filename = 'vn30_income_statement';
+                    rows2csv = d => 'Ticker,Year,Quarter,Revenue (tỷ),Gross Profit (tỷ),EBIT (tỷ),Net Income (tỷ),EPS (VND)\n' +
+                        d.map(r => `${r.ticker},${r.year},Q${r.quarter},${r.revenue??''},${r.gross_profit??''},${r.ebit??''},${r.net_income??''},${r.eps??''}`).join('\n');
+
+                } else if (datasetId === 'vn30-ratios') {
+                    url = `${base}/vn30/download/ratios?period=all`;
+                    filename = 'vn30_financial_ratios';
+                    rows2csv = d => 'Ticker,Date,P/E,P/B,P/S,ROE(%),ROA(%),EPS,Dividend Yield(%),Market Cap (tỷ)\n' +
+                        d.map(r => `${r.ticker},${r.date},${r.pe??''},${r.pb??''},${r.ps??''},${r.roe??''},${r.roa??''},${r.eps??''},${r.dividend_yield??''},${r.market_cap_billion??''}`).join('\n');
 
                 } else {
                     throw new Error('Unknown dataset: ' + datasetId);
@@ -3403,7 +3465,7 @@
                     datasets: [
                         { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#C9A55B', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#42A5F5', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: '9 Tháng (9M)',         data: d.month_9,   borderColor: '#66BB6A', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
+                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#66BB6A', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
                     ]
                 },
                 options: _sbvChartOptions
