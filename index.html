@@ -688,6 +688,10 @@
                             <i class="fas fa-globe"></i>
                             <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
                         </button>
+                        <button class="chart-tab-btn" data-tab="tab-download">
+                            <i class="fas fa-database"></i>
+                            <span>Download</span>
+                        </button>
                     </div>
 
                     <!-- Tab 1: Vàng & Bạc (Load immediately) -->
@@ -1152,6 +1156,138 @@
                                 </div>
                             </div>
                         </article>
+                    </div>
+
+                    <!-- Tab 4: Download -->
+                    <div class="tab-content" id="tab-download">
+                        <div class="chart-card" style="padding:1.5rem;">
+                            <div style="margin-bottom:1.5rem;">
+                                <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0 0 0.35rem;">
+                                    <i class="fas fa-database" style="color:#C9A55B;margin-right:0.5rem;"></i>Tải Dữ Liệu (CSV)
+                                </h3>
+                                <p style="font-size:0.82rem;color:var(--text-tertiary);margin:0;">Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).</p>
+                            </div>
+
+                            <!-- Category: Precious Metals -->
+                            <p class="dl-cat-label">🥇 Kim Loại Quý</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span>Tên bảng</span><span>Mô tả</span><span>Nguồn</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" style="color:#C9A55B;margin-right:6px;"></i>Gold – DOJI HN</span>
+                                    <span>Giá vàng mua/bán DOJI Hà Nội (VND/chỉ)</span>
+                                    <span>24h.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI HN')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" style="color:#C9A55B;margin-right:6px;"></i>Gold – DOJI SG</span>
+                                    <span>Giá vàng mua/bán DOJI TP.HCM (VND/chỉ)</span>
+                                    <span>24h.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI SG')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" style="color:#C9A55B;margin-right:6px;"></i>Gold – SJC HN</span>
+                                    <span>Giá vàng SJC Hà Nội (VND/chỉ)</span>
+                                    <span>24h.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-SJC HN')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" style="color:#C9A55B;margin-right:6px;"></i>Gold – BTMC SJC</span>
+                                    <span>Giá vàng BTMC SJC (VND/chỉ)</span>
+                                    <span>BTMC API</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-BTMC SJC')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-circle" style="color:#A0A0A0;margin-right:6px;font-size:0.7em;"></i>Silver – Phú Quý</span>
+                                    <span>Giá bạc mua/bán Phú Quý (VND)</span>
+                                    <span>phuquy.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('silver')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
+                            <!-- Category: Currency & FX -->
+                            <p class="dl-cat-label" style="margin-top:1.5rem;">💱 Tỷ Giá & Lãi Suất Tiết Kiệm</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span>Tên bảng</span><span>Mô tả</span><span>Nguồn</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" style="color:#42A5F5;margin-right:6px;"></i>FX – SBV USD/VND</span>
+                                    <span>Tỷ giá trung tâm USD/VND (NHNN)</span>
+                                    <span>sbv.gov.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-SBV-USD')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" style="color:#42A5F5;margin-right:6px;"></i>FX – VCB USD</span>
+                                    <span>Tỷ giá USD mua/bán Vietcombank (VND)</span>
+                                    <span>Vietcombank</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-USD')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" style="color:#42A5F5;margin-right:6px;"></i>FX – VCB EUR</span>
+                                    <span>Tỷ giá EUR mua/bán Vietcombank (VND)</span>
+                                    <span>Vietcombank</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-EUR')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" style="color:#42A5F5;margin-right:6px;"></i>FX – VCB JPY</span>
+                                    <span>Tỷ giá JPY mua/bán Vietcombank (VND)</span>
+                                    <span>Vietcombank</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-JPY')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – ACB</span>
+                                    <span>Lãi suất tiết kiệm kỳ hạn ACB (%/năm)</span>
+                                    <span>acb.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-ACB')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – VCB</span>
+                                    <span>Lãi suất tiết kiệm kỳ hạn Vietcombank (%/năm)</span>
+                                    <span>vietcombank.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-VCB')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – CTG</span>
+                                    <span>Lãi suất tiết kiệm kỳ hạn VietinBank (%/năm)</span>
+                                    <span>vietinbank.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-CTG')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – SHB</span>
+                                    <span>Lãi suất tiết kiệm kỳ hạn SHB (%/năm)</span>
+                                    <span>shb.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-SHB')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
+                            <!-- Category: SBV Policy & Global -->
+                            <p class="dl-cat-label" style="margin-top:1.5rem;">🏦 Lãi Suất NHNN & Thị Trường Quốc Tế</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span>Tên bảng</span><span>Mô tả</span><span>Nguồn</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-chart-line" style="color:#EF5350;margin-right:6px;"></i>SBV Interbank Rates</span>
+                                    <span>Lãi suất liên ngân hàng + điều hành NHNN (%/năm)</span>
+                                    <span>sbv.gov.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('sbv-interbank')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-globe" style="color:#AB47BC;margin-right:6px;"></i>Global Macro</span>
+                                    <span>Vàng quốc tế (USD/oz), Bạc, NASDAQ Composite</span>
+                                    <span>Yahoo Finance</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('global-macro')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
+                            <p style="font-size:0.75rem;color:var(--text-tertiary);margin-top:1.25rem;padding-top:1rem;border-top:1px solid #2a2a2a;">
+                                <i class="fas fa-info-circle" style="margin-right:4px;"></i>
+                                Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột.
+                                Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -2639,6 +2775,7 @@
             } else if (tabId === 'tab-global') {
                 loadChartData('global', '1m');
             }
+            // tab-download: no charts to load, content is static
         }
 
         /* =========================================================
@@ -2869,6 +3006,89 @@
         }
 
         /* =========================================================
+           DOWNLOAD DATASET (tab-download)
+        ========================================================= */
+        async function downloadDataset(datasetId) {
+            const base = window.APP_CONFIG.API_BASE_URL;
+            const btn = event.currentTarget;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
+            btn.disabled = true;
+
+            try {
+                let url, filename, rows2csv;
+
+                if (datasetId.startsWith('gold-')) {
+                    const type = datasetId.slice(5); // e.g. "DOJI HN"
+                    url = `${base}/gold?period=all&type=${encodeURIComponent(type)}`;
+                    filename = `gold_${type.replace(/ /g,'_')}`;
+                    rows2csv = d => 'Date,Buy Price (VND),Sell Price (VND)\n' +
+                        d.dates.map((dt,i) => `${dt},${d.buy_prices[i]},${d.sell_prices[i]}`).join('\n');
+
+                } else if (datasetId === 'silver') {
+                    url = `${base}/silver?period=all`;
+                    filename = 'silver_phuquy';
+                    rows2csv = d => 'Date,Buy Price (VND),Sell Price (VND)\n' +
+                        d.dates.map((dt,i) => `${dt},${d.buy_prices[i]},${d.sell_prices[i]}`).join('\n');
+
+                } else if (datasetId.startsWith('fxrate-')) {
+                    const [, bank, currency] = datasetId.split('-');
+                    url = `${base}/sbv-centralrate?period=all&bank=${bank}&currency=${currency}`;
+                    filename = `fxrate_${bank}_${currency}`;
+                    rows2csv = d => 'Date,Rate (VND),Buy Cash,Sell Rate\n' +
+                        d.dates.map((dt,i) => `${dt},${d.usd_vnd_rate[i]??''},${d.buy_cash[i]??''},${d.sell_rate[i]??''}`).join('\n');
+
+                } else if (datasetId.startsWith('termdepo-')) {
+                    const bank = datasetId.slice(9);
+                    url = `${base}/termdepo?period=all&bank=${bank}`;
+                    filename = `termdepo_${bank}`;
+                    rows2csv = d => 'Date,1M(%),3M(%),6M(%),12M(%),24M(%)\n' +
+                        d.dates.map((dt,i) => `${dt},${d.term_1m[i]??''},${d.term_3m[i]??''},${d.term_6m[i]??''},${d.term_12m[i]??''},${d.term_24m[i]??''}`).join('\n');
+
+                } else if (datasetId === 'sbv-interbank') {
+                    url = `${base}/sbv-interbank?period=all`;
+                    filename = 'sbv_interbank_rates';
+                    rows2csv = d => 'Date,Overnight(%),1M(%),9M(%),Rediscount(%),Refinancing(%)\n' +
+                        d.dates.map((dt,i) => `${dt},${d.overnight[i]??''},${d.month_1[i]??''},${d.month_9[i]??''},${d.rediscount[i]??''},${d.refinancing[i]??''}`).join('\n');
+
+                } else if (datasetId === 'global-macro') {
+                    url = `${base}/global-macro?period=all`;
+                    filename = 'global_macro';
+                    rows2csv = d => 'Date,Gold (USD/oz),Silver (USD/oz),NASDAQ\n' +
+                        d.dates.map((dt,i) => `${dt},${d.gold_prices[i]??''},${d.silver_prices[i]??''},${d.nasdaq_prices[i]??''}`).join('\n');
+
+                } else {
+                    throw new Error('Unknown dataset: ' + datasetId);
+                }
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`API error ${res.status}`);
+                const json = await res.json();
+                if (!json.success || !json.data) throw new Error('Invalid response');
+
+                const csv = rows2csv(json.data);
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `vietdataverse_${filename}_${new Date().toISOString().slice(0,10)}.csv`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                btn.innerHTML = '<i class="fas fa-check"></i> Done';
+                setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 2000);
+
+                if (typeof gtag === 'function') gtag('event', 'file_download', { file_name: filename, file_type: 'csv' });
+
+            } catch (err) {
+                console.error('[download]', err);
+                btn.innerHTML = '<i class="fas fa-times"></i> Lỗi';
+                setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 2500);
+            }
+        }
+
+        /* =========================================================
            CHART RENDERING SYSTEM WITH LAZY LOADING & CACHING
         ========================================================= */
 
@@ -2889,7 +3109,8 @@
         const loadedTabs = {
             'tab-gold-silver': false,
             'tab-currency': false,
-            'tab-global': false
+            'tab-global': false,
+            'tab-download': false
         };
 
         // Map chart types to their API endpoints
