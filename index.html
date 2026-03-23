@@ -1187,12 +1187,6 @@
                                     <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI SG')"><i class="fas fa-download"></i> CSV</button></span>
                                 </div>
                                 <div class="dl-row">
-                                    <span><i class="fas fa-coins" style="color:#C9A55B;margin-right:6px;"></i>Gold – SJC HN</span>
-                                    <span>Giá vàng SJC Hà Nội (VND/chỉ)</span>
-                                    <span>24h.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('gold-SJC HN')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
                                     <span><i class="fas fa-coins" style="color:#C9A55B;margin-right:6px;"></i>Gold – BTMC SJC</span>
                                     <span>Giá vàng BTMC SJC (VND/chỉ)</span>
                                     <span>BTMC API</span>
@@ -1241,24 +1235,6 @@
                                     <span>Lãi suất tiết kiệm kỳ hạn ACB (%/năm)</span>
                                     <span>acb.com.vn</span>
                                     <span><button class="dl-btn" onclick="downloadDataset('termdepo-ACB')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – VCB</span>
-                                    <span>Lãi suất tiết kiệm kỳ hạn Vietcombank (%/năm)</span>
-                                    <span>vietcombank.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-VCB')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – CTG</span>
-                                    <span>Lãi suất tiết kiệm kỳ hạn VietinBank (%/năm)</span>
-                                    <span>vietinbank.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-CTG')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – SHB</span>
-                                    <span>Lãi suất tiết kiệm kỳ hạn SHB (%/năm)</span>
-                                    <span>shb.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-SHB')"><i class="fas fa-download"></i> CSV</button></span>
                                 </div>
                             </div>
 
@@ -3068,8 +3044,13 @@
                     const [, bank, currency] = datasetId.split('-');
                     url = `${base}/sbv-centralrate?period=all&bank=${bank}&currency=${currency}`;
                     filename = `fxrate_${bank}_${currency}`;
-                    rows2csv = d => 'Date,Rate (VND),Buy Cash,Sell Rate\n' +
-                        d.dates.map((dt,i) => `${dt},${d.usd_vnd_rate[i]??''},${d.buy_cash[i]??''},${d.sell_rate[i]??''}`).join('\n');
+                    // SBV: only central rate; VCB: include buy/sell
+                    const isSBV = bank === 'SBV';
+                    rows2csv = isSBV
+                        ? d => 'Date,Central Rate (VND/USD)\n' +
+                            d.dates.map((dt,i) => `${dt},${d.usd_vnd_rate[i]??''}`).join('\n')
+                        : d => 'Date,Buy Transfer (VND),Buy Cash (VND),Sell Rate (VND)\n' +
+                            d.dates.map((dt,i) => `${dt},${d.usd_vnd_rate[i]??''},${d.buy_cash[i]??''},${d.sell_rate[i]??''}`).join('\n');
 
                 } else if (datasetId.startsWith('termdepo-')) {
                     const bank = datasetId.slice(9);
@@ -3081,13 +3062,8 @@
                 } else if (datasetId === 'sbv-interbank') {
                     url = `${base}/sbv-interbank?period=all`;
                     filename = 'sbv_interbank_rates';
-                    rows2csv = d => {
-                        // API may return month_9 (new) or month_3 (old column name)
-                        const col3 = d.month_9 ?? d.month_3;
-                        const label3 = d.month_9 ? '9M(%)' : '3M(%)';
-                        return `Date,Overnight(%),1M(%),${label3},Rediscount(%),Refinancing(%)\n` +
-                            d.dates.map((dt,i) => `${dt},${d.overnight[i]??''},${d.month_1[i]??''},${col3[i]??''},${d.rediscount[i]??''},${d.refinancing[i]??''}`).join('\n');
-                    };
+                    rows2csv = d => 'Date,Overnight(%),1M(%),3M(%),6M(%),9M(%),Rediscount(%),Refinancing(%)\n' +
+                        d.dates.map((dt,i) => `${dt},${d.overnight[i]??''},${d.month_1[i]??''},${d.month_3[i]??''},${d.month_6[i]??''},${d.month_9[i]??''},${d.rediscount[i]??''},${d.refinancing[i]??''}`).join('\n');
 
                 } else if (datasetId === 'global-macro') {
                     url = `${base}/global-macro?period=all`;

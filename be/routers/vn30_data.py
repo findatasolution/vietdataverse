@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import Response
 from sqlalchemy import text
 
-from core.engines import get_engine_crawl
+from core.engines import get_engine_crawl, get_engine_corp
 from middleware import authenticate_user_optional
 
 router = APIRouter()
@@ -372,7 +372,7 @@ async def download_vn30_profile(
 ):
     """VN30 company profile — free, full table."""
     try:
-        with get_engine_crawl().connect() as conn:
+        with get_engine_corp().connect() as conn:
             rows = conn.execute(text("""
                 SELECT ticker, company_name, exchange, icb_sector, icb_industry,
                        market_cap_billion, listed_date
@@ -400,7 +400,7 @@ async def download_vn30_prices(
     days_map = {"7d": 7, "1m": 30, "1y": 365}
     date_filter = f"CURRENT_DATE - INTERVAL '{days_map.get(period, 365)} days'" if period != "all" else "'2000-01-01'::date"
     try:
-        with get_engine_crawl().connect() as conn:
+        with get_engine_corp().connect() as conn:
             rows = conn.execute(text(f"""
                 SELECT ticker, date, open, high, low, close, volume, value
                 FROM vn30_ohlcv_daily
@@ -424,7 +424,7 @@ async def download_vn30_financials(
     if not _is_premium(request):
         raise HTTPException(status_code=403, detail="Premium required")
     try:
-        with get_engine_crawl().connect() as conn:
+        with get_engine_corp().connect() as conn:
             rows = conn.execute(text("""
                 SELECT ticker, year, quarter, revenue, gross_profit,
                        ebit, net_income, eps
@@ -451,7 +451,7 @@ async def download_vn30_ratios(
     days_map = {"1m": 30, "1y": 365}
     date_filter = f"CURRENT_DATE - INTERVAL '{days_map.get(period, 365)} days'" if period != "all" else "'2000-01-01'::date"
     try:
-        with get_engine_crawl().connect() as conn:
+        with get_engine_corp().connect() as conn:
             rows = conn.execute(text(f"""
                 SELECT ticker, date, pe, pb, ps, roe, roa, eps,
                        dividend_yield, market_cap_billion
