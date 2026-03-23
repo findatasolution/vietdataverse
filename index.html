@@ -889,13 +889,13 @@
                             </div>
                         </div>
 
-                        <!-- SBV Interbank Rate Chart -->
+                        <!-- SBV Interbank Rate Charts -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="sbvChart">Lịch Sử Lãi Suất Liên Ngân Hàng SBV</span>
                                     <span class="chart-info-icon"
-                                        data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Gồm: qua đêm, 1 tháng, 3 tháng, lãi suất chiết khấu, tái cấp vốn. Đơn vị: %/năm.">ⓘ</span>
+                                        data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Gồm: qua đêm, 1 tháng, 9 tháng (thị trường liên ngân hàng), lãi suất chiết khấu, tái cấp vốn (lãi suất điều hành). Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
@@ -904,6 +904,8 @@
                                     <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
                                 </div>
                             </div>
+                            <!-- Panel 1: Interbank rates -->
+                            <p style="font-size:0.78rem;color:var(--text-tertiary);margin:0.5rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Thị Trường Liên Ngân Hàng</p>
                             <div class="chart-container">
                                 <canvas id="sbvChart"></canvas>
                                 <div class="chart-loading" id="sbvLoading">
@@ -920,6 +922,11 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <!-- Panel 2: Policy rates -->
+                            <p style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
+                            <div class="chart-container">
+                                <canvas id="sbv2Chart"></canvas>
                             </div>
                         </div>
 
@@ -2975,6 +2982,13 @@
                 chartData = parseTDData(apiData);
             } else if (chartType === 'sbv') {
                 chartData = parseSBVData(apiData);
+                // Also render policy-rate panel
+                const canvas2 = document.getElementById('sbv2Chart');
+                if (canvas2) {
+                    if (chartInstances['sbv2']) chartInstances['sbv2'].destroy();
+                    const cfg2 = parseSBVPolicyData(apiData);
+                    if (cfg2) chartInstances['sbv2'] = new Chart(canvas2.getContext('2d'), cfg2);
+                }
             } else if (chartType === 'fxrate') {
                 chartData = parseFxRateData(apiData);
             } else if (chartType === 'global') {
@@ -3141,77 +3155,54 @@
             };
         }
 
-        function parseSBVData(apiData) {
-            // API format: { success: true, data: { dates: [...], overnight: [...], month_1: [...], month_3: [...] } }
-            if (!apiData || !apiData.data || !apiData.data.dates) {
-                return null;
+        const _sbvChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, labels: { color: '#A0A0A0' } },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: { ticks: { color: '#666', maxRotation: 45 }, grid: { color: '#2A2A2A' } },
+                y: {
+                    ticks: { color: '#666', callback: v => v + '%' },
+                    grid: { color: '#2A2A2A' }
+                }
             }
+        };
 
-            const dates = apiData.data.dates;
-            const overnight = apiData.data.overnight;
-            const onweek = apiData.data.month_1;  // Using month_1 as "1 week" equivalent
-            const twoweek = apiData.data.month_3;  // Using month_3 as "2 weeks" equivalent
-
+        function parseSBVData(apiData) {
+            // Interbank rates: overnight (qua đêm), 1m, 9m
+            if (!apiData || !apiData.data || !apiData.data.dates) return null;
+            const d = apiData.data;
             return {
                 type: 'line',
                 data: {
-                    labels: dates,
+                    labels: d.dates,
                     datasets: [
-                        {
-                            label: 'Overnight',
-                            data: overnight,
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '1 Week',
-                            data: onweek,
-                            borderColor: '#42A5F5',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            tension: 0.4
-                        },
-                        {
-                            label: '2 Weeks',
-                            data: twoweek,
-                            borderColor: '#66BB6A',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            tension: 0.4
-                        }
+                        { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#C9A55B', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#42A5F5', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: '9 Tháng (9M)',         data: d.month_9,   borderColor: '#66BB6A', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            labels: { color: '#A0A0A0' }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#666', maxRotation: 45 },
-                            grid: { color: '#2A2A2A' }
-                        },
-                        y: {
-                            ticks: {
-                                color: '#666',
-                                callback: function (value) {
-                                    return value + '%';
-                                }
-                            },
-                            grid: { color: '#2A2A2A' }
-                        }
-                    }
-                }
+                options: _sbvChartOptions
+            };
+        }
+
+        function parseSBVPolicyData(apiData) {
+            // Policy rates: rediscount, refinancing
+            if (!apiData || !apiData.data || !apiData.data.dates) return null;
+            const d = apiData.data;
+            return {
+                type: 'line',
+                data: {
+                    labels: d.dates,
+                    datasets: [
+                        { label: 'Lãi suất chiết khấu (Rediscount)', data: d.rediscount,  borderColor: '#EF5350', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: 'Lãi suất tái cấp vốn (Refinancing)', data: d.refinancing, borderColor: '#AB47BC', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
+                    ]
+                },
+                options: _sbvChartOptions
             };
         }
 
