@@ -7,6 +7,7 @@ _engine_global = None
 _engine_argus = None
 _engine_user = None
 _engine_finstock = None
+_engine_corp = None
 
 _POOL_KWARGS = dict(pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycle=300)
 
@@ -59,3 +60,14 @@ def get_engine_finstock():
             raise HTTPException(status_code=500, detail="FINSTOCK_DB not set")
         _engine_finstock = create_engine(db_url, **_POOL_KWARGS)
     return _engine_finstock
+
+
+def get_engine_corp():
+    """CRAWLING_CORP_DB — VN30 stock data (price, financials, ratios)."""
+    global _engine_corp
+    if _engine_corp is None:
+        db_url = os.getenv("CRAWLING_CORP_DB")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="CRAWLING_CORP_DB not set")
+        _engine_corp = create_engine(db_url, **_POOL_KWARGS)
+    return _engine_corp

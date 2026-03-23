@@ -11,6 +11,8 @@ services:
         sync: false
       - key: CRAWLING_BOT_DB
         sync: false
+      - key: CRAWLING_CORP_DB
+        sync: false
       - key: GLOBAL_INDICATOR_DB
         sync: false
       - key: ARGUS_FINTEL_DB

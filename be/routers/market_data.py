@@ -107,9 +107,10 @@ async def get_sbv_interbank_data(
     try:
         date_filter = get_date_filter(period)
         query = text("""
-            SELECT date, ls_quadem, ls_1m, ls_9m, rediscount_rate, refinancing_rate
+            SELECT date, ls_quadem, ls_1m, ls_3m, ls_6m, ls_9m,
+                   rediscount_rate, refinancing_rate
             FROM (
-                SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_9m,
+                SELECT DISTINCT ON (date) date, ls_quadem, ls_1m, ls_3m, ls_6m, ls_9m,
                        rediscount_rate, refinancing_rate, crawl_time
                 FROM vn_macro_sbv_rate_daily
                 WHERE date >= :date_filter
@@ -120,17 +121,21 @@ async def get_sbv_interbank_data(
             rows = conn.execute(query, {"date_filter": date_filter}).fetchall()
 
         dates       = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
-        overnight   = [float(r[1]) if r[1] else 0 for r in rows]
-        month_1     = [float(r[2]) if r[2] else 0 for r in rows]
-        month_9     = [float(r[3]) if r[3] else 0 for r in rows]
-        rediscount  = [float(r[4]) if r[4] else 0 for r in rows]
-        refinancing = [float(r[5]) if r[5] else 0 for r in rows]
+        overnight   = [float(r[1]) if r[1] else None for r in rows]
+        month_1     = [float(r[2]) if r[2] else None for r in rows]
+        month_3     = [float(r[3]) if r[3] else None for r in rows]
+        month_6     = [float(r[4]) if r[4] else None for r in rows]
+        month_9     = [float(r[5]) if r[5] else None for r in rows]
+        rediscount  = [float(r[6]) if r[6] else None for r in rows]
+        refinancing = [float(r[7]) if r[7] else None for r in rows]
 
         return _json_response({
             "success": True,
             "data": {
-                "dates": dates[::-1], "overnight": overnight[::-1],
-                "month_1": month_1[::-1], "month_9": month_9[::-1],
+                "dates": dates[::-1],
+                "overnight": overnight[::-1], "month_1": month_1[::-1],
+                "month_3": month_3[::-1],     "month_6": month_6[::-1],
+                "month_9": month_9[::-1],
                 "rediscount": rediscount[::-1], "refinancing": refinancing[::-1],
             },
             "period": period, "count": len(dates),
