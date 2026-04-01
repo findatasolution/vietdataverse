@@ -25,10 +25,6 @@
     <meta name="language" content="Vietnamese">
     <meta name="geo.region" content="VN">
     <meta name="geo.placename" content="Vietnam">
-    <!-- Google Ads -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6080033337103483"
-        crossorigin="anonymous"></script>
-    <!-- end Google Ads -->
     <!-- Favicon and Icons (hosted on imagekit.io) -->
     <link rel="icon" type="image/png" sizes="16x16"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-16x16.png">
@@ -508,30 +504,6 @@
                 </button>
             </div>
         </header>
-
-        <!-- ============================================
-             HEADER AD BANNER — Thay ads tại đây
-             Hỗ trợ 2 loại:
-               A. Video:  data-ad-video="file.mp4"
-               B. Ảnh:    data-ad-img="file.jpg"  (1600x400)
-             Thêm link: data-ad-url="https://..."
-             Để trống cả 2 để tắt ads.
-        ============================================ -->
-        <div class="header-ad-strip" id="headerAdStrip">
-            <div class="header-ad-bg" id="headerAdBg"></div>
-            <a class="header-ad-badge" id="headerAdBadge" href="" target="_blank" rel="noopener sponsored"
-                style="display:none;">
-                QC <i class="fas fa-external-link-alt" style="font-size:0.55rem;margin-left:3px;"></i>
-            </a>
-            <!-- Google AdSense fallback — shown when no in-house ad is configured -->
-            <ins class="adsbygoogle header-ad-adsense"
-                 id="headerAdSense"
-                 style="display:none;"
-                 data-ad-client="ca-pub-6080033337103483"
-                 data-ad-slot="2529535655" 
-                 data-ad-format="horizontal"
-                 data-full-width-responsive="true"></ins>
-        </div>
 
         <!-- Mobile Overlay -->
         <div class="mobile-overlay" id="mobile-overlay"></div>
@@ -1648,18 +1620,9 @@
 
                 <div
                     style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin-bottom: 1.5rem;">
-                    <h2 style="color: var(--gold-accent); font-size: 1.25rem; margin-bottom: 1rem;">2. Sử dụng Cookie và
-                        Quảng cáo</h2>
+                    <h2 style="color: var(--gold-accent); font-size: 1.25rem; margin-bottom: 1rem;">2. Sử dụng Cookie</h2>
                     <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
-                        Chúng tôi sử dụng <strong style="color: var(--text-primary);">Google AdSense</strong> để hiển
-                        thị quảng cáo.
-                        Google sử dụng cookie để phân phát quảng cáo dựa trên các lượt truy cập trước đó của bạn vào
-                        trang web này hoặc các trang web khác.
-                    </p>
-                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
-                        Bạn có thể chọn không tham gia quảng cáo cá nhân hóa bằng cách
-                        <a style="color: var(--gold-accent); text-decoration: underline;">Đăng ký subscribtion
-                        </a>
+                        Chúng tôi sử dụng cookie để lưu trữ tùy chọn ngôn ngữ và trạng thái đăng nhập của bạn nhằm cải thiện trải nghiệm sử dụng. Cookie này không được chia sẻ với bên thứ ba vì mục đích quảng cáo.
                     </p>
                 </div>
 
@@ -2339,7 +2302,6 @@
            DOM READY
         ========================================================= */
         document.addEventListener('DOMContentLoaded', async () => {
-            initHeroAd();
             initHeaderActions();
             initMobileMenu();
             initSidebarTabs();
@@ -2502,61 +2464,6 @@
         function handleBannerDrop(event) {
             const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
             handleBannerFile(file);
-        }
-
-        /* =========================================================
-           HEADER AD STRIP — loads ad image from data attributes
-        ========================================================= */
-        function initHeroAd() {
-            const strip = document.getElementById('headerAdStrip');
-            if (!strip) return;
-
-            const videoUrl = strip.dataset.adVideo;
-            const imgUrl = strip.dataset.adImg;
-            const adUrl = strip.dataset.adUrl;
-
-            if (!videoUrl && !imgUrl) {
-                // No in-house ad — show AdSense fallback unit
-                const adSenseEl = document.getElementById('headerAdSense');
-                if (adSenseEl) {
-                    adSenseEl.style.display = 'block';
-                    (window.adsbygoogle = window.adsbygoogle || []).push({});
-                } else {
-                    strip.style.display = 'none';
-                }
-                return;
-            }
-
-            const bg = document.getElementById('headerAdBg');
-            const badge = document.getElementById('headerAdBadge');
-
-            if (videoUrl) {
-                // Video ad — insert <video> inside the bg div
-                const video = document.createElement('video');
-                video.src = videoUrl;
-                video.autoplay = true;
-                video.loop = true;
-                video.muted = true;
-                video.playsInline = true;
-                video.setAttribute('playsinline', '');
-                video.setAttribute('muted', '');
-                video.className = 'header-ad-video';
-                if (bg) {
-                    bg.appendChild(video);
-                    strip.classList.add('has-ad');
-                    // Ensure playback starts (some browsers need explicit play())
-                    video.play().catch(() => { });
-                }
-            } else if (imgUrl && bg) {
-                // Image ad — set background-image
-                bg.style.backgroundImage = `url(${imgUrl})`;
-                strip.classList.add('has-ad');
-            }
-
-            if (badge && adUrl) {
-                badge.href = adUrl;
-                badge.style.display = 'flex';
-            }
         }
 
         /* =========================================================
