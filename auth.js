@@ -7,6 +7,13 @@
 // ============================================================================
 // CONFIGURATION — Update these after Auth0 Dashboard setup
 // ============================================================================
+// SECURITY NOTE: clientId is intentionally public.
+// In OAuth 2.0 / PKCE flow for SPAs, the clientId is NOT a secret — it
+// identifies the app to Auth0 but carries no privilege by itself.
+// The actual security comes from: (1) PKCE code challenge, (2) Auth0's
+// Allowed Callback URLs whitelist, and (3) RS256 JWT signed by Auth0's
+// private key which the backend verifies via JWKS.
+// Do NOT place the Auth0 Management API token or client secret here.
 const AUTH0_CONFIG = {
     domain: 'vietdataverse.jp.auth0.com',
     clientId: 'EDXXS3TBQpJ3HhWilLLgEHNB8SsAvG0O',

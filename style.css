@@ -3276,3 +3276,50 @@ html {
     .dl-row > span:nth-child(2),
     .dl-row > span:nth-child(3) { display: none; }
 }
+
+/* ── Utility classes extracted from repeated inline styles ─────────────────── */
+
+/* Dark card used in About, Privacy Policy, Terms sections */
+.info-card {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(201, 165, 91, 0.2);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Section heading inside info cards */
+.info-card-heading {
+    color: var(--gold-accent);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+/* Filter select inputs (pulse, vn30 pages) */
+.filter-select {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+/* Step circle button in ad-request form */
+.step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gold-primary);
+    color: var(--bg-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin: 0 auto 0.5rem;
+}
+
+/* Icon colour helpers used in market-pulse & vn30 */
+.icon-blue  { color: #42A5F5; margin-right: 6px; }
+.icon-gold  { color: #C9A55B; margin-right: 6px; }
