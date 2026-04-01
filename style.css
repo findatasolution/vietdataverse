@@ -61,75 +61,6 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Header Ad Strip — full-width banner below header */
-.header-ad-strip {
-    grid-column: 1 / -1;
-    position: relative;
-    height: 90px;
-    overflow: hidden;
-    background-color: var(--bg-dark);
-    z-index: 0;
-}
-
-.header-ad-strip:not(.has-ad) {
-    height: 0;
-}
-
-.header-ad-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
-    opacity: 0;
-    transition: opacity 1.2s var(--ease-out);
-}
-
-.header-ad-strip.has-ad .header-ad-bg {
-    opacity: 1;
-}
-
-/* Video ad inside the bg container */
-.header-ad-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-    display: block;
-}
-
-.header-ad-badge {
-    position: absolute;
-    top: 10px;
-    right: 14px;
-    z-index: 3;
-    font-size: 0.6rem;
-    color: rgba(255, 255, 255, 0.25);
-    text-decoration: none;
-    padding: 3px 10px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    transition: all 0.3s var(--ease-out);
-}
-
-.header-ad-badge:hover {
-    color: rgba(255, 255, 255, 0.7);
-    background: rgba(0, 0, 0, 0.55);
-}
-
-/* Google AdSense container — fills strip, shown when adsbygoogle script is active */
-.header-ad-adsense {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-dark);
-}
-
 .app-container {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -1552,10 +1483,6 @@ html {
     .app-container {
         grid-template-columns: 1fr;
         grid-template-rows: 64px auto 1fr;
-    }
-
-    .header-ad-strip {
-        height: 60px;
     }
 
     .mobile-menu-btn {
