@@ -4,7 +4,7 @@ Bank Term Deposit Rates Crawler — Adaptive 3-Layer Architecture
   Layer 2: Heuristic Parser   (score all tables, extract best, free)
   Layer 3: LLM Parser         (Gemini 2.5 Flash, handles ANY HTML change)
 
-Banks: ACB, SHB, CTG (VietinBank), VCB (Vietcombank)
+Banks: ACB, BIDV, MB, VPB, STB, TCB, VIB, EIB, HDB, TPB, MSB
 Usage: python crawl_bank_termdepo.py [--force]
 """
 
@@ -437,134 +437,6 @@ def parse_acb_structured(soup):
     return data
 
 
-def parse_shb_structured(soup):
-    """SHB: Parse table with 'X tháng' format."""
-    tables = soup.find_all('table')
-    if not tables:
-        return {}
-
-    data = {}
-    table = tables[0]
-    rows = table.find_all('tr')
-
-    for row in rows:
-        cols = row.find_all(['td', 'th'])
-        if len(cols) < 2:
-            continue
-
-        term_text = normalize_text(cols[0].get_text(strip=True))
-        rate = extract_rate_from_text(cols[1].get_text(strip=True))
-        if rate is None:
-            continue
-
-        month = extract_month_from_text(term_text)
-        if month is not None:
-            col = month_to_column(month)
-            if col:
-                data[col] = rate
-
-    return data
-
-
-def parse_ctg_structured(soup):
-    """CTG/VietinBank: Parse table with relaxed regex instead of exact text match."""
-    tables = soup.find_all('table')
-    if not tables:
-        return {}
-
-    data = {}
-    table = tables[0]
-    rows = table.find_all('tr')
-
-    for row in rows:
-        cols = row.find_all(['td', 'th'])
-        if len(cols) < 2:
-            continue
-
-        term_text = normalize_text(cols[0].get_text(strip=True))
-        rate = extract_rate_from_text(cols[1].get_text(strip=True))
-        if rate is None:
-            continue
-
-        # Relaxed regex matching (handles wording changes)
-        if 'không kỳ hạn' in term_text:
-            data['term_noterm'] = rate
-        elif re.search(r'(?:từ\s+)?1\s*tháng', term_text) and re.search(r'(?:dưới|đến)\s*2', term_text):
-            data['term_1m'] = rate
-        elif re.search(r'(?:từ\s+)?2\s*tháng', term_text) and re.search(r'(?:dưới|đến)\s*3', term_text):
-            data['term_2m'] = rate
-        elif re.search(r'(?:từ\s+)?3\s*tháng', term_text) and re.search(r'(?:dưới|đến)\s*[456]', term_text):
-            data['term_3m'] = rate
-        elif re.search(r'(?:từ\s+)?6\s*tháng', term_text) and re.search(r'(?:dưới|đến)\s*[789]', term_text):
-            data['term_6m'] = rate
-        elif re.search(r'(?:từ\s+)?9\s*tháng', term_text) and re.search(r'(?:dưới|đến)\s*1[0-2]', term_text):
-            data['term_9m'] = rate
-        elif re.search(r'^12\s*tháng$', term_text.strip()):
-            data['term_12m'] = rate
-        elif re.search(r'trên\s*12\s*tháng', term_text) and '13' in term_text:
-            data['term_13m'] = rate
-        elif re.search(r'(?:từ\s+)?18\s*tháng', term_text):
-            data['term_18m'] = rate
-        elif re.search(r'(?:từ\s+)?24\s*tháng', term_text):
-            data['term_24m'] = rate
-        elif re.search(r'(?:^|\s)36\s*tháng', term_text.strip()):
-            data['term_36m'] = rate
-
-    return data
-
-
-def parse_vcb_structured(soup):
-    """VCB: Try hidden input JSON first (legacy), then parse rendered tables."""
-    # Legacy method: hidden input with embedded JSON
-    json_input = soup.find('input', {'id': 'currentDataInterestRate'})
-    if json_input and json_input.get('value'):
-        try:
-            rate_json = json.loads(json_input['value'])
-            tenor_map = {
-                'Demand': 'term_noterm', '1-months': 'term_1m', '2-months': 'term_2m',
-                '3-months': 'term_3m', '6-months': 'term_6m', '9-months': 'term_9m',
-                '12-months': 'term_12m', '18-months': 'term_18m',
-                '24-months': 'term_24m', '36-months': 'term_36m'
-            }
-            data = {}
-            for item in rate_json.get('Data', []):
-                if item.get('currencyCode') == 'VND' and item.get('tenorType') == 'FixedDeposit':
-                    tenor = item.get('tenor')
-                    rate = item.get('rates')
-                    if tenor in tenor_map and rate is not None:
-                        data[tenor_map[tenor]] = round(rate * 100, 2)
-            if validate_rates(data):
-                print("    (via hidden JSON input)")
-                return data
-        except (json.JSONDecodeError, KeyError):
-            pass
-
-    # New method: parse rendered tables (works with Selenium-fetched HTML)
-    tables = soup.find_all('table')
-    for table in tables:
-        data = {}
-        rows = table.find_all('tr')
-        for row in rows:
-            cols = row.find_all(['td', 'th'])
-            if len(cols) < 2:
-                continue
-            term_text = normalize_text(cols[0].get_text(strip=True))
-            month = extract_month_from_text(term_text)
-            if month is None:
-                continue
-            col = month_to_column(month)
-            if not col:
-                continue
-            for c in cols[1:]:
-                rate = extract_rate_from_text(c.get_text(strip=True))
-                if rate is not None:
-                    data[col] = rate
-                    break
-        if validate_rates(data):
-            print("    (via rendered table)")
-            return data
-
-    return {}
 
 
 # ============================================================================
@@ -679,31 +551,6 @@ results['ACB'] = crawl_bank(
     url='https://acb.com.vn/lai-suat-tien-gui',
     structured_parser=parse_acb_structured,
     fetch_method='http',
-)
-
-# SHB — may return 403, auto-fallback to Selenium
-results['SHB'] = crawl_bank(
-    bank_code='SHB',
-    url='https://ibanking.shb.com.vn/Rate/TideRate',
-    structured_parser=parse_shb_structured,
-    fetch_method='http',
-    extra_headers={'Referer': 'https://ibanking.shb.com.vn/'},
-)
-
-# CTG / VietinBank — HTTP works, relaxed regex matching
-results['CTG'] = crawl_bank(
-    bank_code='CTG',
-    url='https://www.vietinbank.vn/ca-nhan/cong-cu-tien-ich/lai-suat-khcn',
-    structured_parser=parse_ctg_structured,
-    fetch_method='http',
-)
-
-# VCB / Vietcombank — requires Selenium (page uses JS rendering now)
-results['VCB'] = crawl_bank(
-    bank_code='VCB',
-    url='https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat',
-    structured_parser=parse_vcb_structured,
-    fetch_method='selenium',
 )
 
 # BIDV — JS-rendered, uses heuristic/LLM
