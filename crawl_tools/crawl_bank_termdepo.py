@@ -27,8 +27,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 # Load environment variables
-root_dir = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
 
 # CLI arguments
 parser = argparse.ArgumentParser(description='Bank Term Deposit Rates Crawler')
@@ -354,7 +353,7 @@ def save_bank_data(bank_code, data, force=False):
     with engine.connect() as conn:
         if not force:
             result = conn.execute(
-                text("SELECT COUNT(*) FROM vn_bank_termdepo WHERE bank_code = :bank AND date = :date"),
+                text("SELECT COUNT(*) FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
             if result.scalar() > 0:
@@ -363,19 +362,19 @@ def save_bank_data(bank_code, data, force=False):
 
         if force:
             conn.execute(
-                text("DELETE FROM vn_bank_termdepo WHERE bank_code = :bank AND date = :date"),
+                text("DELETE FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
 
         # Generate next id (table has no auto-increment)
-        next_id = conn.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM vn_bank_termdepo")).scalar()
+        next_id = conn.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM vn_macro_termdepo_daily")).scalar()
         record['id'] = next_id
 
         columns = [k for k, v in record.items() if v is not None]
         placeholders = ', '.join([f':{c}' for c in columns])
         col_names = ', '.join(columns)
         filtered = {k: v for k, v in record.items() if v is not None}
-        conn.execute(text(f"INSERT INTO vn_bank_termdepo ({col_names}) VALUES ({placeholders})"), filtered)
+        conn.execute(text(f"INSERT INTO vn_macro_termdepo_daily ({col_names}) VALUES ({placeholders})"), filtered)
         conn.commit()
 
     return True
@@ -704,6 +703,86 @@ results['VCB'] = crawl_bank(
     bank_code='VCB',
     url='https://www.vietcombank.com.vn/vi-VN/KHCN/Cong-cu-Tien-ich/KHCN---Lai-suat',
     structured_parser=parse_vcb_structured,
+    fetch_method='selenium',
+)
+
+# BIDV — JS-rendered, uses heuristic/LLM
+results['BIDV'] = crawl_bank(
+    bank_code='BIDV',
+    url='https://www.bidv.com.vn/vn/ca-nhan/san-pham-dich-vu/tiet-kiem/lai-suat-huy-dong',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# MB / MBBank — JS-rendered
+results['MB'] = crawl_bank(
+    bank_code='MB',
+    url='https://www.mbbank.com.vn/cong-cu-tien-ich/lai-suat',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# VPB / VPBank — JS-rendered
+results['VPB'] = crawl_bank(
+    bank_code='VPB',
+    url='https://www.vpbank.com.vn/ca-nhan/cong-cu-ho-tro/bieu-lai-suat',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# STB / Sacombank — JS-rendered
+results['STB'] = crawl_bank(
+    bank_code='STB',
+    url='https://www.sacombank.com.vn/ca-nhan/cong-cu/lai-suat.html',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# TCB / Techcombank — JS-rendered
+results['TCB'] = crawl_bank(
+    bank_code='TCB',
+    url='https://techcombank.com/cong-cu-tien-ich/bieu-lai-suat',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# VIB — JS-rendered
+results['VIB'] = crawl_bank(
+    bank_code='VIB',
+    url='https://www.vib.com.vn/vn/home/cong-cu/lai-suat',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# EIB / Eximbank — JS-rendered
+results['EIB'] = crawl_bank(
+    bank_code='EIB',
+    url='https://www.eximbank.com.vn/vi/ca-nhan/tien-gui/lai-suat.html',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# HDB / HDBank — JS-rendered
+results['HDB'] = crawl_bank(
+    bank_code='HDB',
+    url='https://hdbank.com.vn/vi/ca-nhan/cong-cu/bieu-lai-suat',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# TPB / TPBank — JS-rendered
+results['TPB'] = crawl_bank(
+    bank_code='TPB',
+    url='https://tpbank.vn/ca-nhan/cong-cu-tien-ich/bieu-lai-suat',
+    structured_parser=heuristic_parse,
+    fetch_method='selenium',
+)
+
+# MSB — JS-rendered
+results['MSB'] = crawl_bank(
+    bank_code='MSB',
+    url='https://www.msb.com.vn/ca-nhan/tiet-kiem/lai-suat',
+    structured_parser=heuristic_parse,
     fetch_method='selenium',
 )
 
