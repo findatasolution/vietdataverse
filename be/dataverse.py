@@ -48,7 +48,7 @@ DATASET_CONFIG = {
     },
     'VNTermDeposit': {
         'table': 'vn_macro_termdepo_daily',
-        'query': 'SELECT bank, date, "1m", "6m", "12m", "24m" FROM vn_macro_termdepo_daily ORDER BY date DESC',
+        'query': 'SELECT bank_code, date, term_1m, term_6m, term_12m, term_24m FROM vn_macro_termdepo_daily ORDER BY date DESC',
         'filename': 'vn_term_deposit_rates.csv',
         'description': 'Vietnamese Term Deposit Rates'
     },
