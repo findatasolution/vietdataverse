@@ -150,7 +150,7 @@ def extract_month_from_text(t):
 def month_to_column(month):
     """Map month number to DB column name."""
     if month == 0:
-        return 'term_noterm'
+        return None  # term_noterm column removed; demand-deposit rates not stored
     mapping = {
         1: 'term_1m', 2: 'term_2m', 3: 'term_3m', 6: 'term_6m',
         9: 'term_9m', 12: 'term_12m', 13: 'term_13m',
