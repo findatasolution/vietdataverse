@@ -54,7 +54,7 @@ HEADERS = {
 }
 
 TERM_COLUMNS = [
-    'term_noterm', 'term_1m', 'term_2m', 'term_3m', 'term_6m',
+    'term_1m', 'term_2m', 'term_3m', 'term_6m',
     'term_9m', 'term_12m', 'term_13m', 'term_18m', 'term_24m', 'term_36m'
 ]
 
@@ -190,10 +190,6 @@ def save_bank_data(bank_code, data, force=False):
                 text("DELETE FROM vn_macro_termdepo_daily WHERE bank_code = :bank AND date = :date"),
                 {'bank': bank_code, 'date': date_str}
             )
-
-        # Generate next id (table has no auto-increment)
-        next_id = conn.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM vn_macro_termdepo_daily")).scalar()
-        record['id'] = next_id
 
         columns = [k for k, v in record.items() if v is not None]
         placeholders = ', '.join([f':{c}' for c in columns])

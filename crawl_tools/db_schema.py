@@ -119,16 +119,11 @@ class VnBankTermDepo(Base):
     Source: ACB (acb.com.vn)
     Crawler: crawl_bank_termdepo.py
     Schedule: Daily 8:30 AM VN
-
-    Layers:
-    - Layer 1: Structured Parser (bank-specific HTML patterns)
-    - Layer 2: Heuristic Parser (score tables, extract best match)
-    - Layer 3: LLM Parser (Gemini 2.5 Flash for fallback)
     """
     __tablename__ = 'vn_macro_termdepo_daily'
 
-    id = Column(Integer, primary_key=True)  # Manual ID generation (no autoincrement)
-    bank_code = Column(String(10), nullable=False, index=True)  # ACB, SHB, CTG, VCB
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    bank_code = Column(String(10), nullable=False, index=True)  # ACB
     date = Column(Date, nullable=False, index=True)
     crawl_time = Column(DateTime, nullable=False)
 
