@@ -4,17 +4,17 @@ Historical backfill for vn_macro_termdepo_daily using Wayback Machine CDX API.
 Strategy:
   1. For each bank, query CDX API for archived snapshots (1 per month)
   2. Fetch archived page via Selenium (handles JS-rendered Wayback pages)
-  3. Parse with heuristic + LLM (same pipeline as main crawler)
+  3. Parse with structured parser (parse_acb_structured)
   4. Insert into DB (skip dates already present)
 
-Banks: ACB, BIDV, MB, TCB, VPB, STB, VIB, EIB, HDB, TPB, MSB
+Bank: ACB
 
 Run:
     cd crawl_tools
     python enrich_termdepo_history.py [--bank ACB] [--from 2018] [--to 2024] [--dry-run]
 """
 
-import sys, os, re, time, json, argparse
+import sys, os, re, time, argparse
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
 
 from pathlib import Path
@@ -27,11 +27,8 @@ from sqlalchemy import create_engine, text
 
 # Re-use helpers from main crawler
 from crawl_tools.crawl_bank_termdepo import (
-    heuristic_parse, llm_parse, validate_rates,
-    extract_rate_from_text, extract_month_from_text,
-    month_to_column, normalize_text, score_table,
-    fetch_with_selenium, save_bank_data,
-    parse_acb_structured,
+    validate_rates, extract_rate_from_text, extract_month_from_text,
+    month_to_column, normalize_text, save_bank_data, parse_acb_structured,
 )
 
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / "be" / ".env")
@@ -52,17 +49,7 @@ DRY_RUN = args.dry_run
 
 # ── Bank config ───────────────────────────────────────────────────────────────
 BANKS = {
-    "ACB":  {"name": "ACB",          "url": "https://acb.com.vn/lai-suat-tien-gui",                                           "parser": parse_acb_structured},
-    "BIDV": {"name": "BIDV",         "url": "https://www.bidv.com.vn/vn/ca-nhan/san-pham-dich-vu/tiet-kiem/lai-suat-huy-dong","parser": heuristic_parse},
-    "MB":   {"name": "MBBank",       "url": "https://www.mbbank.com.vn/cong-cu-tien-ich/lai-suat",                            "parser": heuristic_parse},
-    "TCB":  {"name": "Techcombank",  "url": "https://techcombank.com/cong-cu-tien-ich/bieu-lai-suat",                         "parser": heuristic_parse},
-    "VPB":  {"name": "VPBank",       "url": "https://www.vpbank.com.vn/ca-nhan/cong-cu-ho-tro/bieu-lai-suat",                 "parser": heuristic_parse},
-    "STB":  {"name": "Sacombank",    "url": "https://www.sacombank.com.vn/ca-nhan/cong-cu/lai-suat.html",                     "parser": heuristic_parse},
-    "VIB":  {"name": "VIB",          "url": "https://www.vib.com.vn/vn/home/cong-cu/lai-suat",                                "parser": heuristic_parse},
-    "EIB":  {"name": "Eximbank",     "url": "https://www.eximbank.com.vn/vi/ca-nhan/tien-gui/lai-suat.html",                  "parser": heuristic_parse},
-    "HDB":  {"name": "HDBank",       "url": "https://hdbank.com.vn/vi/ca-nhan/cong-cu/bieu-lai-suat",                         "parser": heuristic_parse},
-    "TPB":  {"name": "TPBank",       "url": "https://tpbank.vn/ca-nhan/cong-cu-tien-ich/bieu-lai-suat",                       "parser": heuristic_parse},
-    "MSB":  {"name": "MSB",          "url": "https://www.msb.com.vn/ca-nhan/tiet-kiem/lai-suat",                              "parser": heuristic_parse},
+    "ACB": {"name": "ACB", "url": "https://acb.com.vn/lai-suat-tien-gui", "parser": parse_acb_structured},
 }
 
 HEADERS = {
@@ -101,14 +88,16 @@ def get_snapshots(url: str, year_from: int, year_to: int) -> list:
         print(f"    CDX error: {e}")
         return []
 
-def fetch_wayback_selenium(timestamp: str, original_url: str) -> str:
-    """Fetch Wayback Machine archived page via Selenium (handles JS rendering)."""
+def fetch_wayback(timestamp: str, original_url: str) -> str:
+    """Fetch Wayback Machine archived page via HTTP."""
     wb_url = f"https://web.archive.org/web/{timestamp}/{original_url}"
     try:
-        html = fetch_with_selenium(wb_url, wait_selector="table", timeout=30)
-        return html
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        r = requests.get(wb_url, headers=headers, timeout=30)
+        r.raise_for_status()
+        return r.text
     except Exception as e:
-        print(f"    Selenium error: {e}")
+        print(f"    Fetch error: {e}")
         return None
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
@@ -158,7 +147,7 @@ def process_bank(bank_code: str, cfg: dict):
 
         print(f"  {ts} → {snap_date} ...", end=" ", flush=True)
 
-        html = fetch_wayback_selenium(ts, snap["url"])
+        html = fetch_wayback(ts, snap["url"])
         if not html:
             print("FETCH FAIL")
             failed += 1
@@ -166,15 +155,7 @@ def process_bank(bank_code: str, cfg: dict):
             continue
 
         soup = BeautifulSoup(html, "html.parser")
-
-        # 3-layer parse
         data = cfg["parser"](soup)
-        if not validate_rates(data):
-            data = heuristic_parse(soup)
-        if not validate_rates(data):
-            tables = soup.find_all("table")
-            llm_input = str(sorted(tables, key=score_table, reverse=True)[0]) if tables else soup.get_text()[:15000]
-            data = llm_parse(llm_input, bank_code)
 
         if not validate_rates(data):
             print(f"PARSE FAIL ({list(data.keys())})")

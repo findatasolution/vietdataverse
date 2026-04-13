@@ -1,10 +1,6 @@
 """
-Bank Term Deposit Rates Crawler — Adaptive 3-Layer Architecture
-  Layer 1: Structured Parser  (hardcoded per bank, fast, free)
-  Layer 2: Heuristic Parser   (score all tables, extract best, free)
-  Layer 3: LLM Parser         (Gemini 2.5 Flash, handles ANY HTML change)
-
-Banks: ACB, BIDV, MB, VPB, STB, TCB, VIB, EIB, HDB, TPB, MSB
+Bank Term Deposit Rates Crawler — ACB
+Source: https://acb.com.vn/lai-suat-tien-gui (HTTP, no JS rendering needed)
 Usage: python crawl_bank_termdepo.py [--force]
 """
 
@@ -13,7 +9,6 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 import argparse
-import json
 import os
 import re
 import time
@@ -84,40 +79,6 @@ def fetch_with_retry(url, headers=None, timeout=15, max_retries=3, backoff=5):
             else:
                 raise
 
-
-def fetch_with_selenium(url, wait_selector=None, timeout=20):
-    """Fetch URL using headless Chrome. Returns HTML string."""
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--window-size=1920,1080')
-    options.add_argument(f'user-agent={HEADERS["User-Agent"]}')
-
-    driver = None
-    try:
-        driver = webdriver.Chrome(options=options)
-        driver.set_page_load_timeout(timeout + 10)
-        driver.get(url)
-
-        if wait_selector:
-            WebDriverWait(driver, timeout).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, wait_selector))
-            )
-        else:
-            time.sleep(5)  # Default wait for JS rendering
-
-        return driver.page_source
-    finally:
-        if driver:
-            driver.quit()
 
 
 def validate_rates(data):
@@ -197,142 +158,6 @@ def month_to_column(month):
     }
     return mapping.get(month)
 
-
-def score_table(table):
-    """Score a table element by likelihood of containing interest rate data."""
-    score = 0
-    cells = table.find_all(['td', 'th'])
-    for cell in cells:
-        txt = cell.get_text(strip=True)
-        # Rate-like numbers
-        if re.search(r'\b\d{1,2}[.,]\d{1,2}\s*%?\b', txt):
-            try:
-                num = float(re.search(r'(\d{1,2}[.,]\d{1,2})', txt).group(1).replace(',', '.'))
-                if 0.1 <= num <= 20.0:
-                    score += 2
-            except Exception:
-                pass
-        txt_lower = txt.lower()
-        # Term keywords
-        if re.search(r'\b\d+\s*t(háng)?\b', txt_lower):
-            score += 3
-        if 'tháng' in txt_lower or 'thang' in txt_lower:
-            score += 1
-        if '%' in txt or 'vnd' in txt_lower or 'lãi suất' in txt_lower:
-            score += 1
-    return score
-
-
-# ============================================================================
-# LAYER 2: HEURISTIC PARSER
-# ============================================================================
-
-def heuristic_parse(soup):
-    """Score all tables, extract term-rate pairs from the best one."""
-    tables = soup.find_all('table')
-    if not tables:
-        return {}
-
-    scored = [(score_table(t), i, t) for i, t in enumerate(tables)]
-    scored.sort(key=lambda x: x[0], reverse=True)
-
-    for sc, idx, table in scored[:3]:
-        if sc < 5:
-            break
-
-        data = {}
-        rows = table.find_all('tr')
-        for row in rows:
-            cols = row.find_all(['td', 'th'])
-            if len(cols) < 2:
-                continue
-
-            term_text = cols[0].get_text(strip=True)
-            month = extract_month_from_text(term_text)
-            if month is None:
-                continue
-            col_name = month_to_column(month)
-            if not col_name:
-                continue
-
-            # Find rate from remaining columns (take first valid)
-            for col in cols[1:]:
-                rate = extract_rate_from_text(col.get_text(strip=True))
-                if rate is not None:
-                    data[col_name] = rate
-                    break
-
-        if validate_rates(data):
-            return data
-
-    return {}
-
-
-# ============================================================================
-# LAYER 3: LLM PARSER (Gemini)
-# ============================================================================
-
-def llm_parse(html_text, bank_name):
-    """Use Gemini 2.5 Flash to extract rates from HTML."""
-    api_key = os.getenv('GEMINI_API_KEY')
-    if not api_key:
-        print(f"    [LLM] GEMINI_API_KEY not set, skipping")
-        return {}
-
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-
-        # Truncate to control token cost
-        truncated = html_text[:15000] if len(html_text) > 15000 else html_text
-
-        prompt = f"""Extract Vietnamese bank term deposit interest rates from this {bank_name} webpage HTML.
-Return ONLY a valid JSON object (no markdown, no explanation) with this structure:
-{{
-  "term_1m": <rate as float percentage or null>,
-  "term_2m": <rate as float percentage or null>,
-  "term_3m": <rate as float percentage or null>,
-  "term_6m": <rate as float percentage or null>,
-  "term_9m": <rate as float percentage or null>,
-  "term_12m": <rate as float percentage or null>,
-  "term_13m": <rate as float percentage or null>,
-  "term_18m": <rate as float percentage or null>,
-  "term_24m": <rate as float percentage or null>,
-  "term_36m": <rate as float percentage or null>,
-  "term_noterm": <rate as float percentage or null>
-}}
-Rates should be in percentage form (e.g., 5.2 not 0.052). VND rates only.
-If a term is not found, use null.
-
-HTML:
-{truncated}"""
-
-        response = model.generate_content(prompt)
-        result_text = response.text.strip()
-
-        # Clean markdown code blocks if present
-        if result_text.startswith('```'):
-            result_text = re.sub(r'^```\w*\n?', '', result_text)
-            result_text = re.sub(r'\n?```$', '', result_text)
-            result_text = result_text.strip()
-
-        parsed = json.loads(result_text)
-
-        data = {}
-        for key, val in parsed.items():
-            if key.startswith('term_') and val is not None:
-                try:
-                    fval = float(val)
-                    if 0.1 <= fval <= 20.0:
-                        data[key] = fval
-                except (ValueError, TypeError):
-                    pass
-        return data
-
-    except Exception as e:
-        print(f"    [LLM] Gemini error: {e}")
-        return {}
 
 
 # ============================================================================
@@ -443,209 +268,49 @@ def parse_acb_structured(soup):
 # ORCHESTRATOR
 # ============================================================================
 
-def crawl_bank(bank_code, url, structured_parser, fetch_method='http', extra_headers=None):
-    """Run 3-layer parsing chain for a bank. Returns True on success."""
+def crawl_bank(bank_code, url, structured_parser):
+    """Fetch via HTTP and parse with structured parser. Returns True on success."""
     print(f"\n--- [{bank_code}] ---")
-
-    html = None
-    soup = None
-
-    # === FETCH ===
     try:
-        if fetch_method == 'selenium':
-            print(f"  Fetching with Selenium...")
-            html = fetch_with_selenium(url, wait_selector='table', timeout=20)
-            soup = BeautifulSoup(html, 'html.parser')
-        else:
-            try:
-                print(f"  Fetching with HTTP...")
-                response = fetch_with_retry(url, headers=extra_headers, timeout=15)
-                html = response.text
-                soup = BeautifulSoup(response.content, 'html.parser')
-            except requests.exceptions.HTTPError as e:
-                if e.response is not None and e.response.status_code == 403:
-                    print(f"    HTTP 403 — falling back to Selenium...")
-                    html = fetch_with_selenium(url, wait_selector='table', timeout=20)
-                    soup = BeautifulSoup(html, 'html.parser')
-                else:
-                    raise
+        print(f"  Fetching with HTTP...")
+        response = fetch_with_retry(url, timeout=15)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        print(f"  Fetched OK ({len(response.text)} chars, {len(soup.find_all('table'))} tables)")
     except Exception as e:
         print(f"  FETCH FAILED: {e}")
         return False
 
-    print(f"  Fetched OK ({len(html)} chars, {len(soup.find_all('table'))} tables)")
-
-    # === LAYER 1: Structured parser ===
-    print(f"  Layer 1 (structured)...", end=' ')
     try:
         data = structured_parser(soup)
         if validate_rates(data):
             n = len([k for k in data if k.startswith('term_')])
             rates_str = ', '.join([f'{k}: {v}%' for k, v in sorted(data.items())])
-            print(f"SUCCESS ({n} terms)")
-            print(f"    {rates_str}")
+            print(f"  Parsed OK ({n} terms): {rates_str}")
             if save_bank_data(bank_code, data, force=args.force):
-                print(f"    -> Saved to DB")
+                print(f"  -> Saved to DB")
             return True
         else:
-            print(f"FAILED (insufficient data)")
+            print(f"  PARSE FAILED (insufficient/invalid data)")
+            return False
     except Exception as e:
-        print(f"ERROR: {e}")
-
-    # === LAYER 2: Heuristic parser ===
-    print(f"  Layer 2 (heuristic)...", end=' ')
-    try:
-        data = heuristic_parse(soup)
-        if validate_rates(data):
-            n = len([k for k in data if k.startswith('term_')])
-            rates_str = ', '.join([f'{k}: {v}%' for k, v in sorted(data.items())])
-            print(f"SUCCESS ({n} terms)")
-            print(f"    {rates_str}")
-            if save_bank_data(bank_code, data, force=args.force):
-                print(f"    -> Saved to DB")
-            return True
-        else:
-            print(f"FAILED")
-    except Exception as e:
-        print(f"ERROR: {e}")
-
-    # === LAYER 3: LLM parser (Gemini) ===
-    print(f"  Layer 3 (LLM/Gemini)...", end=' ')
-    try:
-        # Feed the best table HTML to Gemini (or page text if no tables)
-        tables = soup.find_all('table')
-        if tables:
-            scored = [(score_table(t), t) for t in tables]
-            scored.sort(key=lambda x: x[0], reverse=True)
-            llm_input = str(scored[0][1])
-        else:
-            llm_input = soup.get_text()[:15000]
-
-        data = llm_parse(llm_input, bank_code)
-        if validate_rates(data):
-            n = len([k for k in data if k.startswith('term_')])
-            rates_str = ', '.join([f'{k}: {v}%' for k, v in sorted(data.items())])
-            print(f"SUCCESS ({n} terms)")
-            print(f"    {rates_str}")
-            if save_bank_data(bank_code, data, force=args.force):
-                print(f"    -> Saved to DB")
-            return True
-        else:
-            print(f"FAILED")
-    except Exception as e:
-        print(f"ERROR: {e}")
-
-    print(f"  ALL LAYERS FAILED for {bank_code}")
-    return False
+        print(f"  PARSE ERROR: {e}")
+        return False
 
 
 # ============================================================================
 # MAIN
 # ============================================================================
 
-results = {}
-
-# ACB — HTTP works fine, search for table with "nT" format
-results['ACB'] = crawl_bank(
+ok = crawl_bank(
     bank_code='ACB',
     url='https://acb.com.vn/lai-suat-tien-gui',
     structured_parser=parse_acb_structured,
-    fetch_method='http',
 )
 
-# BIDV — JS-rendered, uses heuristic/LLM
-results['BIDV'] = crawl_bank(
-    bank_code='BIDV',
-    url='https://www.bidv.com.vn/vn/ca-nhan/san-pham-dich-vu/tiet-kiem/lai-suat-huy-dong',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# MB / MBBank — JS-rendered
-results['MB'] = crawl_bank(
-    bank_code='MB',
-    url='https://www.mbbank.com.vn/cong-cu-tien-ich/lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# VPB / VPBank — JS-rendered
-results['VPB'] = crawl_bank(
-    bank_code='VPB',
-    url='https://www.vpbank.com.vn/ca-nhan/cong-cu-ho-tro/bieu-lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# STB / Sacombank — JS-rendered
-results['STB'] = crawl_bank(
-    bank_code='STB',
-    url='https://www.sacombank.com.vn/ca-nhan/cong-cu/lai-suat.html',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# TCB / Techcombank — JS-rendered
-results['TCB'] = crawl_bank(
-    bank_code='TCB',
-    url='https://techcombank.com/cong-cu-tien-ich/bieu-lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# VIB — JS-rendered
-results['VIB'] = crawl_bank(
-    bank_code='VIB',
-    url='https://www.vib.com.vn/vn/home/cong-cu/lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# EIB / Eximbank — JS-rendered
-results['EIB'] = crawl_bank(
-    bank_code='EIB',
-    url='https://www.eximbank.com.vn/vi/ca-nhan/tien-gui/lai-suat.html',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# HDB / HDBank — JS-rendered
-results['HDB'] = crawl_bank(
-    bank_code='HDB',
-    url='https://hdbank.com.vn/vi/ca-nhan/cong-cu/bieu-lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# TPB / TPBank — JS-rendered
-results['TPB'] = crawl_bank(
-    bank_code='TPB',
-    url='https://tpbank.vn/ca-nhan/cong-cu-tien-ich/bieu-lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# MSB — JS-rendered
-results['MSB'] = crawl_bank(
-    bank_code='MSB',
-    url='https://www.msb.com.vn/ca-nhan/tiet-kiem/lai-suat',
-    structured_parser=heuristic_parse,
-    fetch_method='selenium',
-)
-
-# === SUMMARY ===
 print(f"\n{'='*60}")
-print(f"RESULTS")
-print(f"{'='*60}")
-for bank, success in results.items():
-    print(f"  {bank}: {'OK' if success else 'FAILED'}")
-
-total_ok = sum(1 for v in results.values() if v)
-total = len(results)
-print(f"\n  {total_ok}/{total} banks succeeded")
+print(f"  ACB: {'OK' if ok else 'FAILED'}")
 print(f"  Completed at {datetime.now().strftime('%H:%M:%S')}")
 print(f"{'='*60}")
 
-if total_ok == 0:
-    print("\nERROR: All banks failed!")
+if not ok:
     sys.exit(1)

@@ -116,8 +116,8 @@ class VnSbvCentralRate(Base):
 class VnBankTermDepo(Base):
     """
     Vietnamese Bank Term Deposit Interest Rates
-    Sources: ACB, SHB, CTG (VietinBank), VCB (Vietcombank)
-    Crawler: crawl_bank_termdepo.py (with 3-layer adaptive parsing)
+    Source: ACB (acb.com.vn)
+    Crawler: crawl_bank_termdepo.py
     Schedule: Daily 8:30 AM VN
 
     Layers:
