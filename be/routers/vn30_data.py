@@ -272,27 +272,43 @@ async def get_vn30_ratios(
 @router.get("/api/v1/macro/cpi")
 async def get_macro_cpi(
     request: Request,
-    months: int = Query(default=12, ge=1, le=60),
-    category: str = Query(default="overall"),
+    view: str = Query(default="annual", description="'annual' = 1 point/year | 'monthly' = 1 point/month"),
+    years: int = Query(default=20, ge=1, le=30),
     _auth: None = Depends(authenticate_user_optional),
 ):
-    """Vietnam CPI monthly data — free access."""
+    """Vietnam CPI data from GSO (vn_gso_cpi_monthly). Source: nso.gov.vn"""
     try:
         with get_engine_crawl().connect() as conn:
-            rows = conn.execute(text("""
-                SELECT period, category, cpi_index, mom_pct, yoy_pct
-                FROM vn_gso_cpi_monthly
-                WHERE category = :category
-                ORDER BY period DESC
-                LIMIT :months
-            """), {"category": category, "months": months}).fetchall()
+            if view == "monthly":
+                # Last N months — for 1-year chart (monthly points)
+                rows = conn.execute(text("""
+                    SELECT period, cpi_mom_pct, cpi_yoy_pct
+                    FROM vn_gso_cpi_monthly
+                    WHERE cpi_yoy_pct IS NOT NULL
+                    ORDER BY period DESC
+                    LIMIT :limit
+                """), {"limit": years * 12}).fetchall()
+                data = [{"period": r[0], "mom_pct": r[1], "yoy_pct": r[2]}
+                        for r in reversed(rows)]
+            else:
+                # Annual aggregate — avg yoy per year, for 20-year bar chart
+                rows = conn.execute(text("""
+                    SELECT LEFT(period, 4)            AS yr,
+                           ROUND(AVG(cpi_yoy_pct)::numeric, 2) AS avg_yoy,
+                           COUNT(*)                   AS months
+                    FROM vn_gso_cpi_monthly
+                    WHERE cpi_yoy_pct IS NOT NULL
+                      AND LEFT(period, 4) >= :from_yr
+                    GROUP BY LEFT(period, 4)
+                    ORDER BY yr
+                """), {"from_yr": str(2026 - years)}).fetchall()
+                data = [{"period": r[0], "yoy_pct": float(r[1]), "months": r[2]}
+                        for r in rows]
 
-        data = [{
-            "period": r[0], "category": r[1],
-            "cpi_index": r[2], "mom_pct": r[3], "yoy_pct": r[4],
-        } for r in reversed(rows)]
-
-        return _json_response({"success": True, "category": category, "count": len(data), "data": data})
+        return _json_response({
+            "success": True, "view": view, "source": "GSO/NSO vn_gso_cpi_monthly",
+            "count": len(data), "data": data,
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch CPI: {e}")
 

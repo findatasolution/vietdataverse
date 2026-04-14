@@ -242,10 +242,6 @@
                     link.querySelector('h4').textContent = t.navDownloadApi;
                     const meta = link.querySelector('.nav-meta');
                     if (meta) meta.textContent = t.navDownloadApiMeta;
-                } else if (link.getAttribute('href') === 'partners.html') {
-                    link.querySelector('h4').textContent = t.navPartners;
-                    const meta = link.querySelector('.nav-meta');
-                    if (meta) meta.textContent = t.navPartnersMeta;
                 }
             });
 
@@ -796,6 +792,8 @@
                 ]);
             } else if (tabId === 'tab-global') {
                 loadChartData('global', '1m');
+            } else if (tabId === 'tab-macro') {
+                loadMacroCharts(20);
             }
             // tab-download: no charts to load, content is static
         }
@@ -832,15 +830,41 @@
             });
 
             // Gold type selector
+            const GOLD_SOURCES = {
+                'DOJI HN':    { label: '24h.com.vn', url: 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html' },
+                'DOJI SG':    { label: '24h.com.vn', url: 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html' },
+                'BTMC SJC':   { label: 'btmc.vn',    url: 'https://btmc.vn/' },
+                'BTMH':       { label: 'btmc.vn',    url: 'https://btmc.vn/' },
+                'Phú Quý SJC':{ label: 'phuquygroup.vn', url: 'https://www.phuquygroup.vn/gia-vang' },
+            };
+            function updateGoldSource(goldType) {
+                const el = document.getElementById('goldChartSource');
+                if (!el) return;
+                const src = GOLD_SOURCES[goldType] || { label: '24h.com.vn', url: 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html' };
+                el.innerHTML = `Nguồn: <a href="${src.url}" target="_blank" rel="noopener">${src.label}</a>`;
+            }
+
+            const BANK_SOURCES = {
+                'ACB': { label: 'acb.com.vn',       url: 'https://acb.com.vn/lai-suat-tien-gui' },
+                'CTG': { label: 'vietinbank.vn',     url: 'https://www.vietinbank.vn/vi/ca-nhan/cong-cu-tien-ich/lai-suat-khcn' },
+                'SHB': { label: 'shb.com.vn',        url: 'https://www.shb.com.vn/lai-suat' },
+                'VCB': { label: 'vietcombank.com.vn',url: 'https://www.vietcombank.com.vn/vi/Personal/Cong-cu-Tien-ich/KHCN---Lai-suat' },
+            };
+            function updateTdSource(bankCode) {
+                const el = document.getElementById('tdChartSource');
+                if (!el) return;
+                const src = BANK_SOURCES[bankCode] || BANK_SOURCES['ACB'];
+                el.innerHTML = `Nguồn: <a href="${src.url}" target="_blank" rel="noopener">${src.label}</a>`;
+            }
+
             const goldTypeSelect = document.getElementById('goldTypeSelect');
             if (goldTypeSelect) {
                 goldTypeSelect.addEventListener('change', (e) => {
                     const goldType = e.target.value;
-                    // Get current active period
                     const activePeriodBtn = document.querySelector('.filter-btn[data-chart="gold"].active');
                     const period = activePeriodBtn?.dataset.period || '1m';
-                    // Reload gold chart with new type
                     loadChartData('gold', period, goldType);
+                    updateGoldSource(goldType);
                 });
             }
 
@@ -849,11 +873,10 @@
             if (bankTypeSelect) {
                 bankTypeSelect.addEventListener('change', (e) => {
                     const bankCode = e.target.value;
-                    // Get current active period
                     const activePeriodBtn = document.querySelector('.filter-btn[data-chart="td"].active');
                     const period = activePeriodBtn?.dataset.period || '1y';
-                    // Reload TD chart with new bank
                     loadChartData('td', period, null, bankCode);
+                    updateTdSource(bankCode);
                 });
             }
         }
@@ -1161,6 +1184,7 @@
             'tab-gold-silver': false,
             'tab-currency': false,
             'tab-global': false,
+            'tab-macro': false,
             'tab-download': false
         };
 
@@ -2135,4 +2159,258 @@
                 tip.style.left = left + 'px';
                 tip.style.top = top + 'px';
             }
+        })();
+
+        /* =========================================================
+           MACRO CHARTS (GSO/NSO internal API + World Bank Open Data)
+           CPI source: vn_gso_cpi_monthly (nso.gov.vn) via /api/v1/macro/cpi
+           GDP/Trade source: World Bank Open Data
+        ========================================================= */
+        (function () {
+            const WB_BASE = 'https://api.worldbank.org/v2/country/VN/indicator';
+            const GOLD = '#C9A55B';
+            const RED  = '#EF5350';
+            const BLUE = '#42A5F5';
+            const TEAL = '#26A69A';
+            const GRID = 'rgba(255,255,255,0.06)';
+            const FONT = { color: '#808080', size: 11 };
+
+            let _macroPeriod = 20; // default 20 years
+            let _cpiChart = null, _gdpChart = null, _tradeChart = null;
+
+            // ── Fetch one World Bank indicator
+            async function wbFetch(indicator, years = 40) {
+                const url = `${WB_BASE}/${indicator}?format=json&per_page=${years}&mrv=${years}`;
+                const r = await fetch(url);
+                if (!r.ok) throw new Error(`WB ${indicator} ${r.status}`);
+                const json = await r.json();
+                return (json[1] || [])
+                    .filter(d => d.value != null)
+                    .sort((a, b) => a.date.localeCompare(b.date));
+            }
+
+            // ── Slice to last N years (0 = all)
+            function sliceYears(data, n) {
+                return n > 0 ? data.slice(-n) : data;
+            }
+
+            // ── Common chart defaults
+            function baseConfig(type, labels, datasets) {
+                return {
+                    type,
+                    data: { labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 500 },
+                        plugins: {
+                            legend: { labels: { color: '#a0a0a0', font: { size: 11 }, boxWidth: 12 } },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            x: { ticks: FONT, grid: { color: GRID } },
+                            y: { ticks: FONT, grid: { color: GRID } }
+                        }
+                    }
+                };
+            }
+
+            // ── Fetch CPI from internal GSO API
+            async function cpiFetch(view, years) {
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL || '').replace(/\/api\/v1$/, '');
+                const r = await fetch(`${base}/api/v1/macro/cpi?view=${view}&years=${years}`);
+                if (!r.ok) throw new Error(`CPI API ${r.status}`);
+                const json = await r.json();
+                return json.data || [];
+            }
+
+            // ── CPI chart — bar (annual) or line (monthly)
+            function renderCpi(data, years) {
+                const canvas = document.getElementById('macroCpiChart');
+                if (!canvas) return;
+                if (_cpiChart) _cpiChart.destroy();
+
+                const isMonthly = years === 1;
+                const labels = data.map(d => d.period);
+                const values = data.map(d => +(d.yoy_pct).toFixed(2));
+                const colors = values.map(v =>
+                    v >= 10 ? '#EF5350' : v >= 5 ? '#FFA726' : v >= 0 ? '#66BB6A' : '#42A5F5'
+                );
+
+                let cfg;
+                if (isMonthly) {
+                    cfg = baseConfig('line', labels, [{
+                        label: 'CPI YoY %/tháng (nguồn: GSO)',
+                        data: values,
+                        borderColor: '#FFA726',
+                        backgroundColor: 'rgba(255,167,38,0.1)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.3,
+                        fill: true,
+                    }]);
+                } else {
+                    cfg = baseConfig('bar', labels, [{
+                        label: 'CPI trung bình %/năm (nguồn: GSO)',
+                        data: values,
+                        backgroundColor: colors,
+                        borderRadius: 3,
+                        borderSkipped: false,
+                    }]);
+                }
+                cfg.options.scales.y.title = { display: true, text: '%', color: '#606060', font: { size: 10 } };
+                _cpiChart = new Chart(canvas.getContext('2d'), cfg);
+            }
+
+            // ── GDP bar chart
+            function renderGdp(raw, years) {
+                const data = sliceYears(raw, years);
+                const labels = data.map(d => d.date);
+                const values = data.map(d => +d.value.toFixed(2));
+
+                const canvas = document.getElementById('macroGdpChart');
+                if (!canvas) return;
+                if (_gdpChart) _gdpChart.destroy();
+                const cfg = baseConfig('bar', labels, [{
+                    label: 'GDP tăng trưởng %/năm',
+                    data: values,
+                    backgroundColor: values.map(v => v >= 0 ? TEAL : RED),
+                    borderRadius: 3,
+                    borderSkipped: false
+                }]);
+                cfg.options.scales.y.title = { display: true, text: '%', color: '#606060', font: { size: 10 } };
+                _gdpChart = new Chart(canvas.getContext('2d'), cfg);
+            }
+
+            // ── Trade line chart (exports + imports in billion USD)
+            function renderTrade(expRaw, impRaw, years) {
+                const expData = sliceYears(expRaw, years);
+                const impData = sliceYears(impRaw, years);
+                // Align by year
+                const years_set = new Set([...expData.map(d => d.date), ...impData.map(d => d.date)]);
+                const labels = [...years_set].sort();
+                const expMap = Object.fromEntries(expData.map(d => [d.date, d.value / 1e9]));
+                const impMap = Object.fromEntries(impData.map(d => [d.date, d.value / 1e9]));
+                const exports_ = labels.map(y => expMap[y] != null ? +expMap[y].toFixed(1) : null);
+                const imports_ = labels.map(y => impMap[y] != null ? +impMap[y].toFixed(1) : null);
+                const balance = labels.map((y, i) =>
+                    expMap[y] != null && impMap[y] != null
+                        ? +((expMap[y] - impMap[y]) / 1e9).toFixed(1) : null
+                );
+
+                const canvas = document.getElementById('macroTradeChart');
+                if (!canvas) return;
+                if (_tradeChart) _tradeChart.destroy();
+                const cfg = baseConfig('line', labels, [
+                    { label: 'Xuất khẩu (tỷ USD)', data: exports_, borderColor: GOLD, backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+                    { label: 'Nhập khẩu (tỷ USD)', data: imports_, borderColor: BLUE, backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+                    { label: 'Cán cân TM (tỷ USD)', data: balance, borderColor: TEAL, backgroundColor: 'transparent', tension: 0.3, borderDash: [4,3], pointRadius: 2 }
+                ]);
+                cfg.options.scales.y.title = { display: true, text: 'tỷ USD', color: '#606060', font: { size: 10 } };
+                _tradeChart = new Chart(canvas.getContext('2d'), cfg);
+            }
+
+            // ── Cached raw data
+            // CPI: cached per view type (annual vs monthly)
+            let _rawCpiAnnual = null, _rawCpiMonthly = null;
+            let _rawGdp = null, _rawExp = null, _rawImp = null;
+
+            // ── Main load function
+            window.loadMacroCharts = async function (years = 20) {
+                _macroPeriod = years;
+                const isMonthly = years === 1;
+                const cpiView = isMonthly ? 'monthly' : 'annual';
+
+                // CPI: always fetch fresh when view changes (monthly vs annual)
+                const cpiCache = isMonthly ? _rawCpiMonthly : _rawCpiAnnual;
+
+                // GDP/Trade: cache across period switches (WB data is annual, sliced client-side)
+                if (cpiCache && _rawGdp && _rawExp && _rawImp) {
+                    renderCpi(cpiCache, years);
+                    renderGdp(_rawGdp, years);
+                    renderTrade(_rawExp, _rawImp, years);
+                    return;
+                }
+
+                // Show skeletons
+                ['macroCpiLoading', 'macroGdpLoading', 'macroTradeLoading'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'flex';
+                });
+
+                try {
+                    const cpiData = await cpiFetch(cpiView, years);
+                    if (isMonthly) _rawCpiMonthly = cpiData;
+                    else           _rawCpiAnnual  = cpiData;
+
+                    if (!_rawGdp) {
+                        [_rawGdp, _rawExp, _rawImp] = await Promise.all([
+                            wbFetch('NY.GDP.MKTP.KD.ZG', 40),
+                            wbFetch('NE.EXP.GNFS.CD', 40),
+                            wbFetch('NE.IMP.GNFS.CD', 40)
+                        ]);
+                    }
+
+                    renderCpi(cpiData, years);
+                    renderGdp(_rawGdp, years);
+                    renderTrade(_rawExp, _rawImp, years);
+                } catch (e) {
+                    console.error('[macro] fetch failed:', e);
+                } finally {
+                    ['macroCpiLoading', 'macroGdpLoading', 'macroTradeLoading'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.style.display = 'none';
+                    });
+                }
+            };
+
+            // ── Download macro data as CSV
+            window.downloadMacroCSV = function (type) {
+                const configs = {
+                    cpi:   { header: 'Year,CPI Inflation (%/year)',    file: 'vietdataverse_vn_cpi_annual' },
+                    gdp:   { header: 'Year,GDP Growth (%/year)',        file: 'vietdataverse_vn_gdp_growth' },
+                    trade: { header: 'Year,Exports (billion USD),Imports (billion USD),Trade Balance (billion USD)', file: 'vietdataverse_vn_trade' }
+                };
+                const cfg = configs[type];
+                if (!cfg) return;
+
+                let csv;
+                if (type === 'cpi') {
+                    const cpiRaw = _rawCpiAnnual || _rawCpiMonthly;
+                    if (!cpiRaw) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
+                    csv = cfg.header + '\n' + cpiRaw.map(d => `${d.period},${(+d.yoy_pct).toFixed(2)}`).join('\n');
+                } else if (type === 'gdp') {
+                    if (!_rawGdp) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
+                    csv = cfg.header + '\n' + _rawGdp.map(d => `${d.date},${d.value.toFixed(2)}`).join('\n');
+                } else if (type === 'trade') {
+                    if (!_rawExp || !_rawImp) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
+                    const expMap = Object.fromEntries(_rawExp.map(d => [d.date, d.value / 1e9]));
+                    const impMap = Object.fromEntries(_rawImp.map(d => [d.date, d.value / 1e9]));
+                    const years = [...new Set([..._rawExp.map(d => d.date), ..._rawImp.map(d => d.date)])].sort();
+                    csv = cfg.header + '\n' + years.map(y => {
+                        const exp = expMap[y] != null ? expMap[y].toFixed(1) : '';
+                        const imp = impMap[y] != null ? impMap[y].toFixed(1) : '';
+                        const bal = expMap[y] != null && impMap[y] != null ? (expMap[y] - impMap[y]).toFixed(1) : '';
+                        return `${y},${exp},${imp},${bal}`;
+                    }).join('\n');
+                }
+
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = cfg.file + '.csv';
+                a.click();
+            };
+
+            // ── Period filter buttons in macro tab
+            document.addEventListener('click', e => {
+                const btn = e.target.closest('[data-macro-period]');
+                if (!btn) return;
+                const years = +btn.dataset.macroPeriod;
+                btn.closest('.chart-filters')
+                    ?.querySelectorAll('[data-macro-period]')
+                    .forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                loadMacroCharts(years);
+            });
         })();
