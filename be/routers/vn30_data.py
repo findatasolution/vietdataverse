@@ -301,7 +301,7 @@ async def get_macro_cpi(
                       AND LEFT(period, 4) >= :from_yr
                     GROUP BY LEFT(period, 4)
                     ORDER BY yr
-                """), {"from_yr": str(2026 - years)}).fetchall()
+                """), {"from_yr": str(2026 - years) if years > 0 else "0000"}).fetchall()
                 data = [{"period": r[0], "yoy_pct": float(r[1]), "months": r[2]}
                         for r in rows]
 

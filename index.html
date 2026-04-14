@@ -454,8 +454,8 @@
             </ul>
             <p>Dữ liệu VN30 Score cập nhật hàng tuần. Người dùng Free xem top 3 cổ phiếu. Người dùng Premium xem toàn bộ 30 mã cùng tín hiệu chi tiết. Đây là công cụ hỗ trợ ra quyết định đầu tư, không phải lời khuyên tài chính.</p>
 
-            <h2>Đối Tác Chứng Khoán</h2>
-            <p><a href="partners.html">Mở tài khoản chứng khoán SSI, VPBank Securities miễn phí — hướng dẫn đầu tư chứng khoán Việt Nam</a></p>
+            <!-- <h2>Đối Tác Chứng Khoán</h2>
+            <p><a href="partners.html">Mở tài khoản chứng khoán SSI, VPBank Securities miễn phí — hướng dẫn đầu tư chứng khoán Việt Nam</a></p> -->
 
             <h2>Về Viet Dataverse</h2>
             <p>Viet Dataverse là nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở, cung cấp thông tin giá vàng, giá bạc, lãi suất ngân hàng và tỷ giá hối đoái được thu thập tự động từ các nguồn công khai uy tín. Dữ liệu được làm sạch, chuẩn hóa và lưu trữ lịch sử dài hạn để phục vụ nghiên cứu và phân tích. Liên hệ: <a href="mailto:contact@vietdataverse.online">contact@vietdataverse.online</a></p>
@@ -553,14 +553,14 @@
                     </li>
 
                     <!-- ── PROFIT (monetization) ── -->
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="partners.html">
                             <div class="nav-content">
                                 <h4>Đối Tác</h4>
                                 <span class="nav-meta">Nhà cung cấp dịch vụ uy tín</span>
                             </div>
                         </a>
-                    </li>
+                    </li> -->
 
                 </ul>
             </div>
@@ -612,37 +612,7 @@
 
             <!-- Open Economic Data -->
             <div class="tab-content active" id="data-portal">
-                <div class="section-header hero-header">
-                    <!-- 
-                        ADVERTISEMENT STANDARDS / QUY ĐỊNH ADS:
-                        ----------------------------------------
-                        1. Format: MP4 (H.264) or WebM.
-                        2. Resolution: 1920×520 recommended. Min 1280x720.
-                        3. File Size: Optimized < 10MB (Recommended < 5MB for fast load).
-                        4. Ratio: 16:9 Landscape.
-                        5. Poster: Always include a fallback image (jpg/webp).
-                    -->
-                    <div class="hero-video-container">
-                        <!--ĐỂ DÙNG VIDEO (MP4 / WebM):-->
-                        <!-- <video autoplay muted loop playsinline preload="auto" class="hero-video">
-                            <source src="ads.mp4" type="video/mp4">
-                        </video> -->
-                        <!-- ĐỂ DÙNG ẢNH (JPG / PNG / WebP / GIF): -->
-                        <img src="" class="hero-video" alt="Advertisement Banner" style="display:none;">
 
-                        <div class="hero-overlay"></div>
-                    </div>
-                    <div class="hero-content">
-                        <h1 class="section-title">
-                            <span data-i18n="mainTitle">Tải Dữ Liệu Kinh Tế Mở</span>
-                            <span class="chart-info-icon"
-                                data-tooltip="Tải miễn phí lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí">ⓘ</span>
-                        </h1>
-                        <p class="hero-description" style="max-width:760px; margin: 0.75rem auto 0; color: var(--text-secondary); font-size: 1rem; line-height: 1.7;">
-                            Viet Dataverse cung cấp dữ liệu kinh tế Việt Nam miễn phí và mã nguồn mở. Tải lịch sử <strong style="color:var(--gold-primary)">giá vàng SJC, DOJI, BTMC</strong> từ năm 2015, dữ liệu <strong style="color:var(--gold-primary)">giá bạc Phú Quý</strong>, <strong style="color:var(--gold-primary)">lãi suất tiết kiệm</strong> các ngân hàng thương mại, <strong style="color:var(--gold-primary)">lãi suất liên ngân hàng SBV</strong> và <strong style="color:var(--gold-primary)">tỷ giá USD/VND Vietcombank</strong> — định dạng CSV hoặc JSON, API RESTful, cập nhật 2 lần mỗi ngày. Phù hợp cho nghiên cứu kinh tế, phân tích đầu tư và xây dựng ứng dụng tài chính.
-                        </p>
-                    </div>
-                </div>
 
                 <!-- Charts Section with Tabs -->
                 <div class="charts-section">
@@ -659,6 +629,10 @@
                         <button class="chart-tab-btn" data-tab="tab-global">
                             <i class="fas fa-globe"></i>
                             <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-macro">
+                            <i class="fas fa-chart-area"></i>
+                            <span>Vĩ Mô</span>
                         </button>
                         <button class="chart-tab-btn" data-tab="tab-download">
                             <i class="fas fa-database"></i>
@@ -686,6 +660,7 @@
                                         Month</button>
                                     <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('gold-' + (document.getElementById('goldTypeSelect')?.value || 'DOJI HN'))" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -705,6 +680,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <small class="chart-source" id="goldChartSource">Nguồn: <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
                         </div>
 
                         <!-- Silver Price Chart -->
@@ -721,6 +697,7 @@
                                         Month</button>
                                     <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('silver')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -740,87 +717,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <small class="chart-source">Nguồn: <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
                         </div>
 
-                        <!-- Gold & Silver Analysis -->
-                        <article class="article-featured" id="article-gold">
-                            <div class="article-header">
-                                <span class="article-tag">Phân Tích Thị Trường Vàng & Bạc</span>
-                                <h2 class="article-title">Giá Vàng Việt Nam: Hướng Dẫn Đọc Dữ Liệu & Phân Tích Xu Hướng</h2>
-                                <div class="article-meta">
-                                    <span class="meta-item"><i class="fas fa-user"></i> Viet Dataverse</span>
-                                    <span class="meta-item"><i class="fas fa-calendar"></i> Cập nhật 2 lần/ngày</span>
-                                    <span class="meta-item"><i class="fas fa-database"></i> Nguồn: DOJI, SJC, BTMC</span>
-                                </div>
-                            </div>
-                            <div class="article-body">
-                                <div class="article-text">
-                                    <h3>Hiểu về giá vàng trong nước</h3>
-                                    <p>
-                                        Thị trường vàng Việt Nam vận hành theo cơ chế riêng biệt so với thế giới. Giá vàng trong nước được niêm yết theo <strong>đơn vị nghìn VND/chỉ</strong> (1 chỉ = 3.75g), không theo oz như quốc tế. Các thương hiệu uy tín tại Việt Nam bao gồm <strong>DOJI, SJC, BTMC (Bảo Tín Minh Châu)</strong> — mỗi thương hiệu có giá mua vào và bán ra khác nhau tùy theo thời điểm thị trường.
-                                    </p>
-                                    <p>
-                                        Biểu đồ trên hiển thị <strong>giá mua và bán thực tế</strong> được cập nhật 2 lần mỗi ngày từ các nguồn chính thức. Khoảng cách giữa đường mua và bán (spread) phản ánh tính thanh khoản của thị trường: spread rộng cho thấy thị trường biến động mạnh, spread hẹp cho thấy giao dịch ổn định.
-                                    </p>
-
-                                    <h3>Yếu tố ảnh hưởng đến giá vàng Việt Nam</h3>
-                                    <p>
-                                        Giá vàng trong nước chịu tác động bởi hai nhóm yếu tố chính. <strong>Yếu tố quốc tế:</strong> giá vàng thế giới trên sàn COMEX (USD/oz), tỷ giá USD/VND, chính sách lãi suất của Fed, tình hình địa chính trị toàn cầu. <strong>Yếu tố trong nước:</strong> cung cầu vàng vật chất, chính sách nhập khẩu vàng của Ngân hàng Nhà nước (SBV), tâm lý tích trữ của người dân — đặc biệt cao trong các dịp lễ Tết, cưới hỏi.
-                                    </p>
-                                    <p>
-                                        Lịch sử cho thấy giá vàng SJC thường giao dịch ở mức <strong>chênh lệch đáng kể so với giá thế giới</strong> (premium), đôi khi lên tới 15-20 triệu đồng/lượng vào giai đoạn căng thẳng nguồn cung. Đây là đặc điểm riêng của thị trường vàng Việt Nam do cơ chế kiểm soát nhập khẩu vàng miếng.
-                                    </p>
-
-                                    <h3>Giá bạc Phú Quý — kim loại quý ít được chú ý</h3>
-                                    <p>
-                                        Bên cạnh vàng, <strong>bạc thỏi Phú Quý</strong> là kênh đầu tư kim loại quý đang được chú ý tại Việt Nam. Giá bạc niêm yết theo <strong>nghìn VND/lượng</strong> (1 lượng = 37.5g) và thường biến động mạnh hơn vàng do thị trường nhỏ hơn. Lịch sử giá cho thấy bạc có tương quan cao với vàng nhưng biên độ dao động lớn hơn 20-30%, tạo cơ hội lẫn rủi ro cao hơn cho nhà đầu tư.
-                                    </p>
-                                    <p>
-                                        Dữ liệu lịch sử từ 2015 đến nay tại Viet Dataverse cho phép nhà nghiên cứu và nhà đầu tư phân tích <strong>chu kỳ giá, tương quan với vàng thế giới, và các sự kiện kinh tế vĩ mô</strong> ảnh hưởng đến kim loại quý tại Việt Nam. Tải xuống miễn phí định dạng CSV hoặc kết nối qua API bên dưới.
-                                    </p>
-                                    <p class="article-disclaimer">
-                                        <em>Lưu ý: Thông tin trên mang tính giáo dục. Nhà đầu tư nên tham khảo chuyên gia tài chính trước khi đưa ra quyết định đầu tư.</em>
-                                    </p>
-                                </div>
-                            </div>
-                        </article>
-
-                        <!-- Download Section Gold, Silver-->
-                        <div class="datasets-grid">
-                            <!-- Gold Dataset -->
-                            <div class="dataset-card">
-                                <div class="dataset-top">
-                                    <div class="dataset-info">
-                                        <h3>Lịch Sử Giá Vàng Trong Nước</h3>
-                                    </div>
-                                </div>
-                                <div class="dataset-actions">
-                                    <button class="btn btn-primary" data-download="gold" title="Tải lịch sử giá vàng">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                    <button class="btn btn-secondary" data-api="gold" title="Vietnam gold price API">
-                                        <i class="fas fa-code"></i> API
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Silver Dataset -->
-                            <div class="dataset-card">
-                                <div class="dataset-top">
-                                    <div class="dataset-info">
-                                        <h3>Giá Bạc Phú Quý</h3>
-                                    </div>
-                                </div>
-                                <div class="dataset-actions">
-                                    <button class="btn btn-primary" data-download="silver">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                    <button class="btn btn-secondary" data-api="silver">
-                                        <i class="fas fa-code"></i> API
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Tab 2: Tiền tệ VN (Lazy load) -->
@@ -844,6 +743,7 @@
                                     <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button> -->
                                     <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="td" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('termdepo-' + (document.getElementById('bankTypeSelect')?.value || 'ACB'))" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -863,6 +763,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <small class="chart-source" id="tdChartSource">Nguồn: <a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank" rel="noopener">acb.com.vn</a></small>
                         </div>
 
                         <!-- SBV Interbank Rate Charts -->
@@ -878,6 +779,7 @@
                                     <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
                                     <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('sbv-interbank')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <!-- Panel 1: Interbank rates -->
@@ -904,6 +806,7 @@
                             <div class="chart-container">
                                 <canvas id="sbv2Chart"></canvas>
                             </div>
+                            <small class="chart-source">Nguồn: <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
 
@@ -921,6 +824,7 @@
                                         Month</button>
                                     <button class="filter-btn" data-chart="fxrate" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="fxrate" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('fxrate-SBV-USD')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -940,115 +844,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <small class="chart-source">Nguồn: <a href="https://www.sbv.gov.vn/tỷ-giá" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
-                        <!-- Currency & Rates Analysis -->
-                        <article class="article-featured" id="article-currency">
-                            <div class="article-header">
-                                <span class="article-tag">Phân Tích Lãi Suất & Tỷ Giá</span>
-                                <h2 class="article-title">Lãi Suất Tiết Kiệm, Lãi Suất Liên Ngân Hàng & Tỷ Giá USD/VND: Mối Quan Hệ Và Ý Nghĩa</h2>
-                                <div class="article-meta">
-                                    <span class="meta-item"><i class="fas fa-user"></i> Viet Dataverse</span>
-                                    <span class="meta-item"><i class="fas fa-calendar"></i> Cập nhật hàng ngày</span>
-                                    <span class="meta-item"><i class="fas fa-database"></i> Nguồn: SBV, VCB, ACB, CTG, SHB</span>
-                                </div>
-                            </div>
-                            <div class="article-body">
-                                <div class="article-text">
-                                    <h3>Lãi suất gửi tiết kiệm ngân hàng — so sánh các kỳ hạn</h3>
-                                    <p>
-                                        Lãi suất tiết kiệm kỳ hạn (term deposit) là chỉ số quan trọng nhất với người gửi tiền tại Việt Nam. Biểu đồ trên thể hiện lãi suất <strong>%/năm</strong> theo các kỳ hạn từ 1 tháng đến 36 tháng tại các ngân hàng thương mại lớn như <strong>ACB, VCB, CTG (Vietinbank), SHB</strong>. Xu hướng chung: kỳ hạn dài hơn thường có lãi suất cao hơn, nhưng điều này không luôn đúng khi thị trường kỳ vọng lãi suất sẽ tăng trong tương lai gần.
-                                    </p>
-                                    <p>
-                                        Từ 2022-2023, lãi suất tiết kiệm tại Việt Nam leo thang mạnh do áp lực lạm phát toàn cầu và thanh khoản hệ thống ngân hàng căng thẳng, đỉnh điểm nhiều ngân hàng đề nghị lãi suất vượt <strong>9-10%/năm</strong>. Bước sang 2024-2025, Ngân hàng Nhà nước thực hiện chính sách hạ lãi suất điều hành để kích thích tăng trưởng, kéo mặt bằng lãi suất huy động giảm đáng kể còn 4-6%/năm với kỳ hạn ngắn.
-                                    </p>
-
-                                    <h3>Lãi suất liên ngân hàng SBV — đo lường sức khỏe thanh khoản</h3>
-                                    <p>
-                                        Lãi suất thị trường liên ngân hàng (interbank rate) do <strong>Ngân hàng Nhà nước Việt Nam (SBV)</strong> công bố phản ánh chi phí vay vốn ngắn hạn giữa các ngân hàng với nhau. Lãi suất qua đêm (overnight) thường nhạy cảm nhất với thanh khoản tức thời, trong khi lãi suất 1-3 tháng phản ánh kỳ vọng trung hạn. Khi lãi suất liên ngân hàng tăng đột biến, đó thường là dấu hiệu căng thẳng thanh khoản — ngân hàng cần huy động vốn gấp và sẵn sàng trả giá cao hơn.
-                                    </p>
-                                    <p>
-                                        Nhà đầu tư và nhà phân tích tài chính theo dõi lãi suất liên ngân hàng như một <strong>chỉ báo sớm (leading indicator)</strong> cho chính sách tiền tệ: khi SBV muốn siết chặt tiền tệ, lãi suất liên ngân hàng tăng trước rồi mới tác động đến lãi suất huy động thương mại.
-                                    </p>
-
-                                    <h3>Tỷ giá USD/VND — Vietcombank làm chuẩn thị trường</h3>
-                                    <p>
-                                        Tỷ giá USD/VND do <strong>Vietcombank (VCB)</strong> niêm yết được coi là tỷ giá tham chiếu chính thức của thị trường Việt Nam. Biểu đồ thể hiện ba mức giá: <em>mua tiền mặt, mua chuyển khoản</em> và <em>bán ra</em>. Chênh lệch giữa mua và bán (spread) thông thường ở mức 50-100 VND/USD trong điều kiện bình thường.
-                                    </p>
-                                    <p>
-                                        Tỷ giá USD/VND có mối liên hệ chặt chẽ với giá vàng trong nước: khi USD mạnh lên, giá vàng thế giới (tính bằng USD) thường giảm, nhưng do tỷ giá tăng, giá vàng trong nước (tính bằng VND) có thể không giảm tương ứng. Đây là lý do tại sao phân tích giá vàng Việt Nam cần kết hợp theo dõi cả tỷ giá USD/VND song song.
-                                    </p>
-                                    <p class="article-disclaimer">
-                                        <em>Dữ liệu được thu thập từ nguồn công khai của SBV và Vietcombank, cập nhật hàng ngày. Chỉ mang tính tham khảo, không phải tư vấn đầu tư.</em>
-                                    </p>
-                                </div>
-                            </div>
-                        </article>
-
-                        <!-- Download Section Gold, Silver-->
-                        <div class="datasets-grid">
-                            <!-- SBV Interbank -->
-                            <div class="dataset-card">
-                                <div class="dataset-top">
-                                    <div class="dataset-info">
-                                        <h3>Lãi Suất Liên Ngân Hàng SBV</h3>
-                                    </div>
-                                    <button class="save-interest-btn" data-interest="sbv-data" title="Lưu quan tâm">
-                                        <i class="fas fa-bookmark"></i>
-                                    </button>
-                                </div>
-                                <p class="dataset-desc">
-                                    Lãi suất liên ngân hàng chính thức được Ngân hàng Nhà nước Việt Nam (SBV) công bố,
-                                    bao gồm các kỳ hạn từ overnight đến 9 tháng.
-                                </p>
-                                <div class="dataset-stats">
-                                    <span class="stat-item">
-                                        2025 - Present
-                                    </span>
-                                    <span class="stat-item">
-                                        45+ updates
-                                    </span>
-                                </div>
-                                <div class="dataset-actions">
-                                    <button class="btn btn-primary" data-download="sbv">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                    <button class="btn btn-secondary" data-api="sbv">
-                                        <i class="fas fa-code"></i> API
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Term Deposit -->
-                            <div class="dataset-card disabled">
-                                <div class="dataset-top">
-                                    <div class="dataset-info">
-                                        <h3>Bank Term Deposit Rates</h3>
-                                    </div>
-                                    <button class="save-interest-btn" data-interest="termdepo-data"
-                                        title="Lưu quan tâm">
-                                        <i class="fas fa-bookmark"></i>
-                                    </button>
-                                </div>
-                                <p class="dataset-desc">
-                                    Savings interest rates from Vietnam's 8 largest commercial banks (VCB, VTB, TCB, MB,
-                                    ACB, TPB, VPB, AGR).
-                                </p>
-                                <div class="dataset-stats">
-                                    <span class="stat-item">
-                                        In Development
-                                    </span>
-                                    <span class="stat-item">
-                                        Q1 2026
-                                    </span>
-                                </div>
-                                <div class="dataset-actions">
-                                    <button class="btn btn-primary" disabled>
-                                        Coming Soon
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Tab 3: Thị trường Quốc tế (Lazy load) -->
@@ -1068,6 +866,7 @@
                                         Month</button>
                                     <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('global-macro')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -1087,50 +886,101 @@
                                     </div>
                                 </div>
                             </div>
+                            <small class="chart-source">Nguồn: <a href="https://finance.yahoo.com/quote/GC=F" target="_blank" rel="noopener">Yahoo Finance</a></small>
                         </div>
-                        
-                        <!-- Global Macro Analysis -->
-                        <article class="article-featured" id="article-global">
-                            <div class="article-header">
-                                <span class="article-tag">Thị Trường Quốc Tế</span>
-                                <h2 class="article-title">Vàng, Bạc & NASDAQ Quốc Tế: Đọc Hiểu Dữ Liệu Và Ảnh Hưởng Đến Thị Trường Việt Nam</h2>
-                                <div class="article-meta">
-                                    <span class="meta-item"><i class="fas fa-user"></i> Viet Dataverse</span>
-                                    <span class="meta-item"><i class="fas fa-calendar"></i> Cập nhật hàng ngày</span>
-                                    <span class="meta-item"><i class="fas fa-database"></i> Nguồn: Yahoo Finance (GC=F, SI=F, ^IXIC)</span>
-                                </div>
-                            </div>
-                            <div class="article-body">
-                                <div class="article-text">
-                                    <h3>Vàng tương lai COMEX (GC=F) — chuẩn mực thế giới</h3>
-                                    <p>
-                                        Giá vàng tương lai trên sàn <strong>COMEX (Commodity Exchange)</strong> tại New York là mức giá chuẩn quốc tế, được niêm yết theo <strong>USD/troy oz</strong> (1 troy oz ≈ 31.1g). Đây là hợp đồng giao sau, không phải giao ngay, nhưng giá COMEX phản ánh kỳ vọng thị trường toàn cầu và thường đi trước xu hướng giá vàng vật chất vài giờ đến vài ngày.
-                                    </p>
-                                    <p>
-                                        Các yếu tố chính dịch chuyển giá vàng COMEX bao gồm: <strong>chính sách lãi suất Fed</strong> (lãi suất thấp → vàng hấp dẫn hơn vì chi phí cơ hội giảm), <strong>chỉ số đô-la DXY</strong> (USD yếu → vàng tính bằng USD đắt hơn với người mua ngoài Mỹ → cầu tăng → giá tăng), <strong>lạm phát CPI</strong> và <strong>căng thẳng địa chính trị</strong> làm tăng nhu cầu tài sản trú ẩn.
-                                    </p>
 
-                                    <h3>Bạc quốc tế (SI=F) — kim loại "lai" công nghiệp lẫn đầu tư</h3>
-                                    <p>
-                                        Khác với vàng thuần túy là tài sản đầu tư, <strong>bạc có đến 50-60% nhu cầu đến từ công nghiệp</strong>: pin mặt trời, điện tử, y tế. Điều này khiến bạc nhạy cảm hơn với chu kỳ kinh tế toàn cầu — khi kinh tế tăng trưởng, nhu cầu công nghiệp kéo giá bạc lên; khi suy thoái, bạc rớt mạnh hơn vàng. Tỷ lệ Gold/Silver Ratio (giá vàng chia giá bạc) là thước đo phổ biến để đánh giá bạc đang rẻ hay đắt tương đối so với vàng.
-                                    </p>
-
-                                    <h3>NASDAQ và mối quan hệ nghịch chiều với vàng</h3>
-                                    <p>
-                                        Chỉ số <strong>NASDAQ Composite (^IXIC)</strong> đại diện cho cổ phiếu công nghệ Mỹ — nhóm tài sản rủi ro cao. Theo lịch sử, khi NASDAQ tăng mạnh, dòng tiền thường rút khỏi vàng để chạy vào cổ phiếu, và ngược lại. Tuy nhiên, mối quan hệ này không tuyệt đối: trong giai đoạn lạm phát cao, cả NASDAQ lẫn vàng có thể cùng tăng. Theo dõi đồng thời ba chỉ số này giúp nhận biết <strong>tâm lý thị trường: risk-on (thích rủi ro) hay risk-off (tránh rủi ro)</strong>.
-                                    </p>
-                                    <p>
-                                        Dữ liệu quốc tế trên Viet Dataverse được cập nhật hàng ngày từ Yahoo Finance, cho phép so sánh xu hướng toàn cầu với diễn biến thị trường vàng và tỷ giá trong nước — giúp nhà đầu tư Việt Nam có bức tranh toàn cảnh hơn khi đưa ra quyết định.
-                                    </p>
-                                    <p class="article-disclaimer">
-                                        <em>Dữ liệu quốc tế từ Yahoo Finance (GC=F, SI=F, ^IXIC). Chỉ mang tính tham khảo, không phải tư vấn đầu tư.</em>
-                                    </p>
-                                </div>
-                            </div>
-                        </article>
                     </div>
 
-                    <!-- Tab 4: Download -->
+                    <!-- Tab 4: Kinh tế Vĩ mô (GSO / World Bank) -->
+                    <div class="tab-content" id="tab-macro">
+                        <!-- CPI -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    CPI Việt Nam (% YoY/năm)
+                                    <span class="chart-info-icon" data-tooltip="Lạm phát CPI hàng năm (% so với cùng kỳ năm trước). Nguồn: GSO/NSO Việt Nam (nso.gov.vn), cập nhật hàng tháng.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-macro-period="1">1 năm</button>
+                                    <button class="filter-btn" data-macro-period="10">10 năm</button>
+                                    <button class="filter-btn active" data-macro-period="20">20 năm</button>
+                                    <button class="filter-btn" data-macro-period="0">Tất cả</button>
+                                    <button class="filter-btn" onclick="downloadMacroCSV('cpi')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroCpiChart"></canvas>
+                                <div class="chart-loading" id="macroCpiLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:40%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:35%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source">Nguồn: <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div>
+
+                        <!-- GDP -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Tăng Trưởng GDP Việt Nam (%/năm)
+                                    <span class="chart-info-icon" data-tooltip="Tốc độ tăng trưởng GDP thực tế hàng năm (constant prices). Nguồn: GSO Việt Nam (qua World Bank Open Data).">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" onclick="downloadMacroCSV('gdp')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroGdpChart"></canvas>
+                                <div class="chart-loading" id="macroGdpLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source">Nguồn: <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div>
+
+                        <!-- Trade Balance -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Xuất Nhập Khẩu Việt Nam (tỷ USD)
+                                    <span class="chart-info-icon" data-tooltip="Tổng giá trị xuất khẩu và nhập khẩu hàng hóa dịch vụ theo năm. Nguồn: GSO Việt Nam (qua World Bank Open Data). Đơn vị: tỷ USD.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" onclick="downloadMacroCSV('trade')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroTradeChart"></canvas>
+                                <div class="chart-loading" id="macroTradeLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source">Nguồn: <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div>
+
+                        <p style="font-size:0.72rem;color:var(--text-tertiary);margin:0.5rem 1rem 1.5rem;text-align:right;">
+                            Note: <a href="https://data.worldbank.org/country/VN" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> Cập nhật hàng tháng (chưa chính thức)
+                        </p>
+                    </div>
+
+                    <!-- Tab 5: Download -->
                     <div class="tab-content" id="tab-download">
                         <div class="chart-card" style="padding:1.5rem;">
                             <div style="margin-bottom:1.5rem;">
@@ -1271,6 +1121,41 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- SEO Content — visually minimal, semantically rich -->
+                <section aria-label="Về dữ liệu" style="padding:2rem 1.5rem 1rem;border-top:1px solid #1e1e1e;max-width:860px;margin:0 auto;">
+                    <details>
+                        <summary style="cursor:pointer;font-size:0.78rem;color:var(--text-tertiary);letter-spacing:0.05em;list-style:none;display:flex;align-items:center;gap:6px;">
+                            <i class="fas fa-book-open" style="font-size:0.7rem;"></i> Tìm hiểu thêm về dữ liệu
+                        </summary>
+                        <div style="margin-top:1.25rem;display:grid;gap:1.5rem;">
+                            <article>
+                                <h2 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin:0 0 0.5rem;">Giá Vàng Việt Nam: Hướng Dẫn Đọc Dữ Liệu & Phân Tích Xu Hướng</h2>
+                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0 0 0.4rem;">
+                                    Thị trường vàng Việt Nam vận hành theo cơ chế riêng biệt so với thế giới. Giá vàng trong nước được niêm yết theo <strong>đơn vị nghìn VND/chỉ</strong> (1 chỉ = 3.75g). Các thương hiệu uy tín gồm <strong>DOJI, SJC, BTMC (Bảo Tín Minh Châu)</strong>. Spread giữa giá mua và bán phản ánh tính thanh khoản thị trường. Giá vàng SJC thường có premium đáng kể so với giá thế giới do cơ chế kiểm soát nhập khẩu vàng miếng của SBV.
+                                </p>
+                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0;">
+                                    <strong>Giá bạc Phú Quý</strong> niêm yết theo nghìn VND/lượng (1 lượng = 37.5g), biến động mạnh hơn vàng 20-30%. Dữ liệu lịch sử từ 2015 cho phép phân tích chu kỳ giá, tương quan với vàng thế giới và các sự kiện vĩ mô. Nguồn: DOJI, SJC, BTMC, phuquy.com.vn.
+                                </p>
+                            </article>
+                            <article>
+                                <h2 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin:0 0 0.5rem;">Lãi Suất Tiết Kiệm, Lãi Suất Liên Ngân Hàng & Tỷ Giá USD/VND</h2>
+                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0 0 0.4rem;">
+                                    Lãi suất tiết kiệm kỳ hạn (%/năm) tại <strong>ACB, VCB, CTG (Vietinbank), SHB</strong> — từ 1 tháng đến 36 tháng. Giai đoạn 2022-2023 đỉnh điểm vượt 9-10%/năm; 2024-2025 hạ còn 4-6%/năm. Lãi suất liên ngân hàng SBV là chỉ báo sớm (leading indicator) cho chính sách tiền tệ: lãi suất overnight nhạy nhất với thanh khoản tức thời.
+                                </p>
+                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0;">
+                                    Tỷ giá USD/VND Vietcombank là tỷ giá tham chiếu chính thức thị trường. Spread mua-bán thông thường 50-100 VND/USD. Tỷ giá tăng làm giá vàng trong nước không giảm tương ứng dù vàng thế giới giảm — cần theo dõi đồng thời. Nguồn: sbv.gov.vn, vietcombank.com.vn.
+                                </p>
+                            </article>
+                            <article>
+                                <h2 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin:0 0 0.5rem;">Vàng, Bạc & NASDAQ Quốc Tế: Ảnh Hưởng Đến Thị Trường Việt Nam</h2>
+                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0;">
+                                    Vàng COMEX (GC=F, USD/oz) chịu ảnh hưởng bởi lãi suất Fed, chỉ số DXY, lạm phát CPI và căng thẳng địa chính trị. Bạc (SI=F) có 50-60% nhu cầu công nghiệp (pin mặt trời, điện tử), biến động mạnh hơn theo chu kỳ kinh tế. NASDAQ Composite (^IXIC) thường nghịch chiều với vàng — khi risk-on, tiền chạy vào cổ phiếu; khi risk-off, tiền chạy vào vàng. Nguồn: Yahoo Finance, cập nhật hàng ngày.
+                                </p>
+                            </article>
+                        </div>
+                    </details>
+                </section>
 
             </div>
 
