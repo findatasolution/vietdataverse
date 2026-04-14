@@ -2215,10 +2215,9 @@
                 };
             }
 
-            // ── Fetch CPI from internal GSO API
+            // ── Fetch CPI from internal GSO API (relative URL — same origin as FE)
             async function cpiFetch(view, years) {
-                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL || '').replace(/\/api\/v1$/, '');
-                const r = await fetch(`${base}/api/v1/macro/cpi?view=${view}&years=${years}`);
+                const r = await fetch(`/api/v1/macro/cpi?view=${view}&years=${years}`);
                 if (!r.ok) throw new Error(`CPI API ${r.status}`);
                 const json = await r.json();
                 return json.data || [];
@@ -2320,6 +2319,7 @@
                 _macroPeriod = years;
                 const isMonthly = years === 1;
                 const cpiView = isMonthly ? 'monthly' : 'annual';
+                const cpiYears = years === 0 ? 30 : years;  // 0 = "Tất cả" → fetch 30 years
 
                 // CPI: always fetch fresh when view changes (monthly vs annual)
                 const cpiCache = isMonthly ? _rawCpiMonthly : _rawCpiAnnual;
@@ -2339,7 +2339,7 @@
                 });
 
                 try {
-                    const cpiData = await cpiFetch(cpiView, years);
+                    const cpiData = await cpiFetch(cpiView, cpiYears);
                     if (isMonthly) _rawCpiMonthly = cpiData;
                     else           _rawCpiAnnual  = cpiData;
 
