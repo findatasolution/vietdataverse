@@ -3,7 +3,7 @@ BTMC Gold Price Crawler
 Source: http://api.btmc.vn/api/BTMCAPI/getpricebtmc
 Schedule: 2x Daily (9:00 AM and 3:00 PM VN)
 
-Stores BTMC gold prices into vn_gold_24h_hist table.
+Stores BTMC gold prices into vn_macro_gold_daily table.
 Product types stored with "BTMC " prefix for clear source identification.
 
 Key products:
@@ -32,8 +32,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables
-root_dir = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
 
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
@@ -52,7 +51,7 @@ engine = create_engine(CRAWLING_BOT_DB)
 BTMC_API_URL = 'http://api.btmc.vn/api/BTMCAPI/getpricebtmc'
 BTMC_API_KEY = '3kd8ub1llcg9t45hnoh8hmn7t5kc2v'
 
-# Map BTMC raw product names to clean type names for vn_gold_24h_hist
+# Map BTMC raw product names to clean type names for vn_macro_gold_daily
 TYPE_MAP = {
     'VÀNG MIẾNG SJC': 'BTMC SJC',
     'VÀNG MIẾNG VRTL': 'BTMC VRTL',
@@ -72,8 +71,8 @@ def get_clean_type(raw_name):
     for key, value in TYPE_MAP.items():
         if name_upper.startswith(key.upper()):
             return value
-    # Fallback: store with BTMC prefix
-    return f'BTMC {raw_name[:50]}'
+    # Fallback: store with BTMC prefix, truncate to 148 chars
+    return f'BTMC {raw_name}'[:148]
 
 
 def parse_btmc_response(data):
@@ -155,7 +154,7 @@ try:
                 # Dedup: check if same date + type + same hour already exists
                 result = conn.execute(
                     text("""
-                        SELECT COUNT(*) FROM vn_gold_24h_hist
+                        SELECT COUNT(*) FROM vn_macro_gold_daily
                         WHERE date = :date
                         AND type = :type
                         AND crawl_time >= :start_time
@@ -175,7 +174,7 @@ try:
 
                 conn.execute(
                     text("""
-                        INSERT INTO vn_gold_24h_hist (date, type, buy_price, sell_price, crawl_time)
+                        INSERT INTO vn_macro_gold_daily (date, type, buy_price, sell_price, crawl_time)
                         VALUES (:date, :type, :buy_price, :sell_price, :crawl_time)
                     """),
                     record

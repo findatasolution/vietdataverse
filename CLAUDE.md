@@ -25,17 +25,34 @@ global_{topic}_{freq}                # global indicators
 ```
 Examples: `vn_macro_gold_daily`, `vn_gso_cpi_monthly`, `vn30_ohlcv_daily`
 
-### Required Columns (all tables)
+### Required Columns (all tables) — ALL 5 are NOT NULL
 ```sql
-id          SERIAL PRIMARY KEY          -- always SERIAL, never manual MAX(id)+1
-crawl_time  TIMESTAMP NOT NULL          -- UTC, set at crawl time
-date/period DATE or VARCHAR(7)          -- YYYY-MM-DD or YYYY-MM
+id          SERIAL PRIMARY KEY           -- always SERIAL, never manual MAX(id)+1
+period      DATE/VARCHAR(7) NOT NULL     -- YYYY-MM-DD (daily) or YYYY-MM (monthly)
+crawl_time  TIMESTAMP      NOT NULL      -- UTC, set at crawl time
+source      TEXT           NOT NULL      -- source URL or org name (e.g. "acb.com.vn")
+group_name  VARCHAR(20)    NOT NULL      -- data group: macro | finance | commodity | stock | sentiment
 ```
+⚠️ When adding new columns source/group_name to existing tables: run ALTER TABLE + UPDATE backfill before adding NOT NULL constraint.
+
+### Data Group Taxonomy
+```
+macro      — Vietnam macro indicators (CPI, GDP, trade, IIP, PPI)
+finance    — Financial market rates (term deposit, SBV interbank, FX)
+commodity  — Commodity prices (gold, silver, oil, global commodities)
+stock      — Equity & corporate (VN30 OHLCV, financials, ratios)
+sentiment  — Market sentiment (news, social, retail investor flow)
+```
+Table prefix → group mapping:
+- `vn_gso_*`        → macro
+- `vn_macro_termdepo_*, vn_macro_sbv_*, vn_macro_fxrate_*` → finance
+- `vn_macro_gold_*, vn_macro_silver_*, global_*`            → commodity
+- `vn30_*`          → stock
 
 ### Constraints (always add)
 ```sql
-UNIQUE (bank_code, date)               -- dedup key per entity
-INDEX  (date) or INDEX (period)        -- query perf
+UNIQUE (entity_key, period)            -- dedup key: (bank_code/type/ticker, date/period)
+INDEX  (period)                        -- query perf
 ```
 
 ---

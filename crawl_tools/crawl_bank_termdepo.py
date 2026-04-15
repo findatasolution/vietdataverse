@@ -22,7 +22,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'vietdataverse' / 'be' / '.env')
 
 # CLI arguments
 parser = argparse.ArgumentParser(description='Bank Term Deposit Rates Crawler')
@@ -170,6 +170,8 @@ def save_bank_data(bank_code, data, force=False):
         'bank_code': bank_code,
         'date': date_str,
         'crawl_time': datetime.now(),
+        'source': 'acb.com.vn',
+        'group_name': 'finance',
     }
     for col in TERM_COLUMNS:
         if col in data:

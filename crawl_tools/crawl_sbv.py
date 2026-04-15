@@ -22,8 +22,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables
-root_dir = Path(__file__).resolve().parent.parent.parent
-load_dotenv(dotenv_path=root_dir / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'vietdataverse' / 'be' / '.env')
 
 current_date = datetime.now()
 date_str = current_date.strftime('%Y-%m-%d')
@@ -71,7 +70,9 @@ try:
             # Parse content fields
             interbank_data = {
                 'date': sbv_date,
-                'crawl_time': datetime.now()
+                'crawl_time': datetime.now(),
+                'source': 'sbv.gov.vn',
+                'group_name': 'finance',
             }
 
             # Term mapping
@@ -116,7 +117,7 @@ try:
 
             # Check if date already exists
             with engine.connect() as conn:
-                result = conn.execute(text(f"SELECT COUNT(*) FROM vn_sbv_interbankrate WHERE date = '{sbv_date}'"))
+                result = conn.execute(text(f"SELECT COUNT(*) FROM vn_macro_sbv_rate_daily WHERE date = '{sbv_date}'"))
                 exists = result.scalar() > 0
 
             if exists:
@@ -124,7 +125,7 @@ try:
             else:
                 interbank_df = pd.DataFrame([interbank_data])
                 interbank_df['date'] = pd.to_datetime(interbank_df['date'])
-                interbank_df.to_sql('vn_sbv_interbankrate', engine, if_exists='append', index=False)
+                interbank_df.to_sql('vn_macro_sbv_rate_daily', engine, if_exists='append', index=False)
                 print(f"  Pushed SBV interbank rate for {sbv_date}")
     else:
         print("  No data returned from SBV API")
@@ -173,12 +174,12 @@ try:
 
     if sbv_date and (rediscount_rate is not None or refinancing_rate is not None):
         with engine.connect() as conn:
-            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_sbv_interbankrate WHERE date = '{sbv_date}'"))
+            result = conn.execute(text(f"SELECT COUNT(*) FROM vn_macro_sbv_rate_daily WHERE date = '{sbv_date}'"))
             exists = result.scalar() > 0
 
             if exists:
                 update_query = text("""
-                    UPDATE vn_sbv_interbankrate
+                    UPDATE vn_macro_sbv_rate_daily
                     SET rediscount_rate = :rediscount_rate,
                         refinancing_rate = :refinancing_rate
                     WHERE date = :date
@@ -391,7 +392,7 @@ try:
         with engine.connect() as conn:
             # Check if table exists, create if not
             conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS vn_sbv_centralrate (
+                CREATE TABLE IF NOT EXISTS vn_macro_fxrate_daily (
                     id SERIAL PRIMARY KEY,
                     date DATE NOT NULL,
                     crawl_time TIMESTAMP NOT NULL,
@@ -419,15 +420,15 @@ try:
                 ('document_no',  'VARCHAR(50)'),
             ]:
                 try:
-                    conn.execute(text(f"ALTER TABLE vn_sbv_centralrate ADD COLUMN IF NOT EXISTS {col} {definition}"))
+                    conn.execute(text(f"ALTER TABLE vn_macro_fxrate_daily ADD COLUMN IF NOT EXISTS {col} {definition}"))
                     conn.commit()
                 except Exception:
                     conn.rollback()
             # Add unique constraint if missing
             try:
                 conn.execute(text("""
-                    ALTER TABLE vn_sbv_centralrate
-                    ADD CONSTRAINT vn_sbv_centralrate_date_type_source_bank_key
+                    ALTER TABLE vn_macro_fxrate_daily
+                    ADD CONSTRAINT vn_macro_fxrate_daily_date_type_source_bank_key
                     UNIQUE (date, type, source, bank)
                 """))
                 conn.commit()
@@ -436,7 +437,7 @@ try:
 
             # Check if data for this date+type+source+bank exists
             result = conn.execute(
-                text("SELECT COUNT(*) FROM vn_sbv_centralrate WHERE date = :date AND type = 'USD' AND source = 'Crawl' AND bank = 'SBV'"),
+                text("SELECT COUNT(*) FROM vn_macro_fxrate_daily WHERE date = :date AND type = 'USD' AND source = 'Crawl' AND bank = 'SBV'"),
                 {'date': issue_date}
             )
             exists = result.scalar() > 0
@@ -445,8 +446,8 @@ try:
                 print(f"    Central rate for {issue_date} already exists, skipping")
             else:
                 conn.execute(text("""
-                    INSERT INTO vn_sbv_centralrate (date, crawl_time, type, source, bank, usd_vnd_rate, document_no)
-                    VALUES (:date, :crawl_time, 'USD', 'Crawl', 'SBV', :usd_vnd_rate, :document_no)
+                    INSERT INTO vn_macro_fxrate_daily (date, crawl_time, type, source, bank, usd_vnd_rate, document_no, group_name)
+                    VALUES (:date, :crawl_time, 'USD', 'Crawl', 'SBV', :usd_vnd_rate, :document_no, 'finance')
                 """), {
                     'date': issue_date,
                     'crawl_time': datetime.now(),
