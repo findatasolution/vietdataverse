@@ -1,63 +1,149 @@
+import asyncio
+from datetime import datetime
+
 from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
 from jose import JWTError
 from sqlalchemy import text
 
 from auth import verify_auth0_token, get_user_level, get_user_is_admin, NAMESPACE
+from quota import check_and_consume
 
-FREE_API_LIMIT = 5  # lifetime requests for free accounts using API key
+
+async def _log_api_call(user_id: int, key_id: int, endpoint: str, status_code: int):
+    """Fire-and-forget: insert into api_call_log for top-endpoint dashboard stats."""
+    try:
+        from core.engines import get_engine_user
+        with get_engine_user().begin() as conn:
+            conn.execute(text("""
+                INSERT INTO api_call_log (user_id, api_key_id, endpoint, status_code)
+                VALUES (:uid, :kid, :ep, :sc)
+            """), {"uid": user_id, "kid": key_id, "ep": endpoint, "sc": status_code})
+    except Exception:
+        pass  # logging failure must never break the request
 
 
 async def _auth_via_api_key(request: Request, api_key: str) -> bool:
     """
-    Look up X-API-Key in api_keys table.
-    Sets request.state.user and enforces free-tier quota.
-    Returns True if key is valid, raises HTTPException on quota exceeded.
+    Look up X-API-Key, enforce subscription expiry + tier-based quota.
+
+    Flow:
+      1. Join api_keys + users, require is_active=TRUE.
+      2. Nếu premium_expiry < NOW() → set is_active=FALSE, raise 402.
+      3. Gọi quota.check_and_consume:
+         - no_access → 403
+         - burst cạn → 429 (Retry-After: 1)
+         - monthly cạn → 429 với reset_at = đầu tháng sau
+         - OK → set request.state.user và return True.
+
+    Rate-limit headers (X-RateLimit-*) được attach vào response trong
+    authenticate_user() wrapper.
     """
+    from core.engines import get_engine_user
+    engine = get_engine_user()
     try:
-        from core.engines import get_engine_user
-        with get_engine_user().connect() as conn:
+        # 1. Lookup key + user — read-only
+        with engine.connect() as conn:
             row = conn.execute(text("""
-                SELECT u.user_id, u.email, u.auth0_id, u.user_level,
-                       u.is_admin, u.api_request_count
+                SELECT ak.key_id, u.user_id, u.email, u.auth0_id, u.user_level,
+                       u.is_admin, u.premium_expiry, u.current_plan
                 FROM api_keys ak
                 JOIN users u ON ak.user_id = u.user_id
                 WHERE ak.key_value = :key AND ak.is_active = TRUE
                 LIMIT 1
             """), {"key": api_key}).fetchone()
 
-            if not row:
-                return False
+        if not row:
+            return False
 
-            user_id, email, auth0_id, user_level, is_admin, req_count = row
+        (key_id, user_id, email, auth0_id, user_level, is_admin,
+         premium_expiry, current_plan) = row
 
-            # Free-tier quota check
-            if user_level == "free":
-                if req_count >= FREE_API_LIMIT:
+        # 2. Subscription expiry check — commit deactivation in its own txn
+        #    then raise (raise cannot rollback a committed txn).
+        if not is_admin and premium_expiry is not None and premium_expiry < datetime.now():
+            with engine.begin() as conn:
+                conn.execute(text(
+                    "UPDATE api_keys SET is_active = FALSE WHERE user_id = :uid"
+                ), {"uid": user_id})
+            raise HTTPException(
+                status_code=402,
+                detail=(
+                    "Subscription đã hết hạn. Vui lòng gia hạn tại "
+                    "/pages/pricing.html — API key sẽ tự động active lại."
+                ),
+            )
+
+        # 3. Quota + burst check + atomic increment — new txn
+        with engine.begin() as conn:
+            q = check_and_consume(
+                conn,
+                user_id=user_id,
+                user_level=user_level,
+                plan=current_plan,
+            )
+
+            if not q.allowed:
+                reset_iso = q.reset_at.isoformat()
+                if q.reason == "no_access":
                     raise HTTPException(
                         status_code=403,
-                        detail=f"Đã đạt giới hạn {FREE_API_LIMIT} request/account. "
-                               "Nâng cấp lên Premium Developer để tiếp tục.",
+                        detail="Tài khoản không có quyền truy cập API. Cần gói Premium Developer.",
                     )
-                conn.execute(text("""
-                    UPDATE users SET api_request_count = api_request_count + 1
-                    WHERE user_id = :uid
-                """), {"uid": user_id})
+                if q.reason == "burst":
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Rate limit burst {q.burst_per_sec} req/s. Thử lại sau 1 giây.",
+                        headers={
+                            "Retry-After": "1",
+                            "X-RateLimit-Limit":     str(q.monthly_limit or 0),
+                            "X-RateLimit-Remaining": str(q.remaining if q.remaining is not None else ""),
+                            "X-RateLimit-Reset":     reset_iso,
+                        },
+                    )
+                # monthly cạn
+                raise HTTPException(
+                    status_code=429,
+                    detail=(
+                        f"Hết quota tháng ({q.monthly_limit} req). "
+                        f"Reset vào {reset_iso} (giờ VN)."
+                    ),
+                    headers={
+                        "X-RateLimit-Limit":     str(q.monthly_limit),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset":     reset_iso,
+                    },
+                )
 
-            # Update last_used_at
+            # Happy path — tăng api_request_count (cumulative cho analytics)
+            # và update last_used_at
             conn.execute(text("""
                 UPDATE api_keys SET last_used_at = NOW()
-                WHERE key_value = :key
-            """), {"key": api_key})
-            conn.commit()
+                WHERE key_id = :kid
+            """), {"kid": key_id})
+            conn.execute(text("""
+                UPDATE users SET api_request_count = api_request_count + 1
+                WHERE user_id = :uid
+            """), {"uid": user_id})
 
+        # Stash quota info trên request.state cho response headers + logging
         request.state.user = {
-            "auth0_id":   auth0_id,
-            "email":      email,
-            "user_level": user_level,
-            "is_admin":   bool(is_admin),
-            "user_id":    user_id,
+            "auth0_id":    auth0_id,
+            "email":       email,
+            "user_level":  user_level,
+            "is_admin":    bool(is_admin),
+            "user_id":     user_id,
+            "api_key_id":  key_id,
             "auth_method": "api_key",
         }
+        request.state.quota = {
+            "limit":     q.monthly_limit,
+            "remaining": q.remaining,
+            "reset":     q.reset_at.isoformat(),
+        }
+
+        # Fire-and-forget log (200 assumed; actual status logged at route level if needed)
+        asyncio.ensure_future(_log_api_call(user_id, key_id, request.url.path, 200))
         return True
     except HTTPException:
         raise

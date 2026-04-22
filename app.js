@@ -51,11 +51,14 @@
                 navfinagentsub: 'AI Agents cho thuê',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Tải dữ liệu & API access',
-                navAboutTerms: 'Giới thiệu Viet Dataverse',
+                navAboutTerms: 'Giới thiệu & Điều khoản',
                 navAboutTermsMeta: 'Về dự án & Điều khoản',
-                navPartners: 'Đối Tác',
-                navPartnersMeta: 'Nhà cung cấp dịch vụ uy tín',
+                navPrivacy: 'Chính sách bảo mật',
+                navContact: 'Liên hệ',
                 navSeparator: 'Dịch vụ',
+                sidebarAccount: 'Tài khoản',
+                loginBtn: 'Đăng nhập',
+                logoutBtn: 'Đăng xuất',
                 mainTitle: 'Tải Dữ Liệu Kinh Tế Mở',
                 mainSubtitle: '<strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí',
                 sectionTitle: 'Tải Dữ Liệu Kinh Tế Mở',
@@ -116,8 +119,124 @@
                 tabGoldSilver: "Vàng & Bạc",
                 tabCurrency: "Tiền tệ VN",
                 tabGlobal: "Thị trường Quốc tế",
+                tabMacro: 'Vĩ Mô',
+                tabDownload: 'Tải xuống',
                 navVN30Score: 'VN30 Score',
                 navVN30ScoreSub: 'Xác suất tăng giá cổ phiếu',
+                // Chart titles & periods
+                cpiChart: 'CPI Việt Nam (% YoY/năm)',
+                period1y: '1 năm',
+                period10y: '10 năm',
+                period20y: '20 năm',
+                periodAll: 'Tất cả',
+                macroNotePrefix: 'Ghi chú:',
+                macroNoteSuffix: 'Cập nhật hàng tháng (chưa chính thức)',
+                sourceLabel: 'Nguồn:',
+                sbvPanelInterbank: 'Lãi Suất Thị Trường Liên Ngân Hàng',
+                sbvPanelPolicy: 'Lãi Suất Điều Hành (NHNN)',
+                seoLearnMore: 'Tìm hiểu thêm về dữ liệu',
+                // 1s Market Pulse
+                pulseTitle: 'Thời Báo 1 Giây',
+                pulseFilterSource: 'Nguồn:',
+                pulseFilterMarket: 'Thị trường:',
+                pulseFilterAll: 'Tất cả',
+                pulseFilterReset: 'Đặt lại',
+                pulseMarketGold: 'Vàng',
+                pulseMarketRealEstate: 'Bất động sản',
+                pulseMarketBanking: 'Ngân hàng',
+                pulseMarketFX: 'Ngoại hối',
+                pulseMRIPositive: 'Tích cực (+)',
+                pulseMRINegative: 'Tiêu cực (-)',
+                // 1s Future Outlook cards
+                foFeatured: 'Báo cáo nổi bật',
+                foGoldTitle: 'Dự báo Giá Vàng 2026',
+                foGoldDesc: 'Phân tích chuyên sâu từ Goldman Sachs, J.P. Morgan, UBS — Mục tiêu $6,300/oz. Biểu đồ tương tác & Trình mô phỏng biến động.',
+                foViewReport: 'Xem báo cáo đầy đủ',
+                foRealEstateTitle: 'Bất động sản Việt Nam 2026',
+                foRealEstateDesc: 'Phân tích xu hướng giá, vùng tiềm năng và dự báo thị trường.',
+                foStockTitle: 'VN-Index & Cổ phiếu 2026',
+                foStockDesc: 'Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ danh mục.',
+                foComingSoon: 'Sắp ra mắt',
+                // VN30 Score
+                vn30Intro: 'Bảng xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình Machine Learning. <strong style="color:var(--gold-primary);">Premium</strong> — xem đầy đủ 30 mã & lịch sử điểm từng mã.',
+                vn30GateTitle: 'Xem đầy đủ 30 cổ phiếu VN30',
+                vn30GateBody: 'Nâng cấp <strong style="color:var(--gold-primary);">Premium</strong> để xem toàn bộ bảng xếp hạng, lịch sử điểm số từng mã và tín hiệu mua/bán.',
+                vn30GateCTA: 'Đăng nhập / Nâng cấp Premium',
+                // Download tab
+                dlHeading: 'Tải Dữ Liệu (CSV)',
+                dlSubtitle: 'Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).',
+                dlCatMetals: 'Kim Loại Quý',
+                dlCatFX: 'Tỷ Giá & Lãi Suất Tiết Kiệm',
+                dlCatSBV: 'Lãi Suất NHNN & Thị Trường Quốc Tế',
+                dlColName: 'Tên bảng',
+                dlColDesc: 'Mô tả',
+                dlColSource: 'Nguồn',
+                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột. Dữ liệu <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium. Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.',
+                // About & Terms
+                aboutSectionTitle: 'Giới thiệu & Điều khoản',
+                aboutH1: 'Về Viet Dataverse',
+                aboutP1: '<strong>Viet Dataverse</strong> là nền tảng dữ liệu kinh tế Việt Nam miễn phí, cung cấp thông tin <strong>giá vàng</strong>, <strong>giá bạc</strong>, và <strong>lãi suất ngân hàng</strong> được thu thập tự động từ các nguồn công khai uy tín.',
+                aboutP2: '<strong>Giá vàng trong nước</strong> (SJC, DOJI) với dữ liệu lịch sử từ năm 2015 đến nay. <strong>Giá bạc trong nước</strong> <strong>Lãi suất liên ngân hàng</strong> do Ngân hàng Nhà nước Việt Nam (SBV) công bố. <strong>Lãi suất gửi tiết kiệm</strong> từ các ngân hàng thương mại lớn.',
+                aboutP3: 'Dữ liệu được <strong>làm sạch, chuẩn hóa</strong> và lưu trữ lịch sử dài hạn để phục vụ <strong>mục đích nghiên cứu và phân tích</strong>. Bạn có thể tải dữ liệu hoàn toàn miễn phí hoặc truy cập qua <strong>API</strong>.',
+                aboutDisclaimer: '<strong>Lưu ý quan trọng:</strong> Dữ liệu chỉ mang tính chất tham khảo, không phải lời khuyên đầu tư. Viet Dataverse không chịu trách nhiệm về các quyết định tài chính dựa trên dữ liệu này. Người dùng cần tự kiểm tra và chịu trách nhiệm với quyết định của mình.',
+                aboutSourcesH: 'Về Nguồn Dữ Liệu & Phương Pháp Thu Thập',
+                aboutSourcesP1: 'Dữ liệu trên Viet Dataverse được thu thập tự động từ <strong>các nguồn công khai, miễn phí</strong> bao gồm website của các tổ chức tài chính, công ty vàng bạc uy tín, và cơ quan nhà nước. Tất cả dữ liệu đều là <strong>thông tin công khai</strong> mà bất kỳ ai cũng có thể truy cập.',
+                aboutSourcesP2: 'Giá trị gia tăng của Viet Dataverse nằm ở việc <strong>làm sạch, chuẩn hóa, lưu trữ lịch sử dài hạn</strong> và cung cấp API miễn phí để phục vụ cộng đồng nghiên cứu. Chúng tôi không sở hữu dữ liệu gốc, chỉ cung cấp dịch vụ tổng hợp và phân phối.',
+                aboutTermsH: 'Điều Khoản Sử Dụng',
+                aboutTermsList: '<li><strong>Mục đích:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, học thuật, và phân tích cá nhân. Không dùng cho mục đích thương mại trừ khi có thỏa thuận.</li><li><strong>Không phải lời khuyên tài chính:</strong> Viet Dataverse không cung cấp lời khuyên đầu tư. Mọi quyết định tài chính là trách nhiệm của người dùng.</li><li><strong>Độ chính xác:</strong> Chúng tôi nỗ lực đảm bảo độ chính xác nhưng không chịu trách nhiệm về sai sót từ nguồn gốc hoặc quá trình thu thập.</li><li><strong>Bảo vệ nguồn:</strong> Người dùng cam kết không crawl ngược lại dữ liệu từ Viet Dataverse để tạo dịch vụ cạnh tranh.</li>',
+                aboutCopyright: '© 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở. <a href="mailto:contact@vietdataverse.online" style="color: var(--gold-primary); text-decoration: none;">Liên hệ</a>',
+                // Privacy Policy
+                privacySectionTitle: 'Chính sách bảo mật (Privacy Policy)',
+                privacyIntro: 'Chào mừng bạn đến với <strong style="color: var(--text-primary);">Viet Dataverse</strong>. Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn khi sử dụng nền tảng dữ liệu kinh tế của chúng tôi.',
+                privacyH1: '1. Thông tin chúng tôi thu thập',
+                privacyP1: 'Để cải thiện chất lượng website, chúng tôi có thể thu thập một số thông tin người dùng như sau:',
+                privacyList1: '<li><strong style="color: var(--text-primary);">Thông tin đăng nhập:</strong> Email thị thông qua hệ thống <strong>Google Integration Auth0</strong>.</li><li><strong style="color: var(--text-primary);">Dữ liệu sử dụng:</strong> Thông tin về cách bạn tương tác với web thông qua <strong>Google Analytics</strong> (Địa chỉ IP, loại trình duyệt, thời gian truy cập).</li>',
+                privacyH2: '2. Sử dụng Cookie',
+                privacyP2: 'Chúng tôi sử dụng cookie để lưu trữ tùy chọn ngôn ngữ và trạng thái đăng nhập của bạn nhằm cải thiện trải nghiệm sử dụng. Cookie này không được chia sẻ với bên thứ ba vì mục đích quảng cáo.',
+                privacyH3: '3. Bảo mật dữ liệu',
+                privacyP3: 'Chúng tôi <strong style="color: var(--text-primary);">không bán hoặc chia sẻ</strong> email cá nhân của bạn cho bên thứ ba. Dữ liệu chỉ được sử dụng để cung cấp báo cáo giá vàng và cải thiện trải nghiệm người dùng trên hệ thống Viet Dataverse.',
+                privacyH4: '4. Liên hệ về quyền riêng tư',
+                privacyP4: 'Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ: <a href="mailto:findatasolution@gmail.com" style="color: var(--gold-accent); text-decoration: none; font-weight: 600;">findatasolution@gmail.com</a>',
+                privacyFooter: '© 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam.',
+                // Contact
+                contactSectionTitle: 'Liên hệ với chúng tôi',
+                contactSupportH: 'Hỗ trợ kỹ thuật & Dữ liệu',
+                contactSupportP: 'Nếu bạn gặp lỗi khi tải file CSV hoặc có câu hỏi về mô hình dự báo:',
+                contactAdH: 'Hợp tác quảng cáo',
+                contactAdP: 'Để đặt banner trực tiếp hoặc hợp tác cung cấp dữ liệu kinh tế:',
+                contactQuickHint: 'Hoặc sử dụng <strong style="color: var(--gold-accent);">Quick Request</strong> bên dưới ↓',
+                // Ad request form
+                adReqTitle: 'Yêu cầu quảng cáo nhanh',
+                adReqSubtitle: 'Đăng banner quảng cáo trên Viet Dataverse — nhanh chóng & đơn giản',
+                adStep1: 'Điền thông tin',
+                adStep2: 'Thanh toán QR',
+                adStep3: 'Chờ phê duyệt',
+                adBrandLabel: 'Tên thương hiệu / Brand Name',
+                adBannerLabel: 'Banner (Hình ảnh / Video)',
+                adOptional: '(Tùy chọn)',
+                adBannerSpec: 'Kích thước tối ưu: <strong style="color: var(--gold-accent);">1920×520 px</strong> (16:9). Chấp nhận: <strong style="color: var(--gold-accent);">MP4, WebM</strong> (video ≤ 10MB) hoặc <strong style="color: var(--gold-accent);">JPG, PNG, WebP, GIF</strong> (ảnh ≤ 5MB).',
+                adDropzoneText: 'Kéo & thả hình ảnh hoặc video, hoặc <span style="color: var(--gold-accent); text-decoration: underline;">chọn file</span>',
+                adQrTitle: 'Thanh toán bằng QR Code',
+                adQrNote: 'QR sẽ được cung cấp sau khi xác nhận',
+                adPackageTitle: '<strong style="color: var(--gold-accent);">Gói Banner Quảng Cáo:</strong>',
+                adPackageList: '<li style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i> Hiển thị banner trên trang chủ</li><li style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i> Thời gian: đến khi số lượng view đạt limit của gói</li><li style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i> Phê duyệt trong 24 giờ</li>',
+                adSubmitBtn: 'Gửi yêu cầu quảng cáo',
+                adSuccessH: 'Yêu cầu đã gửi thành công!',
+                adSuccessP: 'Chúng tôi sẽ xem xét yêu cầu của bạn và phản hồi qua email trong vòng <strong style="color: var(--gold-accent);">24 giờ</strong>. Vui lòng kiểm tra hộp thư (bao gồm thư rác) để nhận thông tin thanh toán QR Code.',
+                // Notifications
+                notifLoginTitle: 'Yêu cầu đăng nhập',
+                notifLoginMessage: 'Bạn cần đăng nhập để tải dữ liệu. Vui lòng đăng nhập để tiếp tục sử dụng các tính năng của Viet Dataverse.',
+                notifCancel: 'Hủy',
+                notifClose: 'Đóng',
+                notifSignup: 'Tạo tài khoản',
+                notifApiTitle: 'API đang phát triển',
+                notifApiMessage: 'Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính năng sẵn sàng.',
+                notifApiMessageLoggedIn: 'Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính năng sẵn sàng.',
+                // Premium gate
+                premiumGateTitle: 'Nội dung Premium',
+                premiumGateBody: 'Báo cáo <strong style="color:#d4af37;">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.',
+                premiumGateCTA: 'Xem gói Premium',
+                premiumGateLater: 'Để sau',
             },
             en: {
                 langBtn: 'Vie',
@@ -134,9 +253,12 @@
                 navDownloadApiMeta: 'Free Download & API',
                 navAboutTerms: 'About & Terms',
                 navAboutTermsMeta: 'About project & Terms',
-                navPartners: 'Partners',
-                navPartnersMeta: 'Trusted service providers',
+                navPrivacy: 'Privacy Policy',
+                navContact: 'Contact',
                 navSeparator: 'Services',
+                sidebarAccount: 'Account',
+                loginBtn: 'Log in',
+                logoutBtn: 'Log out',
                 mainTitle: 'Download Open Economic Data',
                 mainSubtitle: '<strong>Download for free</strong> Vietnam gold, silver prices, SBV interest rates and more economic research and analysis.',
                 sectionTitle: 'Download Open Economic Data',
@@ -197,14 +319,141 @@
                 tabGoldSilver: "Gold & Silver",
                 tabCurrency: "VN Currency",
                 tabGlobal: "Global Market",
+                tabMacro: 'Macro',
+                tabDownload: 'Download',
                 navVN30Score: 'VN30 Score',
                 navVN30ScoreSub: 'Stock gain probability',
+                // Chart titles & periods
+                cpiChart: 'Vietnam CPI (% YoY)',
+                period1y: '1 year',
+                period10y: '10 years',
+                period20y: '20 years',
+                periodAll: 'All',
+                macroNotePrefix: 'Note:',
+                macroNoteSuffix: 'Updated monthly (unofficial)',
+                sourceLabel: 'Source:',
+                sbvPanelInterbank: 'Interbank Market Rates',
+                sbvPanelPolicy: 'Policy Rates (SBV)',
+                seoLearnMore: 'Learn more about the data',
+                // 1s Market Pulse
+                pulseTitle: '1s Market Pulse',
+                pulseFilterSource: 'Source:',
+                pulseFilterMarket: 'Market:',
+                pulseFilterAll: 'All',
+                pulseFilterReset: 'Reset',
+                pulseMarketGold: 'Gold',
+                pulseMarketRealEstate: 'Real Estate',
+                pulseMarketBanking: 'Banking',
+                pulseMarketFX: 'FX',
+                pulseMRIPositive: 'Positive (+)',
+                pulseMRINegative: 'Negative (-)',
+                // 1s Future Outlook cards
+                foFeatured: 'Featured Report',
+                foGoldTitle: 'Gold Price Forecast 2026',
+                foGoldDesc: 'In-depth analysis from Goldman Sachs, J.P. Morgan, UBS — Target $6,300/oz. Interactive charts & volatility simulator.',
+                foViewReport: 'View full report',
+                foRealEstateTitle: 'Vietnam Real Estate 2026',
+                foRealEstateDesc: 'Price trend analysis, potential regions and market forecast.',
+                foStockTitle: 'VN-Index & Stocks 2026',
+                foStockDesc: 'Index forecast, promising sectors and portfolio allocation strategy.',
+                foComingSoon: 'Coming Soon',
+                // VN30 Score
+                vn30Intro: 'Ranking of the 30 VN30 stocks by price-rise probability predicted by a Machine Learning model. <strong style="color:var(--gold-primary);">Premium</strong> — see all 30 tickers & per-ticker score history.',
+                vn30GateTitle: 'See all 30 VN30 stocks',
+                vn30GateBody: 'Upgrade to <strong style="color:var(--gold-primary);">Premium</strong> to see the full ranking, per-ticker score history, and buy/sell signals.',
+                vn30GateCTA: 'Log in / Upgrade to Premium',
+                // Download tab
+                dlHeading: 'Download Data (CSV)',
+                dlSubtitle: 'Pick a dataset and download it as CSV. Full history (<code>period=all</code>).',
+                dlCatMetals: 'Precious Metals',
+                dlCatFX: 'FX & Term Deposit Rates',
+                dlCatSBV: 'SBV Policy & Global Markets',
+                dlColName: 'Dataset',
+                dlColDesc: 'Description',
+                dlColSource: 'Source',
+                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Data updated daily. CSV uses UTF-8 encoding, comma (<code>,</code>) as column separator. <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> datasets require a Premium account. For reference and research only, not investment advice.',
+                // About & Terms
+                aboutSectionTitle: 'About & Terms',
+                aboutH1: 'About Viet Dataverse',
+                aboutP1: '<strong>Viet Dataverse</strong> is a free Vietnam economic data platform providing <strong>gold prices</strong>, <strong>silver prices</strong>, and <strong>bank interest rates</strong> automatically collected from reliable public sources.',
+                aboutP2: '<strong>Domestic gold prices</strong> (SJC, DOJI) with historical data from 2015 to now. <strong>Domestic silver prices</strong>. <strong>Interbank rates</strong> published by the State Bank of Vietnam (SBV). <strong>Term deposit rates</strong> from major commercial banks.',
+                aboutP3: 'Data is <strong>cleaned, normalised</strong> and stored with long-term history for <strong>research and analysis</strong>. You can download it for free or access it via <strong>API</strong>.',
+                aboutDisclaimer: '<strong>Important notice:</strong> Data is for reference only, not investment advice. Viet Dataverse is not responsible for financial decisions made based on this data. Users must verify data independently and accept responsibility for their own decisions.',
+                aboutSourcesH: 'Data Sources & Collection Method',
+                aboutSourcesP1: 'Viet Dataverse data is automatically collected from <strong>public, free sources</strong> including financial institutions, reputable gold/silver companies, and government websites. All data is <strong>public information</strong> accessible to anyone.',
+                aboutSourcesP2: 'The added value of Viet Dataverse lies in <strong>cleaning, normalising, and storing long-term history</strong>, plus providing a free API for the research community. We do not own the underlying data — only the aggregation and distribution.',
+                aboutTermsH: 'Terms of Use',
+                aboutTermsList: '<li><strong>Purpose:</strong> Data is for research, academic work, and personal analysis. Not for commercial use without agreement.</li><li><strong>Not financial advice:</strong> Viet Dataverse does not provide investment advice. All financial decisions are the user\'s responsibility.</li><li><strong>Accuracy:</strong> We strive for accuracy but are not responsible for errors in source data or collection.</li><li><strong>Source protection:</strong> Users agree not to re-crawl data from Viet Dataverse to build competing services.</li>',
+                aboutCopyright: '© 2026 Viet Dataverse. Open-source Vietnam economic data platform. <a href="mailto:contact@vietdataverse.online" style="color: var(--gold-primary); text-decoration: none;">Contact</a>',
+                // Privacy Policy
+                privacySectionTitle: 'Privacy Policy',
+                privacyIntro: 'Welcome to <strong style="color: var(--text-primary);">Viet Dataverse</strong>. We are committed to protecting your personal information when using our economic data platform.',
+                privacyH1: '1. Information we collect',
+                privacyP1: 'To improve the quality of the site, we may collect some user information as follows:',
+                privacyList1: '<li><strong style="color: var(--text-primary);">Login info:</strong> Email via <strong>Google / Auth0</strong> integration.</li><li><strong style="color: var(--text-primary);">Usage data:</strong> How you interact with the site via <strong>Google Analytics</strong> (IP address, browser, visit time).</li>',
+                privacyH2: '2. Cookie usage',
+                privacyP2: 'We use cookies to store your language preference and login state to improve your experience. These cookies are not shared with third parties for advertising.',
+                privacyH3: '3. Data security',
+                privacyP3: 'We <strong style="color: var(--text-primary);">do not sell or share</strong> your personal email with third parties. Data is only used to deliver our reports and improve user experience on Viet Dataverse.',
+                privacyH4: '4. Privacy contact',
+                privacyP4: 'If you have any questions about this privacy policy, please contact: <a href="mailto:findatasolution@gmail.com" style="color: var(--gold-accent); text-decoration: none; font-weight: 600;">findatasolution@gmail.com</a>',
+                privacyFooter: '© 2026 Viet Dataverse. Vietnam economic data platform.',
+                // Contact
+                contactSectionTitle: 'Contact us',
+                contactSupportH: 'Technical & data support',
+                contactSupportP: 'If you encounter CSV download errors or have questions about forecasting models:',
+                contactAdH: 'Advertising partnerships',
+                contactAdP: 'To book a banner directly or partner on economic data:',
+                contactQuickHint: 'Or use the <strong style="color: var(--gold-accent);">Quick Request</strong> below ↓',
+                // Ad request form
+                adReqTitle: 'Quick Request for Advertise',
+                adReqSubtitle: 'Book a banner on Viet Dataverse — fast & simple',
+                adStep1: 'Fill in details',
+                adStep2: 'Pay via QR',
+                adStep3: 'Await approval',
+                adBrandLabel: 'Brand name',
+                adBannerLabel: 'Banner (image / video)',
+                adOptional: '(Optional)',
+                adBannerSpec: 'Recommended size: <strong style="color: var(--gold-accent);">1920×520 px</strong> (16:9). Accepted: <strong style="color: var(--gold-accent);">MP4, WebM</strong> (video ≤ 10MB) or <strong style="color: var(--gold-accent);">JPG, PNG, WebP, GIF</strong> (image ≤ 5MB).',
+                adDropzoneText: 'Drag & drop an image or video, or <span style="color: var(--gold-accent); text-decoration: underline;">choose a file</span>',
+                adQrTitle: 'Pay by QR code',
+                adQrNote: 'QR will be provided after confirmation',
+                adPackageTitle: '<strong style="color: var(--gold-accent);">Banner Advertising Package:</strong>',
+                adPackageList: '<li style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i> Banner displayed on the home page</li><li style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i> Duration: until the package view limit is reached</li><li style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i> Approved within 24 hours</li>',
+                adSubmitBtn: 'Submit advertising request',
+                adSuccessH: 'Request submitted successfully!',
+                adSuccessP: 'We will review your request and respond by email within <strong style="color: var(--gold-accent);">24 hours</strong>. Please check your inbox (including spam) for QR payment details.',
+                // Notifications
+                notifLoginTitle: 'Login required',
+                notifLoginMessage: 'You need to log in to download data. Please sign in to continue using Viet Dataverse features.',
+                notifCancel: 'Cancel',
+                notifClose: 'Close',
+                notifSignup: 'Create account',
+                notifApiTitle: 'API in development',
+                notifApiMessage: 'API access is currently in development. Create an account to be notified when it is ready.',
+                notifApiMessageLoggedIn: 'API access is currently in development. You will be notified by email when it is ready.',
+                // Premium gate
+                premiumGateTitle: 'Premium content',
+                premiumGateBody: 'The <strong style="color:#d4af37;">1s Future Outlook</strong> report is for Premium members only. Upgrade to read in-depth analysis, gold price forecasts and all exclusive content.',
+                premiumGateCTA: 'View Premium plans',
+                premiumGateLater: 'Later',
             }
         };
 
         function updateLanguage(lang) {
             currentLang = lang;
             const t = translations[lang];
+
+            // Generic sweep — any element with [data-i18n] / [data-i18n-html] gets translated.
+            // Keys that don't exist in the translations map are skipped (leaves original text).
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key] !== undefined) el.textContent = t[key];
+            });
+            document.querySelectorAll('[data-i18n-html]').forEach(el => {
+                const key = el.getAttribute('data-i18n-html');
+                if (t[key] !== undefined) el.innerHTML = t[key];
+            });
 
             // Update button - Header
             document.getElementById('lang-text').textContent = t.langBtn;
@@ -323,11 +572,9 @@
                 const key = el.getAttribute('data-i18n');
                 if (t[key]) el.textContent = t[key];
             });
-            // Update API button
-            document.querySelector('.header-btn.primary span').textContent = t.apiBtn;
-
-            // Set HTML lang and visual feedback
+            // Set HTML lang, persist choice, and visual feedback
             document.documentElement.lang = lang;
+            localStorage.setItem('lang', lang);
             document.getElementById('lang-toggle').style.borderColor =
                 lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
         }
@@ -355,6 +602,11 @@
                 logoutBtn.style.display = 'block';
                 if (userEmailElement) {
                     userEmailElement.textContent = userEmail;
+                }
+                const userAvatar = document.getElementById('user-avatar');
+                if (userAvatar) {
+                    userAvatar.textContent = (userEmail[0] || 'U');
+                    userAvatar.title = userEmail;
                 }
 
                 // User is logged in - Sidebar
@@ -475,8 +727,14 @@
 
                     // Header
                     if (loginLink) loginLink.style.display = 'none';
-                    if (userInfo) userInfo.style.display = 'block';
-                    if (userEmail) userEmail.textContent = user.email || user.name || 'User';
+                    if (userInfo) userInfo.style.display = 'flex';
+                    const emailStr = user.email || user.name || 'User';
+                    if (userEmail) userEmail.textContent = emailStr;
+                    const userAvatar = document.getElementById('user-avatar');
+                    if (userAvatar) {
+                        userAvatar.textContent = (emailStr[0] || 'U');
+                        userAvatar.title = emailStr;
+                    }
                     if (logoutBtn) {
                         logoutBtn.style.display = 'block';
                         logoutBtn.addEventListener('click', () => {
@@ -499,6 +757,18 @@
                         sidebarLogoutBtn.addEventListener('click', () => {
                             logout();
                         });
+                    }
+
+                    // Admin panel link — show only for admin accounts
+                    const userLevel = window._vdvUserLevel || localStorage.getItem('vdv_user_level') || 'free';
+                    if (userLevel === 'admin') {
+                        const adminLink = document.createElement('a');
+                        adminLink.href = '/pages/admin.html';
+                        adminLink.className = 'sidebar-bottom-link';
+                        adminLink.style.cssText = 'color:#ef9a9a;font-weight:600;';
+                        adminLink.textContent = '⚙ Admin Panel';
+                        const sidebarFooter = document.querySelector('.sidebar-footer');
+                        if (sidebarFooter) sidebarFooter.prepend(adminLink);
                     }
                 }
             } catch (err) {
@@ -1943,7 +2213,9 @@
                 // Meta info
                 if (metaEl && json.updated_at) {
                     const d = new Date(json.updated_at);
-                    metaEl.textContent = `Cập nhật: Q${json.quarter}/${json.year} — ${d.toLocaleDateString('vi-VN')}`;
+                    const label = (currentLang === 'en') ? 'Updated' : 'Cập nhật';
+                    const locale = (currentLang === 'en') ? 'en-US' : 'vi-VN';
+                    metaEl.textContent = `${label}: Q${json.quarter}/${json.year} — ${d.toLocaleDateString(locale)}`;
                 }
 
                 // Gated: add blurred placeholder rows + CTA
