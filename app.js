@@ -381,7 +381,7 @@
             window.APP_CONFIG = window.APP_CONFIG || {};
             window.APP_CONFIG.API_BASE_URL =
                 location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-                    ? 'http://127.0.0.1:8000/api/v1'
+                    ? '/api/v1'
                     : 'https://api.vietdataverse.online/api/v1';
 
             // Prefetch gold & silver data immediately (before DOMContentLoaded)
@@ -1053,6 +1053,49 @@
         /* =========================================================
            DOWNLOAD DATASET (tab-download)
         ========================================================= */
+        // Users may only download historical data older than 2 months.
+        // Why: product rule — free users get delayed data; recent 2 months are gated.
+        function _downloadCutoffISO() {
+            const d = new Date();
+            d.setMonth(d.getMonth() - 2);
+            return d.toISOString().slice(0, 10);
+        }
+
+        function _filterBeforeCutoff(datasetId, data, cutoff) {
+            if (datasetId === 'vn30-profile') return data; // static reference, no date axis
+
+            // Parallel-array shape: { dates: [...], <metric>: [...], ... }
+            if (data && Array.isArray(data.dates)) {
+                const n = data.dates.length;
+                const keep = [];
+                for (let i = 0; i < n; i++) {
+                    if (String(data.dates[i] ?? '').slice(0, 10) <= cutoff) keep.push(i);
+                }
+                const out = {};
+                for (const k of Object.keys(data)) {
+                    out[k] = Array.isArray(data[k]) && data[k].length === n
+                        ? keep.map(i => data[k][i])
+                        : data[k];
+                }
+                return out;
+            }
+
+            // Row-array shape (vn30-prices / ratios / financials)
+            if (Array.isArray(data)) {
+                return data.filter(r => {
+                    if (r.date) return String(r.date).slice(0, 10) <= cutoff;
+                    if (r.year != null && r.quarter != null) {
+                        const m = r.quarter * 3;
+                        const last = new Date(r.year, m, 0).getDate();
+                        return `${r.year}-${String(m).padStart(2, '0')}-${String(last).padStart(2, '0')}` <= cutoff;
+                    }
+                    return true;
+                });
+            }
+
+            return data;
+        }
+
         async function downloadDataset(datasetId) {
             const base = window.APP_CONFIG.API_BASE_URL;
             const btn = event.currentTarget;
@@ -1140,7 +1183,8 @@
                 const json = await res.json();
                 if (!json.success || !json.data) throw new Error('Invalid response');
 
-                const csv = rows2csv(json.data);
+                const filtered = _filterBeforeCutoff(datasetId, json.data, _downloadCutoffISO());
+                const csv = rows2csv(filtered);
                 const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
@@ -2374,19 +2418,32 @@
                 const cfg = configs[type];
                 if (!cfg) return;
 
+                // Historical cutoff: only periods ending ≥ 2 months before today.
+                const _cutoffDate = new Date();
+                _cutoffDate.setMonth(_cutoffDate.getMonth() - 2);
+                const _cutoff = _cutoffDate.toISOString().slice(0, 10);
+                const _cutoffMonth = _cutoff.slice(0, 7);
+                const _currentYear = new Date().getFullYear();
+                const _passes = p => {
+                    const s = String(p);
+                    if (/^\d{4}$/.test(s)) return parseInt(s, 10) < _currentYear;
+                    if (/^\d{4}-\d{2}$/.test(s)) return s < _cutoffMonth;
+                    return s.slice(0, 10) <= _cutoff;
+                };
+
                 let csv;
                 if (type === 'cpi') {
                     const cpiRaw = _rawCpiAnnual || _rawCpiMonthly;
                     if (!cpiRaw) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
-                    csv = cfg.header + '\n' + cpiRaw.map(d => `${d.period},${(+d.yoy_pct).toFixed(2)}`).join('\n');
+                    csv = cfg.header + '\n' + cpiRaw.filter(d => _passes(d.period)).map(d => `${d.period},${(+d.yoy_pct).toFixed(2)}`).join('\n');
                 } else if (type === 'gdp') {
                     if (!_rawGdp) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
-                    csv = cfg.header + '\n' + _rawGdp.map(d => `${d.date},${d.value.toFixed(2)}`).join('\n');
+                    csv = cfg.header + '\n' + _rawGdp.filter(d => _passes(d.date)).map(d => `${d.date},${d.value.toFixed(2)}`).join('\n');
                 } else if (type === 'trade') {
                     if (!_rawExp || !_rawImp) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
                     const expMap = Object.fromEntries(_rawExp.map(d => [d.date, d.value / 1e9]));
                     const impMap = Object.fromEntries(_rawImp.map(d => [d.date, d.value / 1e9]));
-                    const years = [...new Set([..._rawExp.map(d => d.date), ..._rawImp.map(d => d.date)])].sort();
+                    const years = [...new Set([..._rawExp.map(d => d.date), ..._rawImp.map(d => d.date)])].filter(_passes).sort();
                     csv = cfg.header + '\n' + years.map(y => {
                         const exp = expMap[y] != null ? expMap[y].toFixed(1) : '';
                         const imp = impMap[y] != null ? impMap[y].toFixed(1) : '';
