@@ -761,13 +761,24 @@
 
                     // Admin panel link — show only for admin accounts
                     const userLevel = window._vdvUserLevel || localStorage.getItem('vdv_user_level') || 'free';
+                    const sidebarFooter = document.querySelector('.sidebar-footer');
+
+                    // API Key link — visible for every logged-in user (page gates by tier)
+                    if (sidebarFooter && !sidebarFooter.querySelector('[data-vdv-dev-link]')) {
+                        const devLink = document.createElement('a');
+                        devLink.href = '/pages/developer.html';
+                        devLink.className = 'sidebar-bottom-link';
+                        devLink.dataset.vdvDevLink = '1';
+                        devLink.textContent = '🔑 API Key';
+                        sidebarFooter.prepend(devLink);
+                    }
+
                     if (userLevel === 'admin') {
                         const adminLink = document.createElement('a');
                         adminLink.href = '/pages/admin.html';
                         adminLink.className = 'sidebar-bottom-link';
                         adminLink.style.cssText = 'color:#ef9a9a;font-weight:600;';
                         adminLink.textContent = '⚙ Admin Panel';
-                        const sidebarFooter = document.querySelector('.sidebar-footer');
                         if (sidebarFooter) sidebarFooter.prepend(adminLink);
                     }
                 }
@@ -998,7 +1009,7 @@
                 });
             });
 
-            // Handle URL hash on page load (e.g. index.html#about-terms from partners.html)
+            // Handle URL hash on page load (e.g. index.html#about-terms)
             const hash = window.location.hash.replace('#', '');
             if (hash && document.getElementById(hash)) {
                 activateTab(hash);
