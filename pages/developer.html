@@ -152,6 +152,63 @@
 
         /* ── Loading ─────────────────────────────────────────── */
         #loading-state { text-align: center; padding: 48px; color: var(--text-tertiary); font-size: 13px; }
+
+        /* ── Expired banner ──────────────────────────────────── */
+        .expired-banner {
+            display: none;
+            width: 100%; max-width: 600px;
+            background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25);
+            border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 20px;
+            font-size: 13px; color: #ef9a9a;
+        }
+        .expired-banner.visible { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+        .expired-banner a {
+            white-space: nowrap; font-weight: 600; color: #ef9a9a;
+            text-decoration: underline; cursor: pointer;
+        }
+
+        /* ── Usage quota card ────────────────────────────────── */
+        .usage-card {
+            width: 100%; max-width: 600px;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(124,77,255,.15);
+            border-radius: var(--radius-xl); padding: 24px 32px;
+            margin-bottom: 24px;
+        }
+        .usage-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; }
+        .usage-stat { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+        .usage-numbers { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        .usage-limit { font-size: 12px; color: var(--text-tertiary); }
+        .usage-bar-track {
+            height: 5px; background: var(--bg-secondary);
+            border-radius: 99px; overflow: hidden; margin-bottom: 8px;
+        }
+        .usage-bar-fill {
+            height: 100%; border-radius: 99px;
+            background: linear-gradient(90deg, #7b1fa2, #b39ddb);
+            transition: width .4s ease;
+        }
+        .usage-reset { font-size: 11px; color: var(--text-tertiary); }
+
+        /* ── Subscription card ───────────────────────────────── */
+        .sub-card {
+            width: 100%; max-width: 600px;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(201,165,91,.15);
+            border-radius: var(--radius-xl); padding: 20px 32px;
+            margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .sub-plan { font-size: 13px; font-weight: 600; color: var(--gold-accent); }
+        .sub-expiry { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
+        .btn-renew {
+            padding: 8px 16px; background: none;
+            border: 1px solid rgba(201,165,91,.3); border-radius: var(--radius-sm);
+            color: var(--gold-accent); font-size: 12px; font-weight: 600;
+            cursor: pointer; font-family: inherit; white-space: nowrap;
+            text-decoration: none; transition: background .2s;
+        }
+        .btn-renew:hover { background: rgba(201,165,91,.08); }
     </style>
 </head>
 <body>
@@ -171,6 +228,12 @@
     <p class="dev-subtitle">Sử dụng API key để tích hợp dữ liệu tài chính Viet Dataverse vào ứng dụng của bạn.</p>
 
     <div id="loading-state">Đang kiểm tra tài khoản…</div>
+
+    <!-- Expired subscription banner -->
+    <div class="expired-banner" id="expired-banner">
+        <span>⚠️ Subscription đã hết hạn — API key đã bị tạm ngưng.</span>
+        <a href="/pages/pricing.html">Gia hạn ngay →</a>
+    </div>
 
     <!-- Access denied -->
     <div id="access-denied">
@@ -207,6 +270,26 @@
         </button>
         <button class="btn-revoke" id="btn-revoke" onclick="revokeKey()" style="display:none;">Thu hồi key</button>
         <div id="key-error" style="display:none;font-size:12px;color:#ef9a9a;margin-top:8px;"></div>
+    </div>
+
+    <!-- Usage quota this month -->
+    <div class="usage-card" id="usage-card" style="display:none;">
+        <div class="usage-title">API QUOTA THÁNG NÀY</div>
+        <div class="usage-stat">
+            <span class="usage-numbers"><span id="usage-used">0</span> / <span id="usage-limit">—</span> requests</span>
+            <span class="usage-limit" id="usage-remaining-label"></span>
+        </div>
+        <div class="usage-bar-track"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
+        <div class="usage-reset" id="usage-reset"></div>
+    </div>
+
+    <!-- Subscription info -->
+    <div class="sub-card" id="sub-card" style="display:none;">
+        <div>
+            <div class="sub-plan" id="sub-plan-label">Premium Developer</div>
+            <div class="sub-expiry" id="sub-expiry-label"></div>
+        </div>
+        <a class="btn-renew" href="/pages/pricing.html">Gia hạn / Nâng cấp</a>
     </div>
 
     <!-- Usage guide -->
@@ -313,6 +396,54 @@ const data = await res.json();</div>
             });
             const d = await res.json();
 
+            // Subscription card
+            const sub = d.subscription || {};
+            document.getElementById('sub-card').style.display = 'flex';
+            const planLabels = {
+                dev_monthly: 'Dev Monthly (10,000 req/tháng)',
+                dev_yearly:  'Dev Yearly (100,000 req/tháng)',
+            };
+            document.getElementById('sub-plan-label').textContent =
+                planLabels[sub.plan] || 'Premium Developer';
+            if (sub.premium_expiry) {
+                const exp = new Date(sub.premium_expiry);
+                const now = new Date();
+                const daysLeft = Math.ceil((exp - now) / 86400000);
+                document.getElementById('sub-expiry-label').textContent =
+                    daysLeft > 0
+                        ? `Hết hạn: ${exp.toLocaleDateString('vi-VN')} (còn ${daysLeft} ngày)`
+                        : `Đã hết hạn: ${exp.toLocaleDateString('vi-VN')}`;
+            }
+
+            // Quota card
+            const q = d.quota_info || {};
+            if (q.monthly_limit != null) {
+                const used = q.used_this_month || 0;
+                const limit = q.monthly_limit;
+                const pct = limit > 0 ? Math.min(100, Math.round(used / limit * 100)) : 0;
+                document.getElementById('usage-card').style.display = 'block';
+                document.getElementById('usage-used').textContent = used.toLocaleString('vi-VN');
+                document.getElementById('usage-limit').textContent = limit.toLocaleString('vi-VN');
+                document.getElementById('usage-bar').style.width = pct + '%';
+                document.getElementById('usage-bar').style.background =
+                    pct > 90 ? 'linear-gradient(90deg,#c62828,#ef9a9a)'
+                    : pct > 70 ? 'linear-gradient(90deg,#e65100,#ffb74d)'
+                    : 'linear-gradient(90deg,#7b1fa2,#b39ddb)';
+                const remaining = q.remaining != null ? q.remaining.toLocaleString('vi-VN') + ' còn lại' : '';
+                document.getElementById('usage-remaining-label').textContent = remaining;
+                if (q.reset_at) {
+                    const reset = new Date(q.reset_at);
+                    document.getElementById('usage-reset').textContent =
+                        `Reset vào ngày 1 tháng sau (${reset.toLocaleDateString('vi-VN', {month:'long', year:'numeric'})})`;
+                }
+            }
+
+            // Expiry banner
+            if (d.has_key && d.is_active === false) {
+                document.getElementById('expired-banner').classList.add('visible');
+            }
+
+            // Key display
             if (d.has_key) {
                 _currentKeyPreview = d.key_preview;
                 document.getElementById('key-preview-text').textContent = d.key_preview;

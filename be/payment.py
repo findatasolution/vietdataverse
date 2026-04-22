@@ -161,7 +161,12 @@ def _ensure_tables(conn):
 
 
 def _activate_premium(session, user_id: int, plan: str):
-    """Extend premium_expiry for a user. Stacks on top of existing subscription."""
+    """Extend premium_expiry for a user. Stacks on top of existing subscription.
+
+    Side effects:
+      - Set users.current_plan = plan (cho quota lookup trong middleware).
+      - Reactivate mọi api_keys của user (để renew không bắt gen key mới).
+    """
     plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["premium_monthly"])
     new_level  = plan_info["level"]  # "premium" | "premium_developer"
 
@@ -177,9 +182,18 @@ def _activate_premium(session, user_id: int, plan: str):
     session.execute(text("""
         UPDATE users
         SET is_premium = TRUE, premium_expiry = :expiry,
-            user_level = :lvl, updated_at = NOW()
+            user_level = :lvl, current_plan = :plan, updated_at = NOW()
         WHERE user_id = :uid
-    """), {"expiry": new_expiry, "lvl": new_level, "uid": user_id})
+    """), {"expiry": new_expiry, "lvl": new_level, "plan": plan, "uid": user_id})
+
+    # Reactivate API keys đã bị middleware deactivate khi hết hạn.
+    # Chỉ reactivate cho dev plans; premium plain không có API access nên bỏ qua.
+    if new_level == "premium_developer":
+        session.execute(text("""
+            UPDATE api_keys SET is_active = TRUE
+            WHERE user_id = :uid AND is_active = FALSE
+        """), {"uid": user_id})
+
     return new_expiry
 
 

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference | Viet Dataverse</title>
+    <meta name="description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, VN30 stocks, CPI, GDP.">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; }
+
+        .docs-nav {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
+            padding: 14px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo { font-size: 15px; font-weight: 700; color: var(--gold-primary); text-decoration: none; }
+        .nav-cta {
+            padding: 8px 18px;
+            background: linear-gradient(135deg, var(--gold-dark, #8b6914), var(--gold-primary, #C9A55B));
+            border: none; border-radius: 8px;
+            color: #0A0A0C; font-size: 13px; font-weight: 700;
+            cursor: pointer; font-family: inherit; text-decoration: none;
+        }
+
+        .docs-hero {
+            text-align: center;
+            padding: 72px 24px 48px;
+            background: radial-gradient(ellipse 60% 50% at 50% -10%,
+                rgba(201,165,91,.10) 0%, transparent 65%);
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(201,165,91,.1); border: 1px solid rgba(201,165,91,.25);
+            border-radius: 99px; padding: 4px 14px;
+            font-size: 11px; font-weight: 600; color: var(--gold-accent);
+            letter-spacing: .06em; text-transform: uppercase; margin-bottom: 18px;
+        }
+        .hero-title {
+            font-size: clamp(28px, 5vw, 48px); font-weight: 700;
+            color: var(--text-primary); margin: 0 0 12px;
+            line-height: 1.15;
+        }
+        .hero-sub {
+            font-size: 15px; color: var(--text-secondary);
+            max-width: 480px; margin: 0 auto 32px; line-height: 1.7;
+        }
+        .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--gold-dark, #8b6914), var(--gold-primary, #C9A55B));
+            border: none; border-radius: 10px;
+            color: #0A0A0C; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit; text-decoration: none;
+            transition: filter .2s;
+        }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-secondary {
+            padding: 12px 28px;
+            background: none; border: 1px solid var(--border-subtle);
+            border-radius: 10px; color: var(--text-secondary);
+            font-size: 14px; font-weight: 500; font-family: inherit;
+            cursor: pointer; text-decoration: none; transition: border-color .2s, color .2s;
+        }
+        .btn-secondary:hover { border-color: rgba(201,165,91,.3); color: var(--gold-accent); }
+
+        /* ── Layout ──────────────────────────────────────────── */
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            max-width: 1180px; margin: 0 auto;
+            padding: 0 24px 80px; gap: 48px;
+            align-items: start;
+        }
+        @media (max-width: 768px) { .docs-layout { grid-template-columns: 1fr; } }
+
+        /* ── Sidebar nav ─────────────────────────────────────── */
+        .docs-sidebar {
+            position: sticky; top: 72px;
+            font-size: 13px; padding-top: 24px;
+        }
+        .sidebar-group { margin-bottom: 20px; }
+        .sidebar-group-title {
+            font-size: 10px; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--text-tertiary);
+            margin-bottom: 8px; padding: 0 8px;
+        }
+        .sidebar-link {
+            display: block; padding: 6px 8px;
+            color: var(--text-secondary); text-decoration: none;
+            border-radius: 6px; transition: all .15s;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            color: var(--gold-accent); background: rgba(201,165,91,.07);
+        }
+        @media (max-width: 768px) { .docs-sidebar { display: none; } }
+
+        /* ── Content ─────────────────────────────────────────── */
+        .docs-content { padding-top: 24px; }
+        .docs-section { margin-bottom: 56px; }
+        .section-title {
+            font-size: 20px; font-weight: 700; color: var(--text-primary);
+            margin: 0 0 6px; padding-top: 8px;
+        }
+        .section-sub {
+            font-size: 13px; color: var(--text-secondary);
+            margin: 0 0 24px; line-height: 1.6;
+        }
+
+        /* ── Quota table ─────────────────────────────────────── */
+        .quota-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .quota-card {
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl); padding: 20px 24px;
+        }
+        .quota-plan { font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .06em; color: var(--text-tertiary); margin-bottom: 8px; }
+        .quota-num { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .quota-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* ── Endpoint list ───────────────────────────────────── */
+        .endpoint-group-title {
+            font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+            color: var(--text-tertiary); margin: 32px 0 12px; padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .endpoint-row {
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden;
+        }
+        .endpoint-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px; cursor: pointer; user-select: none;
+        }
+        .endpoint-header:hover { background: rgba(255,255,255,.02); }
+        .method-badge {
+            font-size: 10px; font-weight: 800; letter-spacing: .06em;
+            padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+            background: rgba(66,165,250,.15); color: #42a5f5;
+        }
+        .endpoint-path {
+            font-family: 'Courier New', monospace; font-size: 13px;
+            color: var(--text-primary); flex: 1; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+        }
+        .access-chip {
+            font-size: 10px; font-weight: 600; padding: 2px 8px;
+            border-radius: 99px; flex-shrink: 0;
+        }
+        .access-free     { background: rgba(102,187,106,.12); color: #66bb6a; }
+        .access-dev      { background: rgba(124,77,255,.12); color: #b39ddb; }
+        .endpoint-body {
+            display: none; padding: 0 18px 18px; font-size: 12px;
+        }
+        .endpoint-body.open { display: block; }
+        .endpoint-desc { color: var(--text-secondary); margin: 0 0 12px; line-height: 1.6; }
+        .params-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .param-row {
+            display: flex; gap: 8px; align-items: baseline;
+            margin-bottom: 4px; font-size: 11.5px; color: var(--text-tertiary);
+        }
+        .param-name { font-family: monospace; color: var(--text-primary); min-width: 100px; }
+        .param-type { color: #b39ddb; min-width: 50px; }
+
+        /* ── Code example ────────────────────────────────────── */
+        .code-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+        .code-tab {
+            padding: 4px 12px; font-size: 11px; font-weight: 600;
+            border-radius: 6px 6px 0 0; cursor: pointer;
+            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            border-bottom: none; color: var(--text-secondary); font-family: inherit;
+        }
+        .code-tab.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .code-block {
+            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
+            padding: 16px 18px;
+            font-family: 'Courier New', monospace; font-size: 12px;
+            color: #b39ddb; overflow-x: auto; white-space: pre; line-height: 1.65;
+            margin-bottom: 12px;
+        }
+
+        /* ── Error table ─────────────────────────────────────── */
+        .error-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        .error-table th, .error-table td {
+            text-align: left; padding: 8px 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+        }
+        .error-table th { font-weight: 600; color: var(--text-tertiary); font-size: 11px; text-transform: uppercase; }
+        .error-code { font-family: monospace; color: var(--text-primary); font-size: 13px; }
+        .error-401 { color: #ef9a9a; }
+        .error-402 { color: #ffb74d; }
+        .error-429 { color: #fff176; }
+    </style>
+</head>
+<body>
+
+<nav class="docs-nav">
+    <a class="nav-logo" href="/index.html">← Viet Dataverse</a>
+    <a class="nav-cta" href="/pages/pricing.html">Mua API Key →</a>
+</nav>
+
+<div class="docs-hero">
+    <div class="hero-badge">API Reference</div>
+    <h1 class="hero-title">Dữ liệu tài chính Việt Nam<br>qua một API đơn giản</h1>
+    <p class="hero-sub">
+        Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
+        Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
+    </p>
+    <div class="hero-actions">
+        <a class="btn-primary" href="/pages/pricing.html">Bắt đầu — từ 375,000 ₫/tháng</a>
+        <a class="btn-secondary" href="/pages/developer.html">Quản lý API Key →</a>
+    </div>
+</div>
+
+<div class="docs-layout">
+    <!-- Sidebar navigation -->
+    <aside class="docs-sidebar">
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">Tổng quan</div>
+            <a class="sidebar-link active" href="#quickstart">Quick Start</a>
+            <a class="sidebar-link" href="#auth">Authentication</a>
+            <a class="sidebar-link" href="#quota">Quota & Giới hạn</a>
+            <a class="sidebar-link" href="#errors">Mã lỗi</a>
+        </div>
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">Endpoints</div>
+            <a class="sidebar-link" href="#commodity">Hàng hoá</a>
+            <a class="sidebar-link" href="#rates">Lãi suất & Tỷ giá</a>
+            <a class="sidebar-link" href="#macro">Vĩ mô</a>
+            <a class="sidebar-link" href="#vn30">VN30 Cổ phiếu</a>
+            <a class="sidebar-link" href="#analysis">AI & Phân tích</a>
+        </div>
+    </aside>
+
+    <main class="docs-content">
+
+        <!-- Quick Start -->
+        <section class="docs-section" id="quickstart">
+            <h2 class="section-title">Quick Start</h2>
+            <p class="section-sub">Gọi API trong 60 giây với X-API-Key header.</p>
+
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="switchTab(this, 'curl')">cURL</button>
+                <button class="code-tab" onclick="switchTab(this, 'python')">Python</button>
+                <button class="code-tab" onclick="switchTab(this, 'js')">JavaScript</button>
+            </div>
+            <div class="code-block" id="tab-curl">curl https://api.vietdataverse.online/api/v1/gold?period=1m \
+  -H "X-API-Key: YOUR_API_KEY"</div>
+            <div class="code-block" id="tab-python" style="display:none;">import requests
+
+headers = {"X-API-Key": "YOUR_API_KEY"}
+resp = requests.get(
+    "https://api.vietdataverse.online/api/v1/gold",
+    params={"period": "1m"},
+    headers=headers,
+)
+data = resp.json()   # {"success": true, "count": 30, "data": [...]}</div>
+            <div class="code-block" id="tab-js" style="display:none;">const res = await fetch(
+  "https://api.vietdataverse.online/api/v1/gold?period=1m",
+  { headers: { "X-API-Key": "YOUR_API_KEY" } }
+);
+const { data } = await res.json();</div>
+        </section>
+
+        <!-- Authentication -->
+        <section class="docs-section" id="auth">
+            <h2 class="section-title">Authentication</h2>
+            <p class="section-sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key nhận được sau khi mua gói Developer.</p>
+            <div class="code-block">X-API-Key: vdv_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+                Lấy API key tại <a href="/pages/developer.html" style="color:var(--gold-accent)">trang Developer</a> sau khi đăng ký gói.
+                Key được liên kết với tài khoản — không chia sẻ key để tránh bị tính quota.
+            </p>
+        </section>
+
+        <!-- Quota -->
+        <section class="docs-section" id="quota">
+            <h2 class="section-title">Quota & Giới hạn</h2>
+            <p class="section-sub">Quota reset vào ngày 1 hàng tháng (múi giờ Asia/Ho_Chi_Minh). Burst limit bảo vệ hệ thống.</p>
+            <div class="quota-grid">
+                <div class="quota-card">
+                    <div class="quota-plan">Dev Monthly</div>
+                    <div class="quota-num">10,000</div>
+                    <div class="quota-desc">requests/tháng · 10 req/s burst · 375,000 ₫/tháng</div>
+                </div>
+                <div class="quota-card">
+                    <div class="quota-plan">Dev Yearly</div>
+                    <div class="quota-num">100,000</div>
+                    <div class="quota-desc">requests/tháng · 20 req/s burst · 4,500,000 ₫/năm</div>
+                </div>
+            </div>
+            <p style="font-size:13px;color:var(--text-secondary);">
+                Header phản hồi: <code style="color:var(--text-primary)">X-RateLimit-Limit</code>,
+                <code style="color:var(--text-primary)">X-RateLimit-Remaining</code>,
+                <code style="color:var(--text-primary)">X-RateLimit-Reset</code> (ISO 8601).
+            </p>
+        </section>
+
+        <!-- Error codes -->
+        <section class="docs-section" id="errors">
+            <h2 class="section-title">Mã lỗi</h2>
+            <table class="error-table">
+                <thead><tr><th>HTTP</th><th>Ý nghĩa</th><th>Cách xử lý</th></tr></thead>
+                <tbody>
+                    <tr><td class="error-code error-401">401</td><td>API key không hợp lệ hoặc đã bị thu hồi</td><td>Kiểm tra key tại trang Developer</td></tr>
+                    <tr><td class="error-code error-402">402</td><td>Subscription hết hạn — key tạm ngưng</td><td>Gia hạn tại trang Pricing, key tự kích hoạt lại</td></tr>
+                    <tr><td class="error-code" style="color:#ef9a9a">403</td><td>Endpoint yêu cầu tier cao hơn</td><td>Nâng cấp gói hoặc chọn endpoint phù hợp</td></tr>
+                    <tr><td class="error-code error-429">429</td><td>Vượt burst hoặc quota tháng</td><td>Xem header <code>Retry-After</code> / <code>X-RateLimit-Reset</code></td></tr>
+                    <tr><td class="error-code" style="color:var(--text-tertiary)">500</td><td>Lỗi server</td><td>Thử lại sau — liên hệ support nếu kéo dài</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Endpoint groups will be rendered by JS -->
+        <div id="endpoint-groups"></div>
+
+    </main>
+</div>
+
+<footer style="text-align:center;padding:32px 24px;border-top:1px solid var(--border-subtle);font-size:12px;color:var(--text-tertiary);">
+    © 2024–2026 Viet Dataverse ·
+    <a href="/index.html" style="color:var(--text-tertiary)">Trang chủ</a> ·
+    <a href="/pages/pricing.html" style="color:var(--text-tertiary)">Pricing</a> ·
+    <a href="mailto:findatasolution@gmail.com" style="color:var(--text-tertiary)">findatasolution@gmail.com</a>
+</footer>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:8000'
+    : 'https://api.vietdataverse.online';
+
+function switchTab(btn, tab) {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['curl', 'python', 'js'].forEach(id => {
+        const el = document.getElementById('tab-' + id);
+        if (el) el.style.display = id === tab ? 'block' : 'none';
+    });
+}
+
+function toggleEndpoint(header) {
+    const body = header.nextElementSibling;
+    body.classList.toggle('open');
+}
+
+const GROUP_LABELS = {
+    commodity: 'Hàng hoá',
+    rates:     'Lãi suất & Tỷ giá',
+    macro:     'Vĩ mô Việt Nam',
+    vn30:      'VN30 Cổ phiếu',
+    analysis:  'AI & Phân tích',
+};
+
+const ENDPOINT_GROUPS = {
+    commodity: ['/api/v1/gold', '/api/v1/gold/types', '/api/v1/silver'],
+    rates:     ['/api/v1/sbv-interbank', '/api/v1/sbv-centralrate', '/api/v1/termdepo', '/api/v1/termdepo/banks'],
+    macro:     ['/api/v1/macro/cpi', '/api/v1/macro/gdp', '/api/v1/macro/trade', '/api/v1/global-macro'],
+    vn30:      ['/api/v1/vn30/profile', '/api/v1/vn30/sector-summary',
+                '/api/v1/vn30/prices/{ticker}', '/api/v1/vn30/financials/{ticker}', '/api/v1/vn30/ratios/{ticker}'],
+    analysis:  ['/api/v1/vn30-scores/meta', '/api/v1/vn30-scores',
+                '/api/v1/vn30-scores/ticker/{ticker}', '/api/v1/gold-analysis', '/api/v1/market-pulse'],
+};
+
+async function loadEndpoints() {
+    const container = document.getElementById('endpoint-groups');
+    let endpoints = [];
+    try {
+        const res = await fetch(`${API}/api/v1/developer/endpoints`);
+        if (res.ok) {
+            const d = await res.json();
+            endpoints = d.endpoints || [];
+        }
+    } catch { /* use empty */ }
+
+    const byPath = {};
+    endpoints.forEach(ep => byPath[ep.path] = ep);
+
+    let html = '';
+    for (const [groupId, paths] of Object.entries(ENDPOINT_GROUPS)) {
+        html += `<div class="endpoint-group-title" id="${groupId}">${GROUP_LABELS[groupId]}</div>`;
+        for (const path of paths) {
+            const ep = byPath[path];
+            if (!ep) continue;
+            const access = ep.access === 'free' ? 'free' : 'dev';
+            const chipClass = access === 'free' ? 'access-free' : 'access-dev';
+            const chipLabel = access === 'free' ? 'Free' : 'Dev';
+            const params = (ep.params || []).filter(p => p.name !== 'ticker');
+            const paramHtml = params.length ? `
+                <div class="params-title">Params</div>
+                ${params.map(p => `
+                    <div class="param-row">
+                        <span class="param-name">${p.name}</span>
+                        <span class="param-type">${p.type || 'string'}</span>
+                        <span>${p.options ? p.options.join(' | ') : (p.example ? `e.g. ${p.example}` : '')}${p.default !== undefined ? ` (default: ${p.default})` : ''}</span>
+                    </div>
+                `).join('')}
+            ` : '<div style="color:var(--text-tertiary);font-size:12px;">Không có params</div>';
+
+            html += `
+            <div class="endpoint-row">
+                <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                    <span class="method-badge">GET</span>
+                    <span class="endpoint-path">${ep.path}</span>
+                    <span class="access-chip ${chipClass}">${chipLabel}</span>
+                </div>
+                <div class="endpoint-body">
+                    <p class="endpoint-desc">${ep.description || ''}</p>
+                    ${paramHtml}
+                </div>
+            </div>`;
+        }
+    }
+    container.innerHTML = html;
+}
+
+// Sidebar active on scroll
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-link[href="#${e.target.id}"]`);
+            if (link) link.classList.add('active');
+        }
+    });
+}, { rootMargin: '-30% 0px -60% 0px' });
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadEndpoints();
+    document.querySelectorAll('.docs-section, [id]').forEach(el => observer.observe(el));
+});
+</script>
+</body>
+</html>

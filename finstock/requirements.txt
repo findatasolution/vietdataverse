@@ -1,18 +1,30 @@
-# Backend API
+# ── Backend API ───────────────────────────────────────────────────────────────
 fastapi==0.104.1
 uvicorn==0.24.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-python-dotenv==1.0.0
-pydantic==2.5.0
+sqlalchemy==2.0.48
+psycopg2-binary==2.9.11
+python-dotenv==1.2.2
+pydantic==2.12.5
 
-# Data & ML
-pandas==2.1.3
-numpy==1.26.2
-xgboost==2.0.2
+# ── Data & ML ─────────────────────────────────────────────────────────────────
+pandas==3.0.2
+numpy==1.26.4
+xgboost==3.2.0
 scikit-learn==1.3.2
+scipy>=1.11.0
+optuna>=4.0.0
 
-# Market data
-vnstock
-vnquant
-yfinance
+# ── Visualisation (model_pipeline.ipynb) ─────────────────────────────────────
+matplotlib==3.10.8
+seaborn==0.13.2
+
+# ── Notebook ──────────────────────────────────────────────────────────────────
+jupyter>=1.0.0
+nbformat==5.10.4
+nbconvert>=7.0.0
+ipykernel>=6.0.0
+
+# ── Market data ───────────────────────────────────────────────────────────────
+vnstock==3.5.0
+yfinance==1.2.0
+requests==2.33.1

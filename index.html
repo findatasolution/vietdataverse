@@ -454,9 +454,6 @@
             </ul>
             <p>Dữ liệu VN30 Score cập nhật hàng tuần. Người dùng Free xem top 3 cổ phiếu. Người dùng Premium xem toàn bộ 30 mã cùng tín hiệu chi tiết. Đây là công cụ hỗ trợ ra quyết định đầu tư, không phải lời khuyên tài chính.</p>
 
-            <!-- <h2>Đối Tác Chứng Khoán</h2>
-            <p><a href="partners.html">Mở tài khoản chứng khoán SSI, VPBank Securities miễn phí — hướng dẫn đầu tư chứng khoán Việt Nam</a></p> -->
-
             <h2>Về Viet Dataverse</h2>
             <p>Viet Dataverse là nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở, cung cấp thông tin giá vàng, giá bạc, lãi suất ngân hàng và tỷ giá hối đoái được thu thập tự động từ các nguồn công khai uy tín. Dữ liệu được làm sạch, chuẩn hóa và lưu trữ lịch sử dài hạn để phục vụ nghiên cứu và phân tích. Liên hệ: <a href="mailto:contact@vietdataverse.online">contact@vietdataverse.online</a></p>
         </div>
@@ -484,23 +481,20 @@
 
                 <!-- Authenticated user info -->
                 <div class="user-info" id="user-info" style="display: none;">
-                    <!-- <div class="user-avatar">U</div> -->
-                    <div>
-                        <div id="user-email" style="font-weight: 500;"></div>
-                        <!-- <div style="font-size: 0.75rem; opacity: 0.7;">Đã đăng nhập</div> -->
-                    </div>
+                    <div class="user-avatar" id="user-avatar" title=""></div>
+                    <div id="user-email" style="display: none;"></div>
                 </div>
 
                 <!-- Login button (shown when not authenticated) -->
                 <a href="#" class="header-link" id="login-link" onclick="event.preventDefault(); login();">
                     <button class="header-btn primary">
-                        <span>Đăng nhập</span>
+                        <span data-i18n="loginBtn">Đăng nhập</span>
                     </button>
                 </a>
 
                 <!-- Logout button (shown when authenticated) -->
                 <button class="header-btn danger" id="logout-btn" style="display: none;">
-                    <span>Đăng xuất</span>
+                    <span data-i18n="logoutBtn">Đăng xuất</span>
                 </button>
             </div>
         </header>
@@ -517,7 +511,7 @@
                     <li class="nav-item">
                         <a class="nav-link active" data-tab="data-portal">
                             <div class="nav-content">
-                                <h4>Open Economic Data</h4>
+                                <h4 data-i18n="navDataPortal">Open Economic Data</h4>
                             </div>
                         </a>
                     </li>
@@ -552,20 +546,10 @@
                         </a>
                     </li>
 
-                    <!-- ── PROFIT (monetization) ── -->
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" href="partners.html">
-                            <div class="nav-content">
-                                <h4>Đối Tác</h4>
-                                <span class="nav-meta">Nhà cung cấp dịch vụ uy tín</span>
-                            </div>
-                        </a>
-                    </li> -->
-
                 </ul>
             </div>
             <div class="sidebar-section mobile-only">
-                <h2 class="sidebar-heading">Account</h2>
+                <h2 class="sidebar-heading" data-i18n="sidebarAccount">Account</h2>
 
                 <!-- Language Toggle -->
                 <button class="sidebar-btn" id="sidebar-lang-toggle">
@@ -582,27 +566,30 @@
                 <a href="#" class="sidebar-link" id="sidebar-login-link" onclick="event.preventDefault(); login();">
                     <button class="sidebar-btn primary">
                         <i class="fas fa-sign-in-alt"></i>
-                        <span>Đăng nhập</span>
+                        <span data-i18n="loginBtn">Đăng nhập</span>
                     </button>
                 </a>
 
                 <!-- Logout Button (shown when authenticated) -->
                 <button class="sidebar-btn danger" id="sidebar-logout-btn" style="display: none;">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span>Đăng xuất</span>
+                    <span data-i18n="logoutBtn">Đăng xuất</span>
                 </button>
             </div>
 
             <!-- About & Terms — pinned to sidebar bottom -->
             <div class="sidebar-footer">
+                <a class="sidebar-bottom-link" href="/pages/api-docs.html">
+                    API Docs
+                </a>
                 <a class="sidebar-bottom-link" data-tab="about-terms">
-                    <span>About & Terms</span>
+                    <span data-i18n="navAboutTerms">About & Terms</span>
                 </a>
                 <a class="sidebar-bottom-link" data-tab="privacy-policy">
-                    <span>Privacy Policy</span>
+                    <span data-i18n="navPrivacy">Privacy Policy</span>
                 </a>
                 <a class="sidebar-bottom-link" data-tab="contact">
-                    <span>Contact</span>
+                    <span data-i18n="navContact">Contact</span>
                 </a>
             </div>
         </aside>
@@ -632,11 +619,11 @@
                         </button>
                         <button class="chart-tab-btn" data-tab="tab-macro">
                             <i class="fas fa-chart-area"></i>
-                            <span>Vĩ Mô</span>
+                            <span data-i18n="tabMacro">Vĩ Mô</span>
                         </button>
                         <button class="chart-tab-btn" data-tab="tab-download">
                             <i class="fas fa-database"></i>
-                            <span>Download</span>
+                            <span data-i18n="tabDownload">Download</span>
                         </button>
                     </div>
 
@@ -680,7 +667,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <small class="chart-source" id="goldChartSource">Nguồn: <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
+                            <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
                         </div>
 
                         <!-- Silver Price Chart -->
@@ -717,7 +704,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
                         </div>
 
                     </div>
@@ -763,7 +750,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <small class="chart-source" id="tdChartSource">Nguồn: <a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank" rel="noopener">acb.com.vn</a></small>
+                            <small class="chart-source" id="tdChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank" rel="noopener">acb.com.vn</a></small>
                         </div>
 
                         <!-- SBV Interbank Rate Charts -->
@@ -783,7 +770,7 @@
                                 </div>
                             </div>
                             <!-- Panel 1: Interbank rates -->
-                            <p style="font-size:0.78rem;color:var(--text-tertiary);margin:0.5rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Thị Trường Liên Ngân Hàng</p>
+                            <p data-i18n="sbvPanelInterbank" style="font-size:0.78rem;color:var(--text-tertiary);margin:0.5rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Thị Trường Liên Ngân Hàng</p>
                             <div class="chart-container">
                                 <canvas id="sbvChart"></canvas>
                                 <div class="chart-loading" id="sbvLoading">
@@ -802,11 +789,11 @@
                                 </div>
                             </div>
                             <!-- Panel 2: Policy rates -->
-                            <p style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
+                            <p data-i18n="sbvPanelPolicy" style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
                             <div class="chart-container">
                                 <canvas id="sbv2Chart"></canvas>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
 
@@ -844,7 +831,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.sbv.gov.vn/tỷ-giá" target="_blank" rel="noopener">sbv.gov.vn</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/tỷ-giá" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
                     </div>
@@ -886,7 +873,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://finance.yahoo.com/quote/GC=F" target="_blank" rel="noopener">Yahoo Finance</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://finance.yahoo.com/quote/GC=F" target="_blank" rel="noopener">Yahoo Finance</a></small>
                         </div>
 
                     </div>
@@ -897,14 +884,14 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    CPI Việt Nam (% YoY/năm)
+                                    <span data-i18n="cpiChart">CPI Việt Nam (% YoY/năm)</span>
                                     <span class="chart-info-icon" data-tooltip="Lạm phát CPI hàng năm (% so với cùng kỳ năm trước). Nguồn: GSO/NSO Việt Nam (nso.gov.vn), cập nhật hàng tháng.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <button class="filter-btn" data-macro-period="1">1 năm</button>
-                                    <button class="filter-btn" data-macro-period="10">10 năm</button>
-                                    <button class="filter-btn active" data-macro-period="20">20 năm</button>
-                                    <button class="filter-btn" data-macro-period="0">Tất cả</button>
+                                    <button class="filter-btn" data-macro-period="1" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-macro-period="10" data-i18n="period10y">10 năm</button>
+                                    <button class="filter-btn active" data-macro-period="20" data-i18n="period20y">20 năm</button>
+                                    <button class="filter-btn" data-macro-period="0" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadMacroCSV('cpi')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -920,11 +907,11 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
                         </div>
 
                         <!-- GDP -->
-                        <div class="chart-card">
+                        <!-- <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     Tăng Trưởng GDP Việt Nam (%/năm)
@@ -946,11 +933,11 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
-                        </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div> -->
 
                         <!-- Trade Balance -->
-                        <div class="chart-card">
+                        <!-- <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     Xuất Nhập Khẩu Việt Nam (tỷ USD)
@@ -972,11 +959,11 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
-                        </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div> -->
 
                         <p style="font-size:0.72rem;color:var(--text-tertiary);margin:0.5rem 1rem 1.5rem;text-align:right;">
-                            Note: <a href="https://data.worldbank.org/country/VN" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> Cập nhật hàng tháng (chưa chính thức)
+                            <span data-i18n="macroNotePrefix">Note:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> <span data-i18n="macroNoteSuffix">Cập nhật hàng tháng (chưa chính thức)</span>
                         </p>
                     </div>
 
@@ -985,16 +972,16 @@
                         <div class="chart-card" style="padding:1.5rem;">
                             <div style="margin-bottom:1.5rem;">
                                 <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0 0 0.35rem;">
-                                    <i class="fas fa-database" style="color:#C9A55B;margin-right:0.5rem;"></i>Tải Dữ Liệu (CSV)
+                                    <i class="fas fa-database" style="color:#C9A55B;margin-right:0.5rem;"></i><span data-i18n="dlHeading">Tải Dữ Liệu (CSV)</span>
                                 </h3>
-                                <p style="font-size:0.82rem;color:var(--text-tertiary);margin:0;">Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).</p>
+                                <p data-i18n-html="dlSubtitle" style="font-size:0.82rem;color:var(--text-tertiary);margin:0;">Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).</p>
                             </div>
 
                             <!-- Category: Precious Metals -->
-                            <p class="dl-cat-label">🥇 Kim Loại Quý</p>
+                            <p class="dl-cat-label" data-i18n="dlCatMetals">Kim Loại Quý</p>
                             <div class="dl-table">
                                 <div class="dl-row dl-header">
-                                    <span>Tên bảng</span><span>Mô tả</span><span>Nguồn</span><span></span>
+                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
                                 </div>
                                 <div class="dl-row">
                                     <span><i class="fas fa-coins" class="icon-gold"></i>Gold – DOJI HN</span>
@@ -1023,10 +1010,10 @@
                             </div>
 
                             <!-- Category: Currency & FX -->
-                            <p class="dl-cat-label" style="margin-top:1.5rem;">💱 Tỷ Giá & Lãi Suất Tiết Kiệm</p>
+                            <p class="dl-cat-label" style="margin-top:1.5rem;" data-i18n="dlCatFX">Tỷ Giá & Lãi Suất Tiết Kiệm</p>
                             <div class="dl-table">
                                 <div class="dl-row dl-header">
-                                    <span>Tên bảng</span><span>Mô tả</span><span>Nguồn</span><span></span>
+                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
                                 </div>
                                 <div class="dl-row">
                                     <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – SBV USD/VND</span>
@@ -1061,10 +1048,10 @@
                             </div>
 
                             <!-- Category: SBV Policy & Global -->
-                            <p class="dl-cat-label" style="margin-top:1.5rem;">🏦 Lãi Suất NHNN & Thị Trường Quốc Tế</p>
+                            <p class="dl-cat-label" style="margin-top:1.5rem;" data-i18n="dlCatSBV">Lãi Suất NHNN & Thị Trường Quốc Tế</p>
                             <div class="dl-table">
                                 <div class="dl-row dl-header">
-                                    <span>Tên bảng</span><span>Mô tả</span><span>Nguồn</span><span></span>
+                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
                                 </div>
                                 <div class="dl-row">
                                     <span><i class="fas fa-chart-line" style="color:#EF5350;margin-right:6px;"></i>SBV Interbank Rates</span>
@@ -1081,7 +1068,7 @@
                             </div>
 
                             <!-- Category: VN30 Stock Data -->
-                            <p class="dl-cat-label" style="margin-top:1.5rem;">📈 VN30 – Dữ Liệu Cổ Phiếu</p>
+                            <!-- <p class="dl-cat-label" style="margin-top:1.5rem;">VN30 – Dữ Liệu Cổ Phiếu</p>
                             <div class="dl-table">
                                 <div class="dl-row dl-header">
                                     <span>Tên bảng</span><span>Mô tả</span><span>Quyền</span><span></span>
@@ -1110,9 +1097,9 @@
                                     <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
                                     <span><button class="dl-btn" onclick="downloadDataset('vn30-ratios')"><i class="fas fa-download"></i> CSV</button></span>
                                 </div>
-                            </div>
+                            </div> -->
 
-                            <p style="font-size:0.75rem;color:var(--text-tertiary);margin-top:1.25rem;padding-top:1rem;border-top:1px solid #2a2a2a;">
+                            <p data-i18n-html="dlFooter" style="font-size:0.75rem;color:var(--text-tertiary);margin-top:1.25rem;padding-top:1rem;border-top:1px solid #2a2a2a;">
                                 <i class="fas fa-info-circle" style="margin-right:4px;"></i>
                                 Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột.
                                 Dữ liệu <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium.
@@ -1122,54 +1109,11 @@
                     </div>
                 </div>
 
-                <!-- SEO Content — visually minimal, semantically rich -->
-                <section aria-label="Về dữ liệu" style="padding:2rem 1.5rem 1rem;border-top:1px solid #1e1e1e;max-width:860px;margin:0 auto;">
-                    <details>
-                        <summary style="cursor:pointer;font-size:0.78rem;color:var(--text-tertiary);letter-spacing:0.05em;list-style:none;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-book-open" style="font-size:0.7rem;"></i> Tìm hiểu thêm về dữ liệu
-                        </summary>
-                        <div style="margin-top:1.25rem;display:grid;gap:1.5rem;">
-                            <article>
-                                <h2 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin:0 0 0.5rem;">Giá Vàng Việt Nam: Hướng Dẫn Đọc Dữ Liệu & Phân Tích Xu Hướng</h2>
-                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0 0 0.4rem;">
-                                    Thị trường vàng Việt Nam vận hành theo cơ chế riêng biệt so với thế giới. Giá vàng trong nước được niêm yết theo <strong>đơn vị nghìn VND/chỉ</strong> (1 chỉ = 3.75g). Các thương hiệu uy tín gồm <strong>DOJI, SJC, BTMC (Bảo Tín Minh Châu)</strong>. Spread giữa giá mua và bán phản ánh tính thanh khoản thị trường. Giá vàng SJC thường có premium đáng kể so với giá thế giới do cơ chế kiểm soát nhập khẩu vàng miếng của SBV.
-                                </p>
-                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0;">
-                                    <strong>Giá bạc Phú Quý</strong> niêm yết theo nghìn VND/lượng (1 lượng = 37.5g), biến động mạnh hơn vàng 20-30%. Dữ liệu lịch sử từ 2015 cho phép phân tích chu kỳ giá, tương quan với vàng thế giới và các sự kiện vĩ mô. Nguồn: DOJI, SJC, BTMC, phuquy.com.vn.
-                                </p>
-                            </article>
-                            <article>
-                                <h2 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin:0 0 0.5rem;">Lãi Suất Tiết Kiệm, Lãi Suất Liên Ngân Hàng & Tỷ Giá USD/VND</h2>
-                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0 0 0.4rem;">
-                                    Lãi suất tiết kiệm kỳ hạn (%/năm) tại <strong>ACB, VCB, CTG (Vietinbank), SHB</strong> — từ 1 tháng đến 36 tháng. Giai đoạn 2022-2023 đỉnh điểm vượt 9-10%/năm; 2024-2025 hạ còn 4-6%/năm. Lãi suất liên ngân hàng SBV là chỉ báo sớm (leading indicator) cho chính sách tiền tệ: lãi suất overnight nhạy nhất với thanh khoản tức thời.
-                                </p>
-                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0;">
-                                    Tỷ giá USD/VND Vietcombank là tỷ giá tham chiếu chính thức thị trường. Spread mua-bán thông thường 50-100 VND/USD. Tỷ giá tăng làm giá vàng trong nước không giảm tương ứng dù vàng thế giới giảm — cần theo dõi đồng thời. Nguồn: sbv.gov.vn, vietcombank.com.vn.
-                                </p>
-                            </article>
-                            <article>
-                                <h2 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin:0 0 0.5rem;">Vàng, Bạc & NASDAQ Quốc Tế: Ảnh Hưởng Đến Thị Trường Việt Nam</h2>
-                                <p style="font-size:0.78rem;color:var(--text-tertiary);line-height:1.7;margin:0;">
-                                    Vàng COMEX (GC=F, USD/oz) chịu ảnh hưởng bởi lãi suất Fed, chỉ số DXY, lạm phát CPI và căng thẳng địa chính trị. Bạc (SI=F) có 50-60% nhu cầu công nghiệp (pin mặt trời, điện tử), biến động mạnh hơn theo chu kỳ kinh tế. NASDAQ Composite (^IXIC) thường nghịch chiều với vàng — khi risk-on, tiền chạy vào cổ phiếu; khi risk-off, tiền chạy vào vàng. Nguồn: Yahoo Finance, cập nhật hàng ngày.
-                                </p>
-                            </article>
-                        </div>
-                    </details>
-                </section>
-
             </div>
 
             <!-- 1s Market Pulse -->
             <div class="tab-content" id="1smarket-portal">
                 <div class="hero-content">
-                    <div class="section-header">
-                        <h1 class="section-title">
-                            <span>Thời Báo 1 Giây</span>
-                            <span class="chart-info-icon"
-                                data-tooltip="Tổng hợp tin tức tài chính trong nước & quốc tế ảnh hưởng đến thị trường. Được phân loại và đánh giá tác động bởi Fintel AI (MRI score). Danh sách tiêu đề phía dưới chỉ hiển thị các tin có |MRI| ≥ 60, tức là những sự kiện có xác suất tạo biến động đáng kể lên tài sản được gán nhãn liên quan. Giúp ngừoi đọc iết kiệm thời gian đọc tin và tập trung vào các thông tin thực sự ảnh hưởng đến loại tài sản cụ thể. (MRI sử dụng thang -100 đến +100 đại diện khả năng tác động đơn biến của bài báo và được cập nhật gần như tại thời gian thực).">ⓘ</span>
-                        </h1>
-                    </div>
-
                     <!-- Filters -->
                     <div id="pulse-filters" style="     display:flex;
                                     flex-wrap:wrap;
@@ -1182,38 +1126,38 @@
                                     align-items:center;
                                     width:fit-content;">
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <label style="font-size:0.85rem;color:var(--text-secondary);">Nguồn:</label>
+                            <label style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="pulseFilterSource">Nguồn:</label>
                             <select id="filter-source"
                                 class="filter-select">
-                                <option value="">Tất cả</option>
+                                <option value="" data-i18n="pulseFilterAll">Tất cả</option>
                                 <option value="CNBC">CNBC</option>
                                 <option value="BBC">BBC</option>
                                 <option value="MarketWatch">MarketWatch</option>
                             </select>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <label style="font-size:0.85rem;color:var(--text-secondary);">Thị trường:</label>
+                            <label style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="pulseFilterMarket">Thị trường:</label>
                             <select id="filter-label"
                                 class="filter-select">
-                                <option value="">Tất cả</option>
+                                <option value="" data-i18n="pulseFilterAll">Tất cả</option>
                                 <option value="VNINDEX">VN-Index</option>
-                                <option value="GOLD">Vàng</option>
-                                <option value="REAL_ESTATE">Bất động sản</option>
-                                <option value="BANKING">Ngân hàng</option>
-                                <option value="FX">Ngoại hối</option>
+                                <option value="GOLD" data-i18n="pulseMarketGold">Vàng</option>
+                                <option value="REAL_ESTATE" data-i18n="pulseMarketRealEstate">Bất động sản</option>
+                                <option value="BANKING" data-i18n="pulseMarketBanking">Ngân hàng</option>
+                                <option value="FX" data-i18n="pulseMarketFX">Ngoại hối</option>
                             </select>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
                             <label style="font-size:0.85rem;color:var(--text-secondary);">MRI:</label>
                             <select id="filter-mri"
                                 class="filter-select">
-                                <option value="">Tất cả</option>
-                                <option value="positive">Tích cực (+)</option>
-                                <option value="negative">Tiêu cực (-)</option>
+                                <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                                <option value="positive" data-i18n="pulseMRIPositive">Tích cực (+)</option>
+                                <option value="negative" data-i18n="pulseMRINegative">Tiêu cực (-)</option>
                             </select>
                         </div>
                         <button id="filter-reset"
-                            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:0.85rem;cursor:pointer;">Reset</button>
+                            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:0.85rem;cursor:pointer;" data-i18n="pulseFilterReset">Reset</button>
                     </div>
                 </div>
 
@@ -1253,14 +1197,6 @@
 
             <!-- 1s Future Outlook -->
             <div class="tab-content" id="1s-future-outlook">
-                <div class="section-header">
-                    <h1 class="section-title">
-                        <span>1s Future Outlook</span>
-                        <span class="chart-info-icon"
-                            data-tooltip="Phân tích chuyên sâu xu hướng thị trường tài chính, dự báo giá vàng, ngoại tệ và chứng khoán. Cập nhật định kỳ bởi Fintel AI.">ⓘ</span>
-                    </h1>
-                </div>
-
                 <!-- Forecast Cards Grid -->
                 <div
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
@@ -1277,15 +1213,15 @@
                                 style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.2); color: #d4af37; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
                                 <span
                                     style="width: 6px; height: 6px; background: #d4af37; border-radius: 50; display: inline-block;"></span>
-                                Featured Report
+                                <span data-i18n="foFeatured">Featured Report</span>
                             </div>
                             <!-- Icon + Title -->
                             <!-- <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4C8;</div>s -->
-                            <h3
+                            <h3 data-i18n="foGoldTitle"
                                 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; line-height: 1.3;">
                                 Dự báo Giá Vàng 2026
                             </h3>
-                            <p style="color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem;">
+                            <p data-i18n="foGoldDesc" style="color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem;">
                                 Phân tích chuyên sâu từ Goldman Sachs, J.P. Morgan, UBS — Mục tiêu $6,300/oz. Biểu đồ
                                 tương tác & Trình mô phỏng biến động.
                             </p>
@@ -1304,7 +1240,7 @@
                             <!-- CTA -->
                             <div
                                 style="display: flex; align-items: center; gap: 0.5rem; color: #d4af37; font-size: 0.85rem; font-weight: 600;">
-                                Xem báo cáo đầy đủ
+                                <span data-i18n="foViewReport">Xem báo cáo đầy đủ</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M5 12h14M12 5l7 7-7 7" />
@@ -1317,11 +1253,11 @@
                     <div
                         style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; opacity: 0.5;">
                         <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F3E0;</div>
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">Bất động
+                        <h3 data-i18n="foRealEstateTitle" style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">Bất động
                             sản Việt Nam 2026</h3>
-                        <p style="color: #666; font-size: 0.85rem;">Phân tích xu hướng giá, vùng tiềm năng và dự báo thị
+                        <p data-i18n="foRealEstateDesc" style="color: #666; font-size: 0.85rem;">Phân tích xu hướng giá, vùng tiềm năng và dự báo thị
                             trường.</p>
-                        <span
+                        <span data-i18n="foComingSoon"
                             style="display: inline-block; margin-top: 1rem; background: rgba(255,255,255,0.06); color: #666; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
                             Soon</span>
                     </div>
@@ -1330,11 +1266,11 @@
                     <div
                         style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; opacity: 0.5;">
                         <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4CA;</div>
-                        <h3 style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">VN-Index &
+                        <h3 data-i18n="foStockTitle" style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">VN-Index &
                             Cổ phiếu 2026</h3>
-                        <p style="color: #666; font-size: 0.85rem;">Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ
+                        <p data-i18n="foStockDesc" style="color: #666; font-size: 0.85rem;">Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ
                             danh mục.</p>
-                        <span
+                        <span data-i18n="foComingSoon"
                             style="display: inline-block; margin-top: 1rem; background: rgba(255,255,255,0.06); color: #666; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
                             Soon</span>
                     </div>
@@ -1350,7 +1286,7 @@
                         <span class="chart-info-icon"
                             data-tooltip="Xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình XGBoost. Score 0-100%: ≥60 MUA, 40-59 TRUNG TÍNH, &lt;40 BÁN. Cập nhật hàng tuần.">ⓘ</span>
                     </h1>
-                    <p style="color:var(--text-secondary);margin-top:0.5rem;font-size:0.95rem;max-width:680px;">
+                    <p data-i18n-html="vn30Intro" style="color:var(--text-secondary);margin-top:0.5rem;font-size:0.95rem;max-width:680px;">
                         Bảng xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình Machine Learning.
                         <strong style="color:var(--gold-primary);">Premium</strong> — xem đầy đủ 30 mã &amp; lịch sử điểm từng mã.
                     </p>
@@ -1379,11 +1315,11 @@
                     <div id="vn30-gate-cta" class="vn30-gate-overlay" style="display:none;">
                         <div style="background:rgba(201,165,91,0.07);border:1px solid rgba(201,165,91,0.22);border-radius:16px;padding:2rem;max-width:420px;margin:0 auto;">
                             <i class="fas fa-lock" style="font-size:1.5rem;color:var(--gold-primary);margin-bottom:1rem;display:block;"></i>
-                            <h3 style="color:var(--text-primary);margin-bottom:0.5rem;font-size:1.1rem;">Xem đầy đủ 30 cổ phiếu VN30</h3>
-                            <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;">
+                            <h3 data-i18n="vn30GateTitle" style="color:var(--text-primary);margin-bottom:0.5rem;font-size:1.1rem;">Xem đầy đủ 30 cổ phiếu VN30</h3>
+                            <p data-i18n-html="vn30GateBody" style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;">
                                 Nâng cấp <strong style="color:var(--gold-primary);">Premium</strong> để xem toàn bộ bảng xếp hạng, lịch sử điểm số từng mã và tín hiệu mua/bán.
                             </p>
-                            <button onclick="login()" style="background:linear-gradient(135deg,var(--gold-primary),var(--gold-accent,#f2dfa0));color:#08080A;font-weight:700;padding:0.75rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;width:100%;">
+                            <button data-i18n="vn30GateCTA" onclick="login()" style="background:linear-gradient(135deg,var(--gold-primary),var(--gold-accent,#f2dfa0));color:#08080A;font-weight:700;padding:0.75rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;width:100%;">
                                 Đăng nhập / Nâng cấp Premium
                             </button>
                         </div>
@@ -1394,32 +1330,32 @@
             <!-- About & Terms Tab -->
             <div class="tab-content" id="about-terms">
                 <div class="section-header">
-                    <h1 class="section-title">About & Terms</h1>
+                    <h1 class="section-title" data-i18n="aboutSectionTitle">About & Terms</h1>
                 </div>
 
                 <!-- Về Viet Dataverse -->
                 <div
                     style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
-                    <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Viet Dataverse
+                    <h2 data-i18n="aboutH1" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Viet Dataverse
                     </h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    <p data-i18n-html="aboutP1" style="color: var(--text-secondary); margin-bottom: 1rem;">
                         <strong>Viet Dataverse</strong> là nền tảng dữ liệu kinh tế Việt Nam miễn phí, cung cấp thông
                         tin <strong>giá vàng</strong>,
                         <strong>giá bạc</strong>, và <strong>lãi suất ngân hàng</strong> được thu thập tự động từ các
                         nguồn công khai uy tín.
                     </p>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    <p data-i18n-html="aboutP2" style="color: var(--text-secondary); margin-bottom: 1rem;">
                         <strong>Giá vàng trong nước</strong> (SJC, DOJI) với dữ liệu lịch sử từ năm 2015 đến nay.
                         <strong>Giá bạc trong nước</strong>
                         <strong>Lãi suất liên ngân hàng</strong> do Ngân hàng Nhà nước Việt Nam (SBV) công bố.
                         <strong>Lãi suất gửi tiết kiệm</strong> từ các ngân hàng thương mại lớn.
                     </p>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    <p data-i18n-html="aboutP3" style="color: var(--text-secondary); margin-bottom: 1rem;">
                         Dữ liệu được <strong>làm sạch, chuẩn hóa</strong> và lưu trữ lịch sử dài hạn để phục vụ
                         <strong>mục đích nghiên cứu và phân tích</strong>.
                         Bạn có thể tải dữ liệu hoàn toàn miễn phí hoặc truy cập qua <strong>API</strong>.
                     </p>
-                    <p
+                    <p data-i18n-html="aboutDisclaimer"
                         style="color: #888; font-size: 0.9em; border-top: 1px solid rgba(201, 165, 91, 0.2); padding-top: 1rem; margin-top: 1rem;">
                         <strong>Lưu ý quan trọng:</strong> Dữ liệu chỉ mang tính chất tham khảo, không phải lời khuyên
                         đầu tư.
@@ -1432,15 +1368,15 @@
                 <!-- Về Nguồn Dữ Liệu & Phương Pháp Thu Thập -->
                 <div
                     style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
-                    <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Nguồn Dữ Liệu &
+                    <h2 data-i18n="aboutSourcesH" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Nguồn Dữ Liệu &
                         Phương Pháp Thu Thập</h2>
-                    <p style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <p data-i18n-html="aboutSourcesP1" style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
                         Dữ liệu trên Viet Dataverse được thu thập tự động từ <strong>các nguồn công khai, miễn
                             phí</strong> bao gồm website của các tổ chức tài chính, công ty vàng bạc uy tín, và cơ quan
                         nhà nước.
                         Tất cả dữ liệu đều là <strong>thông tin công khai</strong> mà bất kỳ ai cũng có thể truy cập.
                     </p>
-                    <p style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <p data-i18n-html="aboutSourcesP2" style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
                         Giá trị gia tăng của Viet Dataverse nằm ở việc <strong>làm sạch, chuẩn hóa, lưu trữ lịch sử dài
                             hạn</strong> và cung cấp API miễn phí để phục vụ cộng đồng nghiên cứu.
                         Chúng tôi không sở hữu dữ liệu gốc, chỉ cung cấp dịch vụ tổng hợp và phân phối.
@@ -1450,9 +1386,9 @@
                 <!-- Điều Khoản Sử Dụng -->
                 <div
                     style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
-                    <h2 style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Điều Khoản Sử Dụng
+                    <h2 data-i18n="aboutTermsH" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Điều Khoản Sử Dụng
                     </h2>
-                    <ul style="color: #A0A0A0; line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
+                    <ul data-i18n-html="aboutTermsList" style="color: #A0A0A0; line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
                         <li><strong>Mục đích:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, học thuật, và phân tích
                             cá nhân. Không dùng cho mục đích thương mại trừ khi có thỏa thuận.</li>
                         <li><strong>Không phải lời khuyên tài chính:</strong> Viet Dataverse không cung cấp lời khuyên
@@ -1463,7 +1399,7 @@
                             Dataverse để tạo dịch vụ cạnh tranh.</li>
                     </ul>
 
-                    <p style="color: #666; font-size: 0.85rem; margin-top: 1.5rem; font-style: italic;">
+                    <p data-i18n-html="aboutCopyright" style="color: #666; font-size: 0.85rem; margin-top: 1.5rem; font-style: italic;">
                         © 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở.
                         <a href="mailto:contact@vietdataverse.online"
                             style="color: var(--gold-primary); text-decoration: none;">Liên hệ</a>
@@ -1474,12 +1410,12 @@
             <!-- Privacy-Policy -->
             <div class="tab-content" id="privacy-policy">
                 <div class="section-header">
-                    <h1 class="section-title">Chính sách bảo mật (Privacy Policy)</h1>
+                    <h1 class="section-title" data-i18n="privacySectionTitle">Chính sách bảo mật (Privacy Policy)</h1>
                 </div>
 
                 <div
                     class="info-card">
-                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                    <p data-i18n-html="privacyIntro" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
                         Chào mừng bạn đến với <strong style="color: var(--text-primary);">Viet Dataverse</strong>.
                         Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn khi sử dụng nền tảng dữ liệu kinh tế của
                         chúng tôi.
@@ -1488,12 +1424,12 @@
 
                 <div
                     class="info-card">
-                    <h2 class="info-card-heading">1. Thông tin chúng
+                    <h2 class="info-card-heading" data-i18n="privacyH1">1. Thông tin chúng
                         tôi thu thập</h2>
-                    <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <p data-i18n="privacyP1" style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
                         Để cải thiện chất lượng website, chúng tôi có thể thu thập một số thông tin người dùng như sau:
                     </p>
-                    <ul
+                    <ul data-i18n-html="privacyList1"
                         style="color: var(--text-secondary); line-height: 2; font-size: 0.95rem; padding-left: 1.5rem; list-style: disc;">
                         <li><strong style="color: var(--text-primary);">Thông tin đăng nhập:</strong> Email
                             thị thông qua hệ thống <strong>Google Integration Auth0</strong>.</li>
@@ -1505,17 +1441,17 @@
 
                 <div
                     class="info-card">
-                    <h2 class="info-card-heading">2. Sử dụng Cookie</h2>
-                    <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <h2 class="info-card-heading" data-i18n="privacyH2">2. Sử dụng Cookie</h2>
+                    <p data-i18n="privacyP2" style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
                         Chúng tôi sử dụng cookie để lưu trữ tùy chọn ngôn ngữ và trạng thái đăng nhập của bạn nhằm cải thiện trải nghiệm sử dụng. Cookie này không được chia sẻ với bên thứ ba vì mục đích quảng cáo.
                     </p>
                 </div>
 
                 <div
                     class="info-card">
-                    <h2 class="info-card-heading">3. Bảo mật dữ liệu
+                    <h2 class="info-card-heading" data-i18n="privacyH3">3. Bảo mật dữ liệu
                     </h2>
-                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                    <p data-i18n-html="privacyP3" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
                         Chúng tôi <strong style="color: var(--text-primary);">không bán hoặc chia sẻ</strong> email cá
                         nhân của bạn cho bên thứ ba.
                         Dữ liệu chỉ được sử dụng để cung cấp báo cáo giá vàng và cải thiện trải nghiệm người dùng trên
@@ -1525,14 +1461,14 @@
 
                 <div
                     style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem;">
-                    <h2 class="info-card-heading">4. Liên hệ về quyền
+                    <h2 class="info-card-heading" data-i18n="privacyH4">4. Liên hệ về quyền
                         riêng tư</h2>
-                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                    <p data-i18n-html="privacyP4" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
                         Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ:
                         <a href="mailto:findatasolution@gmail.com"
                             style="color: var(--gold-accent); text-decoration: none; font-weight: 600;">findatasolution@gmail.com</a>
                     </p>
-                    <p style="color: #666; font-size: 0.85rem; margin-top: 1rem; font-style: italic;">
+                    <p data-i18n="privacyFooter" style="color: #666; font-size: 0.85rem; margin-top: 1rem; font-style: italic;">
                         © 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam.
                     </p>
                 </div>
@@ -1541,7 +1477,7 @@
             <!-- Contact -->
             <div class="tab-content" id="contact">
                 <div class="section-header">
-                    <h1 class="section-title">Liên hệ với chúng tôi</h1>
+                    <h1 class="section-title" data-i18n="contactSectionTitle">Liên hệ với chúng tôi</h1>
                 </div>
 
                 <!-- Contact Cards -->
@@ -1553,10 +1489,10 @@
                             style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold-accent); margin-bottom: 1rem;">
                             <i class="fas fa-headset"></i>
                         </div>
-                        <h3
+                        <h3 data-i18n="contactSupportH"
                             style="color: var(--gold-accent); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem;">
                             Hỗ trợ kỹ thuật & Dữ liệu</h3>
-                        <p
+                        <p data-i18n="contactSupportP"
                             style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; font-size: 0.95rem;">
                             Nếu bạn gặp lỗi khi tải file CSV hoặc có câu hỏi về mô hình dự báo:
                         </p>
@@ -1572,10 +1508,10 @@
                             style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold-accent); margin-bottom: 1rem;">
                             <i class="fas fa-bullhorn"></i>
                         </div>
-                        <h3
+                        <h3 data-i18n="contactAdH"
                             style="color: var(--gold-accent); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem;">
                             Hợp tác quảng cáo</h3>
-                        <p
+                        <p data-i18n="contactAdP"
                             style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; font-size: 0.95rem;">
                             Để đặt banner trực tiếp hoặc hợp tác cung cấp dữ liệu kinh tế:
                         </p>
@@ -1584,7 +1520,7 @@
                             <i class="fas fa-envelope" style="color: var(--gold-primary);"></i>
                             findatasolution@gmail.com
                         </a>
-                        <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 0.75rem;">
+                        <p data-i18n-html="contactQuickHint" style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 0.75rem;">
                             Hoặc sử dụng <strong style="color: var(--gold-accent);">Quick Request</strong> bên dưới ↓
                         </p>
                     </div>
@@ -1599,9 +1535,9 @@
                             <i class="fas fa-bolt"></i>
                         </div>
                         <div>
-                            <h2 style="color: var(--text-primary); font-size: 1.5rem; font-weight: 700;">Quick Request
+                            <h2 data-i18n="adReqTitle" style="color: var(--text-primary); font-size: 1.5rem; font-weight: 700;">Quick Request
                                 for Advertise</h2>
-                            <p style="color: var(--text-tertiary); font-size: 0.85rem;">Đăng banner quảng cáo trên Viet
+                            <p data-i18n="adReqSubtitle" style="color: var(--text-tertiary); font-size: 0.85rem;">Đăng banner quảng cáo trên Viet
                                 Dataverse — nhanh chóng & đơn giản</p>
                         </div>
                     </div>
@@ -1613,21 +1549,21 @@
                             <div
                                 style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold-primary); color: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; margin: 0 auto 0.5rem;">
                                 1</div>
-                            <p style="color: var(--text-secondary); font-size: 0.8rem;">Điền thông tin</p>
+                            <p data-i18n="adStep1" style="color: var(--text-secondary); font-size: 0.8rem;">Điền thông tin</p>
                         </div>
                         <div
                             style="flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid rgba(201, 165, 91, 0.12);">
                             <div
                                 style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold-primary); color: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; margin: 0 auto 0.5rem;">
                                 2</div>
-                            <p style="color: var(--text-secondary); font-size: 0.8rem;">Thanh toán QR</p>
+                            <p data-i18n="adStep2" style="color: var(--text-secondary); font-size: 0.8rem;">Thanh toán QR</p>
                         </div>
                         <div
                             style="flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid rgba(201, 165, 91, 0.12);">
                             <div
                                 style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold-primary); color: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; margin: 0 auto 0.5rem;">
                                 3</div>
-                            <p style="color: var(--text-secondary); font-size: 0.8rem;">Chờ phê duyệt</p>
+                            <p data-i18n="adStep3" style="color: var(--text-secondary); font-size: 0.8rem;">Chờ phê duyệt</p>
                         </div>
                     </div>
 
@@ -1639,8 +1575,7 @@
                             <label for="ad-brand-name"
                                 style="display: block; color: var(--text-primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
                                 <i class="fas fa-building"
-                                    style="color: var(--gold-primary); margin-right: 0.4rem;"></i> Tên thương hiệu /
-                                Brand Name <span style="color: #EF4444;">*</span>
+                                    style="color: var(--gold-primary); margin-right: 0.4rem;"></i> <span data-i18n="adBrandLabel">Tên thương hiệu / Brand Name</span> <span style="color: #EF4444;">*</span>
                             </label>
                             <input type="text" id="ad-brand-name" required placeholder="VD: SSI Securities, VPBank…"
                                 style="width: 100%; padding: 0.875rem 1rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(201, 165, 91, 0.2); border-radius: 8px; color: var(--text-primary); font-size: 0.95rem; outline: none; transition: border-color 0.2s;"
@@ -1654,10 +1589,10 @@
                                 style="display: block; color: var(--text-primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
                                 <i class="fas fa-photo-video"
                                     style="color: var(--gold-primary); margin-right: 0.4rem;"></i>
-                                Banner (Hình ảnh / Video) <span
-                                    style="color: var(--text-tertiary); font-weight: 400;">(Tùy chọn)</span>
+                                <span data-i18n="adBannerLabel">Banner (Hình ảnh / Video)</span> <span
+                                    style="color: var(--text-tertiary); font-weight: 400;" data-i18n="adOptional">(Tùy chọn)</span>
                             </label>
-                            <p style="color: var(--text-tertiary); font-size: 0.8rem; margin-bottom: 0.5rem;">
+                            <p data-i18n-html="adBannerSpec" style="color: var(--text-tertiary); font-size: 0.8rem; margin-bottom: 0.5rem;">
                                 Kích thước tối ưu: <strong style="color: var(--gold-accent);">1920×520 px</strong>
                                 (16:9).
                                 Chấp nhận: <strong style="color: var(--gold-accent);">MP4, WebM</strong> (video ≤ 10MB)
@@ -1672,7 +1607,7 @@
                                 ondrop="event.preventDefault(); handleBannerDrop(event); this.style.borderColor='rgba(201,165,91,0.25)'; this.style.background='rgba(0,0,0,0.4)'">
                                 <i class="fas fa-cloud-upload-alt"
                                     style="font-size: 2rem; color: var(--gold-primary); margin-bottom: 0.5rem;"></i>
-                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Kéo & thả hình ảnh hoặc
+                                <p data-i18n-html="adDropzoneText" style="color: var(--text-secondary); font-size: 0.9rem;">Kéo & thả hình ảnh hoặc
                                     video, hoặc
                                     <span style="color: var(--gold-accent); text-decoration: underline;">chọn
                                         file</span>
@@ -1701,23 +1636,23 @@
                             style="background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 1.5rem;">
                             <h3
                                 style="color: var(--text-primary); font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-qrcode" style="color: var(--gold-accent);"></i> Thanh toán bằng QR Code
+                                <i class="fas fa-qrcode" style="color: var(--gold-accent);"></i> <span data-i18n="adQrTitle">Thanh toán bằng QR Code</span>
                             </h3>
                             <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
                                 <div
                                     style="width: 180px; height: 180px; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <div style="text-align: center; padding: 0.75rem;">
                                         <i class="fas fa-qrcode" style="font-size: 5rem; color: #333;"></i>
-                                        <p style="font-size: 0.6rem; color: #666; margin-top: 0.25rem;">QR sẽ được cung
+                                        <p data-i18n="adQrNote" style="font-size: 0.6rem; color: #666; margin-top: 0.25rem;">QR sẽ được cung
                                             cấp sau khi xác nhận</p>
                                     </div>
                                 </div>
                                 <div style="flex: 1; min-width: 200px;">
-                                    <p
+                                    <p data-i18n-html="adPackageTitle"
                                         style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; margin-bottom: 0.75rem;">
                                         <strong style="color: var(--gold-accent);">Gói Banner Quảng Cáo:</strong>
                                     </p>
-                                    <ul
+                                    <ul data-i18n-html="adPackageList"
                                         style="color: var(--text-secondary); font-size: 0.875rem; line-height: 2; padding-left: 0; list-style: none;">
                                         <li style="display: flex; align-items: center; gap: 0.5rem;"><i
                                                 class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
@@ -1736,7 +1671,7 @@
                         <!-- Submit -->
                         <button type="submit" id="ad-submit-btn"
                             style="width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent)); border: none; border-radius: 10px; color: var(--bg-dark); font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s;">
-                            <i class="fas fa-paper-plane"></i> Gửi yêu cầu quảng cáo
+                            <i class="fas fa-paper-plane"></i> <span data-i18n="adSubmitBtn">Gửi yêu cầu quảng cáo</span>
                         </button>
                     </form>
 
@@ -1746,9 +1681,9 @@
                             style="width: 64px; height: 64px; border-radius: 50%; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                             <i class="fas fa-check-circle" style="font-size: 2rem; color: #22C55E;"></i>
                         </div>
-                        <h3 style="color: var(--text-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">Yêu cầu đã
+                        <h3 data-i18n="adSuccessH" style="color: var(--text-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">Yêu cầu đã
                             gửi thành công!</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                        <p data-i18n-html="adSuccessP" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
                             Chúng tôi sẽ xem xét yêu cầu của bạn và phản hồi qua email trong vòng <strong
                                 style="color: var(--gold-accent);">24 giờ</strong>.
                             Vui lòng kiểm tra hộp thư (bao gồm thư rác) để nhận thông tin thanh toán QR Code.
@@ -1770,17 +1705,17 @@
             <div class="notification-icon">
                 <i class="fas fa-lock"></i>
             </div>
-            <h3 class="notification-title">Yêu cầu đăng nhập</h3>
-            <p class="notification-message">
+            <h3 class="notification-title" data-i18n="notifLoginTitle">Yêu cầu đăng nhập</h3>
+            <p class="notification-message" data-i18n="notifLoginMessage">
                 Bạn cần đăng nhập để tải dữ liệu. Vui lòng đăng nhập để tiếp tục sử dụng các tính năng của Viet
                 Dataverse.
             </p>
             <div class="notification-actions">
                 <button class="notification-btn secondary" id="cancel-btn">
-                    <span>Hủy</span>
+                    <span data-i18n="notifCancel">Hủy</span>
                 </button>
                 <button class="notification-btn primary" id="login-btn">
-                    <span>Đăng nhập</span>
+                    <span data-i18n="loginBtn">Đăng nhập</span>
                 </button>
             </div>
         </div>
@@ -1792,21 +1727,21 @@
             <div class="notification-icon">
                 <i class="fas fa-code"></i>
             </div>
-            <h3 class="notification-title">API đang phát triển</h3>
-            <p class="notification-message" id="api-message">
+            <h3 class="notification-title" data-i18n="notifApiTitle">API đang phát triển</h3>
+            <p class="notification-message" id="api-message" data-i18n="notifApiMessage">
                 Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính
                 năng sẵn sàng.
             </p>
-            <p class="notification-message" id="api-message-logged-in" style="display: none;">
+            <p class="notification-message" id="api-message-logged-in" style="display: none;" data-i18n="notifApiMessageLoggedIn">
                 Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính
                 năng sẵn sàng.
             </p>
             <div class="notification-actions">
                 <button class="notification-btn secondary" id="api-cancel-btn">
-                    <span>Đóng</span>
+                    <span data-i18n="notifClose">Đóng</span>
                 </button>
                 <button class="notification-btn primary" id="api-signup-btn">
-                    <span>Tạo tài khoản</span>
+                    <span data-i18n="notifSignup">Tạo tài khoản</span>
                 </button>
             </div>
         </div>
@@ -1822,11 +1757,11 @@
         <div style="background:#1a1a1a; border:1px solid rgba(212,175,55,0.4); border-radius:20px; padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative;">
             <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
             <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
-            <h3 style="font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:0.5rem;">Nội dung Premium</h3>
-            <p style="color:#a0a0a0;font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem;">Báo cáo <strong style="color:#d4af37;">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
+            <h3 data-i18n="premiumGateTitle" style="font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:0.5rem;">Nội dung Premium</h3>
+            <p data-i18n-html="premiumGateBody" style="color:#a0a0a0;font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem;">Báo cáo <strong style="color:#d4af37;">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
             <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
-                <a href="pages/pricing.html" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;font-weight:700;padding:0.6rem 1.5rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">Xem gói Premium</a>
-                <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:rgba(255,255,255,0.08);color:#ccc;border:1px solid rgba(255,255,255,0.15);font-weight:600;padding:0.6rem 1.5rem;border-radius:10px;cursor:pointer;font-size:0.9rem;">Để sau</button>
+                <a data-i18n="premiumGateCTA" href="pages/pricing.html" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;font-weight:700;padding:0.6rem 1.5rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">Xem gói Premium</a>
+                <button data-i18n="premiumGateLater" onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:rgba(255,255,255,0.08);color:#ccc;border:1px solid rgba(255,255,255,0.15);font-weight:600;padding:0.6rem 1.5rem;border-radius:10px;cursor:pointer;font-size:0.9rem;">Để sau</button>
             </div>
         </div>
     </div>
