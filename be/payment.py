@@ -640,9 +640,6 @@ async def subscription_status(request: Request):
 
     session = _session()
     try:
-        with _get_engine().connect() as conn:
-            _ensure_tables(conn)
-
         row = session.execute(
             text("SELECT is_premium, premium_expiry, user_level FROM users WHERE auth0_id = :aid"),
             {"aid": auth0_id},
@@ -665,6 +662,13 @@ async def subscription_status(request: Request):
 
         return _status_response(is_premium, premium_expiry, user_level)
 
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[payment/status] ERROR for auth0_id={auth0_id}: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"status error: {type(e).__name__}: {e}")
     finally:
         session.close()
 
