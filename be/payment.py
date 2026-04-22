@@ -88,25 +88,34 @@ def _payos_checksum(amount: int, cancel_url: str, description: str,
 def _verify_payos_webhook(body: dict) -> bool:
     """
     Verify PayOS webhook signature.
-    PayOS sends { code, desc, success, data: { ..., signature } }
-    Signature = HMAC-SHA256 of sorted key=value pairs from data (excluding 'signature').
+    PayOS sends { code, desc, success, data: {...}, signature: "..." }
+    Signature ở TOP LEVEL (không phải trong data). Được tính là HMAC-SHA256 của
+    chuỗi "k=v&k=v..." từ data đã sort theo key. null → "", array → JSON stringify.
     """
-    data = body.get("data", {})
-    received_sig = data.pop("signature", "")
+    data = body.get("data", {}) or {}
+    received_sig = body.get("signature") or data.get("signature", "")
+    if not received_sig:
+        return False
+
+    def _fmt(v):
+        if v is None:
+            return ""
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if isinstance(v, (list, tuple)):
+            return json.dumps(list(v), separators=(",", ":"), ensure_ascii=False)
+        return str(v)
 
     sorted_pairs = "&".join(
-        f"{k}={v}"
+        f"{k}={_fmt(v)}"
         for k, v in sorted(data.items())
-        if v is not None
+        if k != "signature"
     )
     expected = _hmac.new(
         PAYOS_CHECKSUM_KEY.encode("utf-8"),
         sorted_pairs.encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()
-
-    # Restore signature so caller still has full body
-    data["signature"] = received_sig
     return _hmac.compare_digest(expected.lower(), received_sig.lower())
 
 
