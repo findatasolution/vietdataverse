@@ -668,7 +668,7 @@ async def subscription_status(request: Request):
         import traceback
         print(f"[payment/status] ERROR for auth0_id={auth0_id}: {type(e).__name__}: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"status error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Subscription status error")
     finally:
         session.close()
 
