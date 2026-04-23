@@ -226,8 +226,13 @@ async def authenticate_user(request: Request):
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except Exception:
-        raise HTTPException(status_code=500, detail="Authentication error")
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print(f"[authenticate_user] JWT path error: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Auth error: {type(e).__name__}: {e}")
 
 
 async def authenticate_user_optional(request: Request):
