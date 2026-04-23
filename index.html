@@ -38,8 +38,8 @@
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
-    <meta name="theme-color" content="#C9A55B">
-    <meta name="msapplication-TileColor" content="#C9A55B">
+    <meta name="theme-color" content="#f5f4ed">
+    <meta name="msapplication-TileColor" content="#c96442">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
 
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
@@ -80,7 +80,7 @@
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
     <link rel="preload" href="style.css" as="style">
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -527,14 +527,14 @@
                     </li>
 
                     <!-- ── OUTLOOK ── -->
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" data-tab="1s-future-outlook">
                             <div class="nav-content">
                                 <h4 data-i18n="nav1sFutureOutlook">1s Future Outlook</h4>
                                 <span class="nav-meta" data-i18n="nav1sfuturesub">Dự báo & phân tích tài sản</span>
                             </div>
                         </a>
-                    </li>
+                    </li> -->
 
                     <!-- ── VN30 SCORE ── -->
                     <li class="nav-item">
@@ -639,7 +639,7 @@
                                 </h3>
                                 <div class="chart-filters">
                                     <select id="goldTypeSelect" class="type-select"
-                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);">
                                         <option value="DOJI HN">DOJI HN</option>
                                     </select>
                                     <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
@@ -721,7 +721,7 @@
                                 </h3>
                                 <div class="chart-filters">
                                     <select id="bankTypeSelect" class="type-select"
-                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid rgba(201, 165, 91, 0.3); background: #1C1C1C; color: #A0A0A0;">
+                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);">
                                         <option value="ACB">ACB</option>
                                         <option value="CTG">CTG</option>
                                         <option value="SHB">SHB</option>
@@ -1113,52 +1113,43 @@
 
             <!-- 1s Market Pulse -->
             <div class="tab-content" id="1smarket-portal">
-                <div class="hero-content">
-                    <!-- Filters -->
-                    <div id="pulse-filters" style="     display:flex;
-                                    flex-wrap:wrap;
-                                    gap:0.75rem;
-                                    margin:1.5rem auto;
-                                    padding:1rem;
-                                    background:rgba(0,0,0,0.5);
-                                    border-radius:8px;
-                                    justify-content:center;
-                                    align-items:center;
-                                    width:fit-content;">
-                        <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <label style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="pulseFilterSource">Nguồn:</label>
-                            <select id="filter-source"
-                                class="filter-select">
-                                <option value="" data-i18n="pulseFilterAll">Tất cả</option>
-                                <option value="CNBC">CNBC</option>
-                                <option value="BBC">BBC</option>
-                                <option value="MarketWatch">MarketWatch</option>
-                            </select>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <label style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="pulseFilterMarket">Thị trường:</label>
-                            <select id="filter-label"
-                                class="filter-select">
-                                <option value="" data-i18n="pulseFilterAll">Tất cả</option>
-                                <option value="VNINDEX">VN-Index</option>
-                                <option value="GOLD" data-i18n="pulseMarketGold">Vàng</option>
-                                <option value="REAL_ESTATE" data-i18n="pulseMarketRealEstate">Bất động sản</option>
-                                <option value="BANKING" data-i18n="pulseMarketBanking">Ngân hàng</option>
-                                <option value="FX" data-i18n="pulseMarketFX">Ngoại hối</option>
-                            </select>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <label style="font-size:0.85rem;color:var(--text-secondary);">MRI:</label>
-                            <select id="filter-mri"
-                                class="filter-select">
-                                <option value="" data-i18n="pulseFilterAll">Tất cả</option>
-                                <option value="positive" data-i18n="pulseMRIPositive">Tích cực (+)</option>
-                                <option value="negative" data-i18n="pulseMRINegative">Tiêu cực (-)</option>
-                            </select>
-                        </div>
-                        <button id="filter-reset"
-                            style="padding:6px 12px;border-radius:6px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:0.85rem;cursor:pointer;" data-i18n="pulseFilterReset">Reset</button>
+                <div class="section-header">
+                    <h1 class="section-title">
+                        <span data-i18n="pulseTitle">1s Market Pulse</span>
+                    </h1>
+                </div>
+
+                <!-- Filters -->
+                <div id="pulse-filters" class="pulse-filters">
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterSource">Nguồn:</label>
+                        <select id="filter-source" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="CNBC">CNBC</option>
+                            <option value="BBC">BBC</option>
+                            <option value="MarketWatch">MarketWatch</option>
+                        </select>
                     </div>
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterMarket">Thị trường:</label>
+                        <select id="filter-label" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="VNINDEX">VN-Index</option>
+                            <option value="GOLD" data-i18n="pulseMarketGold">Vàng</option>
+                            <option value="REAL_ESTATE" data-i18n="pulseMarketRealEstate">Bất động sản</option>
+                            <option value="BANKING" data-i18n="pulseMarketBanking">Ngân hàng</option>
+                            <option value="FX" data-i18n="pulseMarketFX">Ngoại hối</option>
+                        </select>
+                    </div>
+                    <div class="pulse-filter-group">
+                        <label>MRI:</label>
+                        <select id="filter-mri" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="positive" data-i18n="pulseMRIPositive">Tích cực (+)</option>
+                            <option value="negative" data-i18n="pulseMRINegative">Tiêu cực (-)</option>
+                        </select>
+                    </div>
+                    <button id="filter-reset" class="pulse-filter-reset" data-i18n="pulseFilterReset">Reset</button>
                 </div>
 
                 <div id="market-pulse-articles">
@@ -1205,41 +1196,40 @@
                     <a href="pages/GoldForecast2026.html" id="card-gold-forecast-2026"
                         onclick="return openPremiumReport(event, 'pages/GoldForecast2026.html')"
                         style="text-decoration: none; color: inherit; display: block;">
-                        <div style="background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(0,0,0,0.4) 100%); border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 2rem; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;"
-                            onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(212,175,55,0.2)';this.style.borderColor='rgba(212,175,55,0.6)'"
-                            onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(212,175,55,0.3)'">
+                        <div style="background: var(--deep-dark); border: 1px solid var(--dark-surface); border-radius: var(--radius-lg); padding: 2rem; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;"
+                            onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 40px rgba(20,20,19,0.15)';this.style.borderColor='rgba(201,100,66,0.4)'"
+                            onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='var(--dark-surface)'">
                             <!-- Badge -->
                             <div
-                                style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(212,175,55,0.2); color: #d4af37; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                                style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(201,100,66,0.15); color: var(--coral); font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; border: 1px solid rgba(201,100,66,0.25);">
                                 <span
-                                    style="width: 6px; height: 6px; background: #d4af37; border-radius: 50; display: inline-block;"></span>
+                                    style="width: 6px; height: 6px; background: var(--coral); border-radius: 50%; display: inline-block;"></span>
                                 <span data-i18n="foFeatured">Featured Report</span>
                             </div>
                             <!-- Icon + Title -->
-                            <!-- <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4C8;</div>s -->
                             <h3 data-i18n="foGoldTitle"
-                                style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; line-height: 1.3;">
+                                style="font-family: 'Lora', Georgia, serif; font-size: 1.35rem; font-weight: 500; color: var(--ivory); margin-bottom: 0.5rem; line-height: 1.3;">
                                 Dự báo Giá Vàng 2026
                             </h3>
-                            <p data-i18n="foGoldDesc" style="color: #a0a0a0; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem;">
+                            <p data-i18n="foGoldDesc" style="color: var(--warm-silver); font-size: 0.9rem; line-height: 1.65; margin-bottom: 1.25rem;">
                                 Phân tích chuyên sâu từ Goldman Sachs, J.P. Morgan, UBS — Mục tiêu $6,300/oz. Biểu đồ
                                 tương tác & Trình mô phỏng biến động.
                             </p>
                             <!-- Price Tags -->
                             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
                                 <span
-                                    style="background: rgba(212,175,55,0.15); color: #d4af37; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Spot:
+                                    style="background: rgba(201,100,66,0.15); color: var(--coral); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Spot:
                                     $5,041/oz</span>
                                 <span
-                                    style="background: rgba(34,197,94,0.15); color: #22c55e; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Target:
+                                    style="background: rgba(45,122,79,0.15); color: #4caf50; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Target:
                                     $6,300</span>
                                 <span
-                                    style="background: rgba(255,255,255,0.08); color: #ccc; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">SJC:
+                                    style="background: rgba(48,48,46,0.6); color: var(--warm-silver); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">SJC:
                                     181M VND</span>
                             </div>
                             <!-- CTA -->
                             <div
-                                style="display: flex; align-items: center; gap: 0.5rem; color: #d4af37; font-size: 0.85rem; font-weight: 600;">
+                                style="display: flex; align-items: center; gap: 0.5rem; color: var(--coral); font-size: 0.85rem; font-weight: 600;">
                                 <span data-i18n="foViewReport">Xem báo cáo đầy đủ</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -1251,27 +1241,27 @@
 
                     <!-- Card: Coming Soon - Bất động sản -->
                     <div
-                        style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; opacity: 0.5;">
+                        style="background: var(--ivory); border: 1px dashed var(--border-warm); border-radius: var(--radius-lg); padding: 2rem; opacity: 0.6;">
                         <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F3E0;</div>
-                        <h3 data-i18n="foRealEstateTitle" style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">Bất động
+                        <h3 data-i18n="foRealEstateTitle" style="font-size: 1.2rem; font-weight: 500; color: var(--olive-gray); margin-bottom: 0.5rem;">Bất động
                             sản Việt Nam 2026</h3>
-                        <p data-i18n="foRealEstateDesc" style="color: #666; font-size: 0.85rem;">Phân tích xu hướng giá, vùng tiềm năng và dự báo thị
+                        <p data-i18n="foRealEstateDesc" style="color: var(--stone-gray); font-size: 0.85rem;">Phân tích xu hướng giá, vùng tiềm năng và dự báo thị
                             trường.</p>
                         <span data-i18n="foComingSoon"
-                            style="display: inline-block; margin-top: 1rem; background: rgba(255,255,255,0.06); color: #666; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
+                            style="display: inline-block; margin-top: 1rem; background: var(--warm-sand); color: var(--stone-gray); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
                             Soon</span>
                     </div>
 
                     <!-- Card: Coming Soon - Chứng khoán -->
                     <div
-                        style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; opacity: 0.5;">
+                        style="background: var(--ivory); border: 1px dashed var(--border-warm); border-radius: var(--radius-lg); padding: 2rem; opacity: 0.6;">
                         <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4CA;</div>
-                        <h3 data-i18n="foStockTitle" style="font-size: 1.2rem; font-weight: 600; color: #888; margin-bottom: 0.5rem;">VN-Index &
+                        <h3 data-i18n="foStockTitle" style="font-size: 1.2rem; font-weight: 500; color: var(--olive-gray); margin-bottom: 0.5rem;">VN-Index &
                             Cổ phiếu 2026</h3>
-                        <p data-i18n="foStockDesc" style="color: #666; font-size: 0.85rem;">Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ
+                        <p data-i18n="foStockDesc" style="color: var(--stone-gray); font-size: 0.85rem;">Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ
                             danh mục.</p>
                         <span data-i18n="foComingSoon"
-                            style="display: inline-block; margin-top: 1rem; background: rgba(255,255,255,0.06); color: #666; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
+                            style="display: inline-block; margin-top: 1rem; background: var(--warm-sand); color: var(--stone-gray); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
                             Soon</span>
                     </div>
 
@@ -1319,7 +1309,7 @@
                             <p data-i18n-html="vn30GateBody" style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;">
                                 Nâng cấp <strong style="color:var(--gold-primary);">Premium</strong> để xem toàn bộ bảng xếp hạng, lịch sử điểm số từng mã và tín hiệu mua/bán.
                             </p>
-                            <button data-i18n="vn30GateCTA" onclick="login()" style="background:linear-gradient(135deg,var(--gold-primary),var(--gold-accent,#f2dfa0));color:#08080A;font-weight:700;padding:0.75rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;width:100%;">
+                            <button data-i18n="vn30GateCTA" onclick="login()" style="background:var(--terracotta);color:var(--ivory);font-weight:500;padding:0.75rem 2rem;border:none;border-radius:var(--radius-md);cursor:pointer;font-size:0.9rem;width:100%;box-shadow:0 0 0 1px var(--terracotta);">
                                 Đăng nhập / Nâng cấp Premium
                             </button>
                         </div>
@@ -1335,7 +1325,7 @@
 
                 <!-- Về Viet Dataverse -->
                 <div
-                    style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; margin: 2rem 0; box-shadow: var(--whisper);">
                     <h2 data-i18n="aboutH1" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Viet Dataverse
                     </h2>
                     <p data-i18n-html="aboutP1" style="color: var(--text-secondary); margin-bottom: 1rem;">
@@ -1356,7 +1346,7 @@
                         Bạn có thể tải dữ liệu hoàn toàn miễn phí hoặc truy cập qua <strong>API</strong>.
                     </p>
                     <p data-i18n-html="aboutDisclaimer"
-                        style="color: #888; font-size: 0.9em; border-top: 1px solid rgba(201, 165, 91, 0.2); padding-top: 1rem; margin-top: 1rem;">
+                        style="color: var(--stone-gray); font-size: 0.9em; border-top: 1px solid var(--border-cream); padding-top: 1rem; margin-top: 1rem;">
                         <strong>Lưu ý quan trọng:</strong> Dữ liệu chỉ mang tính chất tham khảo, không phải lời khuyên
                         đầu tư.
                         Viet Dataverse không chịu trách nhiệm về các quyết định tài chính dựa trên dữ liệu này.
@@ -1367,16 +1357,16 @@
 
                 <!-- Về Nguồn Dữ Liệu & Phương Pháp Thu Thập -->
                 <div
-                    style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; margin: 2rem 0; box-shadow: var(--whisper);">
                     <h2 data-i18n="aboutSourcesH" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Nguồn Dữ Liệu &
                         Phương Pháp Thu Thập</h2>
-                    <p data-i18n-html="aboutSourcesP1" style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <p data-i18n-html="aboutSourcesP1" style="color: var(--olive-gray); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
                         Dữ liệu trên Viet Dataverse được thu thập tự động từ <strong>các nguồn công khai, miễn
                             phí</strong> bao gồm website của các tổ chức tài chính, công ty vàng bạc uy tín, và cơ quan
                         nhà nước.
                         Tất cả dữ liệu đều là <strong>thông tin công khai</strong> mà bất kỳ ai cũng có thể truy cập.
                     </p>
-                    <p data-i18n-html="aboutSourcesP2" style="color: #A0A0A0; line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                    <p data-i18n-html="aboutSourcesP2" style="color: var(--olive-gray); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
                         Giá trị gia tăng của Viet Dataverse nằm ở việc <strong>làm sạch, chuẩn hóa, lưu trữ lịch sử dài
                             hạn</strong> và cung cấp API miễn phí để phục vụ cộng đồng nghiên cứu.
                         Chúng tôi không sở hữu dữ liệu gốc, chỉ cung cấp dịch vụ tổng hợp và phân phối.
@@ -1385,10 +1375,10 @@
 
                 <!-- Điều Khoản Sử Dụng -->
                 <div
-                    style="background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem; margin: 2rem 0;">
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; margin: 2rem 0; box-shadow: var(--whisper);">
                     <h2 data-i18n="aboutTermsH" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Điều Khoản Sử Dụng
                     </h2>
-                    <ul data-i18n-html="aboutTermsList" style="color: #A0A0A0; line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
+                    <ul data-i18n-html="aboutTermsList" style="color: var(--olive-gray); line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
                         <li><strong>Mục đích:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, học thuật, và phân tích
                             cá nhân. Không dùng cho mục đích thương mại trừ khi có thỏa thuận.</li>
                         <li><strong>Không phải lời khuyên tài chính:</strong> Viet Dataverse không cung cấp lời khuyên
@@ -1460,7 +1450,7 @@
                 </div>
 
                 <div
-                    style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem;">
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; box-shadow: var(--whisper);">
                     <h2 class="info-card-heading" data-i18n="privacyH4">4. Liên hệ về quyền
                         riêng tư</h2>
                     <p data-i18n-html="privacyP4" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
@@ -1484,7 +1474,7 @@
                 <div
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
                     <div
-                        style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem;">
+                        style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; box-shadow: var(--whisper);">
                         <div
                             style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold-accent); margin-bottom: 1rem;">
                             <i class="fas fa-headset"></i>
@@ -1503,7 +1493,7 @@
                         </a>
                     </div>
                     <div
-                        style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 2rem;">
+                        style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; box-shadow: var(--whisper);">
                         <div
                             style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold-accent); margin-bottom: 1rem;">
                             <i class="fas fa-bullhorn"></i>
@@ -1528,16 +1518,16 @@
 
                 <!-- Quick Request for Advertise -->
                 <div
-                    style="background: linear-gradient(135deg, rgba(201, 165, 91, 0.06), rgba(0,0,0,0.3)); border-radius: 16px; border: 1px solid rgba(201, 165, 91, 0.25); padding: 2.5rem; margin-bottom: 2rem;">
+                    style="background: var(--pure-white); border-radius: var(--radius-lg); border: 1px solid var(--border-cream); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--whisper);">
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
                         <div
-                            style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent)); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--bg-dark);">
+                            style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(201,100,66,0.10); border: 1px solid rgba(201,100,66,0.18); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--terracotta);">
                             <i class="fas fa-bolt"></i>
                         </div>
                         <div>
-                            <h2 data-i18n="adReqTitle" style="color: var(--text-primary); font-size: 1.5rem; font-weight: 700;">Quick Request
+                            <h2 data-i18n="adReqTitle" style="color: var(--near-black); font-family: 'Lora', Georgia, serif; font-size: 1.4rem; font-weight: 500;">Quick Request
                                 for Advertise</h2>
-                            <p data-i18n="adReqSubtitle" style="color: var(--text-tertiary); font-size: 0.85rem;">Đăng banner quảng cáo trên Viet
+                            <p data-i18n="adReqSubtitle" style="color: var(--stone-gray); font-size: 0.85rem;">Đăng banner quảng cáo trên Viet
                                 Dataverse — nhanh chóng & đơn giản</p>
                         </div>
                     </div>
@@ -1545,25 +1535,25 @@
                     <!-- Steps -->
                     <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
                         <div
-                            style="flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid rgba(201, 165, 91, 0.12);">
+                            style="flex: 1; min-width: 150px; background: var(--ivory); border-radius: var(--radius-sm); padding: 1rem; text-align: center; border: 1px solid var(--border-cream);">
                             <div
-                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold-primary); color: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; margin: 0 auto 0.5rem;">
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--terracotta); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin: 0 auto 0.5rem;">
                                 1</div>
-                            <p data-i18n="adStep1" style="color: var(--text-secondary); font-size: 0.8rem;">Điền thông tin</p>
+                            <p data-i18n="adStep1" style="color: var(--olive-gray); font-size: 0.8rem;">Điền thông tin</p>
                         </div>
                         <div
-                            style="flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid rgba(201, 165, 91, 0.12);">
+                            style="flex: 1; min-width: 150px; background: var(--ivory); border-radius: var(--radius-sm); padding: 1rem; text-align: center; border: 1px solid var(--border-cream);">
                             <div
-                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold-primary); color: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; margin: 0 auto 0.5rem;">
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--terracotta); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin: 0 auto 0.5rem;">
                                 2</div>
-                            <p data-i18n="adStep2" style="color: var(--text-secondary); font-size: 0.8rem;">Thanh toán QR</p>
+                            <p data-i18n="adStep2" style="color: var(--olive-gray); font-size: 0.8rem;">Thanh toán QR</p>
                         </div>
                         <div
-                            style="flex: 1; min-width: 150px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid rgba(201, 165, 91, 0.12);">
+                            style="flex: 1; min-width: 150px; background: var(--ivory); border-radius: var(--radius-sm); padding: 1rem; text-align: center; border: 1px solid var(--border-cream);">
                             <div
-                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--gold-primary); color: var(--bg-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; margin: 0 auto 0.5rem;">
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--terracotta); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin: 0 auto 0.5rem;">
                                 3</div>
-                            <p data-i18n="adStep3" style="color: var(--text-secondary); font-size: 0.8rem;">Chờ phê duyệt</p>
+                            <p data-i18n="adStep3" style="color: var(--olive-gray); font-size: 0.8rem;">Chờ phê duyệt</p>
                         </div>
                     </div>
 
@@ -1578,9 +1568,9 @@
                                     style="color: var(--gold-primary); margin-right: 0.4rem;"></i> <span data-i18n="adBrandLabel">Tên thương hiệu / Brand Name</span> <span style="color: #EF4444;">*</span>
                             </label>
                             <input type="text" id="ad-brand-name" required placeholder="VD: SSI Securities, VPBank…"
-                                style="width: 100%; padding: 0.875rem 1rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(201, 165, 91, 0.2); border-radius: 8px; color: var(--text-primary); font-size: 0.95rem; outline: none; transition: border-color 0.2s;"
-                                onfocus="this.style.borderColor='var(--gold-primary)'"
-                                onblur="this.style.borderColor='rgba(201, 165, 91, 0.2)'">
+                                style="width: 100%; padding: 0.875rem 1rem; background: var(--warm-sand); border: 1px solid var(--border-warm); border-radius: 8px; color: var(--near-black); font-size: 0.95rem; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='var(--focus-blue)'"
+                                onblur="this.style.borderColor='var(--border-warm)'">
                         </div>
 
                         <!-- Banner Upload -->
@@ -1600,11 +1590,11 @@
                                 <strong style="color: var(--gold-accent);">JPG, PNG, WebP, GIF</strong> (ảnh ≤ 5MB).
                             </p>
                             <div id="ad-banner-dropzone"
-                                style="width: 100%; padding: 2rem; background: rgba(0,0,0,0.4); border: 2px dashed rgba(201, 165, 91, 0.25); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.2s;"
+                                style="width: 100%; padding: 2rem; background: var(--ivory); border: 2px dashed var(--border-warm); border-radius: var(--radius-sm); text-align: center; cursor: pointer; transition: all 0.2s;"
                                 onclick="document.getElementById('ad-banner-upload').click()"
-                                ondragover="event.preventDefault(); this.style.borderColor='var(--gold-primary)'; this.style.background='rgba(201,165,91,0.05)'"
-                                ondragleave="this.style.borderColor='rgba(201,165,91,0.25)'; this.style.background='rgba(0,0,0,0.4)'"
-                                ondrop="event.preventDefault(); handleBannerDrop(event); this.style.borderColor='rgba(201,165,91,0.25)'; this.style.background='rgba(0,0,0,0.4)'">
+                                ondragover="event.preventDefault(); this.style.borderColor='var(--terracotta)'; this.style.background='rgba(201,100,66,0.04)'"
+                                ondragleave="this.style.borderColor='var(--border-warm)'; this.style.background='var(--ivory)'"
+                                ondrop="event.preventDefault(); handleBannerDrop(event); this.style.borderColor='var(--border-warm)'; this.style.background='var(--ivory)'">
                                 <i class="fas fa-cloud-upload-alt"
                                     style="font-size: 2rem; color: var(--gold-primary); margin-bottom: 0.5rem;"></i>
                                 <p data-i18n-html="adDropzoneText" style="color: var(--text-secondary); font-size: 0.9rem;">Kéo & thả hình ảnh hoặc
@@ -1622,7 +1612,7 @@
                                 accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
                                 style="display: none;" onchange="handleBannerSelect(this)">
                             <div id="ad-banner-preview"
-                                style="display: none; margin-top: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid rgba(201, 165, 91, 0.2);">
+                                style="display: none; margin-top: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-cream);">
                                 <img id="ad-banner-preview-img"
                                     style="width: 100%; max-height: 200px; object-fit: cover;" alt="Banner preview">
                                 <video id="ad-banner-preview-video"
@@ -1633,7 +1623,7 @@
 
                         <!-- QR Payment Section -->
                         <div
-                            style="background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid rgba(201, 165, 91, 0.2); padding: 1.5rem;">
+                            style="background: var(--ivory); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 1.5rem;">
                             <h3
                                 style="color: var(--text-primary); font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                                 <i class="fas fa-qrcode" style="color: var(--gold-accent);"></i> <span data-i18n="adQrTitle">Thanh toán bằng QR Code</span>
@@ -1753,15 +1743,15 @@
     <div id="chart-tooltip-popup"></div>
 
     <!-- Premium Gate Modal -->
-    <div id="premium-gate-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
-        <div style="background:#1a1a1a; border:1px solid rgba(212,175,55,0.4); border-radius:20px; padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative;">
-            <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+    <div id="premium-gate-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,20,19,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--pure-white); border:1px solid var(--border-cream); border-radius:var(--radius-xl); padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative; box-shadow:var(--shadow-lg);">
+            <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--stone-gray);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
             <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
-            <h3 data-i18n="premiumGateTitle" style="font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:0.5rem;">Nội dung Premium</h3>
-            <p data-i18n-html="premiumGateBody" style="color:#a0a0a0;font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem;">Báo cáo <strong style="color:#d4af37;">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
+            <h3 data-i18n="premiumGateTitle" style="font-family:'Lora',Georgia,serif;font-size:1.3rem;font-weight:500;color:var(--near-black);margin-bottom:0.5rem;">Nội dung Premium</h3>
+            <p data-i18n-html="premiumGateBody" style="color:var(--olive-gray);font-size:0.9rem;line-height:1.65;margin-bottom:1.5rem;">Báo cáo <strong style="color:var(--terracotta);">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
             <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
-                <a data-i18n="premiumGateCTA" href="pages/pricing.html" style="background:linear-gradient(135deg,#b8860b,#ffd700);color:#000;font-weight:700;padding:0.6rem 1.5rem;border-radius:10px;text-decoration:none;font-size:0.9rem;">Xem gói Premium</a>
-                <button data-i18n="premiumGateLater" onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:rgba(255,255,255,0.08);color:#ccc;border:1px solid rgba(255,255,255,0.15);font-weight:600;padding:0.6rem 1.5rem;border-radius:10px;cursor:pointer;font-size:0.9rem;">Để sau</button>
+                <a data-i18n="premiumGateCTA" href="pages/pricing.html" style="background:var(--terracotta);color:var(--ivory);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-md);text-decoration:none;font-size:0.9rem;box-shadow:0 0 0 1px var(--terracotta);">Xem gói Premium</a>
+                <button data-i18n="premiumGateLater" onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:var(--warm-sand);color:var(--charcoal);border:1px solid var(--border-warm);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.9rem;">Để sau</button>
             </div>
         </div>
     </div>

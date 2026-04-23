@@ -28,7 +28,7 @@
                     <i class="fas fa-exclamation-circle" style="font-size:2rem;margin-bottom:0.75rem;display:block;color:#EF5350;opacity:0.8"></i>
                     <p style="font-size:0.9rem;color:#EF5350;margin-bottom:0.75rem">${message}</p>
                     <button onclick="loadChartData('${chartType}')"
-                        style="background:rgba(201,165,91,0.15);color:var(--gold-accent);border:1px solid rgba(201,165,91,0.3);padding:6px 18px;border-radius:6px;cursor:pointer;font-size:0.8rem;">
+                        style="background:rgba(201, 100, 66,0.15);color:var(--gold-accent);border:1px solid rgba(201, 100, 66,0.3);padding:6px 18px;border-radius:6px;cursor:pointer;font-size:0.8rem;">
                         Thử lại
                     </button>
                 </div>`;
@@ -171,7 +171,7 @@
                 dlColName: 'Tên bảng',
                 dlColDesc: 'Mô tả',
                 dlColSource: 'Nguồn',
-                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột. Dữ liệu <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium. Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.',
+                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột. Dữ liệu <span style="color:#c96442;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium. Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.',
                 // About & Terms
                 aboutSectionTitle: 'Giới thiệu & Điều khoản',
                 aboutH1: 'Về Viet Dataverse',
@@ -371,7 +371,7 @@
                 dlColName: 'Dataset',
                 dlColDesc: 'Description',
                 dlColSource: 'Source',
-                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Data updated daily. CSV uses UTF-8 encoding, comma (<code>,</code>) as column separator. <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> datasets require a Premium account. For reference and research only, not investment advice.',
+                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Data updated daily. CSV uses UTF-8 encoding, comma (<code>,</code>) as column separator. <span style="color:#c96442;font-weight:600;">PREMIUM</span> datasets require a Premium account. For reference and research only, not investment advice.',
                 // About & Terms
                 aboutSectionTitle: 'About & Terms',
                 aboutH1: 'About Viet Dataverse',
@@ -777,7 +777,7 @@
                         const adminLink = document.createElement('a');
                         adminLink.href = '/pages/admin.html';
                         adminLink.className = 'sidebar-bottom-link';
-                        adminLink.style.cssText = 'color:#ef9a9a;font-weight:600;';
+                        adminLink.style.cssText = 'color:var(--terracotta);font-weight:600;';
                         adminLink.textContent = '⚙ Admin Panel';
                         if (sidebarFooter) sidebarFooter.prepend(adminLink);
                     }
@@ -1648,7 +1648,7 @@
             const buyPrices = apiData.data.buy_prices;
             const sellPrices = apiData.data.sell_prices;
 
-            const color = chartType === 'gold' ? '#C9A55B' : '#A0A0A0';
+            const color = chartType === 'gold' ? '#c96442' : '#87867f';
 
             return {
                 type: 'line',
@@ -1681,7 +1681,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#A0A0A0' }
+                            labels: { color: '#87867f' }
                         },
                         tooltip: {
                             mode: 'index',
@@ -1690,12 +1690,12 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#666', maxRotation: 45 },
-                            grid: { color: '#2A2A2A' }
+                            ticks: { color: '#87867f', maxRotation: 45 },
+                            grid: { display: false }
                         },
                         y: {
-                            ticks: { color: '#666' },
-                            grid: { color: '#2A2A2A' }
+                            ticks: { color: '#87867f' },
+                            grid: { display: false }
                         }
                     }
                 }
@@ -1759,7 +1759,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#A0A0A0' }
+                            labels: { color: '#87867f' }
                         },
                         tooltip: {
                             mode: 'index',
@@ -1768,17 +1768,17 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#666', maxRotation: 45 },
-                            grid: { color: '#2A2A2A' }
+                            ticks: { color: '#87867f', maxRotation: 45 },
+                            grid: { display: false }
                         },
                         y: {
                             ticks: {
-                                color: '#666',
+                                color: '#87867f',
                                 callback: function (value) {
                                     return value + '%';
                                 }
                             },
-                            grid: { color: '#2A2A2A' }
+                            grid: { display: false }
                         }
                     }
                 }
@@ -1789,14 +1789,14 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: true, labels: { color: '#A0A0A0' } },
+                legend: { display: true, labels: { color: '#87867f' } },
                 tooltip: { mode: 'index', intersect: false }
             },
             scales: {
-                x: { ticks: { color: '#666', maxRotation: 45 }, grid: { color: '#2A2A2A' } },
+                x: { ticks: { color: '#87867f', maxRotation: 45 }, grid: { display: false } },
                 y: {
-                    ticks: { color: '#666', callback: v => v + '%' },
-                    grid: { color: '#2A2A2A' }
+                    ticks: { color: '#87867f', callback: v => v + '%' },
+                    grid: { display: false }
                 }
             }
         };
@@ -1810,7 +1810,7 @@
                 data: {
                     labels: d.dates,
                     datasets: [
-                        { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#C9A55B', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#c96442', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#42A5F5', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#66BB6A', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
                     ]
@@ -1860,14 +1860,14 @@
                         {
                             label: 'USD/VND',
                             data: rates,
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'rgba(201, 165, 91, 0.08)',
+                            borderColor: '#c96442',
+                            backgroundColor: 'rgba(201, 100, 66, 0.08)',
                             borderWidth: 2,
                             tension: 0.3,
                             fill: true,
                             pointRadius: dates.length > 60 ? 0 : 3,
                             pointHoverRadius: 5,
-                            pointBackgroundColor: '#C9A55B'
+                            pointBackgroundColor: '#c96442'
                         }
                     ]
                 },
@@ -1877,7 +1877,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#A0A0A0' }
+                            labels: { color: '#87867f' }
                         },
                         tooltip: {
                             mode: 'index',
@@ -1891,17 +1891,17 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#666', maxRotation: 45 },
-                            grid: { color: '#2A2A2A' }
+                            ticks: { color: '#87867f', maxRotation: 45 },
+                            grid: { display: false }
                         },
                         y: {
                             ticks: {
-                                color: '#666',
+                                color: '#87867f',
                                 callback: function (value) {
                                     return value.toLocaleString('vi-VN');
                                 }
                             },
-                            grid: { color: '#2A2A2A' }
+                            grid: { display: false }
                         }
                     }
                 }
@@ -1927,7 +1927,7 @@
                         {
                             label: 'Gold Future ($/oz)',
                             data: goldFuture,
-                            borderColor: '#C9A55B',
+                            borderColor: '#c96442',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
@@ -1936,7 +1936,7 @@
                         {
                             label: 'Silver Spot ($/oz)',
                             data: silverSpot,
-                            borderColor: '#A0A0A0',
+                            borderColor: '#87867f',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
@@ -1963,7 +1963,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#A0A0A0' }
+                            labels: { color: '#87867f' }
                         },
                         tooltip: {
                             mode: 'index',
@@ -1972,22 +1972,22 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#666', maxRotation: 45 },
-                            grid: { color: '#2A2A2A' }
+                            ticks: { color: '#87867f', maxRotation: 45 },
+                            grid: { display: false }
                         },
                         y: {
                             type: 'linear',
                             display: true,
                             position: 'left',
-                            ticks: { color: '#C9A55B' },
-                            grid: { color: '#2A2A2A' }
+                            ticks: { color: '#c96442' },
+                            grid: { display: false }
                         },
                         y1: {
                             type: 'linear',
                             display: true,
                             position: 'right',
-                            ticks: { color: '#A0A0A0' },
-                            grid: { drawOnChartArea: false }
+                            ticks: { color: '#87867f' },
+                            grid: { display: false }
                         },
                         y2: {
                             type: 'linear',
@@ -2004,7 +2004,7 @@
         ========================================================= */
         const LABEL_COLORS = {
             VNINDEX: '#4CAF50',
-            GOLD: '#C9A55B',
+            GOLD: '#c96442',
             REAL_ESTATE: '#FF7043',
             BANKING: '#42A5F5',
             FX: '#AB47BC'
@@ -2182,7 +2182,7 @@
                 <span class="vn30-rank">#${rank}</span>
                 <span class="vn30-ticker">---</span>
                 <span class="vn30-signal neu">---</span>
-                <div class="vn30-bar-wrap"><div class="vn30-bar" style="width:${fakePct}%;background:rgba(255,255,255,0.15);"></div></div>
+                <div class="vn30-bar-wrap"><div class="vn30-bar" style="width:${fakePct}%;background:rgba(201, 100, 66, 0.20);"></div></div>
                 <span class="vn30-score">--.-%</span>
                 <span></span>
             </div>`;
@@ -2282,11 +2282,11 @@
                         labels: hist.map(h => h.report_date || ''),
                         datasets: [{
                             data: hist.map(h => h.score),
-                            borderColor: '#C9A55B',
-                            backgroundColor: 'rgba(201,165,91,0.08)',
+                            borderColor: '#c96442',
+                            backgroundColor: 'rgba(201, 100, 66,0.08)',
                             tension: 0.3,
                             pointRadius: 4,
-                            pointBackgroundColor: '#C9A55B',
+                            pointBackgroundColor: '#c96442',
                             fill: true,
                         }]
                     },
@@ -2294,8 +2294,8 @@
                         responsive: true,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y: { min: 0, max: 100, ticks: { color: '#666', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                            x: { ticks: { color: '#666', font: { size: 10 } }, grid: { display: false } }
+                            y: { min: 0, max: 100, ticks: { color: '#87867f', font: { size: 10 } }, grid: { display: false } },
+                            x: { ticks: { color: '#87867f', font: { size: 10 } }, grid: { display: false } }
                         }
                     }
                 });
@@ -2495,12 +2495,12 @@
         ========================================================= */
         (function () {
             const WB_BASE = 'https://api.worldbank.org/v2/country/VN/indicator';
-            const GOLD = '#C9A55B';
+            const GOLD = '#c96442';
             const RED  = '#EF5350';
             const BLUE = '#42A5F5';
             const TEAL = '#26A69A';
-            const GRID = 'rgba(255,255,255,0.06)';
-            const FONT = { color: '#808080', size: 11 };
+            const GRID = 'rgba(20, 20, 19, 0.07)';
+            const FONT = { color: '#87867f', size: 11 };
 
             let _macroPeriod = 20; // default 20 years
             let _cpiChart = null, _gdpChart = null, _tradeChart = null;
@@ -2531,12 +2531,12 @@
                         maintainAspectRatio: false,
                         animation: { duration: 500 },
                         plugins: {
-                            legend: { labels: { color: '#a0a0a0', font: { size: 11 }, boxWidth: 12 } },
+                            legend: { labels: { color: '#87867f', font: { size: 11 }, boxWidth: 12 } },
                             tooltip: { mode: 'index', intersect: false }
                         },
                         scales: {
-                            x: { ticks: FONT, grid: { color: GRID } },
-                            y: { ticks: FONT, grid: { color: GRID } }
+                            x: { ticks: FONT, grid: { display: false } },
+                            y: { ticks: FONT, grid: { display: false } }
                         }
                     }
                 };
@@ -2576,15 +2576,20 @@
                         fill: true,
                     }]);
                 } else {
-                    cfg = baseConfig('bar', labels, [{
+                    cfg = baseConfig('line', labels, [{
                         label: 'CPI trung bình %/năm (nguồn: GSO)',
                         data: values,
-                        backgroundColor: colors,
-                        borderRadius: 3,
-                        borderSkipped: false,
+                        borderColor: '#FFA726',
+                        backgroundColor: 'rgba(255,167,38,0.08)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: colors,
+                        pointBorderColor: colors,
+                        tension: 0.3,
+                        fill: true,
                     }]);
                 }
-                cfg.options.scales.y.title = { display: true, text: '%', color: '#606060', font: { size: 10 } };
+                cfg.options.scales.y.title = { display: true, text: '%', color: '#87867f', font: { size: 10 } };
                 _cpiChart = new Chart(canvas.getContext('2d'), cfg);
             }
 
@@ -2597,14 +2602,19 @@
                 const canvas = document.getElementById('macroGdpChart');
                 if (!canvas) return;
                 if (_gdpChart) _gdpChart.destroy();
-                const cfg = baseConfig('bar', labels, [{
+                const cfg = baseConfig('line', labels, [{
                     label: 'GDP tăng trưởng %/năm',
                     data: values,
-                    backgroundColor: values.map(v => v >= 0 ? TEAL : RED),
-                    borderRadius: 3,
-                    borderSkipped: false
+                    borderColor: TEAL,
+                    backgroundColor: 'rgba(38, 166, 154, 0.08)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: values.map(v => v >= 0 ? TEAL : RED),
+                    pointBorderColor: values.map(v => v >= 0 ? TEAL : RED),
+                    tension: 0.3,
+                    fill: true,
                 }]);
-                cfg.options.scales.y.title = { display: true, text: '%', color: '#606060', font: { size: 10 } };
+                cfg.options.scales.y.title = { display: true, text: '%', color: '#87867f', font: { size: 10 } };
                 _gdpChart = new Chart(canvas.getContext('2d'), cfg);
             }
 
@@ -2632,7 +2642,7 @@
                     { label: 'Nhập khẩu (tỷ USD)', data: imports_, borderColor: BLUE, backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
                     { label: 'Cán cân TM (tỷ USD)', data: balance, borderColor: TEAL, backgroundColor: 'transparent', tension: 0.3, borderDash: [4,3], pointRadius: 2 }
                 ]);
-                cfg.options.scales.y.title = { display: true, text: 'tỷ USD', color: '#606060', font: { size: 10 } };
+                cfg.options.scales.y.title = { display: true, text: 'tỷ USD', color: '#87867f', font: { size: 10 } };
                 _tradeChart = new Chart(canvas.getContext('2d'), cfg);
             }
 

@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="../auth.js" defer></script>
     <style>
@@ -17,122 +17,124 @@
             flex-direction: column;
             align-items: center;
             padding: 48px 16px 80px;
-            background: radial-gradient(ellipse 70% 40% at 50% -5%,
-                rgba(124,77,255,.08) 0%, transparent 70%);
+            background: var(--parchment);
         }
         .page-nav {
             width: 100%; max-width: 1120px; margin: 0 auto;
             padding: 18px 20px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .nav-logo { font-size: 16px; font-weight: 700; color: var(--gold-primary); text-decoration: none; }
+        .nav-logo { font-family: 'Lora', Georgia, serif; font-size: 16px; font-weight: 500; color: var(--near-black); text-decoration: none; }
 
         .dev-badge {
             display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(124,77,255,.12); border: 1px solid rgba(124,77,255,.25);
+            background: rgba(201,100,66,.08); border: 1px solid rgba(201,100,66,.22);
             border-radius: 99px; padding: 4px 14px;
-            font-size: 12px; font-weight: 500; color: #b39ddb;
+            font-size: 12px; font-weight: 500; color: var(--terracotta);
             letter-spacing: .04em; text-transform: uppercase; margin-bottom: 16px;
         }
         .dev-title {
-            font-size: clamp(24px, 4vw, 36px); font-weight: 700; text-align: center;
-            margin-bottom: 8px; color: var(--text-primary);
+            font-family: 'Lora', Georgia, serif;
+            font-size: clamp(22px, 4vw, 34px); font-weight: 500; text-align: center;
+            margin-bottom: 8px; color: var(--near-black);
         }
         .dev-subtitle {
-            font-size: 14px; color: var(--text-secondary); text-align: center;
+            font-size: 14px; color: var(--olive-gray); text-align: center;
             margin-bottom: 40px; line-height: 1.7; max-width: 480px;
         }
 
         /* ── Card ────────────────────────────────────────────── */
         .dev-card {
             width: 100%; max-width: 600px;
-            background: var(--bg-elevated);
-            border: 1px solid rgba(124,77,255,.2);
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl);
             padding: 32px;
             margin-bottom: 24px;
+            box-shadow: var(--whisper);
         }
         .dev-card-title {
-            font-size: 15px; font-weight: 600; color: var(--text-primary);
+            font-size: 15px; font-weight: 600; color: var(--near-black);
             margin-bottom: 20px;
         }
 
         /* ── Key display ─────────────────────────────────────── */
         .key-display {
             display: flex; align-items: center; gap: 10px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
+            background: var(--warm-sand);
+            border: 1px solid var(--border-warm);
             border-radius: var(--radius-sm);
             padding: 12px 14px;
             margin-bottom: 6px;
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
             font-size: 14px;
         }
         .key-value {
             flex: 1;
-            color: var(--text-primary);
+            color: var(--charcoal);
             letter-spacing: .04em;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .key-value.masked { color: var(--text-secondary); }
+        .key-value.masked { color: var(--stone-gray); }
         .btn-copy {
-            background: none; border: 1px solid var(--border-subtle);
-            color: var(--text-secondary); font-size: 11px; font-weight: 500;
+            background: none; border: 1px solid var(--border-warm);
+            color: var(--olive-gray); font-size: 11px; font-weight: 500;
             padding: 4px 10px; border-radius: 4px; cursor: pointer;
             font-family: inherit; transition: all .2s; white-space: nowrap;
         }
-        .btn-copy:hover { color: var(--gold-primary); border-color: rgba(201,165,91,.3); }
-        .key-meta { font-size: 11px; color: var(--text-tertiary); margin-bottom: 20px; }
+        .btn-copy:hover { color: var(--terracotta); border-color: rgba(201,100,66,.3); }
+        .key-meta { font-size: 11px; color: var(--stone-gray); margin-bottom: 20px; }
 
         /* ── Buttons ─────────────────────────────────────────── */
         .btn-generate {
             width: 100%; padding: 13px;
-            background: linear-gradient(135deg, #4a148c, #7b1fa2);
+            background: var(--terracotta);
             border: none; border-radius: var(--radius-md);
-            color: #e1bee7; font-size: 14px; font-weight: 600;
+            color: var(--ivory); font-size: 14px; font-weight: 500;
             font-family: inherit; cursor: pointer; transition: all .2s;
             display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 0 0 1px var(--terracotta);
         }
-        .btn-generate:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-generate:hover:not(:disabled) { background: var(--coral); }
         .btn-generate:disabled { opacity: .5; cursor: not-allowed; }
         .btn-revoke {
             width: 100%; padding: 10px; margin-top: 8px;
-            background: none; border: 1px solid rgba(255,100,80,.2);
-            color: #ef9a9a; font-size: 13px; font-weight: 500;
+            background: none; border: 1px solid rgba(181,51,51,.2);
+            color: var(--error-red); font-size: 13px; font-weight: 500;
             font-family: inherit; cursor: pointer; border-radius: var(--radius-sm);
             transition: all .2s;
         }
-        .btn-revoke:hover:not(:disabled) { background: rgba(255,100,80,.07); }
+        .btn-revoke:hover:not(:disabled) { background: rgba(181,51,51,.05); }
         .btn-revoke:disabled { opacity: .4; cursor: not-allowed; }
 
         /* ── Notice ──────────────────────────────────────────── */
         .new-key-notice {
             display: none;
-            background: rgba(76,175,80,.08); border: 1px solid rgba(76,175,80,.22);
+            background: rgba(45,122,79,.06); border: 1px solid rgba(45,122,79,.2);
             border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 16px;
             font-size: 13px;
         }
         .new-key-notice.visible { display: block; }
-        .new-key-notice strong { color: #81c784; display: block; margin-bottom: 6px; }
+        .new-key-notice strong { color: #2d7a4f; display: block; margin-bottom: 6px; }
         .new-key-raw {
-            font-family: 'Courier New', monospace; font-size: 13px;
-            color: var(--text-primary); word-break: break-all;
-            background: var(--bg-secondary); padding: 8px 10px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 13px;
+            color: var(--charcoal); word-break: break-all;
+            background: var(--warm-sand); padding: 8px 10px;
             border-radius: 4px; margin: 8px 0;
         }
-        .new-key-warning { color: #ef9a9a; font-size: 11px; margin-top: 6px; }
+        .new-key-warning { color: var(--error-red); font-size: 11px; margin-top: 6px; }
 
         /* ── Code examples ───────────────────────────────────── */
         .code-block {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
+            background: var(--near-black);
+            border: 1px solid var(--dark-surface);
             border-radius: var(--radius-sm);
             padding: 14px 16px;
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
             font-size: 12px;
-            color: #b39ddb;
+            color: var(--warm-silver);
             overflow-x: auto;
             white-space: pre;
             line-height: 1.6;
@@ -140,7 +142,7 @@
         }
         .code-label {
             font-size: 11px; font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px;
+            text-transform: uppercase; color: var(--stone-gray); margin-bottom: 6px;
         }
 
         /* ── Access denied ───────────────────────────────────── */
@@ -151,64 +153,66 @@
         #access-denied.visible { display: block; }
 
         /* ── Loading ─────────────────────────────────────────── */
-        #loading-state { text-align: center; padding: 48px; color: var(--text-tertiary); font-size: 13px; }
+        #loading-state { text-align: center; padding: 48px; color: var(--stone-gray); font-size: 13px; }
 
         /* ── Expired banner ──────────────────────────────────── */
         .expired-banner {
             display: none;
             width: 100%; max-width: 600px;
-            background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25);
+            background: rgba(181,51,51,.06); border: 1px solid rgba(181,51,51,.2);
             border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 20px;
-            font-size: 13px; color: #ef9a9a;
+            font-size: 13px; color: var(--error-red);
         }
         .expired-banner.visible { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
         .expired-banner a {
-            white-space: nowrap; font-weight: 600; color: #ef9a9a;
+            white-space: nowrap; font-weight: 600; color: var(--error-red);
             text-decoration: underline; cursor: pointer;
         }
 
         /* ── Usage quota card ────────────────────────────────── */
         .usage-card {
             width: 100%; max-width: 600px;
-            background: var(--bg-elevated);
-            border: 1px solid rgba(124,77,255,.15);
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl); padding: 24px 32px;
             margin-bottom: 24px;
+            box-shadow: var(--whisper);
         }
-        .usage-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; }
+        .usage-title { font-size: 13px; font-weight: 600; color: var(--olive-gray); margin-bottom: 16px; }
         .usage-stat { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-        .usage-numbers { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-        .usage-limit { font-size: 12px; color: var(--text-tertiary); }
+        .usage-numbers { font-size: 20px; font-weight: 600; color: var(--near-black); }
+        .usage-limit { font-size: 12px; color: var(--stone-gray); }
         .usage-bar-track {
-            height: 5px; background: var(--bg-secondary);
+            height: 5px; background: var(--warm-sand);
             border-radius: 99px; overflow: hidden; margin-bottom: 8px;
         }
         .usage-bar-fill {
             height: 100%; border-radius: 99px;
-            background: linear-gradient(90deg, #7b1fa2, #b39ddb);
+            background: var(--terracotta);
             transition: width .4s ease;
         }
-        .usage-reset { font-size: 11px; color: var(--text-tertiary); }
+        .usage-reset { font-size: 11px; color: var(--stone-gray); }
 
         /* ── Subscription card ───────────────────────────────── */
         .sub-card {
             width: 100%; max-width: 600px;
-            background: var(--bg-elevated);
-            border: 1px solid rgba(201,165,91,.15);
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl); padding: 20px 32px;
             margin-bottom: 24px;
             display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            box-shadow: var(--whisper);
         }
-        .sub-plan { font-size: 13px; font-weight: 600; color: var(--gold-accent); }
-        .sub-expiry { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
+        .sub-plan { font-size: 13px; font-weight: 600; color: var(--terracotta); }
+        .sub-expiry { font-size: 12px; color: var(--stone-gray); margin-top: 3px; }
         .btn-renew {
             padding: 8px 16px; background: none;
-            border: 1px solid rgba(201,165,91,.3); border-radius: var(--radius-sm);
-            color: var(--gold-accent); font-size: 12px; font-weight: 600;
+            border: 1px solid rgba(201,100,66,.3); border-radius: var(--radius-sm);
+            color: var(--terracotta); font-size: 12px; font-weight: 600;
             cursor: pointer; font-family: inherit; white-space: nowrap;
             text-decoration: none; transition: background .2s;
         }
-        .btn-renew:hover { background: rgba(201,165,91,.08); }
+        .btn-renew:hover { background: rgba(201,100,66,.06); }
     </style>
 </head>
 <body>
@@ -240,7 +244,7 @@
         <p style="font-size:32px;margin-bottom:12px;">🔒</p>
         <p style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Yêu cầu Premium Developer</p>
         <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Tính năng API Key chỉ dành cho tài khoản Premium Developer.</p>
-        <a href="/pages/pricing.html" style="display:inline-block;padding:10px 20px;background:linear-gradient(135deg,#4a148c,#7b1fa2);color:#e1bee7;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">Nâng cấp ngay →</a>
+        <a href="/pages/pricing.html" style="display:inline-block;padding:10px 20px;background:var(--terracotta);color:var(--ivory);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">Nâng cấp ngay →</a>
     </div>
 
     <!-- API Key card -->
