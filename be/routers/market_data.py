@@ -54,10 +54,16 @@ async def get_gold_data(
 @router.get("/api/v1/gold/types")
 async def get_gold_types(request: Request):
     try:
+        # Loại silver (BẠC) bị crawl nhầm vào bảng gold — filter tại query layer
+        # cho đến khi data cleanup + crawler fix xong.
         with get_engine_crawl().connect() as conn:
-            rows = conn.execute(text(
-                "SELECT DISTINCT type FROM vn_macro_gold_daily WHERE type IS NOT NULL ORDER BY type"
-            )).fetchall()
+            rows = conn.execute(text("""
+                SELECT DISTINCT type FROM vn_macro_gold_daily
+                WHERE type IS NOT NULL
+                  AND type NOT ILIKE '%BẠC%'
+                  AND type NOT ILIKE '%BAC %'
+                ORDER BY type
+            """)).fetchall()
         return _json_response({"success": True, "types": [r[0] for r in rows if r[0]]})
     except HTTPException:
         raise
