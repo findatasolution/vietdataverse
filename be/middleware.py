@@ -232,7 +232,7 @@ async def authenticate_user(request: Request):
         import traceback
         print(f"[authenticate_user] JWT path error: {type(e).__name__}: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Auth error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Authentication error")
 
 
 async def authenticate_user_optional(request: Request):
