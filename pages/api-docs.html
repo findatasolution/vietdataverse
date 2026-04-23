@@ -8,42 +8,47 @@
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; }
+        body { margin: 0; background: var(--parchment); }
 
         .docs-nav {
             position: sticky; top: 0; z-index: 100;
-            background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
+            background: var(--ivory); border-bottom: 1px solid var(--border-cream);
             padding: 14px 24px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .nav-logo { font-size: 15px; font-weight: 700; color: var(--gold-primary); text-decoration: none; }
+        .nav-logo {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 15px; font-weight: 600; color: var(--near-black); text-decoration: none;
+        }
         .nav-cta {
             padding: 8px 18px;
-            background: linear-gradient(135deg, var(--gold-dark, #8b6914), var(--gold-primary, #C9A55B));
+            background: var(--terracotta);
             border: none; border-radius: 8px;
-            color: #0A0A0C; font-size: 13px; font-weight: 700;
+            color: var(--ivory); font-size: 13px; font-weight: 700;
             cursor: pointer; font-family: inherit; text-decoration: none;
+            transition: filter .2s;
         }
+        .nav-cta:hover { filter: brightness(1.08); }
 
         .docs-hero {
             text-align: center;
             padding: 72px 24px 48px;
-            background: radial-gradient(ellipse 60% 50% at 50% -10%,
-                rgba(201,165,91,.10) 0%, transparent 65%);
+            background: var(--parchment);
         }
         .hero-badge {
             display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(201,165,91,.1); border: 1px solid rgba(201,165,91,.25);
+            background: rgba(201, 100, 66, .08); border: 1px solid rgba(201, 100, 66, .18);
             border-radius: 99px; padding: 4px 14px;
-            font-size: 11px; font-weight: 600; color: var(--gold-accent);
+            font-size: 11px; font-weight: 600; color: var(--terracotta);
             letter-spacing: .06em; text-transform: uppercase; margin-bottom: 18px;
         }
         .hero-title {
-            font-size: clamp(28px, 5vw, 48px); font-weight: 700;
-            color: var(--text-primary); margin: 0 0 12px;
-            line-height: 1.15;
+            font-family: 'Lora', Georgia, serif;
+            font-size: clamp(28px, 5vw, 48px); font-weight: 600;
+            color: var(--near-black); margin: 0 0 12px;
+            line-height: 1.2;
         }
         .hero-sub {
             font-size: 15px; color: var(--text-secondary);
@@ -52,21 +57,22 @@
         .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .btn-primary {
             padding: 12px 28px;
-            background: linear-gradient(135deg, var(--gold-dark, #8b6914), var(--gold-primary, #C9A55B));
+            background: var(--terracotta);
             border: none; border-radius: 10px;
-            color: #0A0A0C; font-size: 14px; font-weight: 700;
+            color: var(--ivory); font-size: 14px; font-weight: 700;
             cursor: pointer; font-family: inherit; text-decoration: none;
             transition: filter .2s;
         }
-        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:hover { filter: brightness(1.08); }
         .btn-secondary {
             padding: 12px 28px;
-            background: none; border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: 10px; color: var(--text-secondary);
             font-size: 14px; font-weight: 500; font-family: inherit;
             cursor: pointer; text-decoration: none; transition: border-color .2s, color .2s;
+            box-shadow: var(--whisper);
         }
-        .btn-secondary:hover { border-color: rgba(201,165,91,.3); color: var(--gold-accent); }
+        .btn-secondary:hover { border-color: rgba(201, 100, 66, .30); color: var(--terracotta); }
 
         /* ── Layout ──────────────────────────────────────────── */
         .docs-layout {
@@ -95,7 +101,7 @@
             border-radius: 6px; transition: all .15s;
         }
         .sidebar-link:hover, .sidebar-link.active {
-            color: var(--gold-accent); background: rgba(201,165,91,.07);
+            color: var(--terracotta); background: rgba(201, 100, 66, .07);
         }
         @media (max-width: 768px) { .docs-sidebar { display: none; } }
 
@@ -117,8 +123,9 @@
             gap: 16px; margin-bottom: 24px;
         }
         .quota-card {
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl); padding: 20px 24px;
+            box-shadow: var(--whisper);
         }
         .quota-plan { font-size: 12px; font-weight: 700; text-transform: uppercase;
             letter-spacing: .06em; color: var(--text-tertiary); margin-bottom: 8px; }
@@ -129,21 +136,22 @@
         .endpoint-group-title {
             font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
             color: var(--text-tertiary); margin: 32px 0 12px; padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-cream);
         }
         .endpoint-row {
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden;
+            box-shadow: var(--whisper);
         }
         .endpoint-header {
             display: flex; align-items: center; gap: 12px;
             padding: 14px 18px; cursor: pointer; user-select: none;
         }
-        .endpoint-header:hover { background: rgba(255,255,255,.02); }
+        .endpoint-header:hover { background: rgba(201, 100, 66, .03); }
         .method-badge {
             font-size: 10px; font-weight: 800; letter-spacing: .06em;
             padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
-            background: rgba(66,165,250,.15); color: #42a5f5;
+            background: rgba(56, 152, 236, .12); color: #3898ec;
         }
         .endpoint-path {
             font-family: 'Courier New', monospace; font-size: 13px;
@@ -154,36 +162,37 @@
             font-size: 10px; font-weight: 600; padding: 2px 8px;
             border-radius: 99px; flex-shrink: 0;
         }
-        .access-free     { background: rgba(102,187,106,.12); color: #66bb6a; }
-        .access-dev      { background: rgba(124,77,255,.12); color: #b39ddb; }
+        .access-free     { background: rgba(45, 122, 79, .10); color: #2d7a4f; }
+        .access-dev      { background: rgba(201, 100, 66, .10); color: var(--terracotta); }
         .endpoint-body {
             display: none; padding: 0 18px 18px; font-size: 12px;
+            border-top: 1px solid var(--border-cream);
         }
         .endpoint-body.open { display: block; }
-        .endpoint-desc { color: var(--text-secondary); margin: 0 0 12px; line-height: 1.6; }
+        .endpoint-desc { color: var(--text-secondary); margin: 12px 0 12px; line-height: 1.6; }
         .params-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
         .param-row {
             display: flex; gap: 8px; align-items: baseline;
             margin-bottom: 4px; font-size: 11.5px; color: var(--text-tertiary);
         }
         .param-name { font-family: monospace; color: var(--text-primary); min-width: 100px; }
-        .param-type { color: #b39ddb; min-width: 50px; }
+        .param-type { color: var(--terracotta); min-width: 50px; }
 
         /* ── Code example ────────────────────────────────────── */
-        .code-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+        .code-tabs { display: flex; gap: 4px; margin-bottom: 0; }
         .code-tab {
             padding: 4px 12px; font-size: 11px; font-weight: 600;
             border-radius: 6px 6px 0 0; cursor: pointer;
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            background: var(--warm-sand); border: 1px solid var(--border-warm);
             border-bottom: none; color: var(--text-secondary); font-family: inherit;
         }
-        .code-tab.active { background: var(--bg-elevated); color: var(--text-primary); }
+        .code-tab.active { background: var(--deep-dark); color: #d4d3cf; border-color: var(--deep-dark); }
         .code-block {
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            background: var(--deep-dark); border: 1px solid rgba(20,20,19,.15);
             border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
             padding: 16px 18px;
-            font-family: 'Courier New', monospace; font-size: 12px;
-            color: #b39ddb; overflow-x: auto; white-space: pre; line-height: 1.65;
+            font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px;
+            color: #b0b0a8; overflow-x: auto; white-space: pre; line-height: 1.65;
             margin-bottom: 12px;
         }
 
@@ -191,14 +200,14 @@
         .error-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
         .error-table th, .error-table td {
             text-align: left; padding: 8px 12px;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-cream);
             color: var(--text-secondary);
         }
         .error-table th { font-weight: 600; color: var(--text-tertiary); font-size: 11px; text-transform: uppercase; }
         .error-code { font-family: monospace; color: var(--text-primary); font-size: 13px; }
-        .error-401 { color: #ef9a9a; }
-        .error-402 { color: #ffb74d; }
-        .error-429 { color: #fff176; }
+        .error-401 { color: var(--error-red); }
+        .error-402 { color: #c47a1c; }
+        .error-429 { color: var(--terracotta); }
     </style>
 </head>
 <body>
@@ -277,7 +286,7 @@ const { data } = await res.json();</div>
             <p class="section-sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key nhận được sau khi mua gói Developer.</p>
             <div class="code-block">X-API-Key: vdv_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
             <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
-                Lấy API key tại <a href="/pages/developer.html" style="color:var(--gold-accent)">trang Developer</a> sau khi đăng ký gói.
+                Lấy API key tại <a href="/pages/developer.html" style="color:var(--terracotta)">trang Developer</a> sau khi đăng ký gói.
                 Key được liên kết với tài khoản — không chia sẻ key để tránh bị tính quota.
             </p>
         </section>
@@ -313,7 +322,7 @@ const { data } = await res.json();</div>
                 <tbody>
                     <tr><td class="error-code error-401">401</td><td>API key không hợp lệ hoặc đã bị thu hồi</td><td>Kiểm tra key tại trang Developer</td></tr>
                     <tr><td class="error-code error-402">402</td><td>Subscription hết hạn — key tạm ngưng</td><td>Gia hạn tại trang Pricing, key tự kích hoạt lại</td></tr>
-                    <tr><td class="error-code" style="color:#ef9a9a">403</td><td>Endpoint yêu cầu tier cao hơn</td><td>Nâng cấp gói hoặc chọn endpoint phù hợp</td></tr>
+                    <tr><td class="error-code" style="color:var(--error-red)">403</td><td>Endpoint yêu cầu tier cao hơn</td><td>Nâng cấp gói hoặc chọn endpoint phù hợp</td></tr>
                     <tr><td class="error-code error-429">429</td><td>Vượt burst hoặc quota tháng</td><td>Xem header <code>Retry-After</code> / <code>X-RateLimit-Reset</code></td></tr>
                     <tr><td class="error-code" style="color:var(--text-tertiary)">500</td><td>Lỗi server</td><td>Thử lại sau — liên hệ support nếu kéo dài</td></tr>
                 </tbody>

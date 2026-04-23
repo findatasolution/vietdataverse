@@ -7,22 +7,25 @@
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="../auth.js" defer></script>
     <style>
-        body { margin: 0; }
+        body { margin: 0; background: var(--parchment); }
         .admin-nav {
             position: sticky; top: 0; z-index: 100;
-            background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
+            background: var(--ivory); border-bottom: 1px solid var(--border-cream);
             padding: 12px 24px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .nav-logo { font-size: 15px; font-weight: 700; color: #ef9a9a; text-decoration: none; }
+        .nav-logo {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 15px; font-weight: 600; color: var(--near-black); text-decoration: none;
+        }
         .nav-badge {
             font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-            background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.25);
-            color: #ef9a9a; padding: 2px 10px; border-radius: 99px; margin-left: 10px;
+            background: rgba(201, 100, 66, .10); border: 1px solid rgba(201, 100, 66, .22);
+            color: var(--terracotta); padding: 2px 10px; border-radius: 99px; margin-left: 10px;
         }
 
         .admin-layout {
@@ -36,8 +39,9 @@
             margin-bottom: 36px;
         }
         .kpi-card {
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl); padding: 20px 22px;
+            box-shadow: var(--whisper);
         }
         .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase;
             letter-spacing: .07em; color: var(--text-tertiary); margin-bottom: 8px; }
@@ -45,7 +49,7 @@
         .kpi-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
 
         /* ── Tabs ────────────────────────────────────────────── */
-        .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border-subtle);
+        .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border-cream);
             margin-bottom: 24px; }
         .tab-btn {
             padding: 8px 18px; font-size: 13px; font-weight: 500;
@@ -53,7 +57,7 @@
             color: var(--text-secondary); border-bottom: 2px solid transparent;
             transition: all .2s; margin-bottom: -1px;
         }
-        .tab-btn.active { color: var(--gold-accent); border-bottom-color: var(--gold-accent); }
+        .tab-btn.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
 
@@ -61,22 +65,22 @@
         .admin-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
         .admin-table th, .admin-table td {
             text-align: left; padding: 10px 14px;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-cream);
         }
         .admin-table th { font-size: 11px; font-weight: 600; text-transform: uppercase;
             letter-spacing: .06em; color: var(--text-tertiary); }
         .admin-table td { color: var(--text-secondary); }
-        .admin-table tr:hover td { background: rgba(255,255,255,.015); }
+        .admin-table tr:hover td { background: rgba(201, 100, 66, .03); }
 
         /* ── Level badge ─────────────────────────────────────── */
         .level-badge {
             display: inline-block; padding: 2px 8px; border-radius: 99px;
             font-size: 10px; font-weight: 600; text-transform: uppercase;
         }
-        .level-free     { background: rgba(120,120,120,.12); color: var(--text-tertiary); }
-        .level-premium  { background: rgba(201,165,91,.12); color: var(--gold-accent); }
-        .level-dev      { background: rgba(124,77,255,.12); color: #b39ddb; }
-        .level-admin    { background: rgba(239,68,68,.12); color: #ef9a9a; }
+        .level-free     { background: rgba(94, 93, 89, .10); color: var(--text-tertiary); }
+        .level-premium  { background: rgba(201, 100, 66, .10); color: var(--terracotta); }
+        .level-dev      { background: rgba(201, 100, 66, .15); color: var(--terracotta); }
+        .level-admin    { background: rgba(181, 51, 51, .10); color: var(--error-red); }
 
         /* ── Inline edit ─────────────────────────────────────── */
         .edit-row { display: none; }
@@ -86,38 +90,38 @@
         .edit-field label { color: var(--text-tertiary); font-size: 10px; font-weight: 600;
             text-transform: uppercase; letter-spacing: .06em; }
         .edit-field select, .edit-field input {
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            background: var(--warm-sand); border: 1px solid var(--border-warm);
             border-radius: 6px; padding: 6px 10px; font-size: 12px;
             color: var(--text-primary); font-family: inherit;
         }
         .btn-save {
             padding: 7px 16px; font-size: 12px; font-weight: 600;
-            background: rgba(201,165,91,.12); border: 1px solid rgba(201,165,91,.25);
-            border-radius: 6px; color: var(--gold-accent);
+            background: rgba(201, 100, 66, .10); border: 1px solid rgba(201, 100, 66, .25);
+            border-radius: 6px; color: var(--terracotta);
             cursor: pointer; font-family: inherit; transition: background .2s;
         }
-        .btn-save:hover { background: rgba(201,165,91,.2); }
+        .btn-save:hover { background: rgba(201, 100, 66, .18); }
         .btn-edit {
             padding: 4px 10px; font-size: 11px; font-weight: 500;
-            background: none; border: 1px solid var(--border-subtle);
+            background: none; border: 1px solid var(--border-cream);
             border-radius: 5px; color: var(--text-secondary);
             cursor: pointer; font-family: inherit; transition: all .2s;
         }
-        .btn-edit:hover { color: var(--gold-accent); border-color: rgba(201,165,91,.3); }
+        .btn-edit:hover { color: var(--terracotta); border-color: rgba(201, 100, 66, .30); }
         .btn-reverify {
             padding: 4px 10px; font-size: 11px; font-weight: 500;
-            background: none; border: 1px solid var(--border-subtle);
+            background: none; border: 1px solid var(--border-cream);
             border-radius: 5px; color: var(--text-secondary);
-            cursor: pointer; font-family: inherit;
+            cursor: pointer; font-family: inherit; transition: all .2s;
         }
-        .btn-reverify:hover { color: #66bb6a; border-color: rgba(102,187,106,.35); }
+        .btn-reverify:hover { color: #2d7a4f; border-color: rgba(45, 122, 79, .35); }
 
         /* ── Pagination ──────────────────────────────────────── */
         .pagination { display: flex; gap: 8px; align-items: center;
             margin-top: 20px; font-size: 12px; color: var(--text-tertiary); }
         .btn-page {
             padding: 5px 12px; font-size: 12px;
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: 6px; color: var(--text-secondary);
             cursor: pointer; font-family: inherit;
         }
@@ -127,13 +131,13 @@
         .search-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
         .search-input {
             padding: 8px 12px; font-size: 13px;
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: 8px; color: var(--text-primary); font-family: inherit;
             flex: 1; min-width: 200px;
         }
         select.filter-select {
             padding: 8px 12px; font-size: 13px;
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: 8px; color: var(--text-primary); font-family: inherit;
         }
 
@@ -141,9 +145,9 @@
         #access-denied { display:none; text-align:center; padding:80px; }
         .toast {
             position:fixed; bottom:24px; right:24px; z-index:9999;
-            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: 10px; padding: 12px 20px; font-size: 13px;
-            color: var(--text-primary); box-shadow: 0 4px 24px rgba(0,0,0,.4);
+            color: var(--text-primary); box-shadow: var(--whisper);
             display:none;
         }
         .toast.visible { display:block; }
@@ -348,7 +352,7 @@ async function loadUsers() {
             <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">${u.email || '—'}</td>
             <td>${levelBadge(u.user_level)}</td>
             <td style="color:var(--text-tertiary);font-size:11px;">${u.current_plan || '—'}</td>
-            <td style="font-size:11px;color:${u.premium_expiry && new Date(u.premium_expiry) < new Date() ? '#ef9a9a' : 'var(--text-tertiary)'};">
+            <td style="font-size:11px;color:${u.premium_expiry && new Date(u.premium_expiry) < new Date() ? '#b53333' : 'var(--text-tertiary)'};">
                 ${u.premium_expiry ? new Date(u.premium_expiry).toLocaleDateString('vi-VN') : '—'}
             </td>
             <td>${(u.api_request_count || 0).toLocaleString('vi-VN')}</td>
@@ -453,7 +457,7 @@ async function loadOrders() {
     if (!res.ok) return;
     const d = await res.json();
 
-    const statusColor = { paid: '#66bb6a', pending: '#ffb74d', cancelled: '#ef9a9a' };
+    const statusColor = { paid: '#2d7a4f', pending: '#c47a1c', cancelled: '#b53333' };
     document.getElementById('orders-body').innerHTML = d.data.map(o => `
         <tr>
             <td style="font-family:monospace;font-size:11px;">${o.order_code}</td>
