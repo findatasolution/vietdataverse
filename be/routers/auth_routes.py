@@ -167,6 +167,7 @@ async def get_current_user_info(request: Request):
             "is_premium":        db_user.is_premium,
             "premium_expiry":    db_user.premium_expiry.isoformat()
                                  if db_user.premium_expiry else None,
+            "wallet_balance":    getattr(db_user, "wallet_balance", 0) or 0,
             "created_at":        db_user.created_at.isoformat() if db_user.created_at else None,
             "updated_at":        db_user.updated_at.isoformat() if db_user.updated_at else None,
         }
