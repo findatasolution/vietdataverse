@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Giá Premium | VN30 Score & Dữ Liệu Vĩ Mô | Viet Dataverse</title>
-    <meta name="description" content="Nâng cấp Premium để xem toàn bộ VN30 Score — xác suất tăng giá 30 mã cổ phiếu VN30 bằng Machine Learning, dữ liệu vĩ mô đầy đủ và API không giới hạn. Xem bảng giá tại đây.">
+    <title>Bảng Giá | Viet Dataverse</title>
+    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — VN30 Score, Market Pulse, API không giới hạn. Gói Pro Data từ 149.000đ/tháng.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://vietdataverse.online/pages/pricing.html">
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
-    <meta property="og:title" content="Bảng Giá Premium | VN30 Score & Dữ Liệu Vĩ Mô | Viet Dataverse">
-    <meta property="og:description" content="Nâng cấp Premium để xem toàn bộ VN30 Score, dữ liệu vĩ mô đầy đủ và API không giới hạn.">
+    <meta property="og:title" content="Bảng Giá | Viet Dataverse">
+    <meta property="og:description" content="Gói Pro Data — full history, API access, VN30 Score & Market Pulse không giới hạn. Từ 149.000đ/tháng.">
     <meta property="og:url" content="https://vietdataverse.online/pages/pricing.html">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <meta property="og:locale" content="vi_VN">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Bảng Giá Premium | Viet Dataverse">
-    <meta name="twitter:description" content="Nâng cấp để xem toàn bộ VN30 Score và dữ liệu tài chính vĩ mô Việt Nam không giới hạn.">
+    <meta name="twitter:title" content="Bảng Giá | Viet Dataverse">
+    <meta name="twitter:description" content="Gói Pro Data — full history, API access, VN30 Score không giới hạn.">
     <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,14 +31,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 48px 16px 80px;
+            padding: 40px 16px 80px;
         }
 
+        /* ── Nav ─────────────────────────────────────────────── */
         .page-nav {
             width: 100%;
-            max-width: 1120px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 18px 20px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -51,6 +52,7 @@
             text-decoration: none;
         }
 
+        /* ── Header ──────────────────────────────────────────── */
         .pricing-badge {
             display: inline-flex;
             align-items: center;
@@ -59,101 +61,60 @@
             border: 1px solid rgba(201, 100, 66, .18);
             border-radius: 99px;
             padding: 4px 14px;
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--terracotta);
-            letter-spacing: .04em;
+            letter-spacing: .05em;
             text-transform: uppercase;
             margin-bottom: 16px;
         }
-
         .pricing-title {
             font-family: 'Lora', Georgia, serif;
-            font-size: clamp(26px, 5vw, 40px);
+            font-size: clamp(24px, 5vw, 38px);
             font-weight: 600;
             text-align: center;
             margin-bottom: 10px;
             color: var(--near-black);
+            line-height: 1.2;
         }
-
         .pricing-subtitle {
             color: var(--text-secondary);
             text-align: center;
             font-size: 14px;
-            max-width: 480px;
-            margin-bottom: 36px;
+            max-width: 440px;
+            margin-bottom: 40px;
             line-height: 1.7;
         }
 
-        /* ── Billing toggle ─────────────────────────────────── */
-        .billing-toggle {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--pure-white);
-            border: 1px solid var(--border-cream);
-            border-radius: 99px;
-            padding: 4px;
-            margin-bottom: 36px;
-        }
-        .billing-toggle button {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 500;
-            padding: 7px 20px;
-            border-radius: 99px;
-            cursor: pointer;
-            transition: all .2s;
-            white-space: nowrap;
-            font-family: inherit;
-        }
-        .billing-toggle button.active {
-            background: rgba(201, 100, 66, .10);
-            color: var(--terracotta);
-        }
-        .billing-toggle .save-tag {
-            font-size: 11px;
-            font-weight: 600;
-            color: #2d7a4f;
-            background: rgba(45, 122, 79, .10);
-            padding: 2px 8px;
-            border-radius: 99px;
-            pointer-events: none;
-        }
-
-        /* ── Cards grid ─────────────────────────────────────── */
+        /* ── Plans grid ──────────────────────────────────────── */
         .plans-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             width: 100%;
-            max-width: 1000px;
-            margin-bottom: 40px;
+            max-width: 720px;
+            margin-bottom: 32px;
             align-items: start;
         }
+        @media (max-width: 600px) {
+            .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
+        }
 
+        /* ── Card ────────────────────────────────────────────── */
         .plan-card {
             background: var(--pure-white);
             border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl);
             padding: 28px 24px 24px;
             position: relative;
-            transition: border-color .25s, transform .2s;
-            cursor: pointer;
             box-shadow: var(--whisper);
         }
-        .plan-card:hover { border-color: rgba(201, 100, 66, .30); transform: translateY(-2px); }
-        .plan-card.selected {
+        .plan-card.featured {
             border-color: var(--terracotta);
-            box-shadow: 0 0 0 1px var(--terracotta), var(--shadow-gold);
+            box-shadow: var(--whisper), 0 0 0 1px var(--terracotta);
         }
-        .plan-card.highlighted {
-            border-color: rgba(201, 100, 66, .35);
-        }
-        .plan-card.highlighted::before {
-            content: 'Phổ biến nhất';
+        .plan-card.featured::before {
+            content: 'Full power for serious data users';
             position: absolute;
             top: -12px; left: 50%;
             transform: translateX(-50%);
@@ -161,12 +122,13 @@
             color: var(--ivory);
             font-size: 10px;
             font-weight: 700;
-            padding: 3px 12px;
+            padding: 3px 14px;
             border-radius: 99px;
             letter-spacing: .05em;
             white-space: nowrap;
         }
 
+        /* ── Tier badge ──────────────────────────────────────── */
         .plan-tier-badge {
             display: inline-block;
             font-size: 10px;
@@ -175,96 +137,47 @@
             text-transform: uppercase;
             padding: 3px 10px;
             border-radius: 99px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
-        .badge-free     { background: rgba(94, 93, 89, .10); color: var(--text-tertiary); }
-        .badge-premium  { background: rgba(201, 100, 66, .10); color: var(--terracotta); }
-        .badge-dev      { background: rgba(201, 100, 66, .15); color: var(--terracotta); }
+        .badge-free { background: rgba(94, 93, 89, .10); color: var(--stone-gray); }
+        .badge-pro  { background: rgba(201, 100, 66, .12); color: var(--terracotta); }
 
         .plan-name {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
+            color: var(--near-black);
+            margin-bottom: 3px;
         }
         .plan-tagline {
             font-size: 12px;
-            color: var(--text-tertiary);
-            margin-bottom: 18px;
+            color: var(--stone-gray);
+            margin-bottom: 20px;
             line-height: 1.5;
         }
 
+        /* ── Price ───────────────────────────────────────────── */
         .plan-price-block { margin-bottom: 6px; }
-        .plan-price {
-            display: flex;
-            align-items: baseline;
-            gap: 3px;
-        }
+        .plan-price { display: flex; align-items: baseline; gap: 3px; }
         .price-amount {
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--near-black);
             font-variant-numeric: tabular-nums;
+            letter-spacing: -.02em;
         }
-        .price-free { color: var(--text-tertiary); font-size: 24px; }
+        .price-free { color: var(--stone-gray); font-size: 26px; }
         .price-currency, .price-period {
             font-size: 13px;
             color: var(--text-secondary);
         }
-        .price-yearly-note {
+        .price-alt {
             font-size: 11px;
-            color: var(--text-tertiary);
-            margin-top: 2px;
-            min-height: 16px;
-        }
-        .price-saving {
-            font-size: 11px;
-            color: #2d7a4f;
-            font-weight: 500;
-            margin-bottom: 18px;
+            color: var(--stone-gray);
+            margin-top: 3px;
             min-height: 16px;
         }
 
-        /* ── Feature list ────────────────────────────────────── */
-        .feature-divider {
-            height: 1px;
-            background: var(--border-cream);
-            margin: 18px 0 16px;
-        }
-        .feature-label {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: var(--text-tertiary);
-            margin-bottom: 10px;
-        }
-        .features-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 22px;
-        }
-        .features-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-        .features-list li .icon {
-            flex-shrink: 0;
-            width: 14px;
-            height: 14px;
-            margin-top: 1px;
-        }
-        .icon-check { color: var(--terracotta); }
-        .icon-limit { color: var(--stone-gray); }
-        .icon-api   { color: var(--terracotta); }
-
-        /* ── CTA button ─────────────────────────────────────── */
+        /* ── CTA ─────────────────────────────────────────────── */
         .btn-plan {
             width: 100%;
             padding: 12px;
@@ -279,27 +192,23 @@
             justify-content: center;
             gap: 7px;
             border: none;
+            margin-top: 16px;
+            margin-bottom: 2px;
         }
         .btn-plan:disabled { opacity: .5; cursor: not-allowed; }
         .btn-free {
             background: var(--warm-sand);
             border: 1px solid var(--border-warm);
-            color: var(--text-secondary);
+            color: var(--olive-gray);
         }
-        .btn-premium {
+        .btn-pro {
             background: var(--terracotta);
             color: var(--ivory);
         }
-        .btn-premium:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
-        .btn-dev {
-            background: var(--near-black);
-            color: var(--ivory);
-        }
-        .btn-dev:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
-
+        .btn-pro:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
         .btn-plan .spinner {
             width: 14px; height: 14px;
-            border: 2px solid rgba(255,255,255,.2);
+            border: 2px solid rgba(255,255,255,.25);
             border-top-color: currentColor;
             border-radius: 50%;
             animation: spin .7s linear infinite;
@@ -309,11 +218,57 @@
         .btn-plan.loading .btn-text { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Guest email modal / inline ─────────────────────── */
+        /* ── Features ────────────────────────────────────────── */
+        .feature-divider {
+            height: 1px;
+            background: var(--border-cream);
+            margin: 18px 0 14px;
+        }
+        .feature-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--stone-gray);
+            margin-bottom: 10px;
+        }
+        .features-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .features-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12.5px;
+            color: var(--olive-gray);
+            line-height: 1.5;
+        }
+        .feat-icon {
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+            margin-top: 1px;
+        }
+        .icon-check  { color: var(--terracotta); }
+        .icon-limit  { color: var(--stone-gray); }
+
+        /* ── Error ───────────────────────────────────────────── */
+        .error-msg {
+            display: none; color: var(--error-red); font-size: 12px;
+            margin-top: 8px; padding: 8px 12px;
+            background: rgba(181, 51, 51, .05); border-radius: 6px;
+            border: 1px solid rgba(181, 51, 51, .15);
+        }
+        .error-msg.visible { display: block; }
+
+        /* ── Guest email area ────────────────────────────────── */
         #guest-email-area {
             display: none;
             width: 100%;
-            max-width: 420px;
+            max-width: 400px;
             background: var(--pure-white);
             border: 1px solid var(--border-cream);
             border-radius: var(--radius-lg);
@@ -323,38 +278,20 @@
         }
         #guest-email-area.visible { display: block; }
         #guest-email-area label {
-            display: block;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
+            display: block; font-size: 12px; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: 8px;
         }
         #guest-email-area input[type="email"] {
             width: 100%;
-            background: var(--warm-sand);
-            border: 1px solid var(--border-warm);
-            border-radius: var(--radius-sm);
-            padding: 10px 14px;
-            font-size: 14px;
-            color: var(--text-primary);
-            outline: none;
-            transition: border-color .2s;
-            margin-bottom: 10px;
-            font-family: inherit;
-            box-sizing: border-box;
+            background: var(--warm-sand); border: 1px solid var(--border-warm);
+            border-radius: var(--radius-sm); padding: 10px 14px;
+            font-size: 14px; color: var(--near-black); outline: none;
+            transition: border-color .2s; margin-bottom: 10px;
+            font-family: inherit; box-sizing: border-box;
         }
         #guest-email-area input[type="email"]:focus { border-color: rgba(201, 100, 66, .45); }
-        .guest-area-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 14px;
-        }
-        .guest-plan-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 14px;
-        }
+        .guest-area-title { font-size: 14px; font-weight: 600; color: var(--near-black); margin-bottom: 6px; }
+        .guest-plan-note { font-size: 12px; color: var(--stone-gray); margin-bottom: 14px; }
         .guest-area-actions { display: flex; gap: 8px; }
         .btn-ghost {
             flex: 1; padding: 10px; border-radius: var(--radius-sm);
@@ -362,73 +299,52 @@
             color: var(--text-secondary); font-size: 13px; font-weight: 500;
             font-family: inherit; cursor: pointer; transition: all .2s;
         }
-        .btn-ghost:hover { color: var(--text-primary); }
+        .btn-ghost:hover { color: var(--near-black); }
         .btn-proceed {
             flex: 2; padding: 10px; border-radius: var(--radius-sm);
             border: none; font-size: 13px; font-weight: 600;
             font-family: inherit; cursor: pointer; transition: all .2s;
-            background: var(--terracotta);
-            color: var(--ivory);
-        }
-        .btn-proceed.dev-proceed {
-            background: var(--near-black);
-            color: var(--ivory);
+            background: var(--terracotta); color: var(--ivory);
         }
         .btn-proceed:hover { filter: brightness(1.08); }
 
-        /* ── Result banner ──────────────────────────────────── */
+        /* ── Result banner ───────────────────────────────────── */
         #result-banner {
-            display: none;
-            width: 100%;
-            max-width: 560px;
-            border-radius: var(--radius-lg);
-            padding: 28px;
-            text-align: center;
-            margin-bottom: 36px;
+            display: none; width: 100%; max-width: 520px;
+            border-radius: var(--radius-lg); padding: 28px;
+            text-align: center; margin-bottom: 36px;
         }
         #result-banner.success { display: block; background: rgba(45,122,79,.06); border: 1px solid rgba(45,122,79,.20); }
         #result-banner.cancelled { display: block; background: rgba(181,51,51,.05); border: 1px solid rgba(181,51,51,.18); }
-        .result-icon { font-size: 38px; line-height: 1; margin-bottom: 10px; }
+        .result-icon { font-size: 36px; line-height: 1; margin-bottom: 10px; }
         .result-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
         #result-banner.success .result-title { color: #2d7a4f; }
         #result-banner.cancelled .result-title { color: var(--error-red); }
         .result-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
-        .result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+        .result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
         .result-actions a, .result-actions button {
             padding: 8px 18px; border-radius: var(--radius-sm);
             font-size: 13px; font-weight: 500; font-family: inherit;
             cursor: pointer; text-decoration: none; transition: all .2s;
         }
         .btn-home { background: var(--pure-white); border: 1px solid var(--border-cream); color: var(--text-secondary); }
-        .btn-home:hover { color: var(--text-primary); }
-        .btn-primary-sm { background: var(--terracotta); border: none; color: var(--ivory); }
+        .btn-home:hover { color: var(--near-black); }
+        .btn-cta-sm { background: var(--terracotta); border: none; color: var(--ivory); }
 
-        /* ── Error ──────────────────────────────────────────── */
-        .error-msg {
-            display: none; color: var(--error-red); font-size: 12px;
-            margin-top: 8px; padding: 8px 12px;
-            background: rgba(181, 51, 51, .05); border-radius: 6px;
-            border: 1px solid rgba(181, 51, 51, .15);
-        }
-        .error-msg.visible { display: block; }
-
-        /* ── Security note ──────────────────────────────────── */
-        .security-note {
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; font-size: 11px; color: var(--text-tertiary); margin-top: 8px;
-        }
-
-        /* ── FAQ / compare row ──────────────────────────────── */
-        .compare-note {
-            font-size: 12px;
-            color: var(--text-tertiary);
+        /* ── Footer note ─────────────────────────────────────── */
+        .pricing-footer {
+            font-size: 11px;
+            color: var(--stone-gray);
             text-align: center;
-            margin-top: -24px;
-            margin-bottom: 32px;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
         }
-
-        @media (max-width: 768px) {
-            .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
+        .security-note {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; color: var(--stone-gray);
         }
     </style>
 </head>
@@ -441,24 +357,13 @@
 
 <main class="pricing-page">
 
-    <!-- Result banner -->
+    <!-- Result banner (PayOS redirect) -->
     <div id="result-banner"></div>
 
     <!-- Header -->
-    <span class="pricing-badge">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 1l1.9 3.8 4.2.6-3 3 .7 4.2L8 10.5l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-        Gói dịch vụ
-    </span>
-    <h1 class="pricing-title">Chọn gói phù hợp với bạn</h1>
-    <p class="pricing-subtitle">Dữ liệu tài chính Việt Nam theo thời gian thực — từ nhà đầu tư cá nhân đến nhà phát triển chuyên nghiệp.</p>
-
-    <!-- Billing toggle -->
-    <div class="billing-toggle">
-        <button id="btn-monthly" class="active" onclick="setBilling('monthly')">Hàng tháng</button>
-        <button id="btn-yearly" onclick="setBilling('yearly')">
-            Hàng năm &nbsp;<span class="save-tag">Tiết kiệm ~17%</span>
-        </button>
-    </div>
+    <span class="pricing-badge">Gói dịch vụ</span>
+    <h1 class="pricing-title">Dữ liệu nghiêm túc<br>cần công cụ nghiêm túc</h1>
+    <p class="pricing-subtitle">Bắt đầu miễn phí, nâng cấp khi cần toàn bộ lịch sử, API và phân tích chuyên sâu.</p>
 
     <!-- Plans -->
     <div class="plans-grid">
@@ -467,13 +372,12 @@
         <div class="plan-card" id="card-free">
             <span class="plan-tier-badge badge-free">Miễn phí</span>
             <div class="plan-name">Free</div>
-            <div class="plan-tagline">Dành cho sinh viên & người mới tìm hiểu</div>
+            <div class="plan-tagline">Try data before you go deep</div>
             <div class="plan-price-block">
                 <div class="plan-price">
                     <span class="price-amount price-free">0₫</span>
                 </div>
-                <div class="price-yearly-note"></div>
-                <div class="price-saving"></div>
+                <div class="price-alt"></div>
             </div>
             <button class="btn-plan btn-free" onclick="handleFreePlan()">
                 <span class="btn-text">Bắt đầu miễn phí</span>
@@ -481,87 +385,92 @@
             <div class="feature-divider"></div>
             <div class="feature-label">Bao gồm</div>
             <ul class="features-list">
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Macro charts view</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Limited downloads data</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Market Pulse — top 1 news</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Future Outlook — title only</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>VN30 Score View — title only</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>Student API: 5 request/account (lifetime)</li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Truy cập dữ liệu lịch sử giới hạn
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Download tối đa 1 năm / loại dữ liệu
+                </li>
+                <li>
+                    <svg class="feat-icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                    VN30 Score & Market Pulse — preview top 5
+                </li>
+                <li>
+                    <svg class="feat-icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                    Giới hạn 10 lần download (lifetime)
+                </li>
             </ul>
         </div>
 
-        <!-- PREMIUM -->
-        <div class="plan-card highlighted" id="card-premium">
-            <span class="plan-tier-badge badge-premium">Premium</span>
-            <div class="plan-name">Premium</div>
-            <div class="plan-tagline">Nhà đầu tư, researcher & trader</div>
+        <!-- PRO DATA -->
+        <div class="plan-card featured" id="card-pro">
+            <span class="plan-tier-badge badge-pro">Pro</span>
+            <div class="plan-name">Pro Data</div>
+            <div class="plan-tagline">Sinh viên, giảng viên ngành quant finance</div>
             <div class="plan-price-block">
                 <div class="plan-price">
-                    <span class="price-amount" id="price-premium">99.000</span>
+                    <span class="price-amount" id="price-pro">149.000</span>
                     <span class="price-currency">₫</span>
-                    <span class="price-period" id="period-premium">/tháng</span>
+                    <span class="price-period">/tháng</span>
                 </div>
-                <div class="price-yearly-note" id="note-premium"></div>
-                <div class="price-saving" id="saving-premium"></div>
+                <div class="price-alt" id="price-alt-pro">≈ $4.99 / month</div>
             </div>
-            <button class="btn-plan btn-premium" id="btn-premium" onclick="startCheckout('premium')">
+            <button class="btn-plan btn-pro" id="btn-pro" onclick="startCheckout('pro')">
                 <span class="spinner"></span>
-                <span class="btn-text">Nâng cấp Premium →</span>
+                <span class="btn-text">Nâng cấp Pro →</span>
             </button>
-            <div class="error-msg" id="error-premium"></div>
+            <div class="error-msg" id="error-pro"></div>
             <div class="feature-divider"></div>
             <div class="feature-label">Tất cả trong Free, cộng thêm</div>
             <ul class="features-list">
-                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Full live datasets download + Excel</li>
-                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Market Pulse realtime view</li>
-                <li><svg class="icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Future Outlook reports view</li>
-                <li><svg class="icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>VN30 Score — limited (Tháng), full (Năm)</li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Download toàn bộ dữ liệu (full history)
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Dữ liệu realtime / gần realtime
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Không giới hạn thời gian (không cutoff)
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    VN30 Score & signals — full access
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Market Pulse & Future Outlook đầy đủ
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    API key riêng — không giới hạn request <span style="color:var(--stone-gray);font-size:11px;">(fair use)</span>
+                </li>
+                <li>
+                    <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                    Ưu tiên tốc độ download
+                </li>
             </ul>
-        </div>
-
-        <!-- PREMIUM DEVELOPER -->
-        <div class="plan-card" id="card-dev">
-            <span class="plan-tier-badge badge-dev">Developer</span>
-            <div class="plan-name">Premium Developer</div>
-            <div class="plan-tagline">Developer, quant trader & data scientist</div>
-            <div class="plan-price-block">
-                <div class="plan-price">
-                    <span class="price-amount" id="price-dev">375.000</span>
-                    <span class="price-currency">₫</span>
-                    <span class="price-period" id="period-dev">/tháng</span>
-                </div>
-                <div class="price-yearly-note" id="note-dev"></div>
-                <div class="price-saving" id="saving-dev"></div>
-            </div>
-            <button class="btn-plan btn-dev" id="btn-dev" onclick="startCheckout('dev')">
-                <span class="spinner"></span>
-                <span class="btn-text">Nâng cấp Developer →</span>
-            </button>
-            <div class="error-msg" id="error-dev"></div>
-            <div class="feature-divider"></div>
-            <div class="feature-label">Tất cả trong Premium, cộng thêm</div>
-            <ul class="features-list">
-                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Full dataset downloads & API</li>
-                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Market Pulse realtime view & API</li>
-                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>Future Outlook reports view & API</li>
-                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>VN30 Score (API)</li>
-                <li><svg class="icon icon-api" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>API Key riêng — không giới hạn request</li>
-            </ul>
-            <a href="/pages/developer.html" id="link-devpage" style="display:none;font-size:12px;color:var(--terracotta);text-decoration:none;margin-top:4px;opacity:.85;">→ Quản lý API Key của bạn</a>
+            <a href="/pages/developer.html" id="link-devpage" style="display:none;font-size:12px;color:var(--terracotta);text-decoration:none;margin-top:12px;opacity:.85;display:none;">→ Quản lý API Key của bạn</a>
         </div>
 
     </div>
 
-    <p class="compare-note">Tất cả gói năm = 360 ngày · Tự động gia hạn không bắt buộc</p>
+    <p style="font-size:12px;color:var(--stone-gray);text-align:center;margin-bottom:24px;">
+        Thanh toán theo tháng · Huỷ bất kỳ lúc nào · Gói năm sắp ra mắt
+    </p>
 
-    <!-- Guest email area (shown when not logged in) -->
+    <!-- Guest email area -->
     <div id="guest-email-area">
-        <div class="guest-area-title" id="guest-title">Nhập email để thanh toán</div>
-        <div class="guest-plan-label" id="guest-plan-label"></div>
+        <div class="guest-area-title">Thanh toán gói Pro Data</div>
+        <div class="guest-plan-note">149.000₫/tháng · ≈ $4.99/month</div>
         <label for="guest-email-input">Email của bạn</label>
         <input type="email" id="guest-email-input" placeholder="ten@example.com" autocomplete="email">
-        <p style="font-size:11px;color:var(--text-tertiary);margin-bottom:14px;line-height:1.5;">
-            Tạo tài khoản sau khi thanh toán bằng email này để kích hoạt Premium.
+        <p style="font-size:11px;color:var(--stone-gray);margin-bottom:14px;line-height:1.5;">
+            Tạo tài khoản sau khi thanh toán bằng email này để kích hoạt Pro.
         </p>
         <div class="guest-area-actions">
             <button class="btn-ghost" onclick="closeGuestArea()">Huỷ</button>
@@ -572,13 +481,15 @@
         <div class="error-msg" id="error-guest"></div>
     </div>
 
-    <p class="security-note">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12">
-            <rect x="3" y="7" width="10" height="7" rx="1.5"/>
-            <path d="M5 7V5a3 3 0 016 0v2"/>
-        </svg>
-        Thanh toán an toàn qua PayOS · VietQR · Napas
-    </p>
+    <div class="pricing-footer">
+        <span class="security-note">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12">
+                <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+                <path d="M5 7V5a3 3 0 016 0v2"/>
+            </svg>
+            Thanh toán an toàn qua PayOS · VietQR · Napas
+        </span>
+    </div>
 
 </main>
 
@@ -587,39 +498,13 @@
         ? 'http://127.0.0.1:8000'
         : 'https://api.vietdataverse.online';
 
-    const PLANS = {
-        premium: {
-            monthly: { key: 'premium_monthly', amount: 99_000,    display: '99.000',    period: '/tháng', saving: '',                      note: '' },
-            yearly:  { key: 'premium_yearly',  amount: 990_000,   display: '990.000',   period: '/năm',   saving: 'Tiết kiệm 198.000₫/năm', note: '≈ 82.500₫/tháng' },
-        },
-        dev: {
-            monthly: { key: 'dev_monthly', amount: 375_000,   display: '375.000',   period: '/tháng', saving: '',                          note: '' },
-            yearly:  { key: 'dev_yearly',  amount: 4_500_000, display: '4.500.000', period: '/năm',   saving: 'Tiết kiệm 1.000.000₫/năm', note: '≈ 375.000₫/tháng' },
-        },
+    const PLAN = {
+        key: 'pro_monthly',
+        amount: 149_000,
+        display: '149.000',
     };
 
-    let billing      = 'monthly';   // 'monthly' | 'yearly'
-    let pendingTier  = null;         // 'premium' | 'dev' — plan being checked out
-
-    // ── Billing toggle ────────────────────────────────────────────────
-    function setBilling(cycle) {
-        billing = cycle;
-        document.getElementById('btn-monthly').classList.toggle('active', cycle === 'monthly');
-        document.getElementById('btn-yearly').classList.toggle('active',  cycle === 'yearly');
-        updatePrices();
-    }
-
-    function updatePrices() {
-        for (const tier of ['premium', 'dev']) {
-            const p = PLANS[tier][billing];
-            document.getElementById(`price-${tier}`).textContent  = p.display;
-            document.getElementById(`period-${tier}`).textContent = p.period;
-            document.getElementById(`note-${tier}`).textContent   = p.note;
-            document.getElementById(`saving-${tier}`).textContent = p.saving;
-        }
-    }
-
-    // ── Handle PayOS redirect result ─────────────────────────────────
+    // ── Handle PayOS redirect ─────────────────────────────────
     (async function handleRedirect() {
         const params    = new URLSearchParams(window.location.search);
         const payment   = params.get('payment');
@@ -631,7 +516,7 @@
         if (payment === 'success' && orderCode) {
             banner.className = 'success';
             banner.innerHTML = `
-                <div class="result-icon" style="font-size:28px">⏳</div>
+                <div class="result-icon">⏳</div>
                 <div class="result-title" style="color:var(--terracotta)">Đang xác nhận thanh toán…</div>
                 <p class="result-desc">Vui lòng chờ trong giây lát.</p>`;
             try {
@@ -641,23 +526,23 @@
                     banner.innerHTML = `
                         <div class="result-icon">🎉</div>
                         <div class="result-title">Thanh toán thành công!</div>
-                        <p class="result-desc">Premium đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
+                        <p class="result-desc">Pro Data đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
                         <div class="result-actions">
                             <a class="btn-home" href="/index.html">Về trang chủ</a>
-                            <button class="btn-primary-sm" onclick="login()">Đăng nhập ngay</button>
+                            <button class="btn-cta-sm" onclick="login()">Đăng nhập ngay</button>
                         </div>`;
                 } else {
                     banner.innerHTML = `
                         <div class="result-icon">⏳</div>
                         <div class="result-title" style="color:var(--terracotta)">Đang xử lý thanh toán</div>
-                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>Premium sẽ tự động kích hoạt sau khi xử lý xong.</p>
+                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>Pro Data sẽ tự động kích hoạt sau khi xử lý xong.</p>
                         <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
                 }
             } catch {
                 banner.innerHTML = `
                     <div class="result-icon">🎉</div>
                     <div class="result-title">Thanh toán đã ghi nhận!</div>
-                    <p class="result-desc">Premium sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
+                    <p class="result-desc">Pro Data sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
                     <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
             }
         } else if (payment === 'cancelled') {
@@ -672,14 +557,13 @@
         window.history.replaceState({}, '', window.location.pathname);
     })();
 
-    // ── Auth check on load ────────────────────────────────────────────
+    // ── Auth on load ──────────────────────────────────────────
     async function initPage() {
         try {
             const authed = await isAuthenticated();
             if (authed) {
                 const user = await getUser();
                 updateNavAuth(user);
-                // Show dev page link if user is already premium_developer
                 try {
                     const token = await getToken();
                     const res = await fetch(`${API}/api/v1/payment/status`, {
@@ -687,8 +571,10 @@
                     });
                     if (res.ok) {
                         const d = await res.json();
-                        if (d.user_level === 'premium_developer') {
+                        if (d.user_level === 'premium_developer' || d.user_level === 'admin') {
                             document.getElementById('link-devpage').style.display = 'inline';
+                            const btn = document.getElementById('btn-pro');
+                            if (btn) { btn.textContent = 'Renew Pro →'; }
                         }
                     }
                 } catch { /* non-critical */ }
@@ -704,39 +590,39 @@
         const nav = document.getElementById('nav-auth');
         if (user) {
             nav.innerHTML = `
-                <img src="${user.picture || ''}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
-                <span style="color:var(--text-secondary)">${user.email || user.name || ''}</span>
-                <button onclick="logout()" style="background:none;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Đăng xuất</button>`;
+                <img src="${user.picture || ''}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border-cream);">
+                <span style="color:var(--text-secondary);font-size:13px;">${user.email || user.name || ''}</span>
+                <button onclick="logout()" style="background:none;border:1px solid var(--border-cream);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Đăng xuất</button>`;
         } else {
             nav.innerHTML = `
                 <button onclick="login()" style="background:var(--terracotta);border:none;color:var(--ivory);padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>`;
         }
     }
 
-    // ── Free plan ─────────────────────────────────────────────────────
     function handleFreePlan() {
         window.location.href = '/index.html';
     }
 
-    // ── Start checkout (premium or dev) ──────────────────────────────
-    async function startCheckout(tier) {
-        const planKey = PLANS[tier][billing].key;
-        const errEl   = document.getElementById(`error-${tier}`);
+    // ── Checkout ──────────────────────────────────────────────
+    async function startCheckout() {
+        const errEl = document.getElementById('error-pro');
         errEl.classList.remove('visible');
 
         const authed = await isAuthenticated().catch(() => false);
-
         if (authed) {
-            await checkoutAuthenticated(tier, planKey);
+            await checkoutAuthenticated();
         } else {
-            showGuestEmailArea(tier);
+            document.getElementById('guest-email-area').classList.add('visible');
+            document.getElementById('guest-email-input').focus();
+            document.getElementById('guest-email-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 
-    async function checkoutAuthenticated(tier, planKey) {
-        const btn = document.getElementById(`btn-${tier}`);
-        const err = document.getElementById(`error-${tier}`);
-        setLoading(btn, true);
+    async function checkoutAuthenticated() {
+        const btn = document.getElementById('btn-pro');
+        const err = document.getElementById('error-pro');
+        btn.disabled = true;
+        btn.classList.add('loading');
 
         try {
             const token = await getToken();
@@ -744,54 +630,30 @@
 
             const res = await fetch(`${API}/api/v1/payment/create-order`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({ plan: planKey }),
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ plan: PLAN.key }),
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
             window.location.href = data.checkout_url;
         } catch (e) {
-            setLoading(btn, false);
+            btn.disabled = false;
+            btn.classList.remove('loading');
             showError(err, e.message);
         }
     }
 
-    // ── Guest email area ──────────────────────────────────────────────
-    function showGuestEmailArea(tier) {
-        pendingTier = tier;
-        const planInfo = PLANS[tier][billing];
-        document.getElementById('guest-title').textContent =
-            tier === 'dev' ? 'Thanh toán Premium Developer' : 'Thanh toán Premium';
-        document.getElementById('guest-plan-label').textContent =
-            `Gói đã chọn: ${planInfo.display}₫${planInfo.period}`;
-
-        const proceedBtn = document.getElementById('btn-guest-proceed');
-        if (tier === 'dev') {
-            proceedBtn.classList.add('dev-proceed');
-        } else {
-            proceedBtn.classList.remove('dev-proceed');
-        }
-
-        document.getElementById('guest-email-area').classList.add('visible');
-        document.getElementById('guest-email-input').focus();
-        document.getElementById('guest-email-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
     function closeGuestArea() {
-        pendingTier = null;
         document.getElementById('guest-email-area').classList.remove('visible');
         document.getElementById('guest-email-input').value = '';
         document.getElementById('error-guest').classList.remove('visible');
     }
 
     async function submitGuestCheckout() {
-        const email  = document.getElementById('guest-email-input').value.trim();
-        const errEl  = document.getElementById('error-guest');
-        const btn    = document.getElementById('btn-guest-proceed');
+        const email = document.getElementById('guest-email-input').value.trim();
+        const errEl = document.getElementById('error-guest');
+        const btn   = document.getElementById('btn-guest-proceed');
         errEl.classList.remove('visible');
 
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -799,7 +661,6 @@
             return;
         }
 
-        const planKey = PLANS[pendingTier][billing].key;
         const origText = btn.textContent;
         btn.disabled = true;
         btn.textContent = 'Đang xử lý…';
@@ -808,7 +669,7 @@
             const res = await fetch(`${API}/api/v1/payment/create-order-guest`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, plan: planKey }),
+                body: JSON.stringify({ email, plan: PLAN.key }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
@@ -818,12 +679,6 @@
             btn.textContent = origText;
             showError(errEl, e.message);
         }
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────
-    function setLoading(btn, loading) {
-        btn.disabled = loading;
-        btn.classList.toggle('loading', loading);
     }
 
     function showError(el, msg) {
