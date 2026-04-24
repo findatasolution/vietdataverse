@@ -10,7 +10,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; background: var(--parchment); }
+        /* Inline fallback — ensures palette applies even if style.css is late/missing */
+        :root {
+            --parchment:    #f5f4ed;
+            --ivory:        #faf9f5;
+            --pure-white:   #ffffff;
+            --warm-sand:    #e8e6dc;
+            --deep-dark:    #141413;
+            --near-black:   #141413;
+            --olive-gray:   #5e5d59;
+            --stone-gray:   #87867f;
+            --terracotta:   #c96442;
+            --error-red:    #b53333;
+            --border-cream: #f0eee6;
+            --border-warm:  #e8e6dc;
+            --ring-warm:    #d1cfc5;
+            --whisper:      rgba(20,20,19,0.05) 0px 4px 24px;
+            --text-primary:   #141413;
+            --text-secondary: #5e5d59;
+            --text-tertiary:  #87867f;
+            --border-subtle:  #e8e6dc;
+            --radius-sm:  8px;
+            --radius-md:  12px;
+            --radius-xl:  20px;
+        }
+        body { margin: 0; background: var(--parchment); color: var(--near-black); }
 
         .docs-nav {
             position: sticky; top: 0; z-index: 100;
@@ -246,7 +270,8 @@
             <a class="sidebar-link" href="#rates">Lãi suất & Tỷ giá</a>
             <a class="sidebar-link" href="#macro">Vĩ mô</a>
             <a class="sidebar-link" href="#vn30">VN30 Cổ phiếu</a>
-            <a class="sidebar-link" href="#analysis">AI & Phân tích</a>
+            <a class="sidebar-link" href="#analysis">Rủi ro biến động giá ngành</a>
+            <a class="sidebar-link" href="#news">Tin tức thị trường</a>
         </div>
     </aside>
 
@@ -366,7 +391,8 @@ const GROUP_LABELS = {
     rates:     'Lãi suất & Tỷ giá',
     macro:     'Vĩ mô Việt Nam',
     vn30:      'VN30 Cổ phiếu',
-    analysis:  'AI & Phân tích',
+    analysis:  'Rủi ro biến động giá ngành',
+    news:      'Tin tức thị trường',
 };
 
 const ENDPOINT_GROUPS = {
@@ -377,6 +403,7 @@ const ENDPOINT_GROUPS = {
                 '/api/v1/vn30/prices/{ticker}', '/api/v1/vn30/financials/{ticker}', '/api/v1/vn30/ratios/{ticker}'],
     analysis:  ['/api/v1/vn30-scores/meta', '/api/v1/vn30-scores',
                 '/api/v1/vn30-scores/ticker/{ticker}', '/api/v1/gold-analysis', '/api/v1/market-pulse'],
+    news:      ['/api/v1/news/market', '/api/v1/news/commodity', '/api/v1/news/vn30/{ticker}'],
 };
 
 async function loadEndpoints() {
@@ -396,9 +423,12 @@ async function loadEndpoints() {
     let html = '';
     for (const [groupId, paths] of Object.entries(ENDPOINT_GROUPS)) {
         html += `<div class="endpoint-group-title" id="${groupId}">${GROUP_LABELS[groupId]}</div>`;
+        let groupHasEndpoints = false;
+        let groupHtml = '';
         for (const path of paths) {
             const ep = byPath[path];
             if (!ep) continue;
+            groupHasEndpoints = true;
             const access = ep.access === 'free' ? 'free' : 'dev';
             const chipClass = access === 'free' ? 'access-free' : 'access-dev';
             const chipLabel = access === 'free' ? 'Free' : 'Dev';
@@ -414,7 +444,7 @@ async function loadEndpoints() {
                 `).join('')}
             ` : '<div style="color:var(--text-tertiary);font-size:12px;">Không có params</div>';
 
-            html += `
+            groupHtml += `
             <div class="endpoint-row">
                 <div class="endpoint-header" onclick="toggleEndpoint(this)">
                     <span class="method-badge">GET</span>
@@ -427,6 +457,10 @@ async function loadEndpoints() {
                 </div>
             </div>`;
         }
+        if (!groupHasEndpoints) {
+            groupHtml = `<p style="font-size:13px;color:var(--text-tertiary);padding:8px 0 16px;font-style:italic;">Sắp ra mắt — các endpoint đang được phát triển.</p>`;
+        }
+        html += groupHtml;
     }
     container.innerHTML = html;
 }
