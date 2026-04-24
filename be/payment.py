@@ -46,8 +46,8 @@ FRONTEND_URL       = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 
 SUBSCRIPTION_PLANS = {
     # ── Active plans ──────────────────────────────────────────────────────────
-    "pro_monthly": {"amount": 149_000, "days": 30,  "level": "premium_developer", "name": "Pro Data Monthly"},
-    "pro_yearly":  {"amount": 1_490_000, "days": 365, "level": "premium_developer", "name": "Pro Data Yearly"},
+    "pro_monthly": {"amount": 149_000, "days": 30,  "level": "premium_developer", "name": "API Supper Lite Monthly"},
+    "pro_yearly":  {"amount": 1_490_000, "days": 365, "level": "premium_developer", "name": "API Supper Lite Yearly"},
     # ── Legacy plans (kept for existing subscriptions / webhook replay) ───────
     "premium_monthly": {"amount": 99_000,    "days": 30,  "level": "premium",           "name": "Premium 1 Thang"},
     "premium_yearly":  {"amount": 990_000,   "days": 360, "level": "premium",           "name": "Premium 1 Nam"},
@@ -152,10 +152,26 @@ def _ensure_tables(conn):
         ("is_premium",          "BOOLEAN NOT NULL DEFAULT FALSE"),
         ("premium_expiry",      "TIMESTAMP"),
         ("api_request_count",   "INT NOT NULL DEFAULT 0"),
+        ("student_verified",    "BOOLEAN NOT NULL DEFAULT FALSE"),
+        ("student_email",       "VARCHAR(255)"),
+        ("referral_code",       "VARCHAR(16)"),
+        ("wallet_balance",      "BIGINT NOT NULL DEFAULT 0"),
     ]:
         try:
             conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {defn}"
+            ))
+        except Exception:
+            pass
+
+    for col, defn in [
+        ("ref_code",          "VARCHAR(16)"),
+        ("referral_credited", "BOOLEAN NOT NULL DEFAULT FALSE"),
+        ("student_discount",  "BOOLEAN NOT NULL DEFAULT FALSE"),
+    ]:
+        try:
+            conn.execute(text(
+                f"ALTER TABLE payment_orders ADD COLUMN IF NOT EXISTS {col} {defn}"
             ))
         except Exception:
             pass
@@ -170,7 +186,68 @@ def _ensure_tables(conn):
             is_active    BOOLEAN     NOT NULL DEFAULT TRUE
         )
     """))
+    conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS wallet_transactions (
+            id           SERIAL      PRIMARY KEY,
+            user_id      INT         NOT NULL,
+            amount       BIGINT      NOT NULL,
+            type         VARCHAR(30) NOT NULL,
+            reference_id VARCHAR(50),
+            note         TEXT,
+            created_at   TIMESTAMP   NOT NULL DEFAULT NOW()
+        )
+    """))
     conn.commit()
+
+
+def _credit_referral(session, order_code: int, amount: int) -> None:
+    """
+    Kiểm tra xem order có ref_code không. Nếu có và chưa credited:
+      - Tìm referrer theo referral_code
+      - Cộng 10% amount vào wallet_balance
+      - Ghi wallet_transactions
+      - Đánh dấu referral_credited = TRUE để idempotency
+    """
+    order_row = session.execute(text("""
+        SELECT ref_code, referral_credited
+        FROM payment_orders WHERE order_code = :oc
+    """), {"oc": order_code}).fetchone()
+
+    if not order_row:
+        return
+    ref_code, already_credited = order_row
+    if not ref_code or already_credited:
+        return
+
+    referrer = session.execute(text("""
+        SELECT user_id FROM users WHERE referral_code = :code
+    """), {"code": ref_code}).fetchone()
+
+    if not referrer:
+        return
+
+    referrer_id  = referrer[0]
+    reward_vnd   = int(amount * 0.10)
+
+    session.execute(text("""
+        UPDATE users
+        SET wallet_balance = wallet_balance + :reward
+        WHERE user_id = :uid
+    """), {"reward": reward_vnd, "uid": referrer_id})
+
+    session.execute(text("""
+        INSERT INTO wallet_transactions (user_id, amount, type, reference_id, note)
+        VALUES (:uid, :amt, 'referral_reward', :ref, :note)
+    """), {
+        "uid":  referrer_id,
+        "amt":  reward_vnd,
+        "ref":  str(order_code),
+        "note": f"10% hoa hồng giới thiệu từ đơn hàng {order_code}",
+    })
+
+    session.execute(text("""
+        UPDATE payment_orders SET referral_credited = TRUE WHERE order_code = :oc
+    """), {"oc": order_code})
 
 
 def _activate_premium(session, user_id: int, plan: str):
@@ -233,12 +310,14 @@ def _query_payos_order(order_code: int) -> dict:
 # ============================================================
 
 class CreateOrderRequest(BaseModel):
-    plan: str  # "monthly" | "yearly"
+    plan: str
+    ref_code: str | None = None  # optional referral code
 
 
 class GuestOrderRequest(BaseModel):
     email: str
-    plan: str  # "monthly" | "yearly"
+    plan: str
+    ref_code: str | None = None
 
 
 # ============================================================
@@ -270,14 +349,12 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
             _ensure_tables(conn)
 
         row = session.execute(
-            text("SELECT user_id FROM users WHERE auth0_id = :aid"),
+            text("SELECT user_id, student_verified FROM users WHERE auth0_id = :aid"),
             {"aid": auth0_id},
         ).fetchone()
 
         if not row:
-            # Auto-create user từ token nếu chưa có trong DB
             email = user.get("email", "")
-            # Thử link với anonymous account cùng email
             existing = session.execute(
                 text("SELECT user_id FROM users WHERE email = :email"),
                 {"email": email},
@@ -288,7 +365,7 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
                     WHERE email = :email
                 """), {"aid": auth0_id, "email": email})
                 session.commit()
-                user_db_id = existing[0]
+                user_db_id, student_verified = existing[0], False
             else:
                 result = session.execute(text("""
                     INSERT INTO users (auth0_id, email, name, picture, email_verified, user_level, registration_type)
@@ -302,47 +379,67 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
                     "ev":      user.get("email_verified", False),
                 })
                 session.commit()
-                user_db_id = result.fetchone()[0]
+                user_db_id, student_verified = result.fetchone()[0], False
         else:
-            user_db_id = row[0]
+            user_db_id, student_verified = row[0], bool(row[1])
     finally:
         session.close()
 
-    # Tạo order_code duy nhất: user_id * 1_000_000 + epoch_mod
+    # Apply student discount (50%)
+    base_amount = plan_info["amount"]
+    final_amount = base_amount // 2 if student_verified else base_amount
+    has_student_discount = student_verified
+
+    # Validate ref_code (prevent self-referral)
+    ref_code = (body.ref_code or "").strip().lower() or None
+    if ref_code:
+        session = _session()
+        try:
+            ref_owner = session.execute(
+                text("SELECT user_id FROM users WHERE referral_code = :code"),
+                {"code": ref_code},
+            ).fetchone()
+            if not ref_owner or ref_owner[0] == user_db_id:
+                ref_code = None  # invalid or self-referral → ignore silently
+        finally:
+            session.close()
+
+    # Tạo order_code duy nhất
     order_code = user_db_id * 1_000_000 + (int(time.time()) % 1_000_000)
 
-    # Lưu payment_orders
     session = _session()
     try:
         session.execute(text("""
-            INSERT INTO payment_orders (order_code, user_id, plan, amount, gateway)
-            VALUES (:oc, :uid, :plan, :amount, 'payos')
+            INSERT INTO payment_orders
+                (order_code, user_id, plan, amount, gateway, ref_code, student_discount)
+            VALUES (:oc, :uid, :plan, :amount, 'payos', :ref, :sd)
         """), {
             "oc":     order_code,
             "uid":    user_db_id,
             "plan":   body.plan,
-            "amount": plan_info["amount"],
+            "amount": final_amount,
+            "ref":    ref_code,
+            "sd":     has_student_discount,
         })
         session.commit()
     finally:
         session.close()
 
-    # Tạo PayOS payment link
     if not all([PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY]):
         raise HTTPException(status_code=500, detail="PAYOS_* env vars chưa được cấu hình")
 
-    return_url = f"{FRONTEND_URL}?payment=success&order={order_code}"
-    cancel_url = f"{FRONTEND_URL}?payment=cancelled"
-    description = plan_info["name"][:25]  # max 25 chars (nội dung chuyển khoản)
+    return_url  = f"{FRONTEND_URL}?payment=success&order={order_code}"
+    cancel_url  = f"{FRONTEND_URL}?payment=cancelled"
+    description = plan_info["name"][:25]
 
     payload = {
         "orderCode":   order_code,
-        "amount":      plan_info["amount"],
+        "amount":      final_amount,
         "description": description,
         "returnUrl":   return_url,
         "cancelUrl":   cancel_url,
         "signature":   _payos_checksum(
-            plan_info["amount"], cancel_url, description, order_code, return_url
+            final_amount, cancel_url, description, order_code, return_url
         ),
     }
 
@@ -383,11 +480,13 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
         session.close()
 
     return {
-        "order_code":   order_code,
-        "plan":         body.plan,
-        "amount":       plan_info["amount"],
-        "checkout_url": data["checkoutUrl"],
-        "qr_code":      data.get("qrCode", ""),
+        "order_code":       order_code,
+        "plan":             body.plan,
+        "amount":           final_amount,
+        "original_amount":  base_amount,
+        "student_discount": has_student_discount,
+        "checkout_url":     data["checkoutUrl"],
+        "qr_code":          data.get("qrCode", ""),
     }
 
 
@@ -433,16 +532,31 @@ async def create_payment_order_guest(body: GuestOrderRequest):
 
     order_code = user_db_id * 1_000_000 + (int(time.time()) % 1_000_000)
 
+    # Validate ref_code (guest can't self-refer since they're new, but check anyway)
+    ref_code_guest = (body.ref_code or "").strip().lower() or None
+    if ref_code_guest:
+        session = _session()
+        try:
+            ref_owner = session.execute(
+                text("SELECT user_id FROM users WHERE referral_code = :code"),
+                {"code": ref_code_guest},
+            ).fetchone()
+            if not ref_owner or ref_owner[0] == user_db_id:
+                ref_code_guest = None
+        finally:
+            session.close()
+
     session = _session()
     try:
         session.execute(text("""
-            INSERT INTO payment_orders (order_code, user_id, plan, amount, gateway)
-            VALUES (:oc, :uid, :plan, :amount, 'payos')
+            INSERT INTO payment_orders (order_code, user_id, plan, amount, gateway, ref_code)
+            VALUES (:oc, :uid, :plan, :amount, 'payos', :ref)
         """), {
             "oc":     order_code,
             "uid":    user_db_id,
             "plan":   body.plan,
             "amount": plan_info["amount"],
+            "ref":    ref_code_guest,
         })
         session.commit()
     finally:
@@ -557,6 +671,12 @@ async def verify_order(order_code: int):
                 UPDATE payment_orders SET status = 'paid', updated_at = NOW()
                 WHERE order_code = :oc
             """), {"oc": order_code})
+            # Credit referral reward if applicable
+            paid_amount = session.execute(
+                text("SELECT amount FROM payment_orders WHERE order_code = :oc"),
+                {"oc": order_code},
+            ).scalar() or 0
+            _credit_referral(session, order_code, paid_amount)
             session.commit()
             print(f"[verify-order] ✅ Premium activated user_id={user_id} đến {new_expiry}")
             return {
@@ -622,6 +742,10 @@ async def payos_webhook(request: Request):
             SET status = 'paid', updated_at = NOW()
             WHERE order_code = :oc
         """), {"oc": order_code})
+
+        # Credit referral reward
+        paid_amount = data.get("amount") or 0
+        _credit_referral(session, order_code, paid_amount)
 
         session.commit()
         print(f"[payos-webhook] ✅ Premium user_id={user_id} đến {new_expiry}")
@@ -719,7 +843,7 @@ async def require_premium(request: Request):
         session.close()
 
     if not row or not row[0]:
-        raise HTTPException(status_code=403, detail="Yêu cầu gói Premium hoặc Premium Developer")
+        raise HTTPException(status_code=403, detail="Yêu cầu gói Premium hoặc API Supper Lite trở lên")
 
     if row[1] and row[1] < datetime.now():
         raise HTTPException(status_code=403, detail="Gói Premium đã hết hạn")

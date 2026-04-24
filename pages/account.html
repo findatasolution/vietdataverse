@@ -563,6 +563,27 @@
             </div>
         </div>
 
+        <!-- ── VDV Wallet Card ────────────────────────────────── -->
+        <div class="card">
+            <div class="card-title">
+                VDV Wallet
+                <span class="coming-soon-chip">Soon</span>
+            </div>
+            <div class="wallet-row">
+                <div>
+                    <div class="wallet-balance-label">Số dư hiện tại</div>
+                    <div class="wallet-balance" id="wallet-balance">0 ₫</div>
+                    <div class="wallet-note">Điểm thưởng dùng để gia hạn gói dịch vụ</div>
+                </div>
+                <a href="/pages/pricing.html" class="btn-upgrade" style="text-decoration:none">
+                    Nạp tiền
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 8h10M9 4l4 4-4 4"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        
         <!-- ── Subscription Card ─────────────────────────────── -->
         <div class="card">
             <div class="card-title">Gói dịch vụ</div>
@@ -621,24 +642,104 @@
             </div>
         </div>
 
-        <!-- ── VDV Wallet Card ────────────────────────────────── -->
-        <div class="card">
+        <!-- ── Student Verification Card ────────────────────── -->
+        <div class="card" id="student-card">
             <div class="card-title">
-                VDV Wallet
-                <span class="coming-soon-chip">Soon</span>
+                Xác minh sinh viên
+                <span id="stu-verified-chip" style="display:none;
+                    background:rgba(45,122,79,.1);color:#2d7a4f;border-radius:99px;
+                    padding:2px 9px;font-size:10px;font-weight:600;margin-left:6px;">✓ Đã xác minh</span>
             </div>
-            <div class="wallet-row">
-                <div>
-                    <div class="wallet-balance-label">Số dư hiện tại</div>
-                    <div class="wallet-balance" id="wallet-balance">0 ₫</div>
-                    <div class="wallet-note">Điểm thưởng dùng để gia hạn gói dịch vụ</div>
+            <div id="stu-verified-state" style="display:none;">
+                <div style="background:rgba(45,122,79,.07);border:1px solid rgba(45,122,79,.2);
+                            border-radius:8px;padding:14px 16px;font-size:13px;color:#2d7a4f;">
+                    ✓ Email sinh viên <strong id="stu-email-display"></strong> đã được xác minh.
+                    Bạn được giảm <strong>50%</strong> khi mua gói Pro Data.
                 </div>
-                <a href="/pages/pricing.html" class="btn-upgrade" style="text-decoration:none">
-                    Nạp tiền
-                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 8h10M9 4l4 4-4 4"/>
-                    </svg>
-                </a>
+            </div>
+            <div id="stu-unverified-state">
+                <p style="font-size:13px;color:var(--stone-gray);margin:0 0 16px;line-height:1.6;">
+                    Xác minh email trường học (.edu.vn) để nhận ưu đãi giảm 50% khi mua gói
+                    <strong>Pro Data</strong> — áp dụng tự động khi thanh toán.
+                </p>
+                <div id="stu-input-step">
+                    <div style="display:flex;gap:8px;margin-bottom:4px;">
+                        <input type="email" id="stu-email-input" placeholder="ten@truong.edu.vn"
+                               style="flex:1;padding:10px 12px;border:1px solid var(--border-cream);
+                                      border-radius:8px;font-size:13px;font-family:inherit;
+                                      background:var(--ivory);outline:none;"
+                               onfocus="this.style.borderColor='rgba(201,100,66,.4)'"
+                               onblur="this.style.borderColor='var(--border-cream)'">
+                        <button onclick="stuSendOtp()" id="stu-btn-send"
+                                style="background:var(--terracotta);border:none;color:var(--ivory);
+                                       padding:10px 18px;border-radius:8px;font-size:13px;
+                                       font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
+                            Gửi mã
+                        </button>
+                    </div>
+                    <div id="stu-err-email" style="font-size:12px;color:var(--error-red);min-height:18px;"></div>
+                </div>
+                <div id="stu-otp-step" style="display:none;">
+                    <p style="font-size:12px;color:var(--stone-gray);margin:0 0 10px;">
+                        Nhập mã 6 số đã gửi đến <strong id="stu-otp-target"></strong>
+                    </p>
+                    <div style="display:flex;gap:8px;margin-bottom:4px;">
+                        <input type="text" id="stu-otp-input" maxlength="6" placeholder="123456"
+                               style="flex:1;padding:10px 14px;border:1px solid var(--border-cream);
+                                      border-radius:8px;font-size:20px;font-weight:700;letter-spacing:6px;
+                                      text-align:center;font-family:monospace;background:var(--ivory);outline:none;"
+                               onfocus="this.style.borderColor='rgba(201,100,66,.4)'"
+                               onblur="this.style.borderColor='var(--border-cream)'">
+                        <button onclick="stuConfirmOtp()" id="stu-btn-confirm"
+                                style="background:var(--terracotta);border:none;color:var(--ivory);
+                                       padding:10px 18px;border-radius:8px;font-size:13px;
+                                       font-weight:500;cursor:pointer;font-family:inherit;">
+                            Xác nhận
+                        </button>
+                    </div>
+                    <button onclick="stuResetStep()"
+                            style="background:none;border:none;color:var(--stone-gray);font-size:11px;
+                                   cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;">
+                        Đổi email
+                    </button>
+                    <div id="stu-err-otp" style="font-size:12px;color:var(--error-red);min-height:18px;margin-top:4px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Referral Card (pro only) ──────────────────────── -->
+        <div class="card" id="referral-card" style="display:none">
+            <div class="card-title">Giới thiệu bạn bè</div>
+            <p style="font-size:13px;color:var(--stone-gray);margin:0 0 16px;line-height:1.6;">
+                Mỗi người thanh toán qua link của bạn → bạn nhận
+                <strong style="color:var(--near-black);">10% giá trị giao dịch</strong> vào VDV Wallet.
+            </p>
+            <div style="display:flex;align-items:center;gap:8px;
+                        background:var(--warm-sand);border:1px solid var(--border-warm);
+                        border-radius:8px;padding:12px 14px;margin-bottom:12px;">
+                <span id="ref-url-display" style="flex:1;font-size:12px;color:var(--charcoal);
+                                                   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                                                   font-family:'JetBrains Mono','Courier New',monospace;">
+                    Đang tải…
+                </span>
+                <button onclick="copyRefUrl()" id="ref-copy-btn"
+                        style="background:none;border:1px solid var(--border-warm);color:var(--olive-gray);
+                               font-size:11px;font-weight:500;padding:5px 11px;border-radius:4px;
+                               cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s;"
+                        onmouseover="this.style.color='var(--terracotta)'"
+                        onmouseout="this.style.color='var(--olive-gray)'">
+                    Copy link
+                </button>
+            </div>
+            <div style="display:flex;gap:24px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:11px;color:var(--stone-gray);margin-bottom:2px;">Lượt tham gia</div>
+                    <div style="font-size:18px;font-weight:700;color:var(--near-black);" id="ref-count">—</div>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:var(--stone-gray);margin-bottom:2px;">Tổng đã kiếm</div>
+                    <div style="font-size:18px;font-weight:700;color:var(--terracotta);" id="ref-earned">—</div>
+                </div>
             </div>
         </div>
 
@@ -675,10 +776,10 @@
         : 'https://api.vietdataverse.online';
 
     const PLAN_LABELS = {
-        pro_monthly:       'Pro Data (Tháng)',
-        pro_yearly:        'Pro Data (Năm)',
-        dev_monthly:       'Pro Data (Tháng)',
-        dev_yearly:        'Pro Data (Năm)',
+        pro_monthly:       'API Supper Lite (Tháng)',
+        pro_yearly:        'API Supper Lite (Năm)',
+        dev_monthly:       'API Supper Lite (Tháng)',
+        dev_yearly:        'API Supper Lite (Năm)',
         premium_monthly:   'Premium (Tháng)',
         premium_yearly:    'Premium (Năm)',
     };
@@ -733,7 +834,7 @@
             badge.textContent = 'Admin';
             badge.className = 'level-badge admin';
         } else if (level === 'premium_developer' || level === 'premium') {
-            badge.textContent = 'Pro Data';
+            badge.textContent = 'API Supper Lite';
             badge.className = 'level-badge pro';
         } else {
             badge.textContent = 'Free';
@@ -758,13 +859,13 @@
             status.className = 'sub-status free';
             expiryEl.textContent = 'Không giới hạn thời gian';
             ctaEl.innerHTML = `<a href="/pages/pricing.html" class="btn-upgrade" style="text-decoration:none">
-                Nâng cấp lên Pro Data
+                Nâng cấp lên API Supper Lite
                 <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 8h10M9 4l4 4-4 4"/>
                 </svg>
             </a>`;
         } else {
-            planName.textContent = PLAN_LABELS[plan] || 'Pro Data';
+            planName.textContent = PLAN_LABELS[plan] || 'API Supper Lite';
             const days = daysLeft(expiry);
             const expired = days !== null && days < 0;
 
@@ -919,8 +1020,121 @@
 
     /* ── Render wallet ───────────────────────────────────── */
     function renderWallet(balance) {
-        const formatted = balance.toLocaleString('vi-VN') + ' ₫';
+        const formatted = (balance || 0).toLocaleString('vi-VN') + ' ₫';
         document.getElementById('wallet-balance').textContent = formatted;
+    }
+
+    /* ── Student verification (account page) ─────────────── */
+    let _stuEmailSent = '';
+
+    function renderStudentCard(stuData) {
+        if (!stuData) return;
+        if (stuData.student_verified) {
+            document.getElementById('stu-verified-chip').style.display = 'inline';
+            document.getElementById('stu-verified-state').style.display = 'block';
+            document.getElementById('stu-unverified-state').style.display = 'none';
+            document.getElementById('stu-email-display').textContent = stuData.student_email || '';
+        }
+    }
+
+    async function stuSendOtp() {
+        const email = document.getElementById('stu-email-input').value.trim();
+        const errEl = document.getElementById('stu-err-email');
+        errEl.textContent = '';
+
+        if (!email.endsWith('.edu.vn')) {
+            errEl.textContent = 'Email phải có đuôi .edu.vn';
+            return;
+        }
+
+        const btn = document.getElementById('stu-btn-send');
+        btn.disabled = true;
+        btn.textContent = 'Đang gửi…';
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API_BASE}/api/v1/student/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Lỗi gửi OTP');
+
+            _stuEmailSent = email;
+            document.getElementById('stu-input-step').style.display = 'none';
+            document.getElementById('stu-otp-step').style.display = 'block';
+            document.getElementById('stu-otp-target').textContent = email;
+            document.getElementById('stu-otp-input').focus();
+        } catch (e) {
+            errEl.textContent = e.message;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Gửi mã';
+        }
+    }
+
+    async function stuConfirmOtp() {
+        const otp_code = document.getElementById('stu-otp-input').value.trim();
+        const errEl    = document.getElementById('stu-err-otp');
+        errEl.textContent = '';
+
+        if (otp_code.length !== 6) { errEl.textContent = 'Mã OTP gồm 6 chữ số.'; return; }
+
+        const btn = document.getElementById('stu-btn-confirm');
+        btn.disabled = true;
+        btn.textContent = '…';
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API_BASE}/api/v1/student/confirm-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email: _stuEmailSent, otp_code }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Mã không đúng');
+
+            renderStudentCard({ student_verified: true, student_email: _stuEmailSent });
+        } catch (e) {
+            errEl.textContent = e.message;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Xác nhận';
+        }
+    }
+
+    function stuResetStep() {
+        document.getElementById('stu-otp-step').style.display = 'none';
+        document.getElementById('stu-input-step').style.display = 'block';
+        document.getElementById('stu-err-otp').textContent = '';
+    }
+
+    /* ── Referral card ───────────────────────────────────── */
+    let _refUrl = '';
+
+    async function loadReferral(headers) {
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/referral/my-code`, { headers });
+            if (!res.ok) return;
+            const data = await res.json();
+
+            _refUrl = data.referral_url;
+            document.getElementById('ref-url-display').textContent = data.referral_url;
+            document.getElementById('ref-count').textContent = data.referral_count;
+            document.getElementById('ref-earned').textContent =
+                (data.total_earned_vnd || 0).toLocaleString('vi-VN') + ' ₫';
+            document.getElementById('referral-card').style.display = 'block';
+        } catch (_) { /* non-critical */ }
+    }
+
+    function copyRefUrl() {
+        if (!_refUrl) return;
+        navigator.clipboard.writeText(_refUrl).then(() => {
+            const btn = document.getElementById('ref-copy-btn');
+            btn.textContent = 'Đã copy!';
+            setTimeout(() => btn.textContent = 'Copy link', 1500);
+        });
     }
 
     /* ── Boot ────────────────────────────────────────────── */
@@ -938,27 +1152,30 @@
             const token = await getToken();
             const headers = { Authorization: `Bearer ${token}` };
 
-            // Fetch /me
+            // Fetch in parallel: /me, student/status, referral/my-code (if pro)
             const meRes = await fetch(`${API_BASE}/me`, { headers });
             if (!meRes.ok) throw new Error('Không tải được thông tin tài khoản');
             const me = await meRes.json();
 
-            // Fetch key-info if pro
-            let keyInfo = null;
-            if (me.user_level === 'premium_developer' || me.is_admin) {
-                try {
-                    const kiRes = await fetch(`${API_BASE}/api/v1/developer/key-info`, { headers });
-                    if (kiRes.ok) keyInfo = await kiRes.json();
-                } catch (_) { /* key-info non-critical */ }
-            }
+            // Parallel non-critical fetches
+            const isPro = me.user_level === 'premium_developer' || me.is_admin;
+            const [keyInfo, stuData] = await Promise.all([
+                isPro
+                    ? fetch(`${API_BASE}/api/v1/developer/key-info`, { headers })
+                        .then(r => r.ok ? r.json() : null).catch(() => null)
+                    : Promise.resolve(null),
+                fetch(`${API_BASE}/api/v1/student/status`, { headers })
+                    .then(r => r.ok ? r.json() : null).catch(() => null),
+            ]);
 
-            // Render
+            // Render all sections
             renderProfile(me);
             renderSubscription(me, keyInfo);
             if (keyInfo !== null) renderTokenCard(keyInfo);
             renderWallet(me.wallet_balance || 0);
+            renderStudentCard(stuData);
+            if (isPro) await loadReferral(headers);
 
-            // Show content
             document.getElementById('state-loading').style.display = 'none';
             document.getElementById('account-content').style.display = 'block';
         } catch (err) {

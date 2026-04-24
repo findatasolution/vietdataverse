@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Giá | Viet Dataverse</title>
-    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — VN30 Score, Market Pulse, API không giới hạn. Gói Pro Data từ 149.000đ/tháng.">
+    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — VN30 Score, Market Pulse, API không giới hạn. Gói API Supper Lite từ 149.000đ/tháng.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://vietdataverse.online/pages/pricing.html">
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <meta property="og:title" content="Bảng Giá | Viet Dataverse">
-    <meta property="og:description" content="Gói Pro Data — full history, API access, VN30 Score & Market Pulse không giới hạn. Từ 149.000đ/tháng.">
+    <meta property="og:description" content="Gói API Supper Lite — full history, API access, VN30 Score & Market Pulse không giới hạn. Từ 149.000đ/tháng.">
     <meta property="og:url" content="https://vietdataverse.online/pages/pricing.html">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <meta property="og:locale" content="vi_VN">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Bảng Giá | Viet Dataverse">
-    <meta name="twitter:description" content="Gói Pro Data — full history, API access, VN30 Score không giới hạn.">
+    <meta name="twitter:description" content="Gói API Supper Lite — full history, API access, VN30 Score không giới hạn.">
     <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -404,10 +404,10 @@
             </ul>
         </div>
 
-        <!-- PRO DATA -->
+        <!-- API Supper Lite -->
         <div class="plan-card featured" id="card-pro">
             <span class="plan-tier-badge badge-pro">Pro</span>
-            <div class="plan-name">Pro Data</div>
+            <div class="plan-name">API Supper Lite</div>
             <div class="plan-tagline">Sinh viên, giảng viên ngành quant finance</div>
             <div class="plan-price-block">
                 <div class="plan-price">
@@ -463,10 +463,86 @@
         Thanh toán theo tháng · Huỷ bất kỳ lúc nào · Gói năm sắp ra mắt
     </p>
 
+    <!-- Student discount section -->
+    <div id="student-section" style="display:none; width:100%; max-width:720px; margin: 0 auto 16px;">
+        <div style="background:var(--pure-white);border:1px solid var(--border-cream);
+                    border-radius:var(--radius-xl);padding:24px 28px;box-shadow:var(--whisper);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <span style="font-size:18px;">🎓</span>
+                <span style="font-size:14px;font-weight:600;color:var(--near-black);">Ưu đãi sinh viên — giảm 50%</span>
+                <span id="student-verified-badge" style="display:none;
+                    background:rgba(45,122,79,.1);color:#2d7a4f;border-radius:99px;
+                    padding:2px 10px;font-size:11px;font-weight:600;">✓ Đã xác minh</span>
+            </div>
+            <p style="font-size:12px;color:var(--stone-gray);margin:0 0 16px;line-height:1.6;">
+                Xác minh email trường học đuôi <code style="background:var(--warm-sand);padding:1px 5px;border-radius:3px;">.edu.vn</code>
+                để nhận giá <strong style="color:var(--terracotta);">74.500₫/tháng</strong>.
+            </p>
+
+            <!-- Verified state -->
+            <div id="student-verified-state" style="display:none;">
+                <div style="background:rgba(45,122,79,.07);border:1px solid rgba(45,122,79,.2);
+                            border-radius:8px;padding:14px 16px;font-size:13px;color:#2d7a4f;">
+                    ✓ Email sinh viên đã xác minh — ưu đãi 50% sẽ được áp dụng tự động khi thanh toán.
+                </div>
+            </div>
+
+            <!-- Input step -->
+            <div id="student-input-step">
+                <div style="display:flex;gap:8px;">
+                    <input type="email" id="student-email-input"
+                           placeholder="ten@truong.edu.vn"
+                           style="flex:1;padding:10px 12px;border:1px solid var(--border-cream);
+                                  border-radius:8px;font-size:13px;font-family:inherit;
+                                  background:var(--ivory);color:var(--near-black);outline:none;"
+                           onfocus="this.style.borderColor='rgba(201,100,66,.4)'"
+                           onblur="this.style.borderColor='var(--border-cream)'">
+                    <button onclick="sendStudentOtp()" id="btn-send-otp"
+                            style="background:var(--terracotta);border:none;color:var(--ivory);
+                                   padding:10px 18px;border-radius:8px;font-size:13px;
+                                   font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
+                        Gửi mã
+                    </button>
+                </div>
+                <div class="error-msg" id="error-student-email" style="margin-top:8px;"></div>
+            </div>
+
+            <!-- OTP step -->
+            <div id="student-otp-step" style="display:none;">
+                <p style="font-size:12px;color:var(--stone-gray);margin:0 0 10px;">
+                    Nhập mã 6 số đã gửi đến <strong id="student-otp-email-display"></strong>
+                </p>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="student-otp-input" maxlength="6"
+                           placeholder="123456"
+                           style="flex:1;padding:10px 12px;border:1px solid var(--border-cream);
+                                  border-radius:8px;font-size:20px;font-weight:700;
+                                  letter-spacing:6px;text-align:center;font-family:monospace;
+                                  background:var(--ivory);color:var(--near-black);outline:none;"
+                           onfocus="this.style.borderColor='rgba(201,100,66,.4)'"
+                           onblur="this.style.borderColor='var(--border-cream)'">
+                    <button onclick="confirmStudentOtp()" id="btn-confirm-otp"
+                            style="background:var(--terracotta);border:none;color:var(--ivory);
+                                   padding:10px 18px;border-radius:8px;font-size:13px;
+                                   font-weight:500;cursor:pointer;font-family:inherit;">
+                        Xác nhận
+                    </button>
+                </div>
+                <button onclick="resetStudentStep()"
+                        style="background:none;border:none;color:var(--stone-gray);
+                               font-size:11px;cursor:pointer;margin-top:8px;font-family:inherit;
+                               padding:0;text-decoration:underline;">
+                    Đổi email
+                </button>
+                <div class="error-msg" id="error-student-otp" style="margin-top:8px;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Guest email area -->
     <div id="guest-email-area">
         <div class="guest-area-title">Thanh toán gói Pro Data</div>
-        <div class="guest-plan-note">149.000₫/tháng · ≈ $4.99/month</div>
+        <div class="guest-plan-note" id="guest-plan-note">149.000₫/tháng · ≈ $4.99/month</div>
         <label for="guest-email-input">Email của bạn</label>
         <input type="email" id="guest-email-input" placeholder="ten@example.com" autocomplete="email">
         <p style="font-size:11px;color:var(--stone-gray);margin-bottom:14px;line-height:1.5;">
@@ -504,6 +580,29 @@
         display: '149.000',
     };
 
+    // ── Referral ref capture ──────────────────────────────────
+    (function captureRef() {
+        const ref = new URLSearchParams(location.search).get('ref');
+        if (ref) sessionStorage.setItem('vdv_ref', ref.trim().toLowerCase());
+    })();
+
+    function _getRef() { return sessionStorage.getItem('vdv_ref') || null; }
+
+    // ── Student verification state ────────────────────────────
+    let _studentVerified = false;
+
+    function _getEffectiveAmount() {
+        return _studentVerified ? PLAN.amount / 2 : PLAN.amount;
+    }
+
+    function _updateProBtnPrice() {
+        const btn = document.getElementById('btn-pro');
+        if (!btn) return;
+        if (_studentVerified) {
+            btn.innerHTML = btn.innerHTML.replace(/[\d.]+₫\/tháng/, '74.500₫/tháng <s style="opacity:.5;font-size:.8em">149.000₫</s>');
+        }
+    }
+
     // ── Handle PayOS redirect ─────────────────────────────────
     (async function handleRedirect() {
         const params    = new URLSearchParams(window.location.search);
@@ -526,7 +625,7 @@
                     banner.innerHTML = `
                         <div class="result-icon">🎉</div>
                         <div class="result-title">Thanh toán thành công!</div>
-                        <p class="result-desc">Pro Data đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
+                        <p class="result-desc">API Supper Lite đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
                         <div class="result-actions">
                             <a class="btn-home" href="/index.html">Về trang chủ</a>
                             <button class="btn-cta-sm" onclick="login()">Đăng nhập ngay</button>
@@ -535,14 +634,14 @@
                     banner.innerHTML = `
                         <div class="result-icon">⏳</div>
                         <div class="result-title" style="color:var(--terracotta)">Đang xử lý thanh toán</div>
-                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>Pro Data sẽ tự động kích hoạt sau khi xử lý xong.</p>
+                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>API Supper Lite sẽ tự động kích hoạt sau khi xử lý xong.</p>
                         <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
                 }
             } catch {
                 banner.innerHTML = `
                     <div class="result-icon">🎉</div>
                     <div class="result-title">Thanh toán đã ghi nhận!</div>
-                    <p class="result-desc">Pro Data sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
+                    <p class="result-desc">API Supper Lite sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
                     <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
             }
         } else if (payment === 'cancelled') {
@@ -564,17 +663,31 @@
             if (authed) {
                 const user = await getUser();
                 updateNavAuth(user);
+                // Show student section for logged-in users
+                document.getElementById('student-section').style.display = 'block';
                 try {
                     const token = await getToken();
-                    const res = await fetch(`${API}/api/v1/payment/status`, {
+                    // Check subscription status
+                    const statusRes = await fetch(`${API}/api/v1/payment/status`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    if (res.ok) {
-                        const d = await res.json();
+                    if (statusRes.ok) {
+                        const d = await statusRes.json();
                         if (d.user_level === 'premium_developer' || d.user_level === 'admin') {
                             document.getElementById('link-devpage').style.display = 'inline';
                             const btn = document.getElementById('btn-pro');
-                            if (btn) { btn.textContent = 'Renew Pro →'; }
+                            if (btn) btn.textContent = 'Gia hạn Pro →';
+                        }
+                    }
+                    // Check student status
+                    const stuRes = await fetch(`${API}/api/v1/student/status`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (stuRes.ok) {
+                        const stu = await stuRes.json();
+                        if (stu.student_verified) {
+                            _studentVerified = true;
+                            showStudentVerifiedUI(stu.student_email);
                         }
                     }
                 } catch { /* non-critical */ }
@@ -584,6 +697,16 @@
         } catch {
             updateNavAuth(null);
         }
+    }
+
+    function showStudentVerifiedUI(email) {
+        document.getElementById('student-verified-badge').style.display = 'inline';
+        document.getElementById('student-verified-state').style.display = 'block';
+        document.getElementById('student-input-step').style.display = 'none';
+        document.getElementById('student-otp-step').style.display = 'none';
+        // Update guest plan note
+        const note = document.getElementById('guest-plan-note');
+        if (note) note.textContent = '74.500₫/tháng (giảm 50% sinh viên)';
     }
 
     function updateNavAuth(user) {
@@ -628,14 +751,20 @@
             const token = await getToken();
             if (!token) throw new Error('Không lấy được token. Vui lòng đăng nhập lại.');
 
+            const body = { plan: PLAN.key };
+            const ref = _getRef();
+            if (ref) body.ref_code = ref;
+
             const res = await fetch(`${API}/api/v1/payment/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ plan: PLAN.key }),
+                body: JSON.stringify(body),
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
+            // Clear ref after use
+            sessionStorage.removeItem('vdv_ref');
             window.location.href = data.checkout_url;
         } catch (e) {
             btn.disabled = false;
@@ -666,10 +795,14 @@
         btn.textContent = 'Đang xử lý…';
 
         try {
+            const body = { email, plan: PLAN.key };
+            const ref = _getRef();
+            if (ref) body.ref_code = ref;
+
             const res = await fetch(`${API}/api/v1/payment/create-order-guest`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, plan: PLAN.key }),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
@@ -684,6 +817,84 @@
     function showError(el, msg) {
         el.textContent = msg;
         el.classList.add('visible');
+    }
+
+    // ── Student OTP flow ──────────────────────────────────────
+    async function sendStudentOtp() {
+        const email = document.getElementById('student-email-input').value.trim();
+        const errEl = document.getElementById('error-student-email');
+        errEl.classList.remove('visible');
+
+        if (!email) { showError(errEl, 'Vui lòng nhập email sinh viên.'); return; }
+        if (!email.endsWith('.edu.vn')) {
+            showError(errEl, 'Email phải có đuôi .edu.vn (ví dụ: ten@hust.edu.vn).');
+            return;
+        }
+
+        const btn = document.getElementById('btn-send-otp');
+        btn.disabled = true;
+        btn.textContent = 'Đang gửi…';
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API}/api/v1/student/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Lỗi gửi OTP');
+
+            // Show OTP step
+            document.getElementById('student-input-step').style.display = 'none';
+            document.getElementById('student-otp-step').style.display = 'block';
+            document.getElementById('student-otp-email-display').textContent = email;
+            document.getElementById('student-otp-input').value = '';
+            document.getElementById('student-otp-input').focus();
+        } catch (e) {
+            showError(errEl, e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Gửi mã';
+        }
+    }
+
+    async function confirmStudentOtp() {
+        const email    = document.getElementById('student-email-input').value.trim();
+        const otp_code = document.getElementById('student-otp-input').value.trim();
+        const errEl    = document.getElementById('error-student-otp');
+        errEl.classList.remove('visible');
+
+        if (otp_code.length !== 6) { showError(errEl, 'Mã OTP gồm 6 chữ số.'); return; }
+
+        const btn = document.getElementById('btn-confirm-otp');
+        btn.disabled = true;
+        btn.textContent = '…';
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API}/api/v1/student/confirm-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email, otp_code }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Mã không đúng');
+
+            _studentVerified = true;
+            showStudentVerifiedUI(email);
+        } catch (e) {
+            showError(errEl, e.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Xác nhận';
+        }
+    }
+
+    function resetStudentStep() {
+        document.getElementById('student-otp-step').style.display = 'none';
+        document.getElementById('student-input-step').style.display = 'block';
+        document.getElementById('error-student-otp').classList.remove('visible');
     }
 
     window.addEventListener('load', initPage);
