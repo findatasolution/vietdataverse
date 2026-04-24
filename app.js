@@ -572,11 +572,9 @@
                 const key = el.getAttribute('data-i18n');
                 if (t[key]) el.textContent = t[key];
             });
-            // Set HTML lang, persist choice, and visual feedback
+            // Set HTML lang and persist choice
             document.documentElement.lang = lang;
             localStorage.setItem('lang', lang);
-            document.getElementById('lang-toggle').style.borderColor =
-                lang === 'vi' ? 'var(--gold-primary)' : 'var(--silver)';
         }
 
         // Check authentication status and update UI
@@ -599,13 +597,9 @@
                 // User is logged in - Header
                 userInfo.style.display = 'flex';
                 loginLink.style.display = 'none';
-                logoutBtn.style.display = 'block';
-                if (userEmailElement) {
-                    userEmailElement.textContent = userEmail;
-                }
                 const userAvatar = document.getElementById('user-avatar');
                 if (userAvatar) {
-                    userAvatar.textContent = (userEmail[0] || 'U');
+                    userAvatar.textContent = (userEmail[0] || 'U').toUpperCase();
                     userAvatar.title = userEmail;
                 }
 
@@ -618,7 +612,6 @@
                 // User is not logged in - Header
                 userInfo.style.display = 'none';
                 loginLink.style.display = 'block';
-                logoutBtn.style.display = 'none';
 
                 // User is not logged in - Sidebar
                 if (sidebarUserInfo) sidebarUserInfo.style.display = 'none';
@@ -729,14 +722,12 @@
                     if (loginLink) loginLink.style.display = 'none';
                     if (userInfo) userInfo.style.display = 'flex';
                     const emailStr = user.email || user.name || 'User';
-                    if (userEmail) userEmail.textContent = emailStr;
                     const userAvatar = document.getElementById('user-avatar');
                     if (userAvatar) {
-                        userAvatar.textContent = (emailStr[0] || 'U');
+                        userAvatar.textContent = (emailStr[0] || 'U').toUpperCase();
                         userAvatar.title = emailStr;
                     }
                     if (logoutBtn) {
-                        logoutBtn.style.display = 'block';
                         logoutBtn.addEventListener('click', () => {
                             localStorage.removeItem('vdv_user_level');
                             logout();

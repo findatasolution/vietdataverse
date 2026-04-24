@@ -247,42 +247,60 @@ html {
     box-shadow: var(--shadow-gold);
 }
 
-.header-btn.danger {
-    background: rgba(181, 51, 51, 0.06);
-    border: 1px solid rgba(181, 51, 51, 0.25);
-    color: var(--error-red);
+.lang-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.75rem;
+    min-width: 40px;
+    text-align: center;
 }
 
-.header-btn.danger:hover {
-    background: rgba(181, 51, 51, 0.12);
-    border-color: rgba(181, 51, 51, 0.4);
-}
-
-.user-info {
+/* ── User chip (avatar + logout icon) ── */
+.user-chip {
     display: flex;
     align-items: center;
+    gap: 0;
+    background: var(--pure-white);
+    border: 1px solid var(--border-cream);
+    border-radius: 99px;
+    padding: 3px 2px 3px 3px;
+    box-shadow: var(--whisper);
 }
 
 .user-avatar {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
     background: var(--warm-sand);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
     color: var(--charcoal);
     text-transform: uppercase;
-    cursor: default;
     user-select: none;
-    border: 1px solid var(--border-cream);
-    transition: box-shadow 0.2s var(--ease-out);
+    flex-shrink: 0;
 }
 
-.user-avatar:hover {
-    box-shadow: var(--ring-sand);
+.chip-logout {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--stone-gray);
+    padding: 4px 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 99px;
+    transition: color 0.2s, background 0.2s;
+    line-height: 0;
+}
+
+.chip-logout:hover {
+    color: var(--error-red);
+    background: rgba(181, 51, 51, 0.07);
 }
 
 /* ── Sidebar ── */
@@ -1727,10 +1745,8 @@ html {
         display: none;
     }
 
-    .user-avatar {
-        width: 30px;
-        height: 30px;
-        font-size: 0.8rem;
+    .user-chip {
+        padding: 2px 2px 2px 2px;
     }
 
     .header-link {
