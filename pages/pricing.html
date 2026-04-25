@@ -82,8 +82,54 @@
             text-align: center;
             font-size: 14px;
             max-width: 440px;
-            margin-bottom: 40px;
+            margin-bottom: 28px;
             line-height: 1.7;
+        }
+
+        /* ── Billing toggle pill ──────────────────────────────── */
+        .billing-toggle {
+            display: inline-flex;
+            background: var(--warm-sand);
+            border: 1px solid var(--border-warm);
+            border-radius: 99px;
+            padding: 3px;
+            gap: 2px;
+            margin-bottom: 32px;
+        }
+        .bt-btn {
+            padding: 8px 22px;
+            border-radius: 99px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--stone-gray);
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .bt-btn.active {
+            background: var(--pure-white);
+            color: var(--near-black);
+            font-weight: 600;
+            box-shadow: 0 1px 4px rgba(0,0,0,.09);
+        }
+        .bt-save-pill {
+            background: rgba(45, 122, 79, .14);
+            color: #2d7a4f;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 99px;
+            letter-spacing: .02em;
+            transition: opacity .2s;
+        }
+        .bt-btn.active .bt-save-pill {
+            background: rgba(45, 122, 79, .18);
         }
 
         /* ── Plans grid ──────────────────────────────────────── */
@@ -118,7 +164,7 @@
             box-shadow: var(--whisper), 0 0 0 1px var(--terracotta);
         }
         .plan-card.featured::before {
-            content: 'Full power for serious data users';
+            content: 'Early Bird Discount';
             position: absolute;
             top: -12px; left: 50%;
             transform: translateX(-50%);
@@ -565,9 +611,19 @@
     <div id="result-banner"></div>
 
     <!-- Header -->
-    <span class="pricing-badge">Gói dịch vụ</span>
     <h1 class="pricing-title">Dữ liệu nghiêm túc<br>cần công cụ nghiêm túc</h1>
     <p class="pricing-subtitle">Bắt đầu miễn phí, nâng cấp khi cần toàn bộ lịch sử, API và phân tích chuyên sâu.</p>
+
+    <!-- Billing period toggle -->
+    <div class="billing-toggle">
+        <button class="bt-btn active" id="bt-monthly" onclick="switchBilling('monthly')">
+            Theo tháng
+        </button>
+        <button class="bt-btn" id="bt-yearly" onclick="switchBilling('yearly')">
+            Theo năm
+            <span class="bt-save-pill">−15%</span>
+        </button>
+    </div>
 
     <!-- Plans -->
     <div class="plans-grid">
@@ -581,7 +637,9 @@
                 <div class="plan-price">
                     <span class="price-amount price-free">0₫</span>
                 </div>
-                <div class="price-alt"></div>
+                <div class="price-alt">Mãi mãi miễn phí</div>
+                <!-- Placeholder to match Pro card badge height -->
+                <span style="display:inline-block;height:28px;"></span>
             </div>
             <button class="btn-plan btn-free" onclick="handleFreePlan()">
                 <span class="btn-text">Bắt đầu miễn phí</span>
@@ -619,7 +677,7 @@
                 <div class="plan-price">
                     <span class="price-amount" id="price-pro">149.000</span>
                     <span class="price-currency">₫</span>
-                    <span class="price-period">/tháng</span>
+                    <span class="price-period" id="price-period-pro">/tháng</span>
                 </div>
                 <div class="price-alt" id="price-alt-pro">≈ $4.99 / month</div>
                 <!-- Student discount badge -->
@@ -676,8 +734,8 @@
 
     </div>
 
-    <p style="font-size:12px;color:var(--stone-gray);text-align:center;margin-bottom:24px;">
-        Thanh toán theo tháng · Huỷ bất kỳ lúc nào · Gói năm sắp ra mắt
+    <p id="billing-footer-note" style="font-size:12px;color:var(--stone-gray);text-align:center;margin-bottom:24px;">
+        Thanh toán theo tháng · Huỷ bất kỳ lúc nào
     </p>
 
     <div class="pricing-footer">
@@ -765,7 +823,7 @@
                 <div class="co-price-row">
                     <span class="co-price-label">API Supper Lite</span>
                     <span class="co-price-value">
-                        <span id="co-final-price">149.000</span>₫<span class="co-price-period">/tháng</span>
+                        <span id="co-final-price">149.000</span>₫<span class="co-price-period" id="co-final-period">/tháng</span>
                     </span>
                 </div>
                 <div id="co-discount-row" class="co-discount-row" style="display:none;">
@@ -797,10 +855,10 @@
 
         <!-- STEP GUEST: Email + pay (not logged in) -->
         <div class="co-step-content" id="co-step-guest">
-            <div class="co-step-heading">Thanh toán gói Pro Data</div>
+            <div class="co-step-heading">Thanh toán gói API Supper Lite</div>
             <div class="co-price-box">
                 <div class="co-price-row">
-                    <span class="co-price-label">API Supper Lite</span>
+                    <!-- <span class="co-price-label">API Supper Lite</span> -->
                     <span class="co-price-value">149.000₫<span class="co-price-period">/tháng</span></span>
                 </div>
             </div>
@@ -833,7 +891,67 @@
         ? 'http://127.0.0.1:8000'
         : 'https://api.vietdataverse.online';
 
-    const PLAN = { key: 'pro_monthly', amount: 149_000 };
+    // ── Billing plans ─────────────────────────────────────────
+    // yearly = monthly × 12 × 0.85, rounded
+    const PLANS = {
+        monthly: {
+            key:             'pro_monthly',
+            amount:          149_000,
+            amountStudent:   74_500,
+            display:         '149.000',
+            displayStudent:  '74.500',
+            period:          '/tháng',
+            alt:             '≈ $4.99 / month',
+            altStudent:      '(giảm 50% sinh viên) ≈ $2.49/month',
+            confirmLabel:    'Thanh toán 149.000₫/tháng →',
+            confirmLabelStu: 'Thanh toán 74.500₫/tháng →',
+        },
+        yearly: {
+            key:             'pro_yearly',
+            amount:          1_519_800,  // 149k × 12 × 0.85
+            amountStudent:   759_900,    // 74.5k × 12 × 0.85
+            display:         '1.519.800',
+            displayStudent:  '759.900',
+            period:          '/năm',
+            alt:             '≈ 126.650₫/tháng · tiết kiệm 268.200₫',
+            altStudent:      '(giảm 50% sinh viên) ≈ 63.325₫/tháng',
+            confirmLabel:    'Thanh toán 1.519.800₫/năm →',
+            confirmLabelStu: 'Thanh toán 759.900₫/năm →',
+        },
+    };
+    let _billingPeriod = 'monthly';
+    function _currentPlan() { return PLANS[_billingPeriod]; }
+
+    function switchBilling(period) {
+        _billingPeriod = period;
+        document.getElementById('bt-monthly').classList.toggle('active', period === 'monthly');
+        document.getElementById('bt-yearly').classList.toggle('active',  period === 'yearly');
+
+        const p = _currentPlan();
+        const disc = _studentVerified;
+
+        // Update Pro card price display
+        document.getElementById('price-pro').textContent       = disc ? p.displayStudent : p.display;
+        document.getElementById('price-period-pro').textContent = p.period;
+        document.getElementById('price-alt-pro').textContent   = disc ? p.altStudent     : p.alt;
+
+        // Update student badge display if verified
+        const badge = document.getElementById('student-discount-badge');
+        if (disc) {
+            badge.textContent = `🎓 −50% đã xác minh ✓`;
+        }
+
+        // Update footer note
+        document.getElementById('billing-footer-note').textContent = period === 'yearly'
+            ? 'Thanh toán hàng năm · Tiết kiệm 2 tháng · Huỷ bất kỳ lúc nào'
+            : 'Thanh toán theo tháng · Huỷ bất kỳ lúc nào';
+
+        // Refresh confirm step if overlay is open
+        if (document.getElementById('checkout-overlay').style.display !== 'none'
+            && _coCurrentStep === 'confirm') {
+            coGoStep('confirm');
+        }
+    }
 
     // ── Referral ref capture ──────────────────────────────────
     (function captureRef() {
@@ -938,12 +1056,13 @@
     function _markStudentVerified() {
         _studentVerified = true;
         _coStudentPath   = true;
+        const p     = _currentPlan();
         const badge = document.getElementById('student-discount-badge');
         badge.textContent = '🎓 −50% đã xác minh ✓';
         badge.classList.add('verified');
         badge.onclick = null;
-        document.getElementById('price-pro').textContent = '74.500';
-        document.getElementById('price-alt-pro').textContent = '(giảm 50% sinh viên) ≈ $2.49/month';
+        document.getElementById('price-pro').textContent        = p.displayStudent;
+        document.getElementById('price-alt-pro').textContent    = p.altStudent;
     }
 
     function updateNavAuth(user) {
@@ -1048,21 +1167,24 @@
             _showProgress(2);
         } else if (step === 'confirm') {
             _hideProgress();
-            // Update price display based on VERIFIED status only (not just path intent)
             const disc = _studentVerified;
+            const p    = _currentPlan();
             document.getElementById('co-panel-title').textContent =
                 disc ? 'Bước 3/3 — Xác nhận thanh toán' : 'Xác nhận thanh toán';
-            document.getElementById('co-final-price').textContent = disc ? '74.500' : '149.000';
+            // Price in confirm box
+            const priceDisplay = disc ? p.displayStudent : p.display;
+            document.getElementById('co-final-price').textContent = priceDisplay;
+            document.getElementById('co-final-period').textContent = p.period;
             document.getElementById('co-discount-row').style.display = disc ? 'flex' : 'none';
+            // Pay button label
             document.getElementById('co-btn-pay-text').textContent =
-                disc ? 'Thanh toán 74.500₫ →' : 'Thanh toán 149.000₫ →';
-            // Student CTA: hide if verified, show otherwise
+                disc ? p.confirmLabelStu : p.confirmLabel;
+            // Student CTA: hide if verified
             document.getElementById('co-student-cta').style.display = disc ? 'none' : 'flex';
-            // After verify: show completion in progress bar briefly
             if (disc && _coStudentPath) _showProgress(3);
         } else if (step === 'guest') {
             _hideProgress();
-            document.getElementById('co-panel-title').textContent = 'Thanh toán gói Pro Data';
+            document.getElementById('co-panel-title').textContent = 'Thanh toán gói API Supper Lite';
         }
 
         if (step === 'email') setTimeout(() => document.getElementById('co-stu-email').focus(), 60);
@@ -1141,7 +1263,7 @@
         try {
             const token = await getToken();
             if (!token) throw new Error('Không lấy được token. Vui lòng đăng nhập lại.');
-            const body = { plan: PLAN.key };
+            const body = { plan: _currentPlan().key };
             const ref = _getRef();
             if (ref) body.ref_code = ref;
             const res = await fetch(`${API}/api/v1/payment/create-order`, {
@@ -1169,7 +1291,7 @@
         const btn = document.getElementById('co-btn-guest-pay');
         btn.disabled = true; btn.classList.add('loading');
         try {
-            const body = { email, plan: PLAN.key };
+            const body = { email, plan: _currentPlan().key };
             const ref = _getRef();
             if (ref) body.ref_code = ref;
             const res = await fetch(`${API}/api/v1/payment/create-order-guest`, {
