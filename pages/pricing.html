@@ -570,32 +570,39 @@
         .co-sp-names span:first-child { text-align: left; }
         .co-sp-names span:last-child  { text-align: right; }
 
-        /* Student CTA banner inside confirm step */
-        .co-student-cta {
-            display: flex; align-items: center; gap: 12px;
-            background: rgba(45, 122, 79, .06);
-            border: 1px solid rgba(45, 122, 79, .18);
+        /* Confirm step — 2 choice cards */
+        .co-choice-label {
+            font-size: 11px; font-weight: 600; color: var(--stone-gray);
+            letter-spacing: .04em; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .co-choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+        .co-choice-card {
+            display: flex; align-items: center; gap: 14px;
+            border: 2px solid var(--border-cream);
             border-radius: var(--radius-md);
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            cursor: default;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color .18s, box-shadow .18s, background .18s;
+            background: var(--pure-white);
+            text-align: left;
+            font-family: inherit;
+            width: 100%;
         }
-        .co-student-cta-icon { font-size: 22px; flex-shrink: 0; }
-        .co-student-cta-body { flex: 1; min-width: 0; }
-        .co-student-cta-title {
-            font-size: 12px; font-weight: 700; color: #2d7a4f; margin-bottom: 2px;
+        .co-choice-card:hover { border-color: var(--terracotta); box-shadow: 0 2px 8px rgba(201,100,66,.1); }
+        .co-choice-card.stu-card:hover { border-color: #2d7a4f; box-shadow: 0 2px 8px rgba(45,122,79,.12); }
+        .co-choice-card.selected { border-color: var(--terracotta); background: rgba(201,100,66,.04); }
+        .co-choice-card.stu-card.selected { border-color: #2d7a4f; background: rgba(45,122,79,.05); }
+        .co-choice-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
+        .co-choice-body { flex: 1; min-width: 0; }
+        .co-choice-title { font-size: 13px; font-weight: 700; color: var(--near-black); margin-bottom: 2px; }
+        .co-choice-sub   { font-size: 11px; color: var(--stone-gray); line-height: 1.4; }
+        .co-choice-price {
+            font-size: 17px; font-weight: 700; color: var(--near-black);
+            flex-shrink: 0; text-align: right; line-height: 1.2;
         }
-        .co-student-cta-sub { font-size: 11px; color: var(--stone-gray); line-height: 1.4; }
-        .co-student-cta-btn {
-            flex-shrink: 0;
-            padding: 7px 12px;
-            background: #2d7a4f; color: #fff;
-            border: none; border-radius: var(--radius-sm);
-            font-size: 11px; font-weight: 700; font-family: inherit;
-            cursor: pointer; white-space: nowrap;
-            transition: filter .15s;
-        }
-        .co-student-cta-btn:hover { filter: brightness(1.1); }
+        .co-choice-price small { font-size: 10px; font-weight: 400; color: var(--stone-gray); display: block; }
+        .co-choice-card.stu-card .co-choice-price { color: #2d7a4f; }
+        .co-choice-card.stu-card .co-choice-title { color: #2d7a4f; }
     </style>
 </head>
 <body>
@@ -611,8 +618,9 @@
     <div id="result-banner"></div>
 
     <!-- Header -->
-    <h1 class="pricing-title">Dữ liệu nghiêm túc<br>cần công cụ nghiêm túc</h1>
-    <p class="pricing-subtitle">Bắt đầu miễn phí, nâng cấp khi cần toàn bộ lịch sử, API và phân tích chuyên sâu.</p>
+    <p class="pricing-subtitle"></p>
+    <h1 class="pricing-title">Gói thành viên</h1>
+    <p class="pricing-subtitle"></p>
 
     <!-- Billing period toggle -->
     <div class="billing-toggle">
@@ -630,14 +638,14 @@
 
         <!-- FREE -->
         <div class="plan-card" id="card-free">
-            <span class="plan-tier-badge badge-free">Miễn phí</span>
+            <!-- <span class="plan-tier-badge badge-free">Miễn phí</span> -->
             <div class="plan-name">Free</div>
             <div class="plan-tagline">Try data before you go deep</div>
             <div class="plan-price-block">
                 <div class="plan-price">
                     <span class="price-amount price-free">0₫</span>
                 </div>
-                <div class="price-alt">Mãi mãi miễn phí</div>
+                <!-- <div class="price-alt">Mãi mãi miễn phí</div> -->
                 <!-- Placeholder to match Pro card badge height -->
                 <span style="display:inline-block;height:28px;margin-top:auto;"></span>
             </div>
@@ -670,26 +678,26 @@
 
         <!-- API Supper Lite -->
         <div class="plan-card featured" id="card-pro">
-            <span class="plan-tier-badge badge-pro">Pro</span>
+            <!-- <span class="plan-tier-badge badge-pro">Pro</span> -->
             <div class="plan-name">API Supper Lite</div>
-            <div class="plan-tagline">Sinh viên, giảng viên ngành quant finance</div>
+            <div class="plan-tagline">Dành cho dự án cá nhân, học tập, nghiên cứu</div>
             <div class="plan-price-block">
                 <div class="plan-price">
                     <span class="price-amount" id="price-pro">149.000</span>
                     <span class="price-currency">₫</span>
                     <span class="price-period" id="price-period-pro">/tháng</span>
                 </div>
-                <div class="price-alt" id="price-alt-pro">≈ $4.99 / month</div>
+                
                 <!-- Student discount badge -->
                 <span class="student-discount-badge" id="student-discount-badge" style="margin-top:auto;"
                       onclick="openCheckoutStudent()"
                       title="Xác minh sinh viên để nhận giảm 50%">
-                    🎓 −50% sinh viên
+                     −50% sinh viên
                 </span>
             </div>
             <button class="btn-plan btn-pro" id="btn-pro" onclick="openCheckout()">
                 <span class="spinner"></span>
-                <span class="btn-text">Nâng cấp Pro →</span>
+                <span class="btn-text">Nâng cấp gói →</span>
             </button>
             <div class="error-msg" id="error-pro"></div>
             <a href="/pages/developer.html" id="link-devpage"
@@ -818,39 +826,60 @@
 
         <!-- STEP CONFIRM: Review & pay (auth users) -->
         <div class="co-step-content" id="co-step-confirm">
-            <!-- Price box -->
-            <div class="co-price-box">
-                <div class="co-price-row">
-                    <span class="co-price-label">API Supper Lite</span>
-                    <span class="co-price-value">
-                        <span id="co-final-price">149.000</span>₫<span class="co-price-period" id="co-final-period">/tháng</span>
-                    </span>
-                </div>
-                <div id="co-discount-row" class="co-discount-row" style="display:none;">
-                    <span class="co-discount-tag">🎓 −50% sinh viên</span>
-                    <span class="co-discount-orig">Giá gốc: <s>149.000₫</s></span>
-                </div>
-            </div>
-            <!-- Student CTA — hidden once verified -->
-            <div class="co-student-cta" id="co-student-cta">
-                <div class="co-student-cta-icon">🎓</div>
-                <div class="co-student-cta-body">
-                    <div class="co-student-cta-title">Bạn là sinh viên?</div>
-                    <div class="co-student-cta-sub">
-                        Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 4px;border-radius:3px;">.edu.vn</code>
-                        → chỉ <strong style="color:#2d7a4f;">74.500₫/tháng</strong>
-                        <span style="color:var(--stone-gray);">(tiết kiệm 74.500₫)</span>
+
+            <!-- Verified student: show discounted price box + pay -->
+            <div id="co-verified-block" style="display:none;">
+                <div class="co-price-box">
+                    <div class="co-price-row">
+                        <span class="co-price-label">API Supper Lite</span>
+                        <span class="co-price-value" style="color:#2d7a4f;">
+                            <span id="co-final-price">74.500</span>₫<span class="co-price-period" id="co-final-period">/tháng</span>
+                        </span>
+                    </div>
+                    <div class="co-discount-row" style="display:flex;">
+                        <span class="co-discount-tag">🎓 −50% sinh viên đã xác minh</span>
+                        <span class="co-discount-orig" id="co-discount-orig-text">Giá gốc: <s>149.000₫</s></span>
                     </div>
                 </div>
-                <button class="co-student-cta-btn" onclick="coStartStudentVerify()">
-                    Xác minh →
+                <div class="co-error" id="co-err-confirm"></div>
+                <button class="co-btn-primary full" id="co-btn-pay" onclick="coSubmitPayment()" style="background:#2d7a4f;">
+                    <span class="co-spinner"></span>
+                    <span class="co-btn-text" id="co-btn-pay-text">Thanh toán 74.500₫/tháng →</span>
                 </button>
             </div>
-            <div class="co-error" id="co-err-confirm"></div>
-            <button class="co-btn-primary full" id="co-btn-pay" onclick="coSubmitPayment()">
-                <span class="co-spinner"></span>
-                <span class="co-btn-text" id="co-btn-pay-text">Thanh toán 149.000₫ →</span>
-            </button>
+
+            <!-- Unverified: show 2 clear choices -->
+            <div id="co-choice-block">
+                <div class="co-choice-label">Chọn loại tài khoản</div>
+                <div class="co-choices">
+                    <!-- Normal pay -->
+                    <button class="co-choice-card" id="co-btn-pay-normal" onclick="coSubmitPaymentNormal(this)">
+                        <div class="co-choice-icon">💳</div>
+                        <div class="co-choice-body">
+                            <div class="co-choice-title">Thanh toán ngay</div>
+                            <div class="co-choice-sub">Kích hoạt ngay sau thanh toán</div>
+                        </div>
+                        <div class="co-choice-price">
+                            <span id="co-normal-price-display">149.000₫</span>
+                            <small id="co-normal-period-display">/tháng</small>
+                        </div>
+                    </button>
+                    <!-- Student verify -->
+                    <button class="co-choice-card stu-card" onclick="coStartStudentVerify()">
+                        <div class="co-choice-icon">🎓</div>
+                        <div class="co-choice-body">
+                            <div class="co-choice-title">Tôi là sinh viên — giảm 50%</div>
+                            <div class="co-choice-sub">Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 3px;border-radius:3px;font-size:10px;">.edu.vn</code> · ~2 phút</div>
+                        </div>
+                        <div class="co-choice-price">
+                            <span id="co-stu-price-display">74.500₫</span>
+                            <small id="co-stu-period-display">/tháng</small>
+                        </div>
+                    </button>
+                </div>
+                <div class="co-error" id="co-err-confirm2"></div>
+            </div>
+
         </div>
 
         <!-- STEP GUEST: Email + pay (not logged in) -->
@@ -1166,21 +1195,24 @@
             const disc = _studentVerified;
             const p    = _currentPlan();
             document.getElementById('co-panel-title').textContent =
-                disc ? 'Bước 3/3 — Xác nhận thanh toán' : 'Xác nhận thanh toán';
-            // Price in confirm box
-            const priceDisplay = disc ? p.displayStudent : p.display;
-            document.getElementById('co-final-price').textContent = priceDisplay;
-            document.getElementById('co-final-period').textContent = p.period;
-            document.getElementById('co-discount-row').style.display = disc ? 'flex' : 'none';
-            // Pay button label
-            document.getElementById('co-btn-pay-text').textContent =
-                disc ? p.confirmLabelStu : p.confirmLabel;
-            // Student CTA: hide if verified; update savings text to match billing period
-            const ctaEl = document.getElementById('co-student-cta');
-            ctaEl.style.display = disc ? 'none' : 'flex';
-            if (!disc) {
-                const sub = ctaEl.querySelector('.co-student-cta-sub');
-                if (sub) sub.innerHTML = `Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 4px;border-radius:3px;">.edu.vn</code> → chỉ <strong style="color:#2d7a4f;">${p.displayStudent}₫${p.period}</strong> <span style="color:var(--stone-gray);">(giảm 50%)</span>`;
+                disc ? '🎓 Xác nhận thanh toán sinh viên' : 'Chọn loại tài khoản';
+
+            // Show/hide blocks
+            document.getElementById('co-verified-block').style.display = disc ? 'block' : 'none';
+            document.getElementById('co-choice-block').style.display   = disc ? 'none'  : 'block';
+
+            if (disc) {
+                // Verified student block
+                document.getElementById('co-final-price').textContent        = p.displayStudent;
+                document.getElementById('co-final-period').textContent       = p.period;
+                document.getElementById('co-discount-orig-text').innerHTML   = `Giá gốc: <s>${p.display}₫</s>`;
+                document.getElementById('co-btn-pay-text').textContent       = p.confirmLabelStu;
+            } else {
+                // Choice block — update prices per billing period
+                document.getElementById('co-normal-price-display').textContent = `${p.display}₫`;
+                document.getElementById('co-normal-period-display').textContent = p.period;
+                document.getElementById('co-stu-price-display').textContent    = `${p.displayStudent}₫`;
+                document.getElementById('co-stu-period-display').textContent   = p.period;
             }
         } else if (step === 'guest') {
             _hideProgress();
@@ -1256,10 +1288,9 @@
     }
 
     // ── Payment ───────────────────────────────────────────────
-    async function coSubmitPayment() {
+    async function _doCreateOrder(btn, errId) {
         _clearCoErrors();
-        const btn = document.getElementById('co-btn-pay');
-        btn.disabled = true; btn.classList.add('loading');
+        if (btn) { btn.disabled = true; btn.classList.add('loading'); }
         try {
             const token = await getToken();
             if (!token) throw new Error('Không lấy được token. Vui lòng đăng nhập lại.');
@@ -1276,9 +1307,19 @@
             sessionStorage.removeItem('vdv_ref');
             window.location.href = data.checkout_url;
         } catch (e) {
-            btn.disabled = false; btn.classList.remove('loading');
-            _showCoError('co-err-confirm', e.message);
+            if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+            _showCoError(errId, e.message);
         }
+    }
+
+    // Called from verified student block pay button
+    async function coSubmitPayment() {
+        await _doCreateOrder(document.getElementById('co-btn-pay'), 'co-err-confirm');
+    }
+
+    // Called from normal-pay choice card
+    async function coSubmitPaymentNormal(btn) {
+        await _doCreateOrder(btn, 'co-err-confirm2');
     }
 
     async function coSubmitGuestPayment() {
