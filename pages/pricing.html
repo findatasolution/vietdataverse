@@ -415,25 +415,6 @@
             margin-bottom: 20px; padding-right: 32px;
         }
 
-        /* Step indicator */
-        .co-steps { display: flex; align-items: center; margin-bottom: 24px; }
-        .co-step-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .co-step-dot {
-            width: 28px; height: 28px; border-radius: 50%;
-            border: 2px solid var(--border-cream);
-            background: var(--ivory); color: var(--stone-gray);
-            font-size: 11px; font-weight: 700;
-            display: flex; align-items: center; justify-content: center;
-            transition: all .2s; position: relative; z-index: 1;
-        }
-        .co-step-item.active .co-step-dot { border-color: var(--terracotta); background: var(--terracotta); color: #fff; }
-        .co-step-item.done  .co-step-dot  { border-color: #2d7a4f; background: #2d7a4f; color: #fff; }
-        .co-step-label { font-size: 10px; font-weight: 500; color: var(--stone-gray); white-space: nowrap; }
-        .co-step-item.active .co-step-label { color: var(--terracotta); font-weight: 600; }
-        .co-step-item.done  .co-step-label  { color: #2d7a4f; }
-        .co-step-line { flex: 1; height: 2px; background: var(--border-cream); margin-bottom: 14px; transition: background .2s; }
-        .co-step-line.done { background: #2d7a4f; }
-
         /* Step content */
         .co-step-content { display: none; }
         .co-step-content.active { display: block; }
@@ -508,18 +489,67 @@
         .co-discount-tag { background: rgba(45,122,79,.1); color: #2d7a4f; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
         .co-discount-orig { font-size: 12px; color: var(--stone-gray); }
 
-        /* Student choice */
-        .co-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .co-choice-btn {
-            padding: 16px 10px; border-radius: var(--radius-md);
-            border: 2px solid var(--border-cream); background: var(--ivory);
-            cursor: pointer; text-align: center;
-            transition: border-color .18s, background .18s; font-family: inherit;
+        /* Student inline progress (shown only during email/otp steps) */
+        .co-student-progress { margin-bottom: 22px; }
+        .co-sp-label {
+            font-size: 11px; font-weight: 600;
+            color: var(--terracotta); margin-bottom: 10px;
+            letter-spacing: .03em;
         }
-        .co-choice-btn:hover { border-color: var(--terracotta); background: rgba(201,100,66,.04); }
-        .co-choice-icon { font-size: 26px; margin-bottom: 6px; }
-        .co-choice-label { font-size: 13px; font-weight: 600; color: var(--near-black); }
-        .co-choice-sub { font-size: 11px; color: var(--stone-gray); margin-top: 3px; }
+        .co-sp-track {
+            display: flex; align-items: center; margin-bottom: 6px;
+        }
+        .co-sp-dot {
+            width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+            border: 2px solid var(--border-cream);
+            background: var(--ivory); color: var(--stone-gray);
+            font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .25s; position: relative; z-index: 1;
+        }
+        .co-sp-dot.active { border-color: var(--terracotta); background: var(--terracotta); color: #fff; }
+        .co-sp-dot.done   { border-color: #2d7a4f; background: #2d7a4f; color: #fff; }
+        .co-sp-line {
+            flex: 1; height: 2px; background: var(--border-cream);
+            position: relative; overflow: hidden;
+        }
+        .co-sp-fill { position: absolute; inset: 0; background: #2d7a4f; width: 0%; transition: width .3s ease; }
+        .co-sp-names {
+            display: flex; justify-content: space-between;
+        }
+        .co-sp-names span {
+            font-size: 10px; color: var(--stone-gray); font-weight: 500;
+            flex: 1; text-align: center;
+        }
+        .co-sp-names span:first-child { text-align: left; }
+        .co-sp-names span:last-child  { text-align: right; }
+
+        /* Student CTA banner inside confirm step */
+        .co-student-cta {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(45, 122, 79, .06);
+            border: 1px solid rgba(45, 122, 79, .18);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            cursor: default;
+        }
+        .co-student-cta-icon { font-size: 22px; flex-shrink: 0; }
+        .co-student-cta-body { flex: 1; min-width: 0; }
+        .co-student-cta-title {
+            font-size: 12px; font-weight: 700; color: #2d7a4f; margin-bottom: 2px;
+        }
+        .co-student-cta-sub { font-size: 11px; color: var(--stone-gray); line-height: 1.4; }
+        .co-student-cta-btn {
+            flex-shrink: 0;
+            padding: 7px 12px;
+            background: #2d7a4f; color: #fff;
+            border: none; border-radius: var(--radius-sm);
+            font-size: 11px; font-weight: 700; font-family: inherit;
+            cursor: pointer; white-space: nowrap;
+            transition: filter .15s;
+        }
+        .co-student-cta-btn:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -673,45 +703,20 @@
     <div id="checkout-panel">
 
         <button class="co-close" onclick="closeCheckout()" title="Đóng">✕</button>
-        <div class="co-panel-title">Nâng cấp API Supper Lite</div>
+        <div class="co-panel-title" id="co-panel-title">Xác nhận thanh toán</div>
 
-        <!-- Progress dots (shown for auth users only) -->
-        <div id="co-steps" class="co-steps" style="display:none;">
-            <div class="co-step-item" id="ci1">
-                <div class="co-step-dot">1</div>
-                <div class="co-step-label">Ưu đãi</div>
+        <!-- Student verification progress (shown only during email/otp steps) -->
+        <div id="co-student-progress" class="co-student-progress" style="display:none;">
+            <div class="co-sp-label" id="co-sp-label">Bước 1/3 — Nhập email trường học</div>
+            <div class="co-sp-track">
+                <div class="co-sp-dot active" id="spd1">1</div>
+                <div class="co-sp-line"><div class="co-sp-fill" id="spf1"></div></div>
+                <div class="co-sp-dot" id="spd2">2</div>
+                <div class="co-sp-line"><div class="co-sp-fill" id="spf2"></div></div>
+                <div class="co-sp-dot" id="spd3">3</div>
             </div>
-            <div class="co-step-line" id="cl1"></div>
-            <div class="co-step-item" id="ci2">
-                <div class="co-step-dot">2</div>
-                <div class="co-step-label">Xác minh</div>
-            </div>
-            <div class="co-step-line" id="cl2"></div>
-            <div class="co-step-item" id="ci3">
-                <div class="co-step-dot">3</div>
-                <div class="co-step-label">Thanh toán</div>
-            </div>
-        </div>
-
-        <!-- STEP Q: Student question -->
-        <div class="co-step-content" id="co-step-q">
-            <div class="co-step-heading">Bạn có phải sinh viên không?</div>
-            <p class="co-step-desc">
-                Sinh viên có email trường (<code>.edu.vn</code>) được giảm
-                <strong style="color:var(--terracotta);">50%</strong>
-                → chỉ <strong style="color:var(--terracotta);">74.500₫/tháng</strong>.
-            </p>
-            <div class="co-choice-grid">
-                <button class="co-choice-btn" onclick="coPickStudent(false)">
-                    <div class="co-choice-icon">💼</div>
-                    <div class="co-choice-label">Không phải sinh viên</div>
-                    <div class="co-choice-sub">149.000₫/tháng</div>
-                </button>
-                <button class="co-choice-btn" onclick="coPickStudent(true)">
-                    <div class="co-choice-icon">🎓</div>
-                    <div class="co-choice-label">Tôi là sinh viên</div>
-                    <div class="co-choice-sub">74.500₫/tháng</div>
-                </button>
+            <div class="co-sp-names">
+                <span>Nhập email</span><span>Xác nhận</span><span>Thanh toán</span>
             </div>
         </div>
 
@@ -726,7 +731,7 @@
                    placeholder="ten@truong.edu.vn" autocomplete="email">
             <div class="co-error" id="co-err-email"></div>
             <div class="co-btn-row">
-                <button class="co-btn-secondary" onclick="coGoStep('q')">← Quay lại</button>
+                <button class="co-btn-secondary" onclick="coGoStep('confirm')">← Huỷ xác minh</button>
                 <button class="co-btn-primary" id="co-btn-send-otp" onclick="coSendOtp()">
                     <span class="co-spinner"></span>
                     <span class="co-btn-text">Gửi mã xác nhận</span>
@@ -755,7 +760,7 @@
 
         <!-- STEP CONFIRM: Review & pay (auth users) -->
         <div class="co-step-content" id="co-step-confirm">
-            <div class="co-step-heading">Xác nhận thanh toán</div>
+            <!-- Price box -->
             <div class="co-price-box">
                 <div class="co-price-row">
                     <span class="co-price-label">API Supper Lite</span>
@@ -768,14 +773,25 @@
                     <span class="co-discount-orig">Giá gốc: <s>149.000₫</s></span>
                 </div>
             </div>
+            <!-- Student CTA — hidden once verified -->
+            <div class="co-student-cta" id="co-student-cta">
+                <div class="co-student-cta-icon">🎓</div>
+                <div class="co-student-cta-body">
+                    <div class="co-student-cta-title">Bạn là sinh viên?</div>
+                    <div class="co-student-cta-sub">
+                        Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 4px;border-radius:3px;">.edu.vn</code>
+                        → chỉ <strong style="color:#2d7a4f;">74.500₫/tháng</strong>
+                        <span style="color:var(--stone-gray);">(tiết kiệm 74.500₫)</span>
+                    </div>
+                </div>
+                <button class="co-student-cta-btn" onclick="coStartStudentVerify()">
+                    Xác minh →
+                </button>
+            </div>
             <div class="co-error" id="co-err-confirm"></div>
             <button class="co-btn-primary full" id="co-btn-pay" onclick="coSubmitPayment()">
                 <span class="co-spinner"></span>
-                <span class="co-btn-text">Thanh toán ngay →</span>
-            </button>
-            <button class="co-btn-secondary full" id="co-btn-back-confirm"
-                    onclick="coGoStep('q')" style="margin-top:8px;display:none;">
-                ← Quay lại
+                <span class="co-btn-text" id="co-btn-pay-text">Thanh toán 149.000₫ →</span>
             </button>
         </div>
 
@@ -946,8 +962,8 @@
     function handleFreePlan() { window.location.href = '/index.html'; }
 
     // ── Checkout overlay ──────────────────────────────────────
-    async function openCheckout() { await _openOverlay(false); }
-    async function openCheckoutStudent() { await _openOverlay(true); }
+    async function openCheckout()        { await _openOverlay(false); }
+    async function openCheckoutStudent() { await _openOverlay(true);  }
 
     async function _openOverlay(preferStudent) {
         try { _coIsAuth = await isAuthenticated(); } catch { _coIsAuth = false; }
@@ -955,18 +971,14 @@
         document.body.style.overflow = 'hidden';
 
         if (!_coIsAuth) {
-            document.getElementById('co-steps').style.display = 'none';
             coGoStep('guest');
             return;
         }
-        document.getElementById('co-steps').style.display = 'flex';
-        if (_studentVerified) {
-            coGoStep('confirm');
-        } else if (preferStudent) {
-            _coStudentPath = true;
-            coGoStep('email');
+        // Always open at confirm first — fastest path for everyone
+        if (preferStudent && !_studentVerified) {
+            coStartStudentVerify();
         } else {
-            coGoStep('q');
+            coGoStep('confirm');
         }
     }
 
@@ -991,48 +1003,77 @@
         el.classList.add('visible');
     }
 
-    function _updateDots(activeDot) {
+    // Show/update the student progress strip (steps 1–3)
+    // dotStep: which dot is "active" (1, 2, or 3=done)
+    function _showProgress(dotStep) {
+        const bar = document.getElementById('co-student-progress');
+        bar.style.display = 'block';
+        const labels = ['Bước 1/3 — Nhập email trường học',
+                        'Bước 2/3 — Xác nhận email',
+                        'Bước 3/3 — Hoàn tất xác minh'];
+        document.getElementById('co-sp-label').textContent = labels[dotStep - 1] || '';
         for (let n = 1; n <= 3; n++) {
-            const item = document.getElementById('ci' + n);
-            if (!item) continue;
-            item.classList.remove('active', 'done');
-            if (n < activeDot) item.classList.add('done');
-            else if (n === activeDot) item.classList.add('active');
+            const dot = document.getElementById('spd' + n);
+            dot.className = 'co-sp-dot';
+            if (n < dotStep)  dot.classList.add('done'), dot.textContent = '✓';
+            else if (n === dotStep) dot.classList.add('active'), dot.textContent = n;
+            else dot.textContent = n;
         }
-        for (let n = 1; n <= 2; n++) {
-            const line = document.getElementById('cl' + n);
-            if (line) line.classList.toggle('done', n < activeDot);
-        }
+        // fill connecting lines
+        [1, 2].forEach(n => {
+            const fill = document.getElementById('spf' + n);
+            fill.style.width = n < dotStep ? '100%' : '0%';
+        });
+    }
+
+    function _hideProgress() {
+        document.getElementById('co-student-progress').style.display = 'none';
     }
 
     function coGoStep(step) {
         document.querySelectorAll('.co-step-content').forEach(el => el.classList.remove('active'));
         _clearCoErrors();
         _coCurrentStep = step;
-        const map = { q: 'co-step-q', email: 'co-step-email', otp: 'co-step-otp',
+        const map = { email: 'co-step-email', otp: 'co-step-otp',
                       confirm: 'co-step-confirm', guest: 'co-step-guest' };
         const el = document.getElementById(map[step]);
         if (el) el.classList.add('active');
 
-        if (step === 'q')       _updateDots(1);
-        if (step === 'email')   _updateDots(2);
-        if (step === 'otp')     _updateDots(2);
-        if (step === 'confirm') _updateDots(3);
-
-        if (step === 'confirm') {
-            const discount = _studentVerified || _coStudentPath;
-            document.getElementById('co-final-price').textContent = discount ? '74.500' : '149.000';
-            document.getElementById('co-discount-row').style.display = discount ? 'flex' : 'none';
-            document.getElementById('co-btn-back-confirm').style.display = _studentVerified ? 'none' : 'block';
+        // Panel title + progress bar
+        if (step === 'email') {
+            document.getElementById('co-panel-title').textContent = 'Xác minh sinh viên';
+            _showProgress(1);
+        } else if (step === 'otp') {
+            document.getElementById('co-panel-title').textContent = 'Xác minh sinh viên';
+            _showProgress(2);
+        } else if (step === 'confirm') {
+            _hideProgress();
+            // Update price display based on VERIFIED status only (not just path intent)
+            const disc = _studentVerified;
+            document.getElementById('co-panel-title').textContent =
+                disc ? 'Bước 3/3 — Xác nhận thanh toán' : 'Xác nhận thanh toán';
+            document.getElementById('co-final-price').textContent = disc ? '74.500' : '149.000';
+            document.getElementById('co-discount-row').style.display = disc ? 'flex' : 'none';
+            document.getElementById('co-btn-pay-text').textContent =
+                disc ? 'Thanh toán 74.500₫ →' : 'Thanh toán 149.000₫ →';
+            // Student CTA: hide if verified, show otherwise
+            document.getElementById('co-student-cta').style.display = disc ? 'none' : 'flex';
+            // After verify: show completion in progress bar briefly
+            if (disc && _coStudentPath) _showProgress(3);
+        } else if (step === 'guest') {
+            _hideProgress();
+            document.getElementById('co-panel-title').textContent = 'Thanh toán gói Pro Data';
         }
+
         if (step === 'email') setTimeout(() => document.getElementById('co-stu-email').focus(), 60);
         if (step === 'otp')   setTimeout(() => document.getElementById('co-otp-input').focus(), 60);
         if (step === 'guest') setTimeout(() => document.getElementById('co-guest-email').focus(), 60);
     }
 
-    function coPickStudent(isStudent) {
-        _coStudentPath = isStudent;
-        coGoStep(isStudent ? 'email' : 'confirm');
+    // Called from student CTA button inside confirm step
+    function coStartStudentVerify() {
+        document.getElementById('co-stu-email').value = '';
+        coGoStep('email');
     }
 
     // ── OTP flow ──────────────────────────────────────────────
@@ -1081,8 +1122,10 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Mã không đúng hoặc đã hết hạn');
+            // Mark progress step 3 briefly, then advance to confirm
+            _showProgress(3);
             _markStudentVerified();
-            coGoStep('confirm');
+            setTimeout(() => coGoStep('confirm'), 600);
         } catch (e) {
             _showCoError('co-err-otp', e.message);
         } finally {
