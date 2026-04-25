@@ -206,7 +206,7 @@
         }
 
         /* ── Price ───────────────────────────────────────────── */
-        .plan-price-block { margin-bottom: 6px; }
+        .plan-price-block { margin-bottom: 6px; min-height: 110px; display: flex; flex-direction: column; }
         .plan-price { display: flex; align-items: baseline; gap: 3px; }
         .price-amount {
             font-size: 34px;
@@ -639,7 +639,7 @@
                 </div>
                 <div class="price-alt">Mãi mãi miễn phí</div>
                 <!-- Placeholder to match Pro card badge height -->
-                <span style="display:inline-block;height:28px;"></span>
+                <span style="display:inline-block;height:28px;margin-top:auto;"></span>
             </div>
             <button class="btn-plan btn-free" onclick="handleFreePlan()">
                 <span class="btn-text">Bắt đầu miễn phí</span>
@@ -681,7 +681,7 @@
                 </div>
                 <div class="price-alt" id="price-alt-pro">≈ $4.99 / month</div>
                 <!-- Student discount badge -->
-                <span class="student-discount-badge" id="student-discount-badge"
+                <span class="student-discount-badge" id="student-discount-badge" style="margin-top:auto;"
                       onclick="openCheckoutStudent()"
                       title="Xác minh sinh viên để nhận giảm 50%">
                     🎓 −50% sinh viên
@@ -1081,10 +1081,10 @@
     function handleFreePlan() { window.location.href = '/index.html'; }
 
     // ── Checkout overlay ──────────────────────────────────────
-    async function openCheckout()        { await _openOverlay(false); }
-    async function openCheckoutStudent() { await _openOverlay(true);  }
+    async function openCheckout()        { await _openOverlay(); }
+    async function openCheckoutStudent() { await _openOverlay(); }
 
-    async function _openOverlay(preferStudent) {
+    async function _openOverlay() {
         try { _coIsAuth = await isAuthenticated(); } catch { _coIsAuth = false; }
         document.getElementById('checkout-overlay').style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -1093,12 +1093,8 @@
             coGoStep('guest');
             return;
         }
-        // Always open at confirm first — fastest path for everyone
-        if (preferStudent && !_studentVerified) {
-            coStartStudentVerify();
-        } else {
-            coGoStep('confirm');
-        }
+        // Always open confirm first — fastest path; student CTA is embedded there
+        coGoStep('confirm');
     }
 
     function closeCheckout() {
@@ -1179,9 +1175,13 @@
             // Pay button label
             document.getElementById('co-btn-pay-text').textContent =
                 disc ? p.confirmLabelStu : p.confirmLabel;
-            // Student CTA: hide if verified
-            document.getElementById('co-student-cta').style.display = disc ? 'none' : 'flex';
-            if (disc && _coStudentPath) _showProgress(3);
+            // Student CTA: hide if verified; update savings text to match billing period
+            const ctaEl = document.getElementById('co-student-cta');
+            ctaEl.style.display = disc ? 'none' : 'flex';
+            if (!disc) {
+                const sub = ctaEl.querySelector('.co-student-cta-sub');
+                if (sub) sub.innerHTML = `Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 4px;border-radius:3px;">.edu.vn</code> → chỉ <strong style="color:#2d7a4f;">${p.displayStudent}₫${p.period}</strong> <span style="color:var(--stone-gray);">(giảm 50%)</span>`;
+            }
         } else if (step === 'guest') {
             _hideProgress();
             document.getElementById('co-panel-title').textContent = 'Thanh toán gói API Supper Lite';
