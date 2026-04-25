@@ -54,11 +54,13 @@ async def get_market_pulse(
     limit: int = Query(10, ge=1, le=50, description="Number of articles"),
     _auth: None = Depends(authenticate_user_optional),
 ):
-    # Gate: free / unauthenticated users get only 1 article
+    # Gate: free / unauthenticated users get a teaser (4 articles, 1 readable)
     user = getattr(request.state, "user", None)
     user_level = (user or {}).get("user_level", "free")
-    if user_level not in ("premium", "premium_developer", "admin"):
-        limit = 1
+    is_gated = user_level not in ("premium", "premium_developer", "admin")
+    if is_gated:
+        limit = 4
+    free_preview_count = 1 if is_gated else None
 
     try:
         articles = []
@@ -110,7 +112,12 @@ async def get_market_pulse(
                         "lang": "vi",
                     })
 
-        return _json_response({"success": True, "data": articles, "count": len(articles)})
+        return _json_response({
+            "success": True,
+            "data": articles,
+            "count": len(articles),
+            "free_preview_count": free_preview_count,
+        })
     except HTTPException:
         raise
     except Exception as e:
