@@ -47,7 +47,7 @@ FRONTEND_URL       = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 SUBSCRIPTION_PLANS = {
     # ── Active plans ──────────────────────────────────────────────────────────
     "pro_monthly": {"amount": 149_000, "days": 30,  "level": "premium_developer", "name": "API Supper Lite Monthly"},
-    "pro_yearly":  {"amount": 1_490_000, "days": 365, "level": "premium_developer", "name": "API Supper Lite Yearly"},
+    "pro_yearly":  {"amount": 1_519_800, "days": 365, "level": "premium_developer", "name": "API Supper Lite Yearly"},
     # ── Legacy plans (kept for existing subscriptions / webhook replay) ───────
     "premium_monthly": {"amount": 99_000,    "days": 30,  "level": "premium",           "name": "Premium 1 Thang"},
     "premium_yearly":  {"amount": 990_000,   "days": 360, "level": "premium",           "name": "Premium 1 Nam"},
