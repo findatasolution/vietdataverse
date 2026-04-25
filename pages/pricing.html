@@ -882,34 +882,48 @@
 
         </div>
 
-        <!-- STEP GUEST: Email + pay (not logged in) -->
+        <!-- STEP GUEST: 2 choices (not logged in) -->
         <div class="co-step-content" id="co-step-guest">
-            <div class="co-step-heading">Thanh toán gói API Supper Lite</div>
-            <div class="co-price-box">
-                <div class="co-price-row">
-                    <!-- <span class="co-price-label">API Supper Lite</span> -->
-                    <span class="co-price-value">149.000₫<span class="co-price-period">/tháng</span></span>
+            <div class="co-choice-label">Chọn loại tài khoản</div>
+            <div class="co-choices">
+                <!-- Pay as guest -->
+                <div id="co-guest-normal-card">
+                    <button class="co-choice-card" id="co-guest-toggle-btn" onclick="coToggleGuestForm(this)">
+                        <div class="co-choice-icon">💳</div>
+                        <div class="co-choice-body">
+                            <div class="co-choice-title">Thanh toán không cần tài khoản</div>
+                            <div class="co-choice-sub">Nhập email để nhận thông tin kích hoạt</div>
+                        </div>
+                        <div class="co-choice-price">
+                            <span id="co-guest-price-display">149.000₫</span>
+                            <small id="co-guest-period-display">/tháng</small>
+                        </div>
+                    </button>
+                    <!-- Email form (hidden until card clicked) -->
+                    <div id="co-guest-form" style="display:none;padding:12px 0 4px;">
+                        <input type="email" id="co-guest-email" class="co-input"
+                               placeholder="ten@example.com" autocomplete="email"
+                               style="margin-bottom:10px;">
+                        <div class="co-error" id="co-err-guest"></div>
+                        <button class="co-btn-primary full" id="co-btn-guest-pay" onclick="coSubmitGuestPayment()">
+                            <span class="co-spinner"></span>
+                            <span class="co-btn-text" id="co-guest-pay-text">Tiếp tục thanh toán →</span>
+                        </button>
+                    </div>
                 </div>
+                <!-- Login to verify student -->
+                <button class="co-choice-card stu-card" onclick="login()">
+                    <div class="co-choice-icon">🎓</div>
+                    <div class="co-choice-body">
+                        <div class="co-choice-title">Tôi là sinh viên — giảm 50%</div>
+                        <div class="co-choice-sub">Đăng nhập → xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 3px;border-radius:3px;font-size:10px;">.edu.vn</code></div>
+                    </div>
+                    <div class="co-choice-price">
+                        <span id="co-guest-stu-price-display">74.500₫</span>
+                        <small id="co-guest-stu-period-display">/tháng</small>
+                    </div>
+                </button>
             </div>
-            <label style="display:block;font-size:12px;font-weight:500;
-                          color:var(--text-secondary);margin-bottom:6px;">
-                Email của bạn
-            </label>
-            <input type="email" id="co-guest-email" class="co-input"
-                   placeholder="ten@example.com" autocomplete="email">
-            <p style="font-size:11px;color:var(--stone-gray);margin:8px 0 14px;line-height:1.5;">
-                Tạo tài khoản sau khi thanh toán để kích hoạt Pro.
-                Ưu đãi sinh viên (−50%) yêu cầu
-                <button onclick="login()" style="background:none;border:none;
-                    color:var(--terracotta);font-size:11px;cursor:pointer;
-                    font-family:inherit;padding:0;text-decoration:underline;">đăng nhập</button>
-                để xác minh.
-            </p>
-            <div class="co-error" id="co-err-guest"></div>
-            <button class="co-btn-primary full" id="co-btn-guest-pay" onclick="coSubmitGuestPayment()">
-                <span class="co-spinner"></span>
-                <span class="co-btn-text">Tiếp tục thanh toán →</span>
-            </button>
         </div>
 
     </div>
@@ -1216,12 +1230,27 @@
             }
         } else if (step === 'guest') {
             _hideProgress();
-            document.getElementById('co-panel-title').textContent = 'Thanh toán gói API Supper Lite';
+            const p = _currentPlan();
+            document.getElementById('co-panel-title').textContent = 'Chọn loại tài khoản';
+            document.getElementById('co-guest-price-display').textContent     = `${p.display}₫`;
+            document.getElementById('co-guest-period-display').textContent    = p.period;
+            document.getElementById('co-guest-stu-price-display').textContent = `${p.displayStudent}₫`;
+            document.getElementById('co-guest-stu-period-display').textContent= p.period;
+            // Reset guest form to collapsed state
+            document.getElementById('co-guest-form').style.display = 'none';
+            document.getElementById('co-guest-toggle-btn').classList.remove('selected');
         }
 
         if (step === 'email') setTimeout(() => document.getElementById('co-stu-email').focus(), 60);
         if (step === 'otp')   setTimeout(() => document.getElementById('co-otp-input').focus(), 60);
-        if (step === 'guest') setTimeout(() => document.getElementById('co-guest-email').focus(), 60);
+    }
+
+    function coToggleGuestForm(btn) {
+        const form = document.getElementById('co-guest-form');
+        const open = form.style.display === 'none';
+        form.style.display = open ? 'block' : 'none';
+        btn.classList.toggle('selected', open);
+        if (open) setTimeout(() => document.getElementById('co-guest-email').focus(), 60);
     }
 
     // Called from student CTA button inside confirm step
