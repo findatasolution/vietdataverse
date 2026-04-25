@@ -2072,6 +2072,7 @@
 
         // Market Pulse data cache for filtering
         let pulseDataCache = [];
+        let pulseGatedPreview = 1; // articles visible before gate (set from API response)
 
         async function loadMarketPulse() {
             const base = window.APP_CONFIG.API_BASE_URL;
@@ -2082,19 +2083,19 @@
             let data = null;
 
             try {
-                // Fetch directly from API
                 if (base) {
-                    const token = await getToken();
+                    const token = await getToken().catch(() => null);
                     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
                     const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`, { headers });
                     if (res.ok) {
                         const json = await res.json();
                         data = json.data || [];
+                        pulseGatedPreview = json.free_preview_count ?? null; // null = no gate
                     }
                 }
 
                 if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chua co bai viet nao.</p>';
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chưa có bài viết nào.</p>';
                     return;
                 }
 
@@ -2102,8 +2103,53 @@
                 renderFilteredPulse();
             } catch (e) {
                 console.error('Market Pulse fetch failed:', e);
-                container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Khong the tai du lieu.</p>';
+                container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Không thể tải dữ liệu.</p>';
             }
+        }
+
+        function _renderPulseGate(hiddenCount) {
+            const lang = localStorage.getItem('lang') || 'vi';
+            const isVi = lang === 'vi';
+            return `
+<div style="position:relative;margin:-0.5rem 0 1.5rem;z-index:10;">
+  <div style="background:var(--surface-primary,#fff);border:1px solid var(--border-cream,#e8e6dc);
+              border-radius:16px;padding:28px 32px;text-align:center;
+              box-shadow:0 4px 24px rgba(20,20,19,.07);">
+    <div style="width:40px;height:40px;background:rgba(201,100,66,.1);border-radius:50%;
+                display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <svg viewBox="0 0 20 20" width="20" height="20" fill="none"
+           stroke="var(--gold-primary,#c96442)" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="9" width="12" height="9" rx="2"/>
+        <path d="M7 9V6a3 3 0 016 0v3"/>
+      </svg>
+    </div>
+    <div style="font-family:'Lora',Georgia,serif;font-size:17px;font-weight:600;
+                color:var(--text-primary,#141413);margin-bottom:6px;">
+      ${isVi ? 'Đăng nhập để đọc tiếp' : 'Sign in to read more'}
+    </div>
+    <div style="font-size:13px;color:var(--text-secondary,#87867f);margin-bottom:20px;line-height:1.6;">
+      ${isVi
+        ? `Còn <strong style="color:var(--text-primary,#141413)">${hiddenCount} bài phân tích</strong> mới nhất được phân tích bởi AI — đăng nhập miễn phí để xem đầy đủ.`
+        : `<strong style="color:var(--text-primary,#141413)">${hiddenCount} more AI-analyzed articles</strong> — sign in for free to read them all.`}
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="login()"
+              style="background:var(--gold-primary,#c96442);color:#fff;border:none;
+                     border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;
+                     cursor:pointer;font-family:inherit;transition:opacity .2s;"
+              onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        ${isVi ? 'Đăng nhập miễn phí' : 'Sign in for free'}
+      </button>
+      <a href="/pages/pricing.html"
+         style="background:none;border:1px solid var(--border-cream,#e8e6dc);color:var(--text-secondary,#87867f);
+                border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;
+                cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;">
+        ${isVi ? 'Xem gói Pro' : 'View Pro plan'}
+      </a>
+    </div>
+  </div>
+</div>`;
         }
 
         function renderFilteredPulse() {
@@ -2111,20 +2157,45 @@
             if (!container) return;
 
             const sourceFilter = document.getElementById('filter-source')?.value || '';
-            const labelFilter = document.getElementById('filter-label')?.value || '';
-            const mriFilter = document.getElementById('filter-mri')?.value || '';
+            const labelFilter  = document.getElementById('filter-label')?.value  || '';
+            const mriFilter    = document.getElementById('filter-mri')?.value    || '';
 
             let filtered = pulseDataCache;
             if (sourceFilter) filtered = filtered.filter(i => i.source_name?.includes(sourceFilter));
-            if (labelFilter) filtered = filtered.filter(i => i.label === labelFilter);
+            if (labelFilter)  filtered = filtered.filter(i => i.label === labelFilter);
             if (mriFilter === 'positive') filtered = filtered.filter(i => i.mri > 0);
             else if (mriFilter === 'negative') filtered = filtered.filter(i => i.mri < 0);
 
             if (filtered.length === 0) {
-                container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Khong co ket qua phu hop.</p>';
+                container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Không có kết quả phù hợp.</p>';
                 return;
             }
-            container.innerHTML = filtered.slice(0, 10).map(renderPulseArticle).join('');
+
+            const displayMax = 10;
+            const items = filtered.slice(0, displayMax);
+
+            // No gate → render all normally
+            if (pulseGatedPreview === null || pulseGatedPreview >= items.length) {
+                container.innerHTML = items.map(renderPulseArticle).join('');
+                return;
+            }
+
+            // Gate: first N articles clearly, then gate card, then blurred teasers
+            const clearItems  = items.slice(0, pulseGatedPreview);
+            const gatedItems  = items.slice(pulseGatedPreview);
+            const hiddenCount = gatedItems.length;
+
+            const clearHtml  = clearItems.map(renderPulseArticle).join('');
+            const gateHtml   = _renderPulseGate(hiddenCount);
+            const gatedHtml  = `
+<div style="position:relative;pointer-events:none;user-select:none;">
+  <div style="filter:blur(4px);opacity:.55;">
+    ${gatedItems.map(renderPulseArticle).join('')}
+  </div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0%,var(--bg-primary,#f5f4ed) 85%);"></div>
+</div>`;
+
+            container.innerHTML = clearHtml + gateHtml + gatedHtml;
         }
 
         // Initialize Market Pulse with filter listeners
