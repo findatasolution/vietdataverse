@@ -2130,7 +2130,7 @@
     </div>
     <div style="font-size:13px;color:var(--text-secondary,#87867f);margin-bottom:20px;line-height:1.6;">
       ${isVi
-        ? `Còn <strong style="color:var(--text-primary,#141413)">${hiddenCount} bài phân tích</strong> mới nhất được phân tích bởi AI — đăng nhập miễn phí để xem đầy đủ.`
+        ? `Còn <strong style="color:var(--text-primary,#141413)">${hiddenCount} tờ báo</strong> mới nhất được phân tích bởi AI — đăng nhập miễn phí để xem đầy đủ.`
         : `<strong style="color:var(--text-primary,#141413)">${hiddenCount} more AI-analyzed articles</strong> — sign in for free to read them all.`}
     </div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
@@ -2145,7 +2145,7 @@
          style="background:none;border:1px solid var(--border-cream,#e8e6dc);color:var(--text-secondary,#87867f);
                 border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;
                 cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;">
-        ${isVi ? 'Xem gói Pro' : 'View Pro plan'}
+        ${isVi ? 'Xem gói cao cấp' : 'View Pro plan'}
       </a>
     </div>
   </div>
@@ -2604,9 +2604,10 @@
                 };
             }
 
-            // ── Fetch CPI from internal GSO API (relative URL — same origin as FE)
+            // ── Fetch CPI from internal GSO API
             async function cpiFetch(view, years) {
-                const r = await fetch(`/api/v1/macro/cpi?view=${view}&years=${years}`);
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || '/api/v1';
+                const r = await fetch(`${base}/macro/cpi?view=${view}&years=${years}`);
                 if (!r.ok) throw new Error(`CPI API ${r.status}`);
                 const json = await r.json();
                 return json.data || [];
