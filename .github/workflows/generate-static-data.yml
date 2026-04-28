@@ -24,6 +24,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
+        submodules: true
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -31,7 +33,7 @@ jobs:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: pip install -r be/requirements.txt
+      run: pip install -r vietdataverse/be/requirements.txt
 
     - name: Generate static data
       env:
@@ -39,19 +41,19 @@ jobs:
         ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
         GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
       run: |
-        cd be
+        cd vietdataverse/be
         python generate_static_data.py
 
     - name: List generated files
       run: |
         echo "Generated static files:"
-        ls -la data/ || echo "No data directory"
+        ls -la vietdataverse/data/ || echo "No data directory"
 
     - name: Commit and push static data
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add -f data/
+        git add -f vietdataverse/data/
         git diff --staged --quiet || git commit -m "Update static chart data [skip ci]"
         git push || echo "Nothing to push"
 
