@@ -37,7 +37,7 @@ from sqlalchemy import create_engine, text
 from pdf2image import convert_from_bytes
 import argparse
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'vietdataverse' / 'be' / '.env')
 
 current_date = datetime.now()
 print(f"\n{'='*60}")

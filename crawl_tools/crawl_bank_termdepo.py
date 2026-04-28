@@ -22,7 +22,7 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'vietdataverse' / 'be' / '.env')
 
 # CLI arguments
 parser = argparse.ArgumentParser(description='Bank Term Deposit Rates Crawler')

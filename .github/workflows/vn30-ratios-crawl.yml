@@ -1,13 +1,13 @@
-name: VN30 Financials Crawl (Quarterly)
+name: VN30 Financial Ratios Crawl (Daily)
 
 on:
   schedule:
-    # 15th of Jan, Apr, Jul, Oct at 08:00 UTC (quarterly earnings season)
-    - cron: '0 8 15 1,4,7,10 *'
+    # 17:30 VN = 10:30 UTC (Mon-Fri after HSX close)
+    - cron: '30 10 * * 1-5'
   workflow_dispatch:
 
 jobs:
-  crawl-vn30-financials:
+  crawl-vn30-ratios:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +22,13 @@ jobs:
     - name: Install dependencies
       run: pip install -r crawl_tools/requirements.txt
 
-    - name: Run VN30 financials crawler
+    - name: Run VN30 ratios crawler
       env:
         CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
-        FINANCIALS_MAX_PAGES: '4'
       run: |
         cd crawl_tools
-        python crawl_vn30_financials.py
+        python crawl_vn30_ratios.py
 
     - name: Show results
       if: always()
-      run: echo "VN30 financials crawl completed at $(date)"
+      run: echo "VN30 ratios crawl completed at $(date)"

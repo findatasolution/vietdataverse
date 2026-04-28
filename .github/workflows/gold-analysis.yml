@@ -16,6 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
+        submodules: true
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -23,7 +24,7 @@ jobs:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: pip install -r be/requirements.txt
+      run: pip install -r vietdataverse/be/requirements.txt
 
     - name: Run gold analysis agent
       env:
@@ -32,7 +33,7 @@ jobs:
         ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        cd be
+        cd vietdataverse/be
         python run_daily_analysis.py
 
     - name: Show results
