@@ -1,0 +1,30 @@
+name: VNIndex Crawl (Daily)
+
+on:
+  schedule:
+    # 17:15 VN = 10:15 UTC (Mon-Fri after HSX close)
+    - cron: '15 10 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  crawl-vnindex:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: pip install -r crawl_tools/requirements.txt
+
+    - name: Run VNIndex crawler
+      env:
+        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+      run: python crawl_tools/crawl_vnindex.py
+
+    - name: Show results
+      if: always()
+      run: echo "VNIndex crawl completed at $(date)"

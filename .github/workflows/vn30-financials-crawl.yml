@@ -1,0 +1,35 @@
+name: VN30 Financials Crawl (Quarterly)
+
+on:
+  schedule:
+    # 15th of Jan, Apr, Jul, Oct at 08:00 UTC (quarterly earnings season)
+    - cron: '0 8 15 1,4,7,10 *'
+  workflow_dispatch:
+
+jobs:
+  crawl-vn30-financials:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: pip install -r crawl_tools/requirements.txt
+
+    - name: Run VN30 financials crawler
+      env:
+        CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+        FINANCIALS_MAX_PAGES: '4'
+      run: |
+        cd crawl_tools
+        python crawl_vn30_financials.py
+
+    - name: Show results
+      if: always()
+      run: echo "VN30 financials crawl completed at $(date)"
