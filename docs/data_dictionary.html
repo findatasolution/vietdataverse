@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Dictionary & Data Modeling - VietDataverse</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --accent: #f59e0b;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0; font-size: 2.5rem; }
+        .db-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        .db-title {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+        }
+        .table-meta {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+        .table-name {
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: #0f172a;
+            font-weight: bold;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .pk { background-color: #dcfce7; color: #166534; }
+        .uq { background-color: #fef9c3; color: #854d0e; }
+        .type { color: #64748b; font-size: 0.9rem; }
+        .nav {
+            position: sticky;
+            top: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            z-index: 100;
+        }
+        .nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VietDataverse Data Modeling</h1>
+            <p>System Architecture & Data Dictionary Documentation</p>
+        </header>
+
+        <nav class="nav">
+            <strong>Jump to DB:</strong>
+            <a href="#crawling_bot">Crawling Bot</a>
+            <a href="#crawling_corp">Crawling Corp</a>
+            <a href="#user_db">User & Payment</a>
+            <a href="#global_db">Global Indicators</a>
+        </nav>
+
+        <!-- CRAWLING_BOT_DB -->
+        <div id="crawling_bot" class="db-section">
+            <div class="db-title">
+                <h2>1. CRAWLING_BOT_DB (Macro & GSO Data)</h2>
+                <span class="badge" style="background:#e0f2fe; color:#0369a1;">PostgreSQL / Neon Cloud</span>
+            </div>
+
+            <!-- Table: vn_gso_cpi_monthly -->
+            <div class="table-meta">
+                <span class="table-name">vn_gso_cpi_monthly</span>
+                <p><strong>Decription:</strong> Chỉ số giá tiêu dùng (CPI) Việt Nam hàng tháng. Dữ liệu từ GSO.</p>
+                <p><strong>Live Rows:</strong> 288 | <strong>Latest Update:</strong> 2026-02</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trường (Field)</th>
+                        <th>Data Type</th>
+                        <th>Constraint</th>
+                        <th>Ý nghĩa (Description)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>id</td><td class="type">integer</td><td><span class="badge pk">PK</span></td><td>Auto-increment Primary Key</td></tr>
+                    <tr><td>period</td><td class="type">character varying</td><td><span class="badge uq">UQ</span></td><td>Tháng giá trị định dạng yyyy-mm</td></tr>
+                    <tr><td>cpi_mom_pct</td><td class="type">double precision</td><td>-</td><td>Tỷ lệ phần trăm cpi tháng này so với tháng trước.</td></tr>
+                    <tr><td>cpi_yoy_pct</td><td class="type">double precision</td><td>-</td><td>Tỷ lệ phần trăm cpi tháng này so với cùng kỳ năm trước.</td></tr>
+                    <tr><td>cpi_ytd_pct</td><td class="type">double precision</td><td>-</td><td>Tỷ lệ phần trăm cpi lũy kế từ đầu năm.</td></tr>
+                    <tr><td>gold_mom_pct</td><td class="type">double precision</td><td>-</td><td>Chỉ số giá vàng tăng so với tháng trước.</td></tr>
+                    <tr><td>usd_mom_pct</td><td class="type">double precision</td><td>-</td><td>Chỉ số giá USD so với tháng trước.</td></tr>
+                </tbody>
+            </table>
+
+            <!-- Table: vn_macro_fxrate_daily -->
+            <div class="table-meta">
+                <span class="table-name">vn_macro_fxrate_daily</span>
+                <p><strong>Description:</strong> Tỷ giá hối đoái hàng ngày từ NHNN (SBV) và các ngân hàng thương mại (BIDV, TCB, VCB).</p>
+                <p><strong>Live Rows:</strong> 3,561 | <strong>Latest Update:</strong> 2026-03-23</p>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Trường</th><th>Data Type</th><th>Constraint</th><th>Ý nghĩa</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>date</td><td class="type">date</td><td><span class="badge uq">UQ-Idx</span></td><td>Ngày ghi nhận tỷ giá</td></tr>
+                    <tr><td>type</td><td class="type">varchar</td><td><span class="badge uq">UQ-Idx</span></td><td>Mã ngoại tệ (USD, EUR, JPY...)</td></tr>
+                    <tr><td>bank</td><td class="type">varchar</td><td><span class="badge uq">UQ-Idx</span></td><td>Nguồn ngân hàng (SBV, BIDV, TCB...)</td></tr>
+                    <tr><td>buy_transfer</td><td class="type">double</td><td>-</td><td>Giá mua chuyển khoản</td></tr>
+                    <tr><td>sell_rate</td><td class="type">double</td><td>-</td><td>Giá bán ra</td></tr>
+                </tbody>
+            </table>
+
+            <!-- Table: vn_macro_gold_daily -->
+            <div class="table-meta">
+                <span class="table-name">vn_macro_gold_daily</span>
+                <p><strong>Description:</strong> Giá vàng trong nước (SJC, DOJI, BTMC, PNJ).</p>
+                <p><strong>Live Rows:</strong> 34,438 | <strong>Latest Update:</strong> 2026-03-23</p>
+            </div>
+            <table>
+                <thead><tr><th>Trường</th><th>Type</th><th>Meaning</th></tr></thead>
+                <tbody>
+                    <tr><td>date</td><td class="type">date</td><td>Ngày cập nhật</td></tr>
+                    <tr><td>type</td><td class="type">varchar</td><td>Loại vàng (SJC HN, Nhẫn tròn BTMC...)</td></tr>
+                    <tr><td>buy_price</td><td class="type">numeric</td><td>Giá mua (VND/chỉ)</td></tr>
+                    <tr><td>sell_price</td><td class="type">numeric</td><td>Giá bán (VND/chỉ)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CRAWLING_CORP_DB -->
+        <div id="crawling_corp" class="db-section">
+            <div class="db-title">
+                <h2>2. CRAWLING_CORP_DB (VN30 Stocks)</h2>
+            </div>
+            <div class="table-meta">
+                <span class="table-name">vn30_ohlcv_daily</span>
+                <p><strong>Description:</strong> Dữ liệu giá (OHLCV) hàng ngày VN30.</p>
+                <p><strong>Live Rows:</strong> 70,171 | <strong>Latest Update:</strong> 2026-03-20</p>
+            </div>
+            <table>
+                <thead><tr><th>Trường</th><th>Type</th><th>Remark</th></tr></thead>
+                <tbody>
+                    <tr><td>ticker</td><td class="type">varchar(10)</td><td>Mã chứng khoán (e.g., VNM)</td></tr>
+                    <tr><td>date</td><td class="type">date</td><td>Ngày giao dịch</td></tr>
+                    <tr><td>close</td><td class="type">double</td><td>Giá đóng cửa điều chỉnh</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- USER_DB -->
+        <div id="user_db" class="db-section">
+            <div class="db-title">
+                <h2>3. USER_DB (Identity & Payments)</h2>
+            </div>
+            <div class="table-meta">
+                <span class="table-name">users</span>
+                <p><strong>Description:</strong> Quản lý người dùng và trạng thái Premium.</p>
+                <p><strong>Rows:</strong> 1 | <strong>Latest:</strong> 2026-03-13</p>
+            </div>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Details</th></tr></thead>
+                <tbody>
+                    <tr><td>email</td><td class="type">varchar</td><td>Email định danh</td></tr>
+                    <tr><td>user_level</td><td class="type">varchar</td><td>free | premium | admin</td></tr>
+                    <tr><td>is_premium</td><td class="type">boolean</td><td>Trạng thái thuê bao</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            &copy; 2026 VietDataverse Platform System Documentation. Generated by Antigravity AI.
+        </footer>
+    </div>
+</body>
+</html>

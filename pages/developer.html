@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer API Key | Viet Dataverse</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="../auth.js" defer></script>
+    <style>
+        .dev-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 48px 16px 80px;
+            background: var(--parchment);
+        }
+        .page-nav {
+            width: 100%; max-width: 1120px; margin: 0 auto;
+            padding: 18px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo { font-family: 'Lora', Georgia, serif; font-size: 16px; font-weight: 500; color: var(--near-black); text-decoration: none; }
+
+        .dev-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(201,100,66,.08); border: 1px solid rgba(201,100,66,.22);
+            border-radius: 99px; padding: 4px 14px;
+            font-size: 12px; font-weight: 500; color: var(--terracotta);
+            letter-spacing: .04em; text-transform: uppercase; margin-bottom: 16px;
+        }
+        .dev-title {
+            font-family: 'Lora', Georgia, serif;
+            font-size: clamp(22px, 4vw, 34px); font-weight: 500; text-align: center;
+            margin-bottom: 8px; color: var(--near-black);
+        }
+        .dev-subtitle {
+            font-size: 14px; color: var(--olive-gray); text-align: center;
+            margin-bottom: 40px; line-height: 1.7; max-width: 480px;
+        }
+
+        /* ── Card ────────────────────────────────────────────── */
+        .dev-card {
+            width: 100%; max-width: 600px;
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--whisper);
+        }
+        .dev-card-title {
+            font-size: 15px; font-weight: 600; color: var(--near-black);
+            margin-bottom: 20px;
+        }
+
+        /* ── Key display ─────────────────────────────────────── */
+        .key-display {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--warm-sand);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .key-value {
+            flex: 1;
+            color: var(--charcoal);
+            letter-spacing: .04em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .key-value.masked { color: var(--stone-gray); }
+        .btn-copy {
+            background: none; border: 1px solid var(--border-warm);
+            color: var(--olive-gray); font-size: 11px; font-weight: 500;
+            padding: 4px 10px; border-radius: 4px; cursor: pointer;
+            font-family: inherit; transition: all .2s; white-space: nowrap;
+        }
+        .btn-copy:hover { color: var(--terracotta); border-color: rgba(201,100,66,.3); }
+        .key-meta { font-size: 11px; color: var(--stone-gray); margin-bottom: 20px; }
+
+        /* ── Buttons ─────────────────────────────────────────── */
+        .btn-generate {
+            width: 100%; padding: 13px;
+            background: var(--terracotta);
+            border: none; border-radius: var(--radius-md);
+            color: var(--ivory); font-size: 14px; font-weight: 500;
+            font-family: inherit; cursor: pointer; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 0 0 1px var(--terracotta);
+        }
+        .btn-generate:hover:not(:disabled) { background: var(--coral); }
+        .btn-generate:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-revoke {
+            width: 100%; padding: 10px; margin-top: 8px;
+            background: none; border: 1px solid rgba(181,51,51,.2);
+            color: var(--error-red); font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer; border-radius: var(--radius-sm);
+            transition: all .2s;
+        }
+        .btn-revoke:hover:not(:disabled) { background: rgba(181,51,51,.05); }
+        .btn-revoke:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ── Notice ──────────────────────────────────────────── */
+        .new-key-notice {
+            display: none;
+            background: rgba(45,122,79,.06); border: 1px solid rgba(45,122,79,.2);
+            border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .new-key-notice.visible { display: block; }
+        .new-key-notice strong { color: #2d7a4f; display: block; margin-bottom: 6px; }
+        .new-key-raw {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 13px;
+            color: var(--charcoal); word-break: break-all;
+            background: var(--warm-sand); padding: 8px 10px;
+            border-radius: 4px; margin: 8px 0;
+        }
+        .new-key-warning { color: var(--error-red); font-size: 11px; margin-top: 6px; }
+
+        /* ── Code examples ───────────────────────────────────── */
+        .code-block {
+            background: var(--near-black);
+            border: 1px solid var(--dark-surface);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--warm-silver);
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .code-label {
+            font-size: 11px; font-weight: 600; letter-spacing: .05em;
+            text-transform: uppercase; color: var(--stone-gray); margin-bottom: 6px;
+        }
+
+        /* ── Access denied ───────────────────────────────────── */
+        #access-denied {
+            display: none;
+            text-align: center; padding: 40px;
+        }
+        #access-denied.visible { display: block; }
+
+        /* ── Loading ─────────────────────────────────────────── */
+        #loading-state { text-align: center; padding: 48px; color: var(--stone-gray); font-size: 13px; }
+
+        /* ── Expired banner ──────────────────────────────────── */
+        .expired-banner {
+            display: none;
+            width: 100%; max-width: 600px;
+            background: rgba(181,51,51,.06); border: 1px solid rgba(181,51,51,.2);
+            border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 20px;
+            font-size: 13px; color: var(--error-red);
+        }
+        .expired-banner.visible { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+        .expired-banner a {
+            white-space: nowrap; font-weight: 600; color: var(--error-red);
+            text-decoration: underline; cursor: pointer;
+        }
+
+        /* ── Usage quota card ────────────────────────────────── */
+        .usage-card {
+            width: 100%; max-width: 600px;
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
+            border-radius: var(--radius-xl); padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--whisper);
+        }
+        .usage-title { font-size: 13px; font-weight: 600; color: var(--olive-gray); margin-bottom: 16px; }
+        .usage-stat { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+        .usage-numbers { font-size: 20px; font-weight: 600; color: var(--near-black); }
+        .usage-limit { font-size: 12px; color: var(--stone-gray); }
+        .usage-bar-track {
+            height: 5px; background: var(--warm-sand);
+            border-radius: 99px; overflow: hidden; margin-bottom: 8px;
+        }
+        .usage-bar-fill {
+            height: 100%; border-radius: 99px;
+            background: var(--terracotta);
+            transition: width .4s ease;
+        }
+        .usage-reset { font-size: 11px; color: var(--stone-gray); }
+
+        /* ── Subscription card ───────────────────────────────── */
+        .sub-card {
+            width: 100%; max-width: 600px;
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
+            border-radius: var(--radius-xl); padding: 20px 32px;
+            margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            box-shadow: var(--whisper);
+        }
+        .sub-plan { font-size: 13px; font-weight: 600; color: var(--terracotta); }
+        .sub-expiry { font-size: 12px; color: var(--stone-gray); margin-top: 3px; }
+        .btn-renew {
+            padding: 8px 16px; background: none;
+            border: 1px solid rgba(201,100,66,.3); border-radius: var(--radius-sm);
+            color: var(--terracotta); font-size: 12px; font-weight: 600;
+            cursor: pointer; font-family: inherit; white-space: nowrap;
+            text-decoration: none; transition: background .2s;
+        }
+        .btn-renew:hover { background: rgba(201,100,66,.06); }
+    </style>
+</head>
+<body>
+
+<nav class="page-nav">
+    <a class="nav-logo" href="/index.html">Viet Dataverse</a>
+    <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
+</nav>
+
+<main class="dev-page">
+
+    <span class="dev-badge">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 6 2 8 4 10"/><polyline points="12 6 14 8 12 10"/><line x1="9" y1="4" x2="7" y2="12"/></svg>
+        Developer
+    </span>
+    <h1 class="dev-title">API Key Management</h1>
+    <p class="dev-subtitle">Sử dụng API key để tích hợp dữ liệu tài chính Viet Dataverse vào ứng dụng của bạn.</p>
+
+    <div id="loading-state">Đang kiểm tra tài khoản…</div>
+
+    <!-- Expired subscription banner -->
+    <div class="expired-banner" id="expired-banner">
+        <span>⚠️ Subscription đã hết hạn — API key đã bị tạm ngưng.</span>
+        <a href="/pages/pricing.html">Gia hạn ngay →</a>
+    </div>
+
+    <!-- Access denied -->
+    <div id="access-denied">
+        <p style="font-size:32px;margin-bottom:12px;">🔒</p>
+        <p style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Yêu cầu API Supper Lite</p>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Tính năng API Key chỉ dành cho tài khoản API Supper Lite trở lên.</p>
+        <a href="/pages/pricing.html" style="display:inline-block;padding:10px 20px;background:var(--terracotta);color:var(--ivory);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">Nâng cấp ngay chỉ với $2.49 →</a>
+    </div>
+
+    <!-- API Key card -->
+    <div id="key-card" class="dev-card" style="display:none;">
+        <div class="dev-card-title">API Key của bạn</div>
+
+        <!-- New key notice (shown once after generation) -->
+        <div class="new-key-notice" id="new-key-notice">
+            <strong>✅ API key mới đã được tạo</strong>
+            <div class="new-key-raw" id="new-key-raw"></div>
+            <div class="new-key-warning">⚠️ Sao chép và lưu ngay — key sẽ không hiển thị lại sau khi rời trang.</div>
+            <button class="btn-copy" style="margin-top:8px;" onclick="copyNewKey()">Sao chép key</button>
+        </div>
+
+        <!-- Existing key info -->
+        <div id="key-info-section">
+            <div class="key-display">
+                <span class="key-value masked" id="key-preview-text">Chưa có API key</span>
+                <button class="btn-copy" id="btn-copy-preview" onclick="copyPreview()" style="display:none;">Sao chép</button>
+            </div>
+            <div class="key-meta" id="key-meta-text"></div>
+        </div>
+
+        <button class="btn-generate" id="btn-generate" onclick="generateKey()">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 1 4 1"/><polyline points="15 12 15 15 12 15"/><path d="M1 1l5 5M15 15l-5-5"/><circle cx="8" cy="8" r="3"/></svg>
+            <span id="btn-generate-text">Generate API Key</span>
+        </button>
+        <button class="btn-revoke" id="btn-revoke" onclick="revokeKey()" style="display:none;">Thu hồi key</button>
+        <div id="key-error" style="display:none;font-size:12px;color:#ef9a9a;margin-top:8px;"></div>
+    </div>
+
+    <!-- Usage quota this month -->
+    <div class="usage-card" id="usage-card" style="display:none;">
+        <div class="usage-title">API QUOTA THÁNG NÀY</div>
+        <div class="usage-stat">
+            <span class="usage-numbers"><span id="usage-used">0</span> / <span id="usage-limit">—</span> requests</span>
+            <span class="usage-limit" id="usage-remaining-label"></span>
+        </div>
+        <div class="usage-bar-track"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
+        <div class="usage-reset" id="usage-reset"></div>
+    </div>
+
+    <!-- Subscription info -->
+    <div class="sub-card" id="sub-card" style="display:none;">
+        <div>
+            <div class="sub-plan" id="sub-plan-label">API Supper Lite trở lên</div>
+            <div class="sub-expiry" id="sub-expiry-label"></div>
+        </div>
+        <a class="btn-renew" href="/pages/pricing.html">Gia hạn / Nâng cấp</a>
+    </div>
+
+    <!-- Usage guide -->
+    <div id="guide-card" class="dev-card" style="display:none;">
+        <div class="dev-card-title">Cách sử dụng</div>
+
+        <div class="code-label">cURL</div>
+        <div class="code-block" id="curl-example">curl https://api.vietdataverse.online/api/v1/gold \
+  -H "X-API-Key: YOUR_API_KEY"</div>
+
+        <div class="code-label">Python</div>
+        <div class="code-block">import requests
+
+headers = {"X-API-Key": "YOUR_API_KEY"}
+resp = requests.get(
+    "https://api.vietdataverse.online/api/v1/gold",
+    headers=headers
+)
+data = resp.json()</div>
+
+        <div class="code-label">JavaScript (fetch)</div>
+        <div class="code-block">const res = await fetch(
+  "https://api.vietdataverse.online/api/v1/gold",
+  { headers: { "X-API-Key": "YOUR_API_KEY" } }
+);
+const data = await res.json();</div>
+
+        <p style="font-size:12px;color:var(--text-tertiary);margin-top:12px;line-height:1.6;">
+            Endpoints hỗ trợ: <code style="color:var(--text-secondary)">/api/v1/gold</code>,
+            <code style="color:var(--text-secondary)">/api/v1/silver</code>,
+            <code style="color:var(--text-secondary)">/api/v1/market-pulse</code>,
+            <code style="color:var(--text-secondary)">/api/v1/sbv-interbank</code>,
+            <code style="color:var(--text-secondary)">/api/v1/termdepo</code>, và các endpoint khác.
+        </p>
+    </div>
+
+</main>
+
+<script>
+    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:8000'
+        : 'https://api.vietdataverse.online';
+
+    let _currentKeyPreview = null;
+    let _newKeyFull = null;
+
+    function updateNavAuth(user) {
+        const nav = document.getElementById('nav-auth');
+        if (user) {
+            nav.innerHTML = `
+                <img src="${user.picture || ''}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                <span style="color:var(--text-secondary)">${user.email || ''}</span>
+                <button onclick="logout()" style="background:none;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Đăng xuất</button>`;
+        } else {
+            nav.innerHTML = `<button onclick="login()" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-primary));border:none;color:#0A0A0C;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>`;
+        }
+    }
+
+    async function initPage() {
+        const loadEl = document.getElementById('loading-state');
+        try {
+            const authed = await isAuthenticated();
+            if (!authed) {
+                loadEl.style.display = 'none';
+                document.getElementById('access-denied').classList.add('visible');
+                updateNavAuth(null);
+                return;
+            }
+
+            const user = await getUser();
+            updateNavAuth(user);
+
+            // Check user level via payment status endpoint
+            const token = await getToken();
+            const res = await fetch(`${API}/api/v1/payment/status`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error('auth error');
+            const d = await res.json();
+
+            if (d.user_level !== 'premium_developer') {
+                loadEl.style.display = 'none';
+                document.getElementById('access-denied').classList.add('visible');
+                return;
+            }
+
+            loadEl.style.display = 'none';
+            document.getElementById('key-card').style.display = 'block';
+            document.getElementById('guide-card').style.display = 'block';
+
+            await loadKeyInfo(token);
+        } catch {
+            loadEl.style.display = 'none';
+            document.getElementById('access-denied').classList.add('visible');
+        }
+    }
+
+    async function loadKeyInfo(token) {
+        if (!token) token = await getToken();
+        try {
+            const res = await fetch(`${API}/api/v1/developer/key-info`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const d = await res.json();
+
+            // Subscription card
+            const sub = d.subscription || {};
+            document.getElementById('sub-card').style.display = 'flex';
+            const planLabels = {
+                dev_monthly: 'Dev Monthly (10,000 req/tháng)',
+                dev_yearly:  'Dev Yearly (100,000 req/tháng)',
+            };
+            document.getElementById('sub-plan-label').textContent =
+                planLabels[sub.plan] || 'API Supper Lite';
+            if (sub.premium_expiry) {
+                const exp = new Date(sub.premium_expiry);
+                const now = new Date();
+                const daysLeft = Math.ceil((exp - now) / 86400000);
+                document.getElementById('sub-expiry-label').textContent =
+                    daysLeft > 0
+                        ? `Hết hạn: ${exp.toLocaleDateString('vi-VN')} (còn ${daysLeft} ngày)`
+                        : `Đã hết hạn: ${exp.toLocaleDateString('vi-VN')}`;
+            }
+
+            // Quota card
+            const q = d.quota_info || {};
+            if (q.monthly_limit != null) {
+                const used = q.used_this_month || 0;
+                const limit = q.monthly_limit;
+                const pct = limit > 0 ? Math.min(100, Math.round(used / limit * 100)) : 0;
+                document.getElementById('usage-card').style.display = 'block';
+                document.getElementById('usage-used').textContent = used.toLocaleString('vi-VN');
+                document.getElementById('usage-limit').textContent = limit.toLocaleString('vi-VN');
+                document.getElementById('usage-bar').style.width = pct + '%';
+                document.getElementById('usage-bar').style.background =
+                    pct > 90 ? 'linear-gradient(90deg,#c62828,#ef9a9a)'
+                    : pct > 70 ? 'linear-gradient(90deg,#e65100,#ffb74d)'
+                    : 'linear-gradient(90deg,#7b1fa2,#b39ddb)';
+                const remaining = q.remaining != null ? q.remaining.toLocaleString('vi-VN') + ' còn lại' : '';
+                document.getElementById('usage-remaining-label').textContent = remaining;
+                if (q.reset_at) {
+                    const reset = new Date(q.reset_at);
+                    document.getElementById('usage-reset').textContent =
+                        `Reset vào ngày 1 tháng sau (${reset.toLocaleDateString('vi-VN', {month:'long', year:'numeric'})})`;
+                }
+            }
+
+            // Expiry banner
+            if (d.has_key && d.is_active === false) {
+                document.getElementById('expired-banner').classList.add('visible');
+            }
+
+            // Key display
+            if (d.has_key) {
+                _currentKeyPreview = d.key_preview;
+                document.getElementById('key-preview-text').textContent = d.key_preview;
+                document.getElementById('key-preview-text').classList.remove('masked');
+                document.getElementById('btn-copy-preview').style.display = 'inline';
+                document.getElementById('btn-generate-text').textContent = 'Generate New Key';
+                document.getElementById('btn-revoke').style.display = 'block';
+
+                let meta = '';
+                if (d.created_at) meta += `Tạo: ${new Date(d.created_at).toLocaleDateString('vi-VN')}`;
+                if (d.last_used_at) meta += `  ·  Dùng lần cuối: ${new Date(d.last_used_at).toLocaleDateString('vi-VN')}`;
+                document.getElementById('key-meta-text').textContent = meta;
+            } else {
+                document.getElementById('key-preview-text').textContent = 'Chưa có API key — nhấn Generate để tạo';
+                document.getElementById('btn-generate-text').textContent = 'Generate API Key';
+                document.getElementById('btn-revoke').style.display = 'none';
+                document.getElementById('btn-copy-preview').style.display = 'none';
+            }
+        } catch { /* ignore */ }
+    }
+
+    async function generateKey() {
+        const btn = document.getElementById('btn-generate');
+        const errEl = document.getElementById('key-error');
+        errEl.style.display = 'none';
+        btn.disabled = true;
+        btn.querySelector('span').textContent = 'Đang tạo…';
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API}/api/v1/developer/generate-key`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.detail || 'Lỗi generate key');
+
+            _newKeyFull = d.api_key;
+            document.getElementById('new-key-raw').textContent = d.api_key;
+            document.getElementById('new-key-notice').classList.add('visible');
+
+            // Update curl example with actual key
+            document.getElementById('curl-example').textContent =
+                `curl https://api.vietdataverse.online/api/v1/gold \\\n  -H "X-API-Key: ${d.api_key}"`;
+
+            await loadKeyInfo(token);
+        } catch (e) {
+            errEl.textContent = e.message;
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function revokeKey() {
+        if (!confirm('Thu hồi API key? Bạn có thể tạo key mới bất cứ lúc nào.')) return;
+        const btn = document.getElementById('btn-revoke');
+        btn.disabled = true;
+        try {
+            const token = await getToken();
+            await fetch(`${API}/api/v1/developer/revoke-key`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            document.getElementById('new-key-notice').classList.remove('visible');
+            await loadKeyInfo(token);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function copyNewKey() {
+        if (_newKeyFull) navigator.clipboard.writeText(_newKeyFull).then(() => alert('Đã sao chép!'));
+    }
+
+    function copyPreview() {
+        if (_currentKeyPreview) {
+            navigator.clipboard.writeText(_currentKeyPreview)
+                .then(() => alert('Đã sao chép preview (masked). Dùng key gốc để authenticate.'));
+        }
+    }
+
+    window.addEventListener('load', initPage);
+</script>
+
+</body>
+</html>
