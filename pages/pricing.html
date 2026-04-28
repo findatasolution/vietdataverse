@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Giá | Viet Dataverse</title>
+    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — VN30 Score, Market Pulse, API không giới hạn. Gói API Supper Lite từ 149.000đ/tháng.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vietdataverse.online/pages/pricing.html">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+    <meta property="og:title" content="Bảng Giá | Viet Dataverse">
+    <meta property="og:description" content="Gói API Supper Lite — full history, API access, VN30 Score & Market Pulse không giới hạn. Từ 149.000đ/tháng.">
+    <meta property="og:url" content="https://vietdataverse.online/pages/pricing.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
+    <meta property="og:locale" content="vi_VN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bảng Giá | Viet Dataverse">
+    <meta name="twitter:description" content="Gói API Supper Lite — full history, API access, VN30 Score không giới hạn.">
+    <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="../auth.js" defer></script>
+    <style>
+        body { background: var(--parchment); }
+
+        .pricing-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 16px 80px;
+        }
+
+        /* ── Nav ─────────────────────────────────────────────── */
+        .page-nav {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--near-black);
+            text-decoration: none;
+        }
+
+        /* ── Header ──────────────────────────────────────────── */
+        .pricing-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(201, 100, 66, .08);
+            border: 1px solid rgba(201, 100, 66, .18);
+            border-radius: 99px;
+            padding: 4px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--terracotta);
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .pricing-title {
+            font-family: 'Lora', Georgia, serif;
+            font-size: clamp(24px, 5vw, 38px);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--near-black);
+            line-height: 1.2;
+        }
+        .pricing-subtitle {
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 14px;
+            max-width: 440px;
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }
+
+        /* ── Billing toggle pill ──────────────────────────────── */
+        .billing-toggle {
+            display: inline-flex;
+            background: var(--warm-sand);
+            border: 1px solid var(--border-warm);
+            border-radius: 99px;
+            padding: 3px;
+            gap: 2px;
+            margin-bottom: 32px;
+        }
+        .bt-btn {
+            padding: 8px 22px;
+            border-radius: 99px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--stone-gray);
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .bt-btn.active {
+            background: var(--pure-white);
+            color: var(--near-black);
+            font-weight: 600;
+            box-shadow: 0 1px 4px rgba(0,0,0,.09);
+        }
+        .bt-save-pill {
+            background: rgba(45, 122, 79, .14);
+            color: #2d7a4f;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 99px;
+            letter-spacing: .02em;
+            transition: opacity .2s;
+        }
+        .bt-btn.active .bt-save-pill {
+            background: rgba(45, 122, 79, .18);
+        }
+
+        /* ── Plans grid ──────────────────────────────────────── */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 720px;
+            margin-bottom: 32px;
+            align-items: stretch;
+        }
+        @media (max-width: 600px) {
+            .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
+        }
+
+        /* ── Card ────────────────────────────────────────────── */
+        .plan-card {
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
+            border-radius: var(--radius-xl);
+            padding: 28px 24px 24px;
+            position: relative;
+            box-shadow: var(--whisper);
+            display: flex;
+            flex-direction: column;
+        }
+        /* Push features to bottom so Free and Pro cards fill height equally */
+        .plan-card .features-section { margin-top: auto; }
+        .plan-card.featured {
+            border-color: var(--terracotta);
+            box-shadow: var(--whisper), 0 0 0 1px var(--terracotta);
+        }
+        .plan-card.featured::before {
+            content: 'Early Bird Discount';
+            position: absolute;
+            top: -12px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--terracotta);
+            color: var(--ivory);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 14px;
+            border-radius: 99px;
+            letter-spacing: .05em;
+            white-space: nowrap;
+        }
+
+        /* ── Tier badge ──────────────────────────────────────── */
+        .plan-tier-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 99px;
+            margin-bottom: 12px;
+        }
+        .badge-free { background: rgba(94, 93, 89, .10); color: var(--stone-gray); }
+        .badge-pro  { background: rgba(201, 100, 66, .12); color: var(--terracotta); }
+
+        .plan-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--near-black);
+            margin-bottom: 3px;
+        }
+        .plan-tagline {
+            font-size: 12px;
+            color: var(--stone-gray);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* ── Price ───────────────────────────────────────────── */
+        .plan-price-block { margin-bottom: 6px; min-height: 110px; display: flex; flex-direction: column; }
+        .plan-price { display: flex; align-items: baseline; gap: 3px; }
+        .price-amount {
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--near-black);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -.02em;
+        }
+        .price-free { color: var(--stone-gray); font-size: 26px; }
+        .price-currency, .price-period {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .price-alt {
+            font-size: 11px;
+            color: var(--stone-gray);
+            margin-top: 3px;
+            min-height: 16px;
+        }
+
+        /* ── CTA ─────────────────────────────────────────────── */
+        .btn-plan {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            border: none;
+            margin-top: 16px;
+            margin-bottom: 2px;
+        }
+        .btn-plan:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-free {
+            background: var(--warm-sand);
+            border: 1px solid var(--border-warm);
+            color: var(--olive-gray);
+        }
+        .btn-pro {
+            background: var(--terracotta);
+            color: var(--ivory);
+        }
+        .btn-pro:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn-plan .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,.25);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+        .btn-plan.loading .spinner { display: block; }
+        .btn-plan.loading .btn-text { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Features ────────────────────────────────────────── */
+        .feature-divider {
+            height: 1px;
+            background: var(--border-cream);
+            margin: 18px 0 14px;
+        }
+        .feature-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--stone-gray);
+            margin-bottom: 10px;
+        }
+        .features-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .features-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12.5px;
+            color: var(--olive-gray);
+            line-height: 1.5;
+        }
+        .feat-icon {
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+            margin-top: 1px;
+        }
+        .icon-check  { color: var(--terracotta); }
+        .icon-limit  { color: var(--stone-gray); }
+
+        /* ── Student discount badge on Pro card ─────────────── */
+        .student-discount-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(45, 122, 79, .10);
+            color: #2d7a4f;
+            border: 1px solid rgba(45, 122, 79, .20);
+            border-radius: 99px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: background .15s;
+            user-select: none;
+        }
+        .student-discount-badge:hover { background: rgba(45, 122, 79, .16); }
+        .student-discount-badge.verified { cursor: default; }
+
+        /* ── Error ───────────────────────────────────────────── */
+        .error-msg {
+            display: none; color: var(--error-red); font-size: 12px;
+            margin-top: 8px; padding: 8px 12px;
+            background: rgba(181, 51, 51, .05); border-radius: 6px;
+            border: 1px solid rgba(181, 51, 51, .15);
+        }
+        .error-msg.visible { display: block; }
+
+        /* ── Guest email area ────────────────────────────────── */
+        #guest-email-area {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 12px;
+            box-shadow: var(--whisper);
+        }
+        #guest-email-area.visible { display: block; }
+        #guest-email-area label {
+            display: block; font-size: 12px; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: 8px;
+        }
+        #guest-email-area input[type="email"] {
+            width: 100%;
+            background: var(--warm-sand); border: 1px solid var(--border-warm);
+            border-radius: var(--radius-sm); padding: 10px 14px;
+            font-size: 14px; color: var(--near-black); outline: none;
+            transition: border-color .2s; margin-bottom: 10px;
+            font-family: inherit; box-sizing: border-box;
+        }
+        #guest-email-area input[type="email"]:focus { border-color: rgba(201, 100, 66, .45); }
+        .guest-area-title { font-size: 14px; font-weight: 600; color: var(--near-black); margin-bottom: 6px; }
+        .guest-plan-note { font-size: 12px; color: var(--stone-gray); margin-bottom: 14px; }
+        .guest-area-actions { display: flex; gap: 8px; }
+        .btn-ghost {
+            flex: 1; padding: 10px; border-radius: var(--radius-sm);
+            background: none; border: 1px solid var(--border-warm);
+            color: var(--text-secondary); font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer; transition: all .2s;
+        }
+        .btn-ghost:hover { color: var(--near-black); }
+        .btn-proceed {
+            flex: 2; padding: 10px; border-radius: var(--radius-sm);
+            border: none; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all .2s;
+            background: var(--terracotta); color: var(--ivory);
+        }
+        .btn-proceed:hover { filter: brightness(1.08); }
+
+        /* ── Result banner ───────────────────────────────────── */
+        #result-banner {
+            display: none; width: 100%; max-width: 520px;
+            border-radius: var(--radius-lg); padding: 28px;
+            text-align: center; margin-bottom: 36px;
+        }
+        #result-banner.success { display: block; background: rgba(45,122,79,.06); border: 1px solid rgba(45,122,79,.20); }
+        #result-banner.cancelled { display: block; background: rgba(181,51,51,.05); border: 1px solid rgba(181,51,51,.18); }
+        .result-icon { font-size: 36px; line-height: 1; margin-bottom: 10px; }
+        .result-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+        #result-banner.success .result-title { color: #2d7a4f; }
+        #result-banner.cancelled .result-title { color: var(--error-red); }
+        .result-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .result-actions a, .result-actions button {
+            padding: 8px 18px; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 500; font-family: inherit;
+            cursor: pointer; text-decoration: none; transition: all .2s;
+        }
+        .btn-home { background: var(--pure-white); border: 1px solid var(--border-cream); color: var(--text-secondary); }
+        .btn-home:hover { color: var(--near-black); }
+        .btn-cta-sm { background: var(--terracotta); border: none; color: var(--ivory); }
+
+        /* ── Footer note ─────────────────────────────────────── */
+        .pricing-footer {
+            font-size: 11px;
+            color: var(--stone-gray);
+            text-align: center;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+        }
+        .security-note {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; color: var(--stone-gray);
+        }
+
+        /* ══════════════════════════════════════════════════════
+           Checkout overlay
+           ══════════════════════════════════════════════════════ */
+        #checkout-overlay {
+            position: fixed; inset: 0;
+            background: rgba(20, 20, 19, .55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; padding: 20px;
+            animation: coFadeIn .18s ease;
+        }
+        @keyframes coFadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+        #checkout-panel {
+            background: var(--pure-white);
+            border-radius: var(--radius-xl);
+            padding: 28px; width: 100%; max-width: 440px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.16);
+            position: relative;
+            animation: coSlideUp .22s ease;
+        }
+        @keyframes coSlideUp {
+            from { transform: translateY(10px); opacity: 0 }
+            to   { transform: translateY(0);    opacity: 1 }
+        }
+
+        .co-close {
+            position: absolute; top: 16px; right: 16px;
+            background: none; border: none;
+            font-size: 16px; line-height: 1; cursor: pointer;
+            color: var(--stone-gray);
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; transition: background .15s;
+        }
+        .co-close:hover { background: var(--warm-sand); color: var(--near-black); }
+
+        .co-panel-title {
+            font-size: 16px; font-weight: 700;
+            color: var(--near-black);
+            margin-bottom: 20px; padding-right: 32px;
+        }
+
+        /* Step content */
+        .co-step-content { display: none; }
+        .co-step-content.active { display: block; }
+        .co-step-heading { font-size: 15px; font-weight: 700; color: var(--near-black); margin-bottom: 6px; }
+        .co-step-desc { font-size: 13px; color: var(--stone-gray); margin-bottom: 18px; line-height: 1.65; }
+        .co-step-desc code { background: var(--warm-sand); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+        /* Inputs */
+        .co-input {
+            width: 100%; box-sizing: border-box;
+            background: var(--warm-sand); border: 1px solid var(--border-warm);
+            border-radius: var(--radius-sm); padding: 10px 14px;
+            font-size: 14px; color: var(--near-black);
+            outline: none; font-family: inherit; transition: border-color .2s; display: block;
+        }
+        .co-input:focus { border-color: rgba(201, 100, 66, .45); }
+        .co-otp-input { font-size: 24px; font-weight: 700; letter-spacing: 10px; text-align: center; font-family: monospace; }
+
+        /* Buttons */
+        .co-btn-row { display: flex; gap: 8px; margin-top: 14px; }
+        .co-btn-primary {
+            flex: 2; padding: 11px 16px;
+            background: var(--terracotta); color: var(--ivory);
+            border: none; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 600; font-family: inherit;
+            cursor: pointer; transition: filter .18s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .co-btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+        .co-btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+        .co-btn-primary.full { flex: unset; width: 100%; }
+        .co-btn-secondary {
+            flex: 1; padding: 11px 12px;
+            background: none; border: 1px solid var(--border-warm);
+            border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 500; font-family: inherit;
+            cursor: pointer; color: var(--text-secondary); transition: color .15s;
+        }
+        .co-btn-secondary:hover { color: var(--near-black); }
+        .co-btn-secondary.full { flex: unset; width: 100%; }
+        .co-spinner {
+            width: 14px; height: 14px; flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+            border-radius: 50%; animation: spin .7s linear infinite; display: none;
+        }
+        .co-btn-primary.loading .co-spinner  { display: block; }
+        .co-btn-primary.loading .co-btn-text { display: none; }
+
+        /* Error */
+        .co-error {
+            display: none; color: var(--error-red); font-size: 12px;
+            margin-top: 8px; padding: 8px 12px;
+            background: rgba(181, 51, 51, .05); border-radius: 6px;
+            border: 1px solid rgba(181, 51, 51, .15);
+        }
+        .co-error.visible { display: block; }
+
+        /* Price summary */
+        .co-price-box {
+            background: var(--parchment); border: 1px solid var(--border-cream);
+            border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px;
+        }
+        .co-price-row { display: flex; align-items: baseline; justify-content: space-between; }
+        .co-price-label { font-size: 13px; color: var(--stone-gray); }
+        .co-price-value { font-size: 20px; font-weight: 700; color: var(--near-black); }
+        .co-price-period { font-size: 12px; font-weight: 400; color: var(--stone-gray); }
+        .co-discount-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 8px; padding-top: 8px;
+            border-top: 1px dashed var(--border-cream);
+        }
+        .co-discount-tag { background: rgba(45,122,79,.1); color: #2d7a4f; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+        .co-discount-orig { font-size: 12px; color: var(--stone-gray); }
+
+        /* Student inline progress (shown only during email/otp steps) */
+        .co-student-progress { margin-bottom: 22px; }
+        .co-sp-label {
+            font-size: 11px; font-weight: 600;
+            color: var(--terracotta); margin-bottom: 10px;
+            letter-spacing: .03em;
+        }
+        .co-sp-track {
+            display: flex; align-items: center; margin-bottom: 6px;
+        }
+        .co-sp-dot {
+            width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+            border: 2px solid var(--border-cream);
+            background: var(--ivory); color: var(--stone-gray);
+            font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .25s; position: relative; z-index: 1;
+        }
+        .co-sp-dot.active { border-color: var(--terracotta); background: var(--terracotta); color: #fff; }
+        .co-sp-dot.done   { border-color: #2d7a4f; background: #2d7a4f; color: #fff; }
+        .co-sp-line {
+            flex: 1; height: 2px; background: var(--border-cream);
+            position: relative; overflow: hidden;
+        }
+        .co-sp-fill { position: absolute; inset: 0; background: #2d7a4f; width: 0%; transition: width .3s ease; }
+        .co-sp-names {
+            display: flex; justify-content: space-between;
+        }
+        .co-sp-names span {
+            font-size: 10px; color: var(--stone-gray); font-weight: 500;
+            flex: 1; text-align: center;
+        }
+        .co-sp-names span:first-child { text-align: left; }
+        .co-sp-names span:last-child  { text-align: right; }
+
+        /* Confirm step — 2 choice cards */
+        .co-choice-label {
+            font-size: 11px; font-weight: 600; color: var(--stone-gray);
+            letter-spacing: .04em; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .co-choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+        .co-choice-card {
+            display: flex; align-items: center; gap: 14px;
+            border: 2px solid var(--border-cream);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color .18s, box-shadow .18s, background .18s;
+            background: var(--pure-white);
+            text-align: left;
+            font-family: inherit;
+            width: 100%;
+        }
+        .co-choice-card:hover { border-color: var(--terracotta); box-shadow: 0 2px 8px rgba(201,100,66,.1); }
+        .co-choice-card.stu-card:hover { border-color: #2d7a4f; box-shadow: 0 2px 8px rgba(45,122,79,.12); }
+        .co-choice-card.selected { border-color: var(--terracotta); background: rgba(201,100,66,.04); }
+        .co-choice-card.stu-card.selected { border-color: #2d7a4f; background: rgba(45,122,79,.05); }
+        .co-choice-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
+        .co-choice-body { flex: 1; min-width: 0; }
+        .co-choice-title { font-size: 13px; font-weight: 700; color: var(--near-black); margin-bottom: 2px; }
+        .co-choice-sub   { font-size: 11px; color: var(--stone-gray); line-height: 1.4; }
+        .co-choice-price {
+            font-size: 17px; font-weight: 700; color: var(--near-black);
+            flex-shrink: 0; text-align: right; line-height: 1.2;
+        }
+        .co-choice-price small { font-size: 10px; font-weight: 400; color: var(--stone-gray); display: block; }
+        .co-choice-card.stu-card .co-choice-price { color: #2d7a4f; }
+        .co-choice-card.stu-card .co-choice-title { color: #2d7a4f; }
+    </style>
+</head>
+<body>
+
+<nav class="page-nav">
+    <a class="nav-logo" href="/index.html">Viet Dataverse</a>
+    <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
+</nav>
+
+<main class="pricing-page">
+
+    <!-- Result banner (PayOS redirect) -->
+    <div id="result-banner"></div>
+
+    <!-- Header -->
+    <p class="pricing-subtitle"></p>
+    <h1 class="pricing-title">Gói thành viên</h1>
+    <p class="pricing-subtitle"></p>
+
+    <!-- Billing period toggle -->
+    <div class="billing-toggle">
+        <button class="bt-btn active" id="bt-monthly" onclick="switchBilling('monthly')">
+            Theo tháng
+        </button>
+        <button class="bt-btn" id="bt-yearly" onclick="switchBilling('yearly')">
+            Theo năm
+            <span class="bt-save-pill">−15%</span>
+        </button>
+    </div>
+
+    <!-- Plans -->
+    <div class="plans-grid">
+
+        <!-- FREE -->
+        <div class="plan-card" id="card-free">
+            <!-- <span class="plan-tier-badge badge-free">Miễn phí</span> -->
+            <div class="plan-name">Free</div>
+            <div class="plan-tagline">Try data before you go deep</div>
+            <div class="plan-price-block">
+                <div class="plan-price">
+                    <span class="price-amount price-free">0₫</span>
+                </div>
+                <!-- <div class="price-alt">Mãi mãi miễn phí</div> -->
+                <!-- Placeholder to match Pro card badge height -->
+                <span style="display:inline-block;height:28px;margin-top:auto;"></span>
+            </div>
+            <button class="btn-plan btn-free" onclick="handleFreePlan()">
+                <span class="btn-text">Bắt đầu miễn phí</span>
+            </button>
+            <div class="features-section">
+                <div class="feature-divider"></div>
+                <div class="feature-label">Bao gồm</div>
+                <ul class="features-list">
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Truy cập dữ liệu lịch sử giới hạn
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Download tối đa 1 năm / loại dữ liệu
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                        VN30 Score & Market Pulse — preview top 5
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                        Giới hạn 10 lần download (lifetime)
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- API Supper Lite -->
+        <div class="plan-card featured" id="card-pro">
+            <!-- <span class="plan-tier-badge badge-pro">Pro</span> -->
+            <div class="plan-name">API Supper Lite</div>
+            <div class="plan-tagline">Dành cho dự án cá nhân, học tập, nghiên cứu</div>
+            <div class="plan-price-block">
+                <div class="plan-price">
+                    <span class="price-amount" id="price-pro">149.000</span>
+                    <span class="price-currency">₫</span>
+                    <span class="price-period" id="price-period-pro">/tháng</span>
+                </div>
+                
+                <!-- Student discount badge -->
+                <span class="student-discount-badge" id="student-discount-badge" style="margin-top:auto;"
+                      title="Xác minh sinh viên để nhận giảm 50%">
+                     -50% sinh viên
+                </span>
+            </div>
+            <button class="btn-plan btn-pro" id="btn-pro" onclick="openCheckout()">
+                <span class="spinner"></span>
+                <span class="btn-text">Nâng cấp gói →</span>
+            </button>
+            <div class="error-msg" id="error-pro"></div>
+            <a href="/pages/developer.html" id="link-devpage"
+               style="display:none;font-size:12px;color:var(--terracotta);text-decoration:none;margin-top:12px;opacity:.85;">
+                → Quản lý API Key của bạn
+            </a>
+            <div class="features-section">
+                <div class="feature-divider"></div>
+                <div class="feature-label">Tất cả trong Free, cộng thêm</div>
+                <ul class="features-list">
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Download toàn bộ dữ liệu (full history)
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Dữ liệu realtime / gần realtime
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Không giới hạn thời gian (không cutoff)
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        VN30 Score & signals — full access
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Market Pulse & Future Outlook đầy đủ
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        API key riêng</span>
+                    </li>
+                    <li>
+                        <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
+                        Ưu tiên tốc độ download
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <p id="billing-footer-note" style="font-size:12px;color:var(--stone-gray);text-align:center;margin-bottom:24px;">
+        Thanh toán theo tháng · Huỷ bất kỳ lúc nào
+    </p>
+
+    <div class="pricing-footer">
+        <span class="security-note">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12">
+                <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+                <path d="M5 7V5a3 3 0 016 0v2"/>
+            </svg>
+            Thanh toán an toàn qua PayOS · VietQR · Napas
+        </span>
+    </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════════
+     Checkout overlay — multi-step panel
+     Auth flow:   q → email → otp → confirm   (student path)
+                  q → confirm                 (non-student path)
+                  confirm only                (already verified)
+     Guest flow:  guest (email + pay, no OTP option)
+     ══════════════════════════════════════════════════════════════ -->
+<div id="checkout-overlay" style="display:none;" onclick="_coBackdropClick(event)">
+    <div id="checkout-panel">
+
+        <button class="co-close" onclick="closeCheckout()" title="Đóng">✕</button>
+        <div class="co-panel-title" id="co-panel-title">Xác nhận thanh toán</div>
+
+        <!-- Student verification progress (shown only during email/otp steps) -->
+        <div id="co-student-progress" class="co-student-progress" style="display:none;">
+            <div class="co-sp-label" id="co-sp-label">Bước 1/3 — Nhập email trường học</div>
+            <div class="co-sp-track">
+                <div class="co-sp-dot active" id="spd1">1</div>
+                <div class="co-sp-line"><div class="co-sp-fill" id="spf1"></div></div>
+                <div class="co-sp-dot" id="spd2">2</div>
+                <div class="co-sp-line"><div class="co-sp-fill" id="spf2"></div></div>
+                <div class="co-sp-dot" id="spd3">3</div>
+            </div>
+            <div class="co-sp-names">
+                <span>Nhập email</span><span>Xác nhận</span><span>Thanh toán</span>
+            </div>
+        </div>
+
+        <!-- STEP EMAIL: Student email input -->
+        <div class="co-step-content" id="co-step-email">
+            <div class="co-step-heading">Nhập email trường học</div>
+            <p class="co-step-desc">
+                Email phải có đuôi <code>.edu.vn</code><br>
+                Ví dụ: <em>ten@hust.edu.vn</em>
+            </p>
+            <input type="email" id="co-stu-email" class="co-input"
+                   placeholder="ten@truong.edu.vn" autocomplete="email">
+            <div class="co-error" id="co-err-email"></div>
+            <div class="co-btn-row">
+                <button class="co-btn-secondary" onclick="coGoStep('confirm')">← Huỷ xác minh</button>
+                <button class="co-btn-primary" id="co-btn-send-otp" onclick="coSendOtp()">
+                    <span class="co-spinner"></span>
+                    <span class="co-btn-text">Gửi mã xác nhận</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP OTP: Enter OTP -->
+        <div class="co-step-content" id="co-step-otp">
+            <div class="co-step-heading">Nhập mã xác nhận</div>
+            <p class="co-step-desc">
+                Mã 6 số đã gửi đến<br>
+                <strong id="co-otp-email-display" style="color:var(--near-black);"></strong>
+            </p>
+            <input type="text" id="co-otp-input" class="co-input co-otp-input"
+                   maxlength="6" placeholder="123456" inputmode="numeric">
+            <div class="co-error" id="co-err-otp"></div>
+            <div class="co-btn-row">
+                <button class="co-btn-secondary" onclick="coGoStep('email')">← Đổi email</button>
+                <button class="co-btn-primary" id="co-btn-confirm-otp" onclick="coConfirmOtp()">
+                    <span class="co-spinner"></span>
+                    <span class="co-btn-text">Xác nhận mã</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP CONFIRM: Review & pay (auth users) -->
+        <div class="co-step-content" id="co-step-confirm">
+
+            <!-- Verified student: show discounted price box + pay -->
+            <div id="co-verified-block" style="display:none;">
+                <div class="co-price-box">
+                    <div class="co-price-row">
+                        <span class="co-price-label">API Supper Lite</span>
+                        <span class="co-price-value" style="color:#2d7a4f;">
+                            <span id="co-final-price">74.500</span>₫<span class="co-price-period" id="co-final-period">/tháng</span>
+                        </span>
+                    </div>
+                    <div class="co-discount-row" style="display:flex;">
+                        <span class="co-discount-tag">🎓 −50% sinh viên đã xác minh</span>
+                        <span class="co-discount-orig" id="co-discount-orig-text">Giá gốc: <s>149.000₫</s></span>
+                    </div>
+                </div>
+                <div class="co-error" id="co-err-confirm"></div>
+                <button class="co-btn-primary full" id="co-btn-pay" onclick="coSubmitPayment()" style="background:#2d7a4f;">
+                    <span class="co-spinner"></span>
+                    <span class="co-btn-text" id="co-btn-pay-text">Thanh toán 74.500₫/tháng →</span>
+                </button>
+            </div>
+
+            <!-- Unverified: show 2 clear choices -->
+            <div id="co-choice-block">
+                <div class="co-choice-label">Chọn loại tài khoản</div>
+                <div class="co-choices">
+                    <!-- Normal pay -->
+                    <button class="co-choice-card" id="co-btn-pay-normal" onclick="coSubmitPaymentNormal(this)">
+                        <div class="co-choice-icon">💳</div>
+                        <div class="co-choice-body">
+                            <div class="co-choice-title">Thanh toán ngay</div>
+                            <div class="co-choice-sub">Kích hoạt ngay sau thanh toán</div>
+                        </div>
+                        <div class="co-choice-price">
+                            <span id="co-normal-price-display">149.000₫</span>
+                            <small id="co-normal-period-display">/tháng</small>
+                        </div>
+                    </button>
+                    <!-- Student verify -->
+                    <button class="co-choice-card stu-card" onclick="coStartStudentVerify()">
+                        <div class="co-choice-icon">🎓</div>
+                        <div class="co-choice-body">
+                            <div class="co-choice-title">Tôi là sinh viên — giảm 50%</div>
+                            <div class="co-choice-sub">Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 3px;border-radius:3px;font-size:10px;">.edu.vn</code> · ~2 phút</div>
+                        </div>
+                        <div class="co-choice-price">
+                            <span id="co-stu-price-display">74.500₫</span>
+                            <small id="co-stu-period-display">/tháng</small>
+                        </div>
+                    </button>
+                </div>
+                <div class="co-error" id="co-err-confirm2"></div>
+            </div>
+
+        </div>
+
+        <!-- STEP GUEST: 2 choices (not logged in) -->
+        <div class="co-step-content" id="co-step-guest">
+            <div class="co-choice-label">Chọn loại tài khoản</div>
+            <div class="co-choices">
+                <!-- Pay as guest -->
+                <div id="co-guest-normal-card">
+                    <button class="co-choice-card" id="co-guest-toggle-btn" onclick="coToggleGuestForm(this)">
+                        <div class="co-choice-icon">💳</div>
+                        <div class="co-choice-body">
+                            <div class="co-choice-title">Thanh toán không cần tài khoản</div>
+                            <div class="co-choice-sub">Nhập email để nhận thông tin kích hoạt</div>
+                        </div>
+                        <div class="co-choice-price">
+                            <span id="co-guest-price-display">149.000₫</span>
+                            <small id="co-guest-period-display">/tháng</small>
+                        </div>
+                    </button>
+                    <!-- Email form (hidden until card clicked) -->
+                    <div id="co-guest-form" style="display:none;padding:12px 0 4px;">
+                        <input type="email" id="co-guest-email" class="co-input"
+                               placeholder="ten@example.com" autocomplete="email"
+                               style="margin-bottom:10px;">
+                        <div class="co-error" id="co-err-guest"></div>
+                        <button class="co-btn-primary full" id="co-btn-guest-pay" onclick="coSubmitGuestPayment()">
+                            <span class="co-spinner"></span>
+                            <span class="co-btn-text" id="co-guest-pay-text">Tiếp tục thanh toán →</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Login to verify student -->
+                <button class="co-choice-card stu-card" onclick="login()">
+                    <div class="co-choice-icon">🎓</div>
+                    <div class="co-choice-body">
+                        <div class="co-choice-title">Tôi là sinh viên — giảm 50%</div>
+                        <div class="co-choice-sub">Đăng nhập → xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 3px;border-radius:3px;font-size:10px;">.edu.vn</code></div>
+                    </div>
+                    <div class="co-choice-price">
+                        <span id="co-guest-stu-price-display">74.500₫</span>
+                        <small id="co-guest-stu-period-display">/tháng</small>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:8000'
+        : 'https://api.vietdataverse.online';
+
+    // ── Billing plans ─────────────────────────────────────────
+    // yearly = monthly × 12 × 0.85, rounded
+    const PLANS = {
+        monthly: {
+            key:             'pro_monthly',
+            amount:          149_000,
+            amountStudent:   74_500,
+            display:         '149.000',
+            displayStudent:  '74.500',
+            period:          '/tháng',
+            alt:             '≈ $4.99 / month',
+            altStudent:      '(giảm 50% sinh viên) ≈ $2.49/month',
+            confirmLabel:    'Thanh toán 149.000₫/tháng →',
+            confirmLabelStu: 'Thanh toán 74.500₫/tháng →',
+        },
+        yearly: {
+            key:             'pro_yearly',
+            amount:          1_519_800,  // 149k × 12 × 0.85
+            amountStudent:   759_900,    // 74.5k × 12 × 0.85
+            display:         '1.519.800',
+            displayStudent:  '759.900',
+            period:          '/năm',
+            alt:             '≈ 126.650₫/tháng · tiết kiệm 268.200₫',
+            altStudent:      '(giảm 50% sinh viên) ≈ 63.325₫/tháng',
+            confirmLabel:    'Thanh toán 1.519.800₫/năm →',
+            confirmLabelStu: 'Thanh toán 759.900₫/năm →',
+        },
+    };
+    let _billingPeriod = 'monthly';
+    function _currentPlan() { return PLANS[_billingPeriod]; }
+
+    function switchBilling(period) {
+        _billingPeriod = period;
+        document.getElementById('bt-monthly').classList.toggle('active', period === 'monthly');
+        document.getElementById('bt-yearly').classList.toggle('active',  period === 'yearly');
+
+        const p = _currentPlan();
+        const disc = _studentVerified;
+
+        // Update Pro card price display
+        document.getElementById('price-pro').textContent       = disc ? p.displayStudent : p.display;
+        document.getElementById('price-period-pro').textContent = p.period;
+        document.getElementById('price-alt-pro').textContent   = disc ? p.altStudent     : p.alt;
+
+        // Update student badge display if verified
+        const badge = document.getElementById('student-discount-badge');
+        if (disc) {
+            badge.textContent = `🎓 −50% đã xác minh ✓`;
+        }
+
+        // Update footer note
+        document.getElementById('billing-footer-note').textContent = period === 'yearly'
+            ? 'Thanh toán hàng năm · Tiết kiệm 2 tháng · Huỷ bất kỳ lúc nào'
+            : 'Thanh toán theo tháng · Huỷ bất kỳ lúc nào';
+
+        // Refresh confirm step if overlay is open
+        if (document.getElementById('checkout-overlay').style.display !== 'none'
+            && _coCurrentStep === 'confirm') {
+            coGoStep('confirm');
+        }
+    }
+
+    // ── Referral ref capture ──────────────────────────────────
+    (function captureRef() {
+        const ref = new URLSearchParams(location.search).get('ref');
+        if (ref) sessionStorage.setItem('vdv_ref', ref.trim().toLowerCase());
+    })();
+
+    function _getRef() { return sessionStorage.getItem('vdv_ref') || null; }
+
+    // ── Page state ────────────────────────────────────────────
+    let _studentVerified = false;
+    let _coIsAuth        = false;
+    let _coStudentPath   = false;
+    let _coCurrentStep   = null;
+
+    // ── PayOS redirect handler ────────────────────────────────
+    (async function handleRedirect() {
+        const params    = new URLSearchParams(window.location.search);
+        const payment   = params.get('payment');
+        const orderCode = params.get('order');
+        if (!payment) return;
+
+        const banner = document.getElementById('result-banner');
+
+        if (payment === 'success' && orderCode) {
+            banner.className = 'success';
+            banner.innerHTML = `
+                <div class="result-icon">⏳</div>
+                <div class="result-title" style="color:var(--terracotta)">Đang xác nhận thanh toán…</div>
+                <p class="result-desc">Vui lòng chờ trong giây lát.</p>`;
+            try {
+                const res  = await fetch(`${API}/api/v1/payment/verify-order/${orderCode}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.activated || data.already_paid) {
+                    banner.innerHTML = `
+                        <div class="result-icon">🎉</div>
+                        <div class="result-title">Thanh toán thành công!</div>
+                        <p class="result-desc">API Supper Lite đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
+                        <div class="result-actions">
+                            <a class="btn-home" href="/index.html">Về trang chủ</a>
+                            <button class="btn-cta-sm" onclick="login()">Đăng nhập ngay</button>
+                        </div>`;
+                } else {
+                    banner.innerHTML = `
+                        <div class="result-icon">⏳</div>
+                        <div class="result-title" style="color:var(--terracotta)">Đang xử lý thanh toán</div>
+                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>API Supper Lite sẽ tự động kích hoạt sau khi xử lý xong.</p>
+                        <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
+                }
+            } catch {
+                banner.innerHTML = `
+                    <div class="result-icon">🎉</div>
+                    <div class="result-title">Thanh toán đã ghi nhận!</div>
+                    <p class="result-desc">API Supper Lite sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
+                    <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
+            }
+        } else if (payment === 'cancelled') {
+            banner.className = 'cancelled';
+            banner.innerHTML = `
+                <div class="result-icon">✕</div>
+                <div class="result-title">Thanh toán đã huỷ</div>
+                <p class="result-desc">Bạn có thể thử lại bất cứ lúc nào.</p>
+                <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
+        }
+
+        window.history.replaceState({}, '', window.location.pathname);
+    })();
+
+    // ── Auth on load ──────────────────────────────────────────
+    async function initPage() {
+        try {
+            _coIsAuth = await isAuthenticated();
+            if (_coIsAuth) {
+                const user = await getUser();
+                updateNavAuth(user);
+                try {
+                    const token = await getToken();
+                    const [statusRes, stuRes] = await Promise.all([
+                        fetch(`${API}/api/v1/payment/status`, { headers: { Authorization: `Bearer ${token}` } }),
+                        fetch(`${API}/api/v1/student/status`, { headers: { Authorization: `Bearer ${token}` } }),
+                    ]);
+                    if (statusRes.ok) {
+                        const d = await statusRes.json();
+                        if (d.user_level === 'premium_developer' || d.user_level === 'admin') {
+                            document.getElementById('link-devpage').style.display = 'inline';
+                            document.querySelector('#btn-pro .btn-text').textContent = 'Gia hạn Pro →';
+                        }
+                    }
+                    if (stuRes.ok) {
+                        const stu = await stuRes.json();
+                        if (stu.student_verified) _markStudentVerified();
+                    }
+                } catch { /* non-critical */ }
+            } else {
+                updateNavAuth(null);
+            }
+        } catch {
+            updateNavAuth(null);
+        }
+    }
+
+    function _markStudentVerified() {
+        _studentVerified = true;
+        _coStudentPath   = true;
+        const p     = _currentPlan();
+        const badge = document.getElementById('student-discount-badge');
+        badge.textContent = '🎓 −50% đã xác minh ✓';
+        badge.classList.add('verified');
+        badge.onclick = null;
+        document.getElementById('price-pro').textContent        = p.displayStudent;
+        document.getElementById('price-alt-pro').textContent    = p.altStudent;
+    }
+
+    function updateNavAuth(user) {
+        const nav = document.getElementById('nav-auth');
+        if (user) {
+            nav.innerHTML = `
+                <img src="${user.picture || ''}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border-cream);">
+                <span style="color:var(--text-secondary);font-size:13px;">${user.email || user.name || ''}</span>
+                <button onclick="logout()" style="background:none;border:1px solid var(--border-cream);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Đăng xuất</button>`;
+        } else {
+            nav.innerHTML = `
+                <button onclick="login()" style="background:var(--terracotta);border:none;color:var(--ivory);padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>`;
+        }
+    }
+
+    function handleFreePlan() { window.location.href = '/index.html'; }
+
+    // ── Checkout overlay ──────────────────────────────────────
+    async function openCheckout()        { await _openOverlay(); }
+    async function openCheckoutStudent() { await _openOverlay(); }
+
+    async function _openOverlay() {
+        try { _coIsAuth = await isAuthenticated(); } catch { _coIsAuth = false; }
+        document.getElementById('checkout-overlay').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        if (!_coIsAuth) {
+            coGoStep('guest');
+            return;
+        }
+        // Always open confirm first — fastest path; student CTA is embedded there
+        coGoStep('confirm');
+    }
+
+    function closeCheckout() {
+        document.getElementById('checkout-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+        _clearCoErrors();
+    }
+
+    function _coBackdropClick(e) {
+        if (e.target === document.getElementById('checkout-overlay')) closeCheckout();
+    }
+
+    function _clearCoErrors() {
+        document.querySelectorAll('.co-error').forEach(el => el.classList.remove('visible'));
+    }
+
+    function _showCoError(id, msg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('visible');
+    }
+
+    // Show/update the student progress strip (steps 1–3)
+    // dotStep: which dot is "active" (1, 2, or 3=done)
+    function _showProgress(dotStep) {
+        const bar = document.getElementById('co-student-progress');
+        bar.style.display = 'block';
+        const labels = ['Bước 1/3 — Nhập email trường học',
+                        'Bước 2/3 — Xác nhận email',
+                        'Bước 3/3 — Hoàn tất xác minh'];
+        document.getElementById('co-sp-label').textContent = labels[dotStep - 1] || '';
+        for (let n = 1; n <= 3; n++) {
+            const dot = document.getElementById('spd' + n);
+            dot.className = 'co-sp-dot';
+            if (n < dotStep)  dot.classList.add('done'), dot.textContent = '✓';
+            else if (n === dotStep) dot.classList.add('active'), dot.textContent = n;
+            else dot.textContent = n;
+        }
+        // fill connecting lines
+        [1, 2].forEach(n => {
+            const fill = document.getElementById('spf' + n);
+            fill.style.width = n < dotStep ? '100%' : '0%';
+        });
+    }
+
+    function _hideProgress() {
+        document.getElementById('co-student-progress').style.display = 'none';
+    }
+
+    function coGoStep(step) {
+        document.querySelectorAll('.co-step-content').forEach(el => el.classList.remove('active'));
+        _clearCoErrors();
+        _coCurrentStep = step;
+        const map = { email: 'co-step-email', otp: 'co-step-otp',
+                      confirm: 'co-step-confirm', guest: 'co-step-guest' };
+        const el = document.getElementById(map[step]);
+        if (el) el.classList.add('active');
+
+        // Panel title + progress bar
+        if (step === 'email') {
+            document.getElementById('co-panel-title').textContent = 'Xác minh sinh viên';
+            _showProgress(1);
+        } else if (step === 'otp') {
+            document.getElementById('co-panel-title').textContent = 'Xác minh sinh viên';
+            _showProgress(2);
+        } else if (step === 'confirm') {
+            _hideProgress();
+            const disc = _studentVerified;
+            const p    = _currentPlan();
+            document.getElementById('co-panel-title').textContent =
+                disc ? '🎓 Xác nhận thanh toán sinh viên' : 'Chọn loại tài khoản';
+
+            // Show/hide blocks
+            document.getElementById('co-verified-block').style.display = disc ? 'block' : 'none';
+            document.getElementById('co-choice-block').style.display   = disc ? 'none'  : 'block';
+
+            if (disc) {
+                // Verified student block
+                document.getElementById('co-final-price').textContent        = p.displayStudent;
+                document.getElementById('co-final-period').textContent       = p.period;
+                document.getElementById('co-discount-orig-text').innerHTML   = `Giá gốc: <s>${p.display}₫</s>`;
+                document.getElementById('co-btn-pay-text').textContent       = p.confirmLabelStu;
+            } else {
+                // Choice block — update prices per billing period
+                document.getElementById('co-normal-price-display').textContent = `${p.display}₫`;
+                document.getElementById('co-normal-period-display').textContent = p.period;
+                document.getElementById('co-stu-price-display').textContent    = `${p.displayStudent}₫`;
+                document.getElementById('co-stu-period-display').textContent   = p.period;
+            }
+        } else if (step === 'guest') {
+            _hideProgress();
+            const p = _currentPlan();
+            document.getElementById('co-panel-title').textContent = 'Chọn loại tài khoản';
+            document.getElementById('co-guest-price-display').textContent     = `${p.display}₫`;
+            document.getElementById('co-guest-period-display').textContent    = p.period;
+            document.getElementById('co-guest-stu-price-display').textContent = `${p.displayStudent}₫`;
+            document.getElementById('co-guest-stu-period-display').textContent= p.period;
+            // Reset guest form to collapsed state
+            document.getElementById('co-guest-form').style.display = 'none';
+            document.getElementById('co-guest-toggle-btn').classList.remove('selected');
+        }
+
+        if (step === 'email') setTimeout(() => document.getElementById('co-stu-email').focus(), 60);
+        if (step === 'otp')   setTimeout(() => document.getElementById('co-otp-input').focus(), 60);
+    }
+
+    function coToggleGuestForm(btn) {
+        const form = document.getElementById('co-guest-form');
+        const open = form.style.display === 'none';
+        form.style.display = open ? 'block' : 'none';
+        btn.classList.toggle('selected', open);
+        if (open) setTimeout(() => document.getElementById('co-guest-email').focus(), 60);
+    }
+
+    // Called from student CTA button inside confirm step
+    function coStartStudentVerify() {
+        document.getElementById('co-stu-email').value = '';
+        coGoStep('email');
+    }
+
+    // ── OTP flow ──────────────────────────────────────────────
+    async function coSendOtp() {
+        const email = document.getElementById('co-stu-email').value.trim();
+        _clearCoErrors();
+        if (!email) { _showCoError('co-err-email', 'Vui lòng nhập email sinh viên.'); return; }
+        if (!email.endsWith('.edu.vn')) {
+            _showCoError('co-err-email', 'Email phải có đuôi .edu.vn (ví dụ: ten@hust.edu.vn).');
+            return;
+        }
+        const btn = document.getElementById('co-btn-send-otp');
+        btn.disabled = true; btn.classList.add('loading');
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API}/api/v1/student/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Lỗi gửi OTP');
+            document.getElementById('co-otp-email-display').textContent = email;
+            document.getElementById('co-otp-input').value = '';
+            coGoStep('otp');
+        } catch (e) {
+            _showCoError('co-err-email', e.message);
+        } finally {
+            btn.disabled = false; btn.classList.remove('loading');
+        }
+    }
+
+    async function coConfirmOtp() {
+        const email    = document.getElementById('co-stu-email').value.trim();
+        const otp_code = document.getElementById('co-otp-input').value.trim();
+        _clearCoErrors();
+        if (otp_code.length !== 6) { _showCoError('co-err-otp', 'Mã OTP gồm 6 chữ số.'); return; }
+        const btn = document.getElementById('co-btn-confirm-otp');
+        btn.disabled = true; btn.classList.add('loading');
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API}/api/v1/student/confirm-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ email, otp_code }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Mã không đúng hoặc đã hết hạn');
+            // Mark progress step 3 briefly, then advance to confirm
+            _showProgress(3);
+            _markStudentVerified();
+            setTimeout(() => coGoStep('confirm'), 600);
+        } catch (e) {
+            _showCoError('co-err-otp', e.message);
+        } finally {
+            btn.disabled = false; btn.classList.remove('loading');
+        }
+    }
+
+    // ── Payment ───────────────────────────────────────────────
+    async function _doCreateOrder(btn, errId) {
+        _clearCoErrors();
+        if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+        try {
+            const token = await getToken();
+            if (!token) throw new Error('Không lấy được token. Vui lòng đăng nhập lại.');
+            const body = { plan: _currentPlan().key };
+            const ref = _getRef();
+            if (ref) body.ref_code = ref;
+            const res = await fetch(`${API}/api/v1/payment/create-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
+            sessionStorage.removeItem('vdv_ref');
+            window.location.href = data.checkout_url;
+        } catch (e) {
+            if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+            _showCoError(errId, e.message);
+        }
+    }
+
+    // Called from verified student block pay button
+    async function coSubmitPayment() {
+        await _doCreateOrder(document.getElementById('co-btn-pay'), 'co-err-confirm');
+    }
+
+    // Called from normal-pay choice card
+    async function coSubmitPaymentNormal(btn) {
+        await _doCreateOrder(btn, 'co-err-confirm2');
+    }
+
+    async function coSubmitGuestPayment() {
+        _clearCoErrors();
+        const email = document.getElementById('co-guest-email').value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            _showCoError('co-err-guest', 'Vui lòng nhập email hợp lệ.');
+            return;
+        }
+        const btn = document.getElementById('co-btn-guest-pay');
+        btn.disabled = true; btn.classList.add('loading');
+        try {
+            const body = { email, plan: _currentPlan().key };
+            const ref = _getRef();
+            if (ref) body.ref_code = ref;
+            const res = await fetch(`${API}/api/v1/payment/create-order-guest`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
+            window.location.href = data.checkout_url;
+        } catch (e) {
+            btn.disabled = false; btn.classList.remove('loading');
+            _showCoError('co-err-guest', e.message);
+        }
+    }
+
+    window.addEventListener('load', initPage);
+</script>
+
+</body>
+</html>
