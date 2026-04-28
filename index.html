@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <!-- Google search -->
+    <meta name="google-site-verification" content="w7LUdUQqy_s1GEK4xpKPy8KSuyNMWFLz9bMuMyhtnNQ" />
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YB3PKHN2E5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-YB3PKHN2E5');
+        gtag('config', 'G-B9BHYSYDES');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Risk Algorithm - Tải Dữ Liệu Vĩ Mô Miễn Phí | Viet Dataverse</title>
+    <meta name="description"
+        content="Market Risk Algorithm: phân bổ rủi ro các kênh đầu tư vĩ mô bằng Machine Learning, cập nhật hàng tuần. Tải miễn phí dữ liệu vĩ mô Việt Nam: giá vàng SJC/DOJI/BTMC, tỷ giá USD/VND, lãi suất ngân hàng từ 2015. Free API & CSV export.">
+    <meta name="keywords"
+        content="Market Risk Algorithm, Viet dataverse, Vietnam gold price, vietnam economic data, tải giá vàng, lịch sử giá vàng SJC, vietnam finance data api, dữ liệu vĩ mô Việt Nam, macro data Vietnam">
+    <meta name="author" content="Viet Dataverse">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="Vietnamese">
+    <meta name="geo.region" content="VN">
+    <meta name="geo.placename" content="Vietnam">
+    <!-- Favicon and Icons (hosted on imagekit.io) -->
+    <link rel="icon" type="image/png" sizes="16x16"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#f5f4ed">
+    <meta name="msapplication-TileColor" content="#c96442">
+    <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
+
+    <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
+    <link rel="dns-prefetch" href="https://api.vietdataverse.online">
+    <link rel="canonical" href="https://vietdataverse.online/">
+    <link rel="alternate" hreflang="vi" href="https://vietdataverse.online/">
+    <link rel="alternate" hreflang="en" href="https://vietdataverse.online/">
+    <link rel="alternate" hreflang="x-default" href="https://vietdataverse.online/">
+
+    <!-- Open Graph for social sharing -->
+    <meta property="og:site_name" content="Viet Dataverse">
+    <meta property="og:title" content="Market Risk Algorithm & Dữ Liệu Vĩ Mô Miễn Phí | Vietnam Financial Intelligence | Viet Dataverse">
+    <meta property="og:description"
+        content="Market Risk Algorithm: dự đoán xác suất tăng giá cổ phiếu VN30 bằng Machine Learning, cập nhật hàng tuần. Tải miễn phí dữ liệu vĩ mô: giá vàng SJC/DOJI/BTMC từ 2015, tỷ giá USD/VND, lãi suất SBV. Free API & CSV.">
+    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Viet Dataverse - Vietnam Economic Data Platform">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vietdataverse.online/">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@VietDataverse">
+    <meta name="twitter:creator" content="@VietDataverse">
+    <meta name="twitter:title" content="Market Risk Algorithm & Dữ Liệu Vĩ Mô Miễn Phí | Viet Dataverse">
+    <meta name="twitter:description"
+        content="Market Risk Algorithm: phân bổ rủi ro các kênh đầu tư vĩ mô bằng Machine Learning. Tải miễn phí dữ liệu vĩ mô Việt Nam: giá vàng SJC/DOJI/BTMC, tỷ giá USD/VND, lãi suất từ 2015. Free API & CSV.">
+    <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
+    <meta name="twitter:image:alt" content="Viet Dataverse Logo">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
+    <link rel="dns-prefetch" href="https://api.vietdataverse.online">
+    <link rel="preload" href="style.css" as="style">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Viet Dataverse",
+      "url": "https://vietdataverse.online/",
+      "logo": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png",
+      "description": "Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở, cung cấp dữ liệu giá vàng, lãi suất và tỷ giá miễn phí.",
+      "sameAs": ["https://vietdataverse.online/"],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "contact@vietdataverse.online"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Giá Vàng Việt Nam: Hướng Dẫn Đọc Dữ Liệu & Phân Tích Xu Hướng",
+      "description": "Phân tích thị trường vàng, bạc Việt Nam: hiểu về cơ chế giá, các yếu tố ảnh hưởng và cách đọc dữ liệu lịch sử từ DOJI, SJC, BTMC.",
+      "author": {"@type": "Organization", "name": "Viet Dataverse"},
+      "publisher": {"@type": "Organization", "name": "Viet Dataverse", "logo": {"@type": "ImageObject", "url": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png"}},
+      "datePublished": "2025-01-01",
+      "dateModified": "2026-03-21",
+      "inLanguage": "vi-VN",
+      "url": "https://vietdataverse.online/",
+      "mainEntityOfPage": "https://vietdataverse.online/"
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Viet Dataverse",
+      "alternateName": ["VietDataverse", "vietdataverse", "Tải Giá Vàng", "Download Gold Price Vietnam"],
+      "url": "https://vietdataverse.online/",
+      "description": "Tải lịch sử giá vàng SJC, DOJI, BTMC miễn phí từ 2015. Download Vietnam gold price CSV, giá bạc, lãi suất ngân hàng. Cập nhật 2 lần/ngày.",
+      "inLanguage": "vi-VN",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://vietdataverse.online/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Tải Giá Vàng Việt Nam Miễn Phí - Download Vietnam Gold Price CSV",
+      "description": "Tải lịch sử giá vàng SJC, DOJI, BTMC từ 2015 miễn phí. Download Vietnam gold price data CSV cập nhật mỗi ngày. Free API & CSV export cho nghiên cứu kinh tế.",
+      "url": "https://vietdataverse.online/",
+      "keywords": ["tải giá vàng", "download gold price", "tải lịch sử giá vàng", "download vietnam gold price", "giá vàng csv", "gold price csv download", "vietnam gold price data", "lịch sử giá vàng sjc", "gold price api vietnam", "giá vàng hôm nay", "free gold price download"],
+      "creator": {
+        "@type": "Organization",
+        "name": "Viet Dataverse"
+      },
+      "distribution": [
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "CSV",
+          "contentUrl": "https://api.vietdataverse.online/api/v1/gold",
+          "name": "Tải dữ liệu giá vàng CSV",
+          "description": "Download Vietnam gold price historical data"
+        },
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://api.vietdataverse.online/api/v1/gold",
+          "name": "Gold Price API",
+          "description": "RESTful API for Vietnam historical gold prices"
+        }
+      ],
+      "temporalCoverage": "2015/..",
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "Vietnam"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Dữ Liệu Giá Bạc Phú Quý Việt Nam",
+      "description": "Lịch sử giá bạc thỏi Phú Quý tại thị trường Việt Nam, cập nhật từ nguồn công khai",
+      "url": "https://vietdataverse.online/",
+      "keywords": ["giá bạc", "giá bạc hôm nay", "bạc Phú Quý", "giá bạc thỏi"],
+      "creator": {
+        "@type": "Organization",
+        "name": "Viet Dataverse"
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "CSV",
+        "contentUrl": "https://api.vietdataverse.online/api/v1/silver"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Giá vàng SJC hôm nay là bao nhiêu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Viet Dataverse cung cấp giá vàng trong nước được cập nhật hàng ngày. Bạn có thể xem biểu đồ lịch sử và tải dữ liệu miễn phí."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Làm thế nào để tải lịch sử giá vàng Việt Nam?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tại Viet Dataverse, bạn có thể tải lịch sử giá vàng SJC, DOJI, PNJ từ 2015 hoàn toàn miễn phí. Click vào nút 'Download' trong mục Download Datasets hoặc truy cập API tại https://api.vietdataverse.online/api/v1/gold"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How to download Vietnam historical gold price data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Download Vietnam historical gold price free at Viet Dataverse. Click 'Download' button in Download Datasets section or access API at https://api.vietdataverse.online/api/v1/gold. Data includes SJC, DOJI, PNJ prices from 2015."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Lãi suất liên ngân hàng SBV là gì?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Lãi suất liên ngân hàng SBV là lãi suất mà các ngân hàng thương mại cho vay lẫn nhau, được Ngân hàng Nhà nước Việt Nam công bố. Dữ liệu cập nhật hàng ngày tại Viet Dataverse."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Tải giá vàng ở đâu miễn phí?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bạn có thể tải giá vàng miễn phí tại Viet Dataverse (vietdataverse.online). Dữ liệu bao gồm giá vàng SJC, DOJI, BTMC từ 2015 đến nay, hỗ trợ tải CSV và truy cập qua API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where can I download Vietnam gold price data for free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can download Vietnam gold price data for free at Viet Dataverse (vietdataverse.online). Data includes SJC, DOJI, BTMC gold prices from 2015, available as CSV download and RESTful API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Dữ liệu giá vàng được cập nhật bao lâu một lần?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dữ liệu giá vàng tại Viet Dataverse được cập nhật từ các nguồn uy tín như BTMC, DOJI, PNJ. Bạn có thể tải dữ liệu mới nhất bất cứ lúc nào."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "VN30 Score là gì?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VN30 Score là công cụ dự đoán xác suất tăng giá cổ phiếu trong rổ VN30 bằng mô hình Machine Learning (XGBoost). Mỗi mã cổ phiếu được chấm điểm từ 0–100%: ≥60% là tín hiệu BUY, 40–59% là NEUTRAL, <40% là SELL. Dữ liệu cập nhật hàng tuần tại Viet Dataverse."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is VN30 Score?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VN30 Score is an ML-powered stock probability ranking tool for Vietnam's VN30 index. Each stock is scored 0–100%: ≥60% = BUY signal, 40–59% = NEUTRAL, <40% = SELL. Updated weekly at Viet Dataverse (vietdataverse.online/#vn30-score)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Dự đoán cổ phiếu VN30 bằng Machine Learning ở đâu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tại Viet Dataverse (vietdataverse.online), mục VN30 Score cung cấp dự đoán xác suất tăng giá cho 30 mã cổ phiếu trong rổ VN30 bằng mô hình XGBoost, cập nhật hàng tuần. Người dùng Free được xem top 3 mã. Người dùng Premium xem toàn bộ 30 mã."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "API tài chính Việt Nam miễn phí ở đâu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Viet Dataverse cung cấp API dữ liệu tài chính Việt Nam miễn phí tại api.vietdataverse.online. API bao gồm: giá vàng SJC/DOJI/BTMC, giá bạc, lãi suất liên ngân hàng SBV, lãi suất tiết kiệm, tỷ giá USD/VND Vietcombank, và dữ liệu VN30. Hỗ trợ định dạng JSON và CSV."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Tải Giá Vàng & Dữ Liệu Kinh Tế",
+          "item": "https://vietdataverse.online/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Download Gold Price Vietnam",
+          "item": "https://vietdataverse.online/#data-portal"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Download & API",
+          "item": "https://vietdataverse.online/#download-api"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "VN30 Score - Dự Đoán Cổ Phiếu",
+          "item": "https://vietdataverse.online/#vn30-score"
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Viet Dataverse",
+      "alternateName": ["VietDataverse", "vietdataverse", "Viet Dataverse"],
+      "url": "https://vietdataverse.online/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "description": "Nền tảng dữ liệu kinh tế Việt Nam minh bạch, cung cấp giá vàng, giá bạc, lãi suất ngân hàng và các chỉ số thị trường",
+      "sameAs": [
+        "https://github.com/findatasolution/vietdataverse"
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "VN30 Score",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "url": "https://vietdataverse.online/#vn30-score",
+      "description": "Công cụ dự đoán xác suất tăng giá cổ phiếu VN30 bằng Machine Learning (XGBoost). Xếp hạng 30 mã cổ phiếu trong rổ VN30 theo xác suất tăng giá, cập nhật hàng tuần. Tín hiệu BUY/NEUTRAL/SELL minh bạch.",
+      "featureList": [
+        "Xác suất tăng giá (0–100%) cho từng mã VN30",
+        "Tín hiệu BUY (≥60%), NEUTRAL (40–59%), SELL (<40%)",
+        "Cập nhật hàng tuần với mô hình XGBoost",
+        "Xếp hạng toàn bộ 30 mã cổ phiếu",
+        "Dự đoán thị trường chứng khoán Việt Nam"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "VND",
+          "description": "Xem top 3 cổ phiếu xác suất cao nhất miễn phí"
+        },
+        {
+          "@type": "Offer",
+          "name": "Premium",
+          "description": "Xem toàn bộ 30 mã VN30 Score và tín hiệu chi tiết"
+        }
+      ],
+      "publisher": {
+        "@type": "Organization",
+        "name": "Viet Dataverse",
+        "url": "https://vietdataverse.online/"
+      },
+      "inLanguage": "vi-VN"
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Dữ Liệu Vĩ Mô Việt Nam - Vietnam Macroeconomic Dataset",
+      "description": "Bộ dữ liệu vĩ mô Việt Nam tập trung: giá vàng (SJC, DOJI, BTMC, PNJ), giá bạc Phú Quý, lãi suất tiết kiệm (ACB, VCB, CTG, SHB), lãi suất liên ngân hàng SBV, tỷ giá USD/VND Vietcombank, chỉ số COMEX và NASDAQ. Cập nhật liên tục từ 2015.",
+      "url": "https://vietdataverse.online/#data-portal",
+      "keywords": [
+        "dữ liệu vĩ mô Việt Nam", "macroeconomic data Vietnam", "giá vàng SJC lịch sử",
+        "lãi suất ngân hàng Việt Nam", "tỷ giá USD VND", "download gold price Vietnam",
+        "tải giá vàng CSV", "Vietnam economic data API", "SBV interbank rate", "term deposit rate Vietnam"
+      ],
+      "creator": {"@type": "Organization", "name": "Viet Dataverse"},
+      "distribution": [
+        {"@type": "DataDownload", "encodingFormat": "CSV", "contentUrl": "https://api.vietdataverse.online/api/v1/gold", "name": "Gold Price CSV Download"},
+        {"@type": "DataDownload", "encodingFormat": "CSV", "contentUrl": "https://api.vietdataverse.online/api/v1/silver", "name": "Silver Price CSV Download"},
+        {"@type": "DataDownload", "encodingFormat": "CSV", "contentUrl": "https://api.vietdataverse.online/api/v1/sbv", "name": "SBV Interbank Rate CSV Download"},
+        {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://api.vietdataverse.online/api/docs", "name": "RESTful API - Vietnam Financial Data"}
+      ],
+      "temporalCoverage": "2015/..",
+      "spatialCoverage": {"@type": "Place", "name": "Vietnam"},
+      "license": "https://creativecommons.org/licenses/by/4.0/"
+    }
+    </script>
+    <!-- Auth0 SPA SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+
+    <!-- Auth module -->
+    <script src="auth.js"></script>
+</head>
+
+<body>
+    <!-- Ad wallpaper is now inside section-header, see #data-portal -->
+    <!-- SEO: noscript fallback for crawlers that don't execute JavaScript -->
+    <noscript>
+        <div style="max-width:900px;margin:2rem auto;padding:1.5rem;font-family:sans-serif;line-height:1.7;">
+            <h1>VN30 Score & Dữ Liệu Vĩ Mô Việt Nam Miễn Phí | Viet Dataverse</h1>
+            <p>Viet Dataverse là nền tảng dữ liệu tài chính và vĩ mô Việt Nam tập trung. Sản phẩm chủ lực: <strong>VN30 Score</strong> — dự đoán xác suất tăng giá cổ phiếu VN30 bằng Machine Learning (XGBoost), cập nhật hàng tuần. Tải miễn phí (có giới hạn) dữ liệu vĩ mô: giá vàng SJC/DOJI/BTMC từ 2015, giá bạc Phú Quý, lãi suất tiết kiệm ngân hàng (ACB, VCB, CTG, SHB), lãi suất liên ngân hàng SBV và tỷ giá USD/VND Vietcombank — định dạng CSV hoặc JSON, API RESTful, cập nhật 2 lần mỗi ngày.</p>
+
+            <h2>Dữ liệu có sẵn để tải miễn phí</h2>
+            <ul>
+                <li><strong>Giá Vàng Trong Nước</strong> — Lịch sử giá vàng SJC, DOJI HN, DOJI SG, BTMC từ 2015. Đơn vị: nghìn VND/chỉ (3.75g). Cập nhật 2 lần/ngày.</li>
+                <li><strong>Giá Bạc Phú Quý</strong> — Lịch sử giá bạc thỏi Phú Quý tại thị trường Việt Nam. Đơn vị: nghìn VND/lượng.</li>
+                <li><strong>Lãi Suất Liên Ngân Hàng SBV</strong> — Lãi suất qua đêm, 1 tuần, 1 tháng, 3 tháng, 6 tháng, 9 tháng do Ngân hàng Nhà nước Việt Nam công bố.</li>
+                <li><strong>Lãi Suất Gửi Tiết Kiệm</strong> — ACB, VCB (Vietcombank), CTG (Vietinbank), SHB theo các kỳ hạn từ 1–36 tháng.</li>
+                <li><strong>Tỷ Giá USD/VND</strong> — Tỷ giá mua/bán Vietcombank và tỷ giá trung tâm SBV.</li>
+            </ul>
+
+            <h2>Phân Tích Thị Trường Vàng & Bạc Việt Nam</h2>
+            <p>Thị trường vàng Việt Nam vận hành theo cơ chế riêng biệt so với thế giới. Giá vàng trong nước được niêm yết theo đơn vị nghìn VND/chỉ (1 chỉ = 3.75g). Các thương hiệu uy tín gồm DOJI, SJC, BTMC — mỗi thương hiệu có giá mua vào và bán ra khác nhau tùy thời điểm thị trường. Khoảng cách giữa đường mua và bán (spread) phản ánh tính thanh khoản: spread rộng cho thấy thị trường biến động mạnh.</p>
+            <p>Giá vàng trong nước chịu tác động bởi hai nhóm yếu tố: (1) Quốc tế — giá vàng thế giới COMEX (USD/oz), tỷ giá USD/VND, chính sách lãi suất Fed; (2) Trong nước — cung cầu vàng vật chất, chính sách nhập khẩu vàng của SBV, tâm lý tích trữ dịp Tết. Lịch sử cho thấy giá vàng SJC thường giao dịch ở mức chênh lệch đáng kể so với giá thế giới (premium), đôi khi lên 15–20 triệu đồng/lượng vào giai đoạn căng thẳng nguồn cung.</p>
+
+            <h2>Lãi Suất Tiết Kiệm, Liên Ngân Hàng & Tỷ Giá USD/VND</h2>
+            <p>Lãi suất tiết kiệm kỳ hạn (%/năm) theo các kỳ hạn từ 1 tháng đến 36 tháng tại ACB, VCB, CTG, SHB. Từ 2022–2023, lãi suất leo thang mạnh do áp lực lạm phát, đỉnh điểm vượt 9–10%/năm. Bước sang 2024–2025, Ngân hàng Nhà nước hạ lãi suất điều hành, kéo mặt bằng huy động về 4–6%/năm kỳ hạn ngắn.</p>
+            <p>Lãi suất liên ngân hàng SBV phản ánh chi phí vay vốn ngắn hạn giữa các ngân hàng. Lãi suất qua đêm nhạy cảm nhất với thanh khoản tức thời — khi tăng đột biến là dấu hiệu căng thẳng thanh khoản hệ thống. Tỷ giá USD/VND do Vietcombank niêm yết được coi là tỷ giá tham chiếu chính thức của thị trường Việt Nam.</p>
+
+            <h2>Vàng, Bạc & NASDAQ Quốc Tế</h2>
+            <p>Giá vàng tương lai COMEX (GC=F, USD/troy oz) là chuẩn mực quốc tế. Các yếu tố dịch chuyển giá vàng COMEX: chính sách lãi suất Fed, chỉ số đô-la DXY, lạm phát CPI, căng thẳng địa chính trị. Bạc quốc tế (SI=F) có 50–60% nhu cầu từ công nghiệp (pin mặt trời, điện tử, y tế), khiến bạc nhạy cảm hơn với chu kỳ kinh tế toàn cầu. Chỉ số NASDAQ (^IXIC) đại diện cổ phiếu công nghệ — khi NASDAQ tăng, dòng tiền thường rút khỏi vàng, và ngược lại.</p>
+
+            <h2>Download Gold Price Vietnam — Free API</h2>
+            <p>Free API access: <a href="https://api.vietdataverse.online/api/docs">api.vietdataverse.online/api/docs</a></p>
+            <p>Download gold price CSV, silver price, SBV interbank rates, term deposit rates, USD/VND exchange rate from 2015 to present. Suitable for economic research, investment analysis, and financial application development.</p>
+
+            <h2>VN30 Score - Phân bổ rủi ro các kênh đầu tư vĩ mô bằng Machine Learning/h2>
+            <p>VN30 Score là tính năng mới của Viet Dataverse, sử dụng mô hình Machine Learning (XGBoost) để dự đoán xác suất tăng giá của từng mã cổ phiếu trong rổ VN30. Mỗi mã được chấm điểm từ 0–100%:</p>
+            <ul>
+                <li><strong>BUY (≥60%)</strong> — Xác suất tăng giá cao, xem xét mua vào</li>
+                <li><strong>NEUTRAL (40–59%)</strong> — Tín hiệu trung lập, theo dõi thêm</li>
+                <li><strong>SELL (&lt;40%)</strong> — Xác suất tăng giá thấp, thận trọng</li>
+            </ul>
+            <p>Dữ liệu VN30 Score cập nhật hàng tuần. Người dùng Free xem top 3 cổ phiếu. Người dùng Premium xem toàn bộ 30 mã cùng tín hiệu chi tiết. Đây là công cụ hỗ trợ ra quyết định đầu tư, không phải lời khuyên tài chính.</p>
+
+            <h2>Về Viet Dataverse</h2>
+            <p>Viet Dataverse là nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở, cung cấp thông tin giá vàng, giá bạc, lãi suất ngân hàng và tỷ giá hối đoái được thu thập tự động từ các nguồn công khai uy tín. Dữ liệu được làm sạch, chuẩn hóa và lưu trữ lịch sử dài hạn để phục vụ nghiên cứu và phân tích. Liên hệ: <a href="mailto:contact@vietdataverse.online">contact@vietdataverse.online</a></p>
+        </div>
+    </noscript>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <button class="mobile-menu-btn" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="brand-icon">
+                    <img src="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png" alt="Viet Dataverse Logo">
+                </div>
+                <div class="brand-text">
+                    <h1>Viet Dataverse</h1>
+                    <p class="brand-subtitle">Economic Intelligence</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn lang-btn" id="lang-toggle">
+                    <span id="lang-text">VI</span>
+                </button>
+
+                <!-- Authenticated user chip (avatar + logout) -->
+                <div class="user-chip" id="user-info" style="display: none;">
+                    <a href="/pages/account.html" class="user-avatar-link" title="Xem hồ sơ">
+                        <div class="user-avatar" id="user-avatar"></div>
+                    </a>
+                    <button class="chip-logout" id="logout-btn" title="Đăng xuất">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6"/>
+                        </svg>
+                    </button>
+                </div>
+
+
+                <!-- Login button (shown when not authenticated) -->
+                <a href="#" class="header-link" id="login-link" onclick="event.preventDefault(); login();">
+                    <button class="header-btn primary">
+                        <span data-i18n="loginBtn">Đăng nhập</span>
+                    </button>
+                </a>
+            </div>
+        </header>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Mobile User Controls Section -->
+            <div class="sidebar-section">
+                <ul class="nav-list">
+                    <!-- ── FREE (hooks) ── -->
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="data-portal">
+                            <div class="nav-content">
+                                <h4 data-i18n="navDataPortal">Open Economic Data</h4>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="1smarket-portal">
+                            <div class="nav-content">
+                                <h4 data-i18n="nav1sMarketPortal">1s Market Pulse</h4>
+                                <span class="nav-meta" data-i18n="nav1smarketsub">
+                                    Important updates with MRI
+                                </span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- ── OUTLOOK ── -->
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" data-tab="1s-future-outlook">
+                            <div class="nav-content">
+                                <h4 data-i18n="nav1sFutureOutlook">1s Future Outlook</h4>
+                                <span class="nav-meta" data-i18n="nav1sfuturesub">Dự báo & phân tích tài sản</span>
+                            </div>
+                        </a>
+                    </li> -->
+
+                    <!-- ── VN30 SCORE ── -->
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="vn30-score">
+                            <div class="nav-content">
+                                <h4 data-i18n="navVN30Score">VN30 Score <span class="beta-badge">NEW</span></h4>
+                                <span class="nav-meta" data-i18n="navVN30ScoreSub">Xác suất tăng giá cổ phiếu</span>
+                            </div>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+            <div class="sidebar-section mobile-only">
+                <h2 class="sidebar-heading" data-i18n="sidebarAccount">Account</h2>
+
+                <!-- Language Toggle -->
+                <button class="sidebar-btn" id="sidebar-lang-toggle">
+                    <i class="fas fa-language"></i>
+                    <span id="sidebar-lang-text">En/Vie</span>
+                </button>
+
+                <!-- User Info (shown when authenticated) -->
+                <div class="sidebar-user-info" id="sidebar-user-info" style="display: none;">
+                    <div class="sidebar-user-email" id="sidebar-user-email"></div>
+                </div>
+
+                <!-- Login Link (shown when not authenticated) -->
+                <a href="#" class="sidebar-link" id="sidebar-login-link" onclick="event.preventDefault(); login();">
+                    <button class="sidebar-btn primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span data-i18n="loginBtn">Đăng nhập</span>
+                    </button>
+                </a>
+
+                <!-- Logout Button (shown when authenticated) -->
+                <button class="sidebar-btn danger" id="sidebar-logout-btn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span data-i18n="logoutBtn">Đăng xuất</span>
+                </button>
+            </div>
+
+            <!-- About & Terms — pinned to sidebar bottom -->
+            <div class="sidebar-footer">
+                <a class="sidebar-bottom-link" href="/pages/api-docs.html">
+                    API Docs
+                </a>
+                <a class="sidebar-bottom-link" data-tab="about-terms">
+                    <span data-i18n="navAboutTerms">About & Terms</span>
+                </a>
+                <a class="sidebar-bottom-link" data-tab="privacy-policy">
+                    <span data-i18n="navPrivacy">Privacy Policy</span>
+                </a>
+                <a class="sidebar-bottom-link" data-tab="contact">
+                    <span data-i18n="navContact">Contact</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Open Economic Data -->
+            <div class="tab-content active" id="data-portal">
+
+
+                <!-- Charts Section with Tabs -->
+                <div class="charts-section">
+                    <!-- Tab Navigation -->
+                    <div class="chart-tabs">
+                        <button class="chart-tab-btn active" data-tab="tab-gold-silver">
+                            <i class="fas fa-coins"></i>
+                            <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-currency">
+                            <i class="fas fa-university"></i>
+                            <span data-i18n="tabCurrency">Tiền tệ VN</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-global">
+                            <i class="fas fa-globe"></i>
+                            <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-macro">
+                            <i class="fas fa-chart-area"></i>
+                            <span data-i18n="tabMacro">Vĩ Mô</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-stock">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Chứng khoán</span>
+                        </button>
+                        <button class="chart-tab-btn" data-tab="tab-download">
+                            <i class="fas fa-database"></i>
+                            <span data-i18n="tabDownload">Download</span>
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Vàng & Bạc (Load immediately) -->
+                    <div class="tab-content active" id="tab-gold-silver">
+                        <!-- Gold Price Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="goldChart">Lịch Sử Giá Vàng Việt Nam</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Giá vàng mua/bán trong nước. Đơn vị: nghìn VND/chỉ (3.75g).">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <select id="goldTypeSelect" class="type-select"
+                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);">
+                                        <option value="DOJI HN">DOJI HN</option>
+                                    </select>
+                                    <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="gold" data-period="1m">1
+                                        Month</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('gold-' + (document.getElementById('goldTypeSelect')?.value || 'DOJI HN'))" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="goldChart"></canvas>
+                                <div class="chart-loading" id="goldLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 45%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
+                        </div>
+
+                        <!-- Silver Price Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="silverChart">Lịch Sử Giá Bạc Việt Nam - Phú Quý</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Giá bạc mua/bán của Phú Quý Group. Nguồn: giabac.vn & phuquygroup.vn. Đơn vị: nghìn VND/lượng (37.5g).">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="silver" data-period="1m">1
+                                        Month</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('silver')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="silverChart"></canvas>
+                                <div class="chart-loading" id="silverLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
+                        </div>
+
+                    </div>
+
+                    <!-- Tab 2: Tiền tệ VN (Lazy load) -->
+                    <div class="tab-content" id="tab-currency">
+                        <!-- TD Chart - Term Deposit Interest Rates -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="tdChart">Lãi Suất Gửi Tiết Kiệm</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Lãi suất gửi tiết kiệm kỳ hạn của các ngân hàng thương mại (ACB, VCB, SHB, CTG...). Nguồn: website chính thức từng ngân hàng. Đơn vị: %/năm.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <select id="bankTypeSelect" class="type-select"
+                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);">
+                                        <option value="ACB">ACB</option>
+                                        <option value="CTG">CTG</option>
+                                        <option value="SHB">SHB</option>
+                                    </select>
+                                    <!-- <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button> -->
+                                    <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="td" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('termdepo-' + (document.getElementById('bankTypeSelect')?.value || 'ACB'))" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="tdChart"></canvas>
+                                <div class="chart-loading" id="tdLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="chart-source" id="tdChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank" rel="noopener">acb.com.vn</a></small>
+                        </div>
+
+                        <!-- SBV Interbank Rate Charts -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="sbvChart">Lịch Sử Lãi Suất Liên Ngân Hàng SBV</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Gồm: qua đêm, 1 tháng, 9 tháng (thị trường liên ngân hàng), lãi suất chiết khấu, tái cấp vốn (lãi suất điều hành). Đơn vị: %/năm.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('sbv-interbank')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <!-- Panel 1: Interbank rates -->
+                            <p data-i18n="sbvPanelInterbank" style="font-size:0.78rem;color:var(--text-tertiary);margin:0.5rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Thị Trường Liên Ngân Hàng</p>
+                            <div class="chart-container">
+                                <canvas id="sbvChart"></canvas>
+                                <div class="chart-loading" id="sbvLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Panel 2: Policy rates -->
+                            <p data-i18n="sbvPanelPolicy" style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
+                            <div class="chart-container">
+                                <canvas id="sbv2Chart"></canvas>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
+                        </div>
+
+
+                        <!-- SBV Central Rate Chart (USD/VND) -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="fxrateChart">Tỷ Giá Trung Tâm USD/VND (NHNN)</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Tỷ giá trung tâm USD/VND do Ngân hàng Nhà nước Việt Nam (SBV) công bố hàng ngày. Đây là tỷ giá tham chiếu chính thức. Nguồn: SBV. Đơn vị: VND/USD.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="fxrate" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="fxrate" data-period="1m">1
+                                        Month</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('fxrate-SBV-USD')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="fxrateChart"></canvas>
+                                <div class="chart-loading" id="fxrateLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 72%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 78%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 74%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 76%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 73%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/tỷ-giá" target="_blank" rel="noopener">sbv.gov.vn</a></small>
+                        </div>
+
+                    </div>
+
+                    <!-- Tab 3: Thị trường Quốc tế (Lazy load) -->
+                    <div class="tab-content" id="tab-global">
+                        <!-- Global Macro Chart -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc,
+                                        NASDAQ)</span>
+                                    <span class="chart-info-icon"
+                                        data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
+                                    <button class="filter-btn active" data-chart="global" data-period="1m">1
+                                        Month</button>
+                                    <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
+                                    <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                                    <button class="filter-btn" onclick="downloadDataset('global-macro')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="globalChart"></canvas>
+                                <div class="chart-loading" id="globalLoading">
+                                    <div class="chart-skeleton">
+                                        <div class="skeleton-bars">
+                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
+                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://finance.yahoo.com/quote/GC=F" target="_blank" rel="noopener">Yahoo Finance</a></small>
+                        </div>
+
+                    </div>
+
+                    <!-- Tab 4: Kinh tế Vĩ mô (GSO / World Bank) -->
+                    <div class="tab-content" id="tab-macro">
+                        <!-- CPI -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="cpiChart">CPI Việt Nam (% YoY/năm)</span>
+                                    <span class="chart-info-icon" data-tooltip="Lạm phát CPI hàng năm (% so với cùng kỳ năm trước). Nguồn: GSO/NSO Việt Nam (nso.gov.vn), cập nhật hàng tháng.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-macro-period="1" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-macro-period="10" data-i18n="period10y">10 năm</button>
+                                    <button class="filter-btn active" data-macro-period="20" data-i18n="period20y">20 năm</button>
+                                    <button class="filter-btn" data-macro-period="0" data-i18n="periodAll">Tất cả</button>
+                                    <button class="filter-btn" onclick="downloadMacroCSV('cpi')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroCpiChart"></canvas>
+                                <div class="chart-loading" id="macroCpiLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:40%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:35%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div>
+
+                        <!-- GDP -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Tăng Trưởng GDP Việt Nam (%/năm)
+                                    <span class="chart-info-icon" data-tooltip="Tốc độ tăng trưởng GDP thực tế hàng năm (constant prices). Nguồn: World Bank Open Data.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" onclick="downloadMacroCSV('gdp')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroGdpChart"></canvas>
+                                <div class="chart-loading" id="macroGdpLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" rel="noopener">World Bank Open Data</a></small>
+                        </div>
+
+                        <!-- Trade Balance -->
+                        <!-- <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Xuất Nhập Khẩu Việt Nam (tỷ USD)
+                                    <span class="chart-info-icon" data-tooltip="Tổng giá trị xuất khẩu và nhập khẩu hàng hóa dịch vụ theo năm. Nguồn: GSO Việt Nam (qua World Bank Open Data). Đơn vị: tỷ USD.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" onclick="downloadMacroCSV('trade')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroTradeChart"></canvas>
+                                <div class="chart-loading" id="macroTradeLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                        </div> -->
+
+                        <p style="font-size:0.72rem;color:var(--text-tertiary);margin:0.5rem 1rem 1.5rem;text-align:right;">
+                            <span data-i18n="macroNotePrefix">Note:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> <span data-i18n="macroNoteSuffix">Cập nhật hàng tháng (chưa chính thức)</span>
+                        </p>
+                    </div>
+
+                    <!-- Tab Stock: VNIndex -->
+                    <div class="tab-content" id="tab-stock">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    VN-Index
+                                    <span class="chart-info-icon" data-tooltip="Chỉ số VN-Index (điểm đóng cửa hàng ngày). Nguồn: vnstock3 / VCI, cập nhật sau 17:15 VN mỗi ngày giao dịch.">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" data-vnindex-period="7d">7 ngày</button>
+                                    <button class="filter-btn" data-vnindex-period="1m">1 tháng</button>
+                                    <button class="filter-btn" data-vnindex-period="3m">3 tháng</button>
+                                    <button class="filter-btn active" data-vnindex-period="1y">1 năm</button>
+                                    <button class="filter-btn" data-vnindex-period="3y">3 năm</button>
+                                    <button class="filter-btn" data-vnindex-period="all">Tất cả</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="vnindexChart"></canvas>
+                                <div class="chart-loading" id="vnindexLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày</small>
+                        </div>
+                    </div>
+
+                    <!-- Tab 5: Download -->
+                    <div class="tab-content" id="tab-download">
+                        <div class="chart-card" style="padding:1.5rem;">
+                            <div style="margin-bottom:1.5rem;">
+                                <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0 0 0.35rem;">
+                                    <i class="fas fa-database" style="color:#C9A55B;margin-right:0.5rem;"></i><span data-i18n="dlHeading">Tải Dữ Liệu (CSV)</span>
+                                </h3>
+                                <p data-i18n-html="dlSubtitle" style="font-size:0.82rem;color:var(--text-tertiary);margin:0;">Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).</p>
+                            </div>
+
+                            <!-- Category: Precious Metals -->
+                            <p class="dl-cat-label" data-i18n="dlCatMetals">Kim Loại Quý</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" class="icon-gold"></i>Gold – DOJI HN</span>
+                                    <span>Giá vàng mua/bán DOJI Hà Nội (VND/chỉ)</span>
+                                    <span>24h.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI HN')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" class="icon-gold"></i>Gold – DOJI SG</span>
+                                    <span>Giá vàng mua/bán DOJI TP.HCM (VND/chỉ)</span>
+                                    <span>24h.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI SG')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-coins" class="icon-gold"></i>Gold – BTMC SJC</span>
+                                    <span>Giá vàng BTMC SJC (VND/chỉ)</span>
+                                    <span>BTMC API</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('gold-BTMC SJC')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-circle" style="color:#A0A0A0;margin-right:6px;font-size:0.7em;"></i>Silver – Phú Quý</span>
+                                    <span>Giá bạc mua/bán Phú Quý (VND)</span>
+                                    <span>phuquy.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('silver')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
+                            <!-- Category: Currency & FX -->
+                            <p class="dl-cat-label" style="margin-top:1.5rem;" data-i18n="dlCatFX">Tỷ Giá & Lãi Suất Tiết Kiệm</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – SBV USD/VND</span>
+                                    <span>Tỷ giá trung tâm USD/VND (NHNN)</span>
+                                    <span>sbv.gov.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-SBV-USD')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – VCB USD</span>
+                                    <span>Tỷ giá USD mua/bán Vietcombank (VND)</span>
+                                    <span>Vietcombank</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-USD')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – VCB EUR</span>
+                                    <span>Tỷ giá EUR mua/bán Vietcombank (VND)</span>
+                                    <span>Vietcombank</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-EUR')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – VCB JPY</span>
+                                    <span>Tỷ giá JPY mua/bán Vietcombank (VND)</span>
+                                    <span>Vietcombank</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-JPY')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – ACB</span>
+                                    <span>Lãi suất tiết kiệm kỳ hạn ACB (%/năm)</span>
+                                    <span>acb.com.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-ACB')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
+                            <!-- Category: SBV Policy & Global -->
+                            <p class="dl-cat-label" style="margin-top:1.5rem;" data-i18n="dlCatSBV">Lãi Suất NHNN & Thị Trường Quốc Tế</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-chart-line" style="color:#EF5350;margin-right:6px;"></i>SBV Interbank Rates</span>
+                                    <span>Lãi suất liên ngân hàng + điều hành NHNN (%/năm)</span>
+                                    <span>sbv.gov.vn</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('sbv-interbank')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-globe" style="color:#AB47BC;margin-right:6px;"></i>Global Macro</span>
+                                    <span>Vàng quốc tế (USD/oz), Bạc, NASDAQ Composite</span>
+                                    <span>Yahoo Finance</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('global-macro')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div>
+
+                            <!-- Category: VN30 Stock Data -->
+                            <!-- <p class="dl-cat-label" style="margin-top:1.5rem;">VN30 – Dữ Liệu Cổ Phiếu</p>
+                            <div class="dl-table">
+                                <div class="dl-row dl-header">
+                                    <span>Tên bảng</span><span>Mô tả</span><span>Quyền</span><span></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-building" class="icon-blue"></i>VN30 Company Profile</span>
+                                    <span>Danh sách 30 mã: tên, sàn, ngành ICB, vốn hóa</span>
+                                    <span style="color:#66BB6A;font-size:0.75rem;font-weight:600;">FREE</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-profile')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-chart-candlestick" class="icon-gold"></i>VN30 OHLCV Prices</span>
+                                    <span>Giá mở/cao/thấp/đóng + khối lượng – toàn bộ 30 mã</span>
+                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-prices')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-file-invoice-dollar" style="color:#EF5350;margin-right:6px;"></i>VN30 Income Statement</span>
+                                    <span>Doanh thu, lợi nhuận gộp, EBIT, lợi nhuận ròng, EPS theo quý</span>
+                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-financials')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                                <div class="dl-row">
+                                    <span><i class="fas fa-percent" style="color:#AB47BC;margin-right:6px;"></i>VN30 Financial Ratios</span>
+                                    <span>P/E, P/B, P/S, ROE, ROA, EPS, Dividend Yield – toàn bộ 30 mã</span>
+                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
+                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-ratios')"><i class="fas fa-download"></i> CSV</button></span>
+                                </div>
+                            </div> -->
+
+                            <p data-i18n-html="dlFooter" style="font-size:0.75rem;color:var(--text-tertiary);margin-top:1.25rem;padding-top:1rem;border-top:1px solid #2a2a2a;">
+                                <i class="fas fa-info-circle" style="margin-right:4px;"></i>
+                                Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột.
+                                Dữ liệu <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium.
+                                Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 1s Market Pulse -->
+            <div class="tab-content" id="1smarket-portal">
+                <div class="section-header">
+                    <h1 class="section-title">
+                        <span data-i18n="pulseTitle">1s Market Pulse</span>
+                    </h1>
+                </div>
+
+                <!-- Filters -->
+                <div id="pulse-filters" class="pulse-filters">
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterSource">Nguồn:</label>
+                        <select id="filter-source" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="CNBC">CNBC</option>
+                            <option value="BBC">BBC</option>
+                            <option value="MarketWatch">MarketWatch</option>
+                        </select>
+                    </div>
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterMarket">Thị trường:</label>
+                        <select id="filter-label" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="VNINDEX">VN-Index</option>
+                            <option value="GOLD" data-i18n="pulseMarketGold">Vàng</option>
+                            <option value="REAL_ESTATE" data-i18n="pulseMarketRealEstate">Bất động sản</option>
+                            <option value="BANKING" data-i18n="pulseMarketBanking">Ngân hàng</option>
+                            <option value="FX" data-i18n="pulseMarketFX">Ngoại hối</option>
+                        </select>
+                    </div>
+                    <div class="pulse-filter-group">
+                        <label>MRI:</label>
+                        <select id="filter-mri" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="positive" data-i18n="pulseMRIPositive">Tích cực (+)</option>
+                            <option value="negative" data-i18n="pulseMRINegative">Tiêu cực (-)</option>
+                        </select>
+                    </div>
+                    <button id="filter-reset" class="pulse-filter-reset" data-i18n="pulseFilterReset">Reset</button>
+                </div>
+
+                <div id="market-pulse-articles">
+                    <!-- Skeleton loading -->
+                    <div class="pulse-skeleton" style="animation:pulse 1.5s infinite;">
+                        <div
+                            style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                            <div
+                                style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                            </div>
+                            <div
+                                style="height:28px;width:70%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                            </div>
+                            <div
+                                style="height:16px;width:40%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
+                            </div>
+                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
+                        </div>
+                        <div
+                            style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                            <div
+                                style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                            </div>
+                            <div
+                                style="height:28px;width:60%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                            </div>
+                            <div
+                                style="height:16px;width:35%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
+                            </div>
+                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 1s Future Outlook -->
+            <div class="tab-content" id="1s-future-outlook">
+                <!-- Forecast Cards Grid -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+
+                    <!-- Card: Gold Forecast 2026 -->
+                    <a href="pages/GoldForecast2026.html" id="card-gold-forecast-2026"
+                        onclick="return openPremiumReport(event, 'pages/GoldForecast2026.html')"
+                        style="text-decoration: none; color: inherit; display: block;">
+                        <div style="background: var(--deep-dark); border: 1px solid var(--dark-surface); border-radius: var(--radius-lg); padding: 2rem; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;"
+                            onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 40px rgba(20,20,19,0.15)';this.style.borderColor='rgba(201,100,66,0.4)'"
+                            onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='var(--dark-surface)'">
+                            <!-- Badge -->
+                            <div
+                                style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(201,100,66,0.15); color: var(--coral); font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; border: 1px solid rgba(201,100,66,0.25);">
+                                <span
+                                    style="width: 6px; height: 6px; background: var(--coral); border-radius: 50%; display: inline-block;"></span>
+                                <span data-i18n="foFeatured">Featured Report</span>
+                            </div>
+                            <!-- Icon + Title -->
+                            <h3 data-i18n="foGoldTitle"
+                                style="font-family: 'Lora', Georgia, serif; font-size: 1.35rem; font-weight: 500; color: var(--ivory); margin-bottom: 0.5rem; line-height: 1.3;">
+                                Dự báo Giá Vàng 2026
+                            </h3>
+                            <p data-i18n="foGoldDesc" style="color: var(--warm-silver); font-size: 0.9rem; line-height: 1.65; margin-bottom: 1.25rem;">
+                                Phân tích chuyên sâu từ Goldman Sachs, J.P. Morgan, UBS — Mục tiêu $6,300/oz. Biểu đồ
+                                tương tác & Trình mô phỏng biến động.
+                            </p>
+                            <!-- Price Tags -->
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                <span
+                                    style="background: rgba(201,100,66,0.15); color: var(--coral); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Spot:
+                                    $5,041/oz</span>
+                                <span
+                                    style="background: rgba(45,122,79,0.15); color: #4caf50; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">Target:
+                                    $6,300</span>
+                                <span
+                                    style="background: rgba(48,48,46,0.6); color: var(--warm-silver); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;">SJC:
+                                    181M VND</span>
+                            </div>
+                            <!-- CTA -->
+                            <div
+                                style="display: flex; align-items: center; gap: 0.5rem; color: var(--coral); font-size: 0.85rem; font-weight: 600;">
+                                <span data-i18n="foViewReport">Xem báo cáo đầy đủ</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Card: Coming Soon - Bất động sản -->
+                    <div
+                        style="background: var(--ivory); border: 1px dashed var(--border-warm); border-radius: var(--radius-lg); padding: 2rem; opacity: 0.6;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F3E0;</div>
+                        <h3 data-i18n="foRealEstateTitle" style="font-size: 1.2rem; font-weight: 500; color: var(--olive-gray); margin-bottom: 0.5rem;">Bất động
+                            sản Việt Nam 2026</h3>
+                        <p data-i18n="foRealEstateDesc" style="color: var(--stone-gray); font-size: 0.85rem;">Phân tích xu hướng giá, vùng tiềm năng và dự báo thị
+                            trường.</p>
+                        <span data-i18n="foComingSoon"
+                            style="display: inline-block; margin-top: 1rem; background: var(--warm-sand); color: var(--stone-gray); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
+                            Soon</span>
+                    </div>
+
+                    <!-- Card: Coming Soon - Chứng khoán -->
+                    <div
+                        style="background: var(--ivory); border: 1px dashed var(--border-warm); border-radius: var(--radius-lg); padding: 2rem; opacity: 0.6;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">&#x1F4CA;</div>
+                        <h3 data-i18n="foStockTitle" style="font-size: 1.2rem; font-weight: 500; color: var(--olive-gray); margin-bottom: 0.5rem;">VN-Index &
+                            Cổ phiếu 2026</h3>
+                        <p data-i18n="foStockDesc" style="color: var(--stone-gray); font-size: 0.85rem;">Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ
+                            danh mục.</p>
+                        <span data-i18n="foComingSoon"
+                            style="display: inline-block; margin-top: 1rem; background: var(--warm-sand); color: var(--stone-gray); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">Coming
+                            Soon</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- VN30 Score Tab -->
+            <div class="tab-content" id="vn30-score">
+                <div class="section-header">
+                    <h1 class="section-title">
+                        <span data-i18n="navVN30Score">VN30 Score</span>
+                        <span class="chart-info-icon"
+                            data-tooltip="Xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình XGBoost. Score 0-100%: ≥60 MUA, 40-59 TRUNG TÍNH, &lt;40 BÁN. Cập nhật hàng tuần.">ⓘ</span>
+                    </h1>
+                    <p data-i18n-html="vn30Intro" style="color:var(--text-secondary);margin-top:0.5rem;font-size:0.95rem;max-width:680px;">
+                        Bảng xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình Machine Learning.
+                        <strong style="color:var(--gold-primary);">Premium</strong> — xem đầy đủ 30 mã &amp; lịch sử điểm từng mã.
+                    </p>
+                    <p id="vn30-meta-info" style="color:var(--text-tertiary,#555);font-size:0.78rem;margin-top:0.4rem;"></p>
+                </div>
+
+                <!-- Score table wrapper -->
+                <div style="position:relative;">
+                    <!-- Skeleton loader -->
+                    <div id="vn30-skeleton" style="display:none;">
+                        <div class="vn30-table">
+                            <div class="vn30-row" style="opacity:0.3;" aria-hidden="true">
+                                <span class="vn30-rank">#1</span><span class="vn30-ticker skeleton" style="width:4rem;height:1rem;display:block;border-radius:4px;background:rgba(255,255,255,0.1);"></span>
+                                <span style="width:5rem;height:1.4rem;display:block;border-radius:20px;background:rgba(255,255,255,0.08);"></span>
+                                <div class="vn30-bar-wrap"><div class="vn30-bar" style="width:60%;background:rgba(255,255,255,0.1);"></div></div>
+                                <span class="vn30-score" style="opacity:0.3;">--.-%</span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rendered rows -->
+                    <div id="vn30-table-wrapper" class="vn30-table"></div>
+
+                    <!-- Gate overlay + CTA -->
+                    <div id="vn30-gate-cta" class="vn30-gate-overlay" style="display:none;">
+                        <div style="background:rgba(201,165,91,0.07);border:1px solid rgba(201,165,91,0.22);border-radius:16px;padding:2rem;max-width:420px;margin:0 auto;">
+                            <i class="fas fa-lock" style="font-size:1.5rem;color:var(--gold-primary);margin-bottom:1rem;display:block;"></i>
+                            <h3 data-i18n="vn30GateTitle" style="color:var(--text-primary);margin-bottom:0.5rem;font-size:1.1rem;">Xem đầy đủ 30 cổ phiếu VN30</h3>
+                            <p data-i18n-html="vn30GateBody" style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;">
+                                Nâng cấp <strong style="color:var(--gold-primary);">Premium</strong> để xem toàn bộ bảng xếp hạng, lịch sử điểm số từng mã và tín hiệu mua/bán.
+                            </p>
+                            <button data-i18n="vn30GateCTA" onclick="login()" style="background:var(--terracotta);color:var(--ivory);font-weight:500;padding:0.75rem 2rem;border:none;border-radius:var(--radius-md);cursor:pointer;font-size:0.9rem;width:100%;box-shadow:0 0 0 1px var(--terracotta);">
+                                Đăng nhập / Nâng cấp Premium
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About & Terms Tab -->
+            <div class="tab-content" id="about-terms">
+                <div class="section-header">
+                    <h1 class="section-title" data-i18n="aboutSectionTitle">About & Terms</h1>
+                </div>
+
+                <!-- Về Viet Dataverse -->
+                <div
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; margin: 2rem 0; box-shadow: var(--whisper);">
+                    <h2 data-i18n="aboutH1" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Viet Dataverse
+                    </h2>
+                    <p data-i18n-html="aboutP1" style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        <strong>Viet Dataverse</strong> là nền tảng dữ liệu kinh tế Việt Nam miễn phí, cung cấp thông
+                        tin <strong>giá vàng</strong>,
+                        <strong>giá bạc</strong>, và <strong>lãi suất ngân hàng</strong> được thu thập tự động từ các
+                        nguồn công khai uy tín.
+                    </p>
+                    <p data-i18n-html="aboutP2" style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        <strong>Giá vàng trong nước</strong> (SJC, DOJI) với dữ liệu lịch sử từ năm 2015 đến nay.
+                        <strong>Giá bạc trong nước</strong>
+                        <strong>Lãi suất liên ngân hàng</strong> do Ngân hàng Nhà nước Việt Nam (SBV) công bố.
+                        <strong>Lãi suất gửi tiết kiệm</strong> từ các ngân hàng thương mại lớn.
+                    </p>
+                    <p data-i18n-html="aboutP3" style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Dữ liệu được <strong>làm sạch, chuẩn hóa</strong> và lưu trữ lịch sử dài hạn để phục vụ
+                        <strong>mục đích nghiên cứu và phân tích</strong>.
+                        Bạn có thể tải dữ liệu hoàn toàn miễn phí hoặc truy cập qua <strong>API</strong>.
+                    </p>
+                    <p data-i18n-html="aboutDisclaimer"
+                        style="color: var(--stone-gray); font-size: 0.9em; border-top: 1px solid var(--border-cream); padding-top: 1rem; margin-top: 1rem;">
+                        <strong>Lưu ý quan trọng:</strong> Dữ liệu chỉ mang tính chất tham khảo, không phải lời khuyên
+                        đầu tư.
+                        Viet Dataverse không chịu trách nhiệm về các quyết định tài chính dựa trên dữ liệu này.
+                        Người dùng cần tự kiểm tra và chịu trách nhiệm với quyết định của mình.
+                    </p>
+
+                </div>
+
+                <!-- Về Nguồn Dữ Liệu & Phương Pháp Thu Thập -->
+                <div
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; margin: 2rem 0; box-shadow: var(--whisper);">
+                    <h2 data-i18n="aboutSourcesH" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Về Nguồn Dữ Liệu &
+                        Phương Pháp Thu Thập</h2>
+                    <p data-i18n-html="aboutSourcesP1" style="color: var(--olive-gray); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Dữ liệu trên Viet Dataverse được thu thập tự động từ <strong>các nguồn công khai, miễn
+                            phí</strong> bao gồm website của các tổ chức tài chính, công ty vàng bạc uy tín, và cơ quan
+                        nhà nước.
+                        Tất cả dữ liệu đều là <strong>thông tin công khai</strong> mà bất kỳ ai cũng có thể truy cập.
+                    </p>
+                    <p data-i18n-html="aboutSourcesP2" style="color: var(--olive-gray); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Giá trị gia tăng của Viet Dataverse nằm ở việc <strong>làm sạch, chuẩn hóa, lưu trữ lịch sử dài
+                            hạn</strong> và cung cấp API miễn phí để phục vụ cộng đồng nghiên cứu.
+                        Chúng tôi không sở hữu dữ liệu gốc, chỉ cung cấp dịch vụ tổng hợp và phân phối.
+                    </p>
+                </div>
+
+                <!-- Điều Khoản Sử Dụng -->
+                <div
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; margin: 2rem 0; box-shadow: var(--whisper);">
+                    <h2 data-i18n="aboutTermsH" style="color: var(--gold-accent); font-size: 1.5rem; margin-bottom: 1rem;">Điều Khoản Sử Dụng
+                    </h2>
+                    <ul data-i18n-html="aboutTermsList" style="color: var(--olive-gray); line-height: 2; font-size: 0.95rem; padding-left: 1.5rem;">
+                        <li><strong>Mục đích:</strong> Dữ liệu chỉ phục vụ mục đích nghiên cứu, học thuật, và phân tích
+                            cá nhân. Không dùng cho mục đích thương mại trừ khi có thỏa thuận.</li>
+                        <li><strong>Không phải lời khuyên tài chính:</strong> Viet Dataverse không cung cấp lời khuyên
+                            đầu tư. Mọi quyết định tài chính là trách nhiệm của người dùng.</li>
+                        <li><strong>Độ chính xác:</strong> Chúng tôi nỗ lực đảm bảo độ chính xác nhưng không chịu trách
+                            nhiệm về sai sót từ nguồn gốc hoặc quá trình thu thập.</li>
+                        <li><strong>Bảo vệ nguồn:</strong> Người dùng cam kết không crawl ngược lại dữ liệu từ Viet
+                            Dataverse để tạo dịch vụ cạnh tranh.</li>
+                    </ul>
+
+                    <p data-i18n-html="aboutCopyright" style="color: #666; font-size: 0.85rem; margin-top: 1.5rem; font-style: italic;">
+                        © 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở.
+                        <a href="mailto:contact@vietdataverse.online"
+                            style="color: var(--gold-primary); text-decoration: none;">Liên hệ</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Privacy-Policy -->
+            <div class="tab-content" id="privacy-policy">
+                <div class="section-header">
+                    <h1 class="section-title" data-i18n="privacySectionTitle">Chính sách bảo mật (Privacy Policy)</h1>
+                </div>
+
+                <div
+                    class="info-card">
+                    <p data-i18n-html="privacyIntro" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                        Chào mừng bạn đến với <strong style="color: var(--text-primary);">Viet Dataverse</strong>.
+                        Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn khi sử dụng nền tảng dữ liệu kinh tế của
+                        chúng tôi.
+                    </p>
+                </div>
+
+                <div
+                    class="info-card">
+                    <h2 class="info-card-heading" data-i18n="privacyH1">1. Thông tin chúng
+                        tôi thu thập</h2>
+                    <p data-i18n="privacyP1" style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Để cải thiện chất lượng website, chúng tôi có thể thu thập một số thông tin người dùng như sau:
+                    </p>
+                    <ul data-i18n-html="privacyList1"
+                        style="color: var(--text-secondary); line-height: 2; font-size: 0.95rem; padding-left: 1.5rem; list-style: disc;">
+                        <li><strong style="color: var(--text-primary);">Thông tin đăng nhập:</strong> Email
+                            thị thông qua hệ thống <strong>Google Integration Auth0</strong>.</li>
+                        <li><strong style="color: var(--text-primary);">Dữ liệu sử dụng:</strong> Thông tin về cách bạn
+                            tương tác với web thông qua <strong>Google Analytics</strong> (Địa chỉ IP, loại trình duyệt,
+                            thời gian truy cập).</li>
+                    </ul>
+                </div>
+
+                <div
+                    class="info-card">
+                    <h2 class="info-card-heading" data-i18n="privacyH2">2. Sử dụng Cookie</h2>
+                    <p data-i18n="privacyP2" style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 0.95rem;">
+                        Chúng tôi sử dụng cookie để lưu trữ tùy chọn ngôn ngữ và trạng thái đăng nhập của bạn nhằm cải thiện trải nghiệm sử dụng. Cookie này không được chia sẻ với bên thứ ba vì mục đích quảng cáo.
+                    </p>
+                </div>
+
+                <div
+                    class="info-card">
+                    <h2 class="info-card-heading" data-i18n="privacyH3">3. Bảo mật dữ liệu
+                    </h2>
+                    <p data-i18n-html="privacyP3" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                        Chúng tôi <strong style="color: var(--text-primary);">không bán hoặc chia sẻ</strong> email cá
+                        nhân của bạn cho bên thứ ba.
+                        Dữ liệu chỉ được sử dụng để cung cấp báo cáo giá vàng và cải thiện trải nghiệm người dùng trên
+                        hệ thống Viet Dataverse.
+                    </p>
+                </div>
+
+                <div
+                    style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; box-shadow: var(--whisper);">
+                    <h2 class="info-card-heading" data-i18n="privacyH4">4. Liên hệ về quyền
+                        riêng tư</h2>
+                    <p data-i18n-html="privacyP4" style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+                        Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ:
+                        <a href="mailto:findatasolution@gmail.com"
+                            style="color: var(--gold-accent); text-decoration: none; font-weight: 600;">findatasolution@gmail.com</a>
+                    </p>
+                    <p data-i18n="privacyFooter" style="color: #666; font-size: 0.85rem; margin-top: 1rem; font-style: italic;">
+                        © 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="tab-content" id="contact">
+                <div class="section-header">
+                    <h1 class="section-title" data-i18n="contactSectionTitle">Liên hệ với chúng tôi</h1>
+                </div>
+
+                <!-- Contact Cards -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                    <div
+                        style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; box-shadow: var(--whisper);">
+                        <div
+                            style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold-accent); margin-bottom: 1rem;">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3 data-i18n="contactSupportH"
+                            style="color: var(--gold-accent); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem;">
+                            Hỗ trợ kỹ thuật & Dữ liệu</h3>
+                        <p data-i18n="contactSupportP"
+                            style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; font-size: 0.95rem;">
+                            Nếu bạn gặp lỗi khi tải file CSV hoặc có câu hỏi về mô hình dự báo:
+                        </p>
+                        <a href="mailto:findatasolution@gmail.com"
+                            style="color: var(--text-primary); font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-envelope" style="color: var(--gold-primary);"></i>
+                            findatasolution@gmail.com
+                        </a>
+                    </div>
+                    <div
+                        style="background: var(--pure-white); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 2rem; box-shadow: var(--whisper);">
+                        <div
+                            style="width: 48px; height: 48px; border-radius: 10px; background: linear-gradient(135deg, rgba(201, 165, 91, 0.15), rgba(228, 199, 138, 0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold-accent); margin-bottom: 1rem;">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <h3 data-i18n="contactAdH"
+                            style="color: var(--gold-accent); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem;">
+                            Hợp tác quảng cáo</h3>
+                        <p data-i18n="contactAdP"
+                            style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; font-size: 0.95rem;">
+                            Để đặt banner trực tiếp hoặc hợp tác cung cấp dữ liệu kinh tế:
+                        </p>
+                        <a href="mailto:findatasolution@gmail.com"
+                            style="color: var(--text-primary); font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-envelope" style="color: var(--gold-primary);"></i>
+                            findatasolution@gmail.com
+                        </a>
+                        <p data-i18n-html="contactQuickHint" style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 0.75rem;">
+                            Hoặc sử dụng <strong style="color: var(--gold-accent);">Quick Request</strong> bên dưới ↓
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quick Request for Advertise -->
+                <div
+                    style="background: var(--pure-white); border-radius: var(--radius-lg); border: 1px solid var(--border-cream); padding: 2.5rem; margin-bottom: 2rem; box-shadow: var(--whisper);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(201,100,66,0.10); border: 1px solid rgba(201,100,66,0.18); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--terracotta);">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h2 data-i18n="adReqTitle" style="color: var(--near-black); font-family: 'Lora', Georgia, serif; font-size: 1.4rem; font-weight: 500;">Quick Request
+                                for Advertise</h2>
+                            <p data-i18n="adReqSubtitle" style="color: var(--stone-gray); font-size: 0.85rem;">Đăng banner quảng cáo trên Viet
+                                Dataverse — nhanh chóng & đơn giản</p>
+                        </div>
+                    </div>
+
+                    <!-- Steps -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                        <div
+                            style="flex: 1; min-width: 150px; background: var(--ivory); border-radius: var(--radius-sm); padding: 1rem; text-align: center; border: 1px solid var(--border-cream);">
+                            <div
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--terracotta); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin: 0 auto 0.5rem;">
+                                1</div>
+                            <p data-i18n="adStep1" style="color: var(--olive-gray); font-size: 0.8rem;">Điền thông tin</p>
+                        </div>
+                        <div
+                            style="flex: 1; min-width: 150px; background: var(--ivory); border-radius: var(--radius-sm); padding: 1rem; text-align: center; border: 1px solid var(--border-cream);">
+                            <div
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--terracotta); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin: 0 auto 0.5rem;">
+                                2</div>
+                            <p data-i18n="adStep2" style="color: var(--olive-gray); font-size: 0.8rem;">Thanh toán QR</p>
+                        </div>
+                        <div
+                            style="flex: 1; min-width: 150px; background: var(--ivory); border-radius: var(--radius-sm); padding: 1rem; text-align: center; border: 1px solid var(--border-cream);">
+                            <div
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--terracotta); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; margin: 0 auto 0.5rem;">
+                                3</div>
+                            <p data-i18n="adStep3" style="color: var(--olive-gray); font-size: 0.8rem;">Chờ phê duyệt</p>
+                        </div>
+                    </div>
+
+                    <!-- Form -->
+                    <form id="ad-request-form" onsubmit="event.preventDefault(); submitAdRequest();"
+                        style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <!-- Brand Name -->
+                        <div>
+                            <label for="ad-brand-name"
+                                style="display: block; color: var(--text-primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-building"
+                                    style="color: var(--gold-primary); margin-right: 0.4rem;"></i> <span data-i18n="adBrandLabel">Tên thương hiệu / Brand Name</span> <span style="color: #EF4444;">*</span>
+                            </label>
+                            <input type="text" id="ad-brand-name" required placeholder="VD: SSI Securities, VPBank…"
+                                style="width: 100%; padding: 0.875rem 1rem; background: var(--warm-sand); border: 1px solid var(--border-warm); border-radius: 8px; color: var(--near-black); font-size: 0.95rem; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='var(--focus-blue)'"
+                                onblur="this.style.borderColor='var(--border-warm)'">
+                        </div>
+
+                        <!-- Banner Upload -->
+                        <div>
+                            <label for="ad-banner-upload"
+                                style="display: block; color: var(--text-primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-photo-video"
+                                    style="color: var(--gold-primary); margin-right: 0.4rem;"></i>
+                                <span data-i18n="adBannerLabel">Banner (Hình ảnh / Video)</span> <span
+                                    style="color: var(--text-tertiary); font-weight: 400;" data-i18n="adOptional">(Tùy chọn)</span>
+                            </label>
+                            <p data-i18n-html="adBannerSpec" style="color: var(--text-tertiary); font-size: 0.8rem; margin-bottom: 0.5rem;">
+                                Kích thước tối ưu: <strong style="color: var(--gold-accent);">1920×520 px</strong>
+                                (16:9).
+                                Chấp nhận: <strong style="color: var(--gold-accent);">MP4, WebM</strong> (video ≤ 10MB)
+                                hoặc
+                                <strong style="color: var(--gold-accent);">JPG, PNG, WebP, GIF</strong> (ảnh ≤ 5MB).
+                            </p>
+                            <div id="ad-banner-dropzone"
+                                style="width: 100%; padding: 2rem; background: var(--ivory); border: 2px dashed var(--border-warm); border-radius: var(--radius-sm); text-align: center; cursor: pointer; transition: all 0.2s;"
+                                onclick="document.getElementById('ad-banner-upload').click()"
+                                ondragover="event.preventDefault(); this.style.borderColor='var(--terracotta)'; this.style.background='rgba(201,100,66,0.04)'"
+                                ondragleave="this.style.borderColor='var(--border-warm)'; this.style.background='var(--ivory)'"
+                                ondrop="event.preventDefault(); handleBannerDrop(event); this.style.borderColor='var(--border-warm)'; this.style.background='var(--ivory)'">
+                                <i class="fas fa-cloud-upload-alt"
+                                    style="font-size: 2rem; color: var(--gold-primary); margin-bottom: 0.5rem;"></i>
+                                <p data-i18n-html="adDropzoneText" style="color: var(--text-secondary); font-size: 0.9rem;">Kéo & thả hình ảnh hoặc
+                                    video, hoặc
+                                    <span style="color: var(--gold-accent); text-decoration: underline;">chọn
+                                        file</span>
+                                </p>
+                                <p style="color: var(--text-tertiary); font-size: 0.78rem; margin-top: 0.3rem;">MP4 ·
+                                    WebM · JPG · PNG · WebP · GIF</p>
+                                <p id="ad-banner-filename"
+                                    style="color: var(--gold-accent); font-size: 0.85rem; margin-top: 0.5rem; display: none;">
+                                </p>
+                            </div>
+                            <input type="file" id="ad-banner-upload"
+                                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                                style="display: none;" onchange="handleBannerSelect(this)">
+                            <div id="ad-banner-preview"
+                                style="display: none; margin-top: 1rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-cream);">
+                                <img id="ad-banner-preview-img"
+                                    style="width: 100%; max-height: 200px; object-fit: cover;" alt="Banner preview">
+                                <video id="ad-banner-preview-video"
+                                    style="display: none; width: 100%; max-height: 200px; object-fit: cover;" muted
+                                    playsinline controls></video>
+                            </div>
+                        </div>
+
+                        <!-- QR Payment Section -->
+                        <div
+                            style="background: var(--ivory); border-radius: var(--radius-md); border: 1px solid var(--border-cream); padding: 1.5rem;">
+                            <h3
+                                style="color: var(--text-primary); font-size: 1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-qrcode" style="color: var(--gold-accent);"></i> <span data-i18n="adQrTitle">Thanh toán bằng QR Code</span>
+                            </h3>
+                            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+                                <div
+                                    style="width: 180px; height: 180px; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <div style="text-align: center; padding: 0.75rem;">
+                                        <i class="fas fa-qrcode" style="font-size: 5rem; color: #333;"></i>
+                                        <p data-i18n="adQrNote" style="font-size: 0.6rem; color: #666; margin-top: 0.25rem;">QR sẽ được cung
+                                            cấp sau khi xác nhận</p>
+                                    </div>
+                                </div>
+                                <div style="flex: 1; min-width: 200px;">
+                                    <p data-i18n-html="adPackageTitle"
+                                        style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; margin-bottom: 0.75rem;">
+                                        <strong style="color: var(--gold-accent);">Gói Banner Quảng Cáo:</strong>
+                                    </p>
+                                    <ul data-i18n-html="adPackageList"
+                                        style="color: var(--text-secondary); font-size: 0.875rem; line-height: 2; padding-left: 0; list-style: none;">
+                                        <li style="display: flex; align-items: center; gap: 0.5rem;"><i
+                                                class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
+                                            Hiển thị banner trên trang chủ</li>
+                                        <li style="display: flex; align-items: center; gap: 0.5rem;"><i
+                                                class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
+                                            Thời gian: đến khi số lượng view đạt limit của gói</li>
+                                        <li style="display: flex; align-items: center; gap: 0.5rem;"><i
+                                                class="fas fa-check" style="color: #22C55E; font-size: 0.75rem;"></i>
+                                            Phê duyệt trong 24 giờ</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit" id="ad-submit-btn"
+                            style="width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent)); border: none; border-radius: 10px; color: var(--bg-dark); font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s;">
+                            <i class="fas fa-paper-plane"></i> <span data-i18n="adSubmitBtn">Gửi yêu cầu quảng cáo</span>
+                        </button>
+                    </form>
+
+                    <!-- Success Message (hidden by default) -->
+                    <div id="ad-success-message" style="display: none; text-align: center; padding: 2rem;">
+                        <div
+                            style="width: 64px; height: 64px; border-radius: 50%; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                            <i class="fas fa-check-circle" style="font-size: 2rem; color: #22C55E;"></i>
+                        </div>
+                        <h3 data-i18n="adSuccessH" style="color: var(--text-primary); font-size: 1.25rem; margin-bottom: 0.5rem;">Yêu cầu đã
+                            gửi thành công!</h3>
+                        <p data-i18n-html="adSuccessP" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                            Chúng tôi sẽ xem xét yêu cầu của bạn và phản hồi qua email trong vòng <strong
+                                style="color: var(--gold-accent);">24 giờ</strong>.
+                            Vui lòng kiểm tra hộp thư (bao gồm thư rác) để nhận thông tin thanh toán QR Code.
+                        </p>
+                    </div>
+                </div>
+
+                <p
+                    style="text-align: center; color: var(--text-tertiary); font-size: 0.85rem; margin-top: 2rem; font-style: italic;">
+                    Viet Dataverse — Economic Intelligence Platform.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Overlay (Download) -->
+    <div class="notification-overlay" id="notification-overlay">
+        <div class="notification-card">
+            <div class="notification-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="notification-title" data-i18n="notifLoginTitle">Yêu cầu đăng nhập</h3>
+            <p class="notification-message" data-i18n="notifLoginMessage">
+                Bạn cần đăng nhập để tải dữ liệu. Vui lòng đăng nhập để tiếp tục sử dụng các tính năng của Viet
+                Dataverse.
+            </p>
+            <div class="notification-actions">
+                <button class="notification-btn secondary" id="cancel-btn">
+                    <span data-i18n="notifCancel">Hủy</span>
+                </button>
+                <button class="notification-btn primary" id="login-btn">
+                    <span data-i18n="loginBtn">Đăng nhập</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Overlay (API) -->
+    <div class="notification-overlay" id="api-notification-overlay">
+        <div class="notification-card">
+            <div class="notification-icon">
+                <i class="fas fa-code"></i>
+            </div>
+            <h3 class="notification-title" data-i18n="notifApiTitle">API đang phát triển</h3>
+            <p class="notification-message" id="api-message" data-i18n="notifApiMessage">
+                Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính
+                năng sẵn sàng.
+            </p>
+            <p class="notification-message" id="api-message-logged-in" style="display: none;" data-i18n="notifApiMessageLoggedIn">
+                Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính
+                năng sẵn sàng.
+            </p>
+            <div class="notification-actions">
+                <button class="notification-btn secondary" id="api-cancel-btn">
+                    <span data-i18n="notifClose">Đóng</span>
+                </button>
+                <button class="notification-btn primary" id="api-signup-btn">
+                    <span data-i18n="notifSignup">Tạo tài khoản</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js" defer></script>
+
+    <!-- Chart info tooltip popup (position:fixed — escapes overflow:hidden on .chart-card) -->
+    <div id="chart-tooltip-popup"></div>
+
+    <!-- Premium Gate Modal -->
+    <div id="premium-gate-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,20,19,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--pure-white); border:1px solid var(--border-cream); border-radius:var(--radius-xl); padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative; box-shadow:var(--shadow-lg);">
+            <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--stone-gray);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+            <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
+            <h3 data-i18n="premiumGateTitle" style="font-family:'Lora',Georgia,serif;font-size:1.3rem;font-weight:500;color:var(--near-black);margin-bottom:0.5rem;">Nội dung Premium</h3>
+            <p data-i18n-html="premiumGateBody" style="color:var(--olive-gray);font-size:0.9rem;line-height:1.65;margin-bottom:1.5rem;">Báo cáo <strong style="color:var(--terracotta);">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
+            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+                <a data-i18n="premiumGateCTA" href="pages/pricing.html" style="background:var(--terracotta);color:var(--ivory);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-md);text-decoration:none;font-size:0.9rem;box-shadow:0 0 0 1px var(--terracotta);">Xem gói Premium</a>
+                <button data-i18n="premiumGateLater" onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:var(--warm-sand);color:var(--charcoal);border:1px solid var(--border-warm);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.9rem;">Để sau</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
