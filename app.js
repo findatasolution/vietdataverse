@@ -1066,6 +1066,8 @@
                 loadChartData('global', '1m');
             } else if (tabId === 'tab-macro') {
                 loadMacroCharts(20);
+            } else if (tabId === 'tab-stock') {
+                loadVnindexChart('1y');
             }
             // tab-download: no charts to load, content is static
         }
@@ -1501,6 +1503,7 @@
             'tab-currency': false,
             'tab-global': false,
             'tab-macro': false,
+            'tab-stock': false,
             'tab-download': false
         };
 
@@ -1989,6 +1992,99 @@
                 }
             };
         }
+
+        /* =========================================================
+           VNINDEX CHART
+        ========================================================= */
+        (function () {
+            const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || '/api/v1';
+            let _vnindexChart = null;
+            let _vnindexCache = {};
+
+            window.loadVnindexChart = async function (period) {
+                // Update active button
+                document.querySelectorAll('[data-vnindex-period]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.vnindexPeriod === period);
+                });
+
+                if (_vnindexCache[period]) {
+                    renderVnindex(_vnindexCache[period]);
+                    return;
+                }
+
+                const loading = document.getElementById('vnindexLoading');
+                if (loading) loading.style.display = 'flex';
+
+                try {
+                    const r = await fetch(`${API_BASE}/market/vnindex?period=${period}`);
+                    if (!r.ok) throw new Error(`VNIndex API ${r.status}`);
+                    const json = await r.json();
+                    const data = json.data || [];
+                    _vnindexCache[period] = data;
+                    renderVnindex(data);
+                } catch (e) {
+                    console.error('[vnindex] fetch failed:', e);
+                } finally {
+                    if (loading) loading.style.display = 'none';
+                }
+            };
+
+            function renderVnindex(data) {
+                const canvas = document.getElementById('vnindexChart');
+                if (!canvas) return;
+                if (_vnindexChart) _vnindexChart.destroy();
+
+                const labels = data.map(d => d.date);
+                const closes = data.map(d => d.close);
+                const first = closes[0] || 0;
+                const last  = closes[closes.length - 1] || 0;
+                const up    = last >= first;
+                const color = up ? '#4CAF50' : '#EF5350';
+
+                _vnindexChart = new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'VN-Index (điểm)',
+                            data: closes,
+                            borderColor: color,
+                            backgroundColor: up ? 'rgba(76,175,80,0.07)' : 'rgba(239,83,80,0.07)',
+                            borderWidth: 2,
+                            pointRadius: data.length > 60 ? 0 : 3,
+                            tension: 0.3,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 400 },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index', intersect: false,
+                                callbacks: {
+                                    label: ctx => `VN-Index: ${ctx.parsed.y?.toLocaleString('vi-VN')} điểm`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#87867f', font: { size: 11 }, maxTicksLimit: 10 }, grid: { display: false } },
+                            y: { ticks: { color: '#87867f', font: { size: 11 } }, grid: { display: false },
+                                 title: { display: true, text: 'điểm', color: '#87867f', font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+
+            // Period button handler
+            document.addEventListener('click', e => {
+                const btn = e.target.closest('[data-vnindex-period]');
+                if (!btn) return;
+                loadVnindexChart(btn.dataset.vnindexPeriod);
+            });
+        })();
 
         /* =========================================================
            MARKET PULSE - LOAD & RENDER ARTICLES

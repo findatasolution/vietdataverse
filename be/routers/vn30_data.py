@@ -314,6 +314,41 @@ async def get_macro_cpi(
 
 
 # ─────────────────────────────────────────────────────────────
+# MARKET: VNIndex daily (Free)
+# ─────────────────────────────────────────────────────────────
+
+@router.get("/api/v1/market/vnindex")
+async def get_vnindex(
+    request: Request,
+    period: str = Query(default="1y", description="7d | 1m | 3m | 1y | 3y | all"),
+    _auth: None = Depends(authenticate_user_optional),
+):
+    """VNIndex daily close — free, from vn_macro_vnindex_daily (vnstock3/VCI)."""
+    period_map = {"7d": 7, "1m": 30, "3m": 90, "1y": 365, "3y": 1095}
+    days = period_map.get(period)
+    where_clause = "WHERE date >= CURRENT_DATE - :days ::integer * INTERVAL '1 day'" if days else ""
+
+    try:
+        with get_engine_crawl().connect() as conn:
+            rows = conn.execute(text(f"""
+                SELECT date, open, high, low, close, volume
+                FROM vn_macro_vnindex_daily
+                {where_clause}
+                ORDER BY date ASC
+            """), {"days": days} if days else {}).fetchall()
+
+        data = [{"date": str(r[0]), "open": r[1], "high": r[2],
+                 "low": r[3], "close": r[4], "volume": r[5]} for r in rows]
+        return _json_response({
+            "success": True, "period": period,
+            "source": "vnstock3/VCI vn_macro_vnindex_daily",
+            "count": len(data), "data": data,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch VNIndex: {e}")
+
+
+# ─────────────────────────────────────────────────────────────
 # MACRO: GDP (Free)
 # ─────────────────────────────────────────────────────────────
 
