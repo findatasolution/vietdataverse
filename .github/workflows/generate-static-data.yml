@@ -1,7 +1,6 @@
 name: Generate Static Chart Data
 
 on:
-  # Run after other crawlers complete
   workflow_run:
     workflows:
       - "Gold & Silver Price Crawl (2x Daily)"
@@ -10,12 +9,9 @@ on:
       - "Exchange Rate Crawl (Daily)"
     types:
       - completed
-
-  # Manual trigger
   workflow_dispatch:
-
-  # Also run on schedule as backup (every 6 hours)
   schedule:
+    # Backup: every 6 hours
     - cron: '0 */6 * * *'
 
 jobs:
@@ -26,18 +22,16 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: |
-        pip install sqlalchemy psycopg2-binary python-dotenv
+      run: pip install -r be/requirements.txt
 
     - name: Generate static data
       env:

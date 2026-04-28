@@ -14,16 +14,16 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: |
-        pip install python-dotenv sqlalchemy psycopg2-binary google-generativeai
+      run: pip install -r be/requirements.txt
 
     - name: Run gold analysis agent
       env:
