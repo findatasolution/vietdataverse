@@ -94,9 +94,21 @@ def fetch_ohlcv_vnstock(ticker: str, start_date: str, end_date: str) -> list:
     try:
         from vnstock import Vnstock
         stock = Vnstock().stock(symbol=ticker, source='KBS')
-        df = stock.quote.history(start=start_date, end=end_date, interval='1D')
-        if df is not None and not df.empty:
-            return _parse_rows(df, ticker, has_value=False)
+        for attempt in range(4):
+            try:
+                df = stock.quote.history(start=start_date, end=end_date, interval='1D')
+                if df is not None and not df.empty:
+                    return _parse_rows(df, ticker, has_value=False)
+                break
+            except Exception as e:
+                msg = str(e).lower()
+                if any(x in msg for x in ['rate limit', 'giới hạn', '429', 'tối đa']):
+                    wait = 60 + attempt * 30
+                    print(f"  [{ticker}] KBS rate limit — waiting {wait}s (attempt {attempt+1}/4)...")
+                    time.sleep(wait)
+                else:
+                    print(f"  vnstock KBS error for {ticker}: {e}")
+                    break
     except ImportError:
         pass
     except Exception as e:
@@ -183,7 +195,7 @@ def main():
                 print(f"  [{ticker}] {n} records upserted. Latest close: {last.get('close')}")
             else:
                 print(f"  [{ticker}] No data returned")
-            time.sleep(0.5)   # polite delay
+            time.sleep(3)   # 3s between tickers → ~10 req/min, under KBS 20 req/min limit
         except Exception as e:
             import traceback
             print(f"  [{ticker}] ERROR: {e}")

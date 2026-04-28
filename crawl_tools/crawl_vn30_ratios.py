@@ -117,9 +117,21 @@ def fetch_ratios_vnstock(ticker: str) -> dict:
     try:
         from vnstock import Vnstock
         stock = Vnstock().stock(symbol=ticker, source='KBS')
-        ratio_df = stock.finance.ratio(period='quarter')
-        if ratio_df is not None and not ratio_df.empty:
-            return _parse_kbs_ratio(ratio_df)
+        for attempt in range(4):
+            try:
+                ratio_df = stock.finance.ratio(period='quarter')
+                if ratio_df is not None and not ratio_df.empty:
+                    return _parse_kbs_ratio(ratio_df)
+                break
+            except Exception as e:
+                msg = str(e).lower()
+                if any(x in msg for x in ['rate limit', 'giới hạn', '429', 'tối đa']):
+                    wait = 60 + attempt * 30
+                    print(f"  [{ticker}] KBS rate limit — waiting {wait}s (attempt {attempt+1}/4)...")
+                    time.sleep(wait)
+                else:
+                    print(f"  [{ticker}] vnstock KBS ratio error: {e}")
+                    break
     except ImportError:
         pass
     except Exception as e:
@@ -219,7 +231,7 @@ def main():
                 success += 1
             else:
                 print(f"  [{ticker}] No ratio data returned")
-            time.sleep(0.5)
+            time.sleep(3)   # 3s between tickers → ~10 req/min, under KBS 20 req/min limit
         except Exception as e:
             import traceback
             print(f"  [{ticker}] ERROR: {e}")
