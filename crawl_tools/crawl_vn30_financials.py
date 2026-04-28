@@ -21,7 +21,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
 
 current_date = datetime.now()
 print(f"\n{'='*60}")

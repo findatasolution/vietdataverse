@@ -13,7 +13,7 @@ from pathlib import Path
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
+    load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
 except Exception:
     pass
 

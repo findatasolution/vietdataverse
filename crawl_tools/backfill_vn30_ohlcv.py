@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import psycopg2
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / 'be' / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
 
 CRAWLING_CORP_DB = os.getenv('CRAWLING_CORP_DB')
 if not CRAWLING_CORP_DB:
