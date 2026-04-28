@@ -320,7 +320,7 @@ def _kbs_fetch_all_pages(ds, report_type: str, max_pages: int):
     for page in range(1, max_pages + 1):
         try:
             def _fn(p=page):
-                resp = ds._fetch_financial_data(report_type=report_type, period_type=2, page=p)
+                resp = ds._fetch_financial_data(report_type=report_type, period_type=1, page=p)
                 if not resp or 'Content' not in resp or not resp['Content']:
                     return None
                 report_key = list(resp['Content'].keys())[0]
