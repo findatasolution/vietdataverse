@@ -9,6 +9,8 @@ but this file serves as the central schema reference.
 Databases:
   CRAWLING_BOT_DB  — macro data (gold, FX, SBV, CPI, GSO)
   CRAWLING_CORP_DB — corporate/equity data (VN30 price, profile, financials, ratios)
+  GLOBAL_INDICATOR_DB — global commodity/macro (Yahoo Finance)
+  HELPER_DB        — internal ops tables (crawl_run_log, data_catalog) — NOT data ingestion targets
 
 ━━━ MANDATORY COLUMNS (all tables) ━━━━━━━━━━━━━━━━━━━━━
   id          SERIAL PRIMARY KEY
@@ -517,7 +519,8 @@ class VnGsoIndustry(Base):
 
 
 # ======================
-# Data Catalog & Quality Tables
+# Helper / Internal Ops Tables (DB: HELPER_DB)
+# These are NOT data ingestion targets — they track pipeline metadata.
 # ======================
 
 class DataCatalog(Base):
@@ -534,7 +537,7 @@ class DataCatalog(Base):
     source_url        = Column(Text)
     source_file       = Column(String(100))
     target_table      = Column(String(100))
-    target_db         = Column(String(50), default='CRAWLING_BOT_DB')
+    target_db         = Column(String(50), default='HELPER_DB')
     frequency         = Column(String(20))   # 'daily', 'twice_daily', 'monthly', 'quarterly'
     last_crawl_at     = Column(DateTime)
     last_value_at     = Column(Date)

@@ -23,6 +23,7 @@ jobs:
     - name: Run VNIndex crawler
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
       run: python crawl_tools/crawl_vnindex.py
 
     - name: Show results

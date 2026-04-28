@@ -25,6 +25,7 @@ jobs:
     - name: Run SBV crawler
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         cd crawl_tools

@@ -25,6 +25,7 @@ jobs:
     - name: Run VN30 financials crawler
       env:
         CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
         FINANCIALS_MAX_PAGES: '4'
       run: |
         cd crawl_tools

@@ -25,6 +25,7 @@ jobs:
     - name: Run VN30 ratios crawler
       env:
         CRAWLING_CORP_DB: ${{ secrets.CRAWLING_CORP_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
       run: |
         cd crawl_tools
         python crawl_vn30_ratios.py

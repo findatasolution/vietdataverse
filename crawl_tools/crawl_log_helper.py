@@ -2,6 +2,8 @@
 Shared crawl logging helper.
 All crawlers import this to log run results into crawl_run_log
 and update data_catalog.last_crawl_at / last_value_at.
+Tables live in HELPER_DB — a dedicated DB for internal/ops tables,
+separate from the data ingestion DBs.
 """
 
 import os
@@ -17,13 +19,47 @@ except Exception:
 
 
 def _get_engine():
-    db_url = os.getenv('CRAWLING_BOT_DB')
+    db_url = os.getenv('HELPER_DB')
     if not db_url:
         return None
     try:
         return create_engine(db_url, pool_pre_ping=True, pool_size=1, max_overflow=2)
     except Exception:
         return None
+
+
+def ensure_tables():
+    """Create crawl_run_log and data_catalog if they don't exist."""
+    engine = _get_engine()
+    if not engine:
+        return
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS crawl_run_log (
+                    id          SERIAL PRIMARY KEY,
+                    series_id   VARCHAR(80),
+                    run_at      TIMESTAMP NOT NULL,
+                    status      VARCHAR(20) NOT NULL,
+                    layer_used  VARCHAR(20),
+                    records_in  INTEGER DEFAULT 0,
+                    records_new INTEGER DEFAULT 0,
+                    duration_ms INTEGER DEFAULT 0,
+                    error_msg   TEXT
+                )
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS data_catalog (
+                    series_id       VARCHAR(80) PRIMARY KEY,
+                    last_crawl_at   TIMESTAMP,
+                    last_value_at   DATE
+                )
+            """))
+            conn.commit()
+    except Exception as e:
+        print(f"  [crawl_log] Warning: could not ensure tables: {e}")
+    finally:
+        engine.dispose()
 
 
 def log_crawl_run(

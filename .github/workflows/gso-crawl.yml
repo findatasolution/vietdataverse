@@ -28,18 +28,21 @@ jobs:
     - name: Crawl GSO CPI & PPI
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python crawl_tools/crawl_gso_cpi.py
 
     - name: Crawl GSO Trade (Import/Export)
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python crawl_tools/crawl_gso_trade.py
 
     - name: Crawl GSO Industry (IIP)
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python crawl_tools/crawl_gso_industry.py
 
@@ -65,6 +68,7 @@ jobs:
     - name: Crawl GSO GDP
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        HELPER_DB: ${{ secrets.HELPER_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python crawl_tools/crawl_gso_gdp.py
 
