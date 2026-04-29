@@ -1,0 +1,36 @@
+name: Daily Data Quality Check
+
+on:
+  schedule:
+    # 09:00 VN (02:00 UTC) — after all crawlers have finished
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  data-quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: pip install -r crawl_tools/requirements.txt
+
+    - name: Run data quality check
+      env:
+        CRAWLING_BOT_DB:     ${{ secrets.CRAWLING_BOT_DB }}
+        CRAWLING_CORP_DB:    ${{ secrets.CRAWLING_CORP_DB }}
+        GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
+        SMTP_USER:           ${{ secrets.SMTP_USER }}
+        SMTP_PASS:           ${{ secrets.SMTP_PASS }}
+      run: python crawl_tools/data_quality_check.py
+
+    - name: Show status
+      if: always()
+      run: echo "Data quality check completed at $(date)"

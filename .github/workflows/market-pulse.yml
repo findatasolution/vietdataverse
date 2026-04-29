@@ -23,14 +23,14 @@ jobs:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: pip install -r vietdataverse/be/requirements.txt
+      run: pip install -r be/requirements.txt
 
     - name: Run market pulse pipeline
       env:
         ARGUS_FINTEL_DB: ${{ secrets.ARGUS_FINTEL_DB }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        cd vietdataverse/be
+        cd be
         python 1s_market_pulse.py
 
     - name: Show results
