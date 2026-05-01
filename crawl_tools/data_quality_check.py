@@ -50,27 +50,28 @@ ENGINES = {
 }
 
 # ── Table catalogue ───────────────────────────────────────────────────────────
-# (table_name, db_key, period_col, period_type, numeric_cols, valid_range)
+# (table_name, db_key, date_col, period_type, numeric_cols, valid_range)
+# period_type: 'date' = daily (check T-1), 'month'/'quarter' = skip freshness
 TABLES = [
     # ── Macro / BOT DB ────────────────────────────────────────────────────────
     ('vn_macro_gold_daily',       'CRAWLING_BOT_DB',
-     'period', 'date',
-     ['btmc_buy', 'btmc_sell', 'sjc_buy', 'sjc_sell'],
+     'date', 'date',
+     ['buy_price', 'sell_price'],
      (50_000_000, 200_000_000)),
 
     ('vn_macro_silver_daily',     'CRAWLING_BOT_DB',
-     'period', 'date',
+     'date', 'date',
      ['buy_price', 'sell_price'],
      (500_000, 5_000_000)),
 
     ('vn_macro_termdepo_daily',   'CRAWLING_BOT_DB',
-     'period', 'date',
+     'date', 'date',
      ['term_1m', 'term_3m', 'term_6m', 'term_12m'],
      (0.1, 20.0)),
 
-    ('vn_macro_sbv_rate_daily',   'CRAWLING_BOT_DB',
-     'period', 'date',
-     ['usd_buy', 'usd_sell'],
+    ('vn_macro_fxrate_daily',     'CRAWLING_BOT_DB',
+     'date', 'date',
+     ['usd_vnd_rate'],
      (20_000, 35_000)),
 
     ('vn_gso_cpi_monthly',        'CRAWLING_BOT_DB',
@@ -79,21 +80,21 @@ TABLES = [
      (-5.0, 30.0)),
 
     ('vn_gso_gdp_quarterly',      'CRAWLING_BOT_DB',
-     'period', 'quarter',
-     ['gdp_growth'],
-     (-10.0, 20.0)),
+     'year', 'quarter',
+     ['gdp_billion_vnd', 'growth_yoy_pct'],
+     (-10.0, 1_000_000)),
 
     # ── Corp DB ───────────────────────────────────────────────────────────────
     ('vn30_ohlcv_daily',          'CRAWLING_CORP_DB',
-     'period', 'date',
+     'date', 'date',
      ['open', 'high', 'low', 'close', 'volume'],
      (1_000, 500_000)),
 
     # ── Global DB ────────────────────────────────────────────────────────────
     ('global_macro',              'GLOBAL_INDICATOR_DB',
-     'period', 'date',
-     ['value'],
-     (-1_000_000, 1_000_000)),
+     'date', 'date',
+     ['gold_price', 'silver_price', 'nasdaq_price'],
+     (0, 1_000_000)),
 ]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
