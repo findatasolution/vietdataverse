@@ -27,6 +27,7 @@ jobs:
         CRAWLING_BOT_DB:     ${{ secrets.CRAWLING_BOT_DB }}
         CRAWLING_CORP_DB:    ${{ secrets.CRAWLING_CORP_DB }}
         GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
+        USER_DB:             ${{ secrets.USER_DB }}
         SMTP_USER:           ${{ secrets.SMTP_USER }}
         SMTP_PASS:           ${{ secrets.SMTP_PASS }}
       run: python crawl_tools/data_quality_check.py

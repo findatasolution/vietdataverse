@@ -18,20 +18,21 @@ from sqlalchemy import create_engine, text
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
 
 # ── DB connections ────────────────────────────────────────────────────────────
-CRAWLING_BOT_DB    = os.getenv('CRAWLING_BOT_DB')
-CRAWLING_CORP_DB   = os.getenv('CRAWLING_CORP_DB')
+CRAWLING_BOT_DB     = os.getenv('CRAWLING_BOT_DB')
+CRAWLING_CORP_DB    = os.getenv('CRAWLING_CORP_DB')
 GLOBAL_INDICATOR_DB = os.getenv('GLOBAL_INDICATOR_DB')
+USER_DB             = os.getenv('USER_DB')
 
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
-SMTP_USER = os.getenv('SMTP_USER')          # sender Gmail address
-SMTP_PASS = os.getenv('SMTP_PASS')          # Gmail App Password
+SMTP_USER = os.getenv('SMTP_USER')
+SMTP_PASS = os.getenv('SMTP_PASS')
 REPORT_TO = 'findatasolution@gmail.com'
 
-TODAY = date.today()
-YESTERDAY = TODAY - timedelta(days=1)
+TODAY  = date.today()
+CUTOFF = TODAY - timedelta(days=1)
 
-issues: list[dict] = []   # {table, db, check, detail, severity}
+issues: list[dict]    = []
 summaries: list[dict] = []
 
 
@@ -44,9 +45,10 @@ def eng(db_url: str | None, label: str):
 
 
 ENGINES = {
-    'CRAWLING_BOT_DB':    eng(CRAWLING_BOT_DB,    'CRAWLING_BOT_DB'),
-    'CRAWLING_CORP_DB':   eng(CRAWLING_CORP_DB,   'CRAWLING_CORP_DB'),
-    'GLOBAL_INDICATOR_DB': eng(GLOBAL_INDICATOR_DB, 'GLOBAL_INDICATOR_DB'),
+    'CRAWLING_BOT_DB':     eng(CRAWLING_BOT_DB,     'CRAWLING_BOT_DB'),
+    'CRAWLING_CORP_DB':    eng(CRAWLING_CORP_DB,     'CRAWLING_CORP_DB'),
+    'GLOBAL_INDICATOR_DB': eng(GLOBAL_INDICATOR_DB,  'GLOBAL_INDICATOR_DB'),
+    'USER_DB':             eng(USER_DB,              'USER_DB'),
 }
 
 # ── Table catalogue ───────────────────────────────────────────────────────────
@@ -127,14 +129,14 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
 
         # 2. Freshness — skip monthly/quarterly when today isn't EOM
         if period_type == 'date':
-            cutoff = YESTERDAY.isoformat()
+            cutoff = CUTOFF.isoformat()
             recent = conn.execute(
                 text(f"SELECT COUNT(*) FROM {table} WHERE {period_col} >= :d"),
                 {'d': cutoff}
             ).scalar()
             if recent == 0:
                 flag(table, db_key, 'freshness',
-                     f'No row for {YESTERDAY} or today', 'ERROR')
+                     f'No row for {CUTOFF} or today', 'ERROR')
                 freshness_ok = False
 
         # 3. Nulls in required columns
@@ -190,21 +192,103 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
     })
 
 
+# ── User & payment stats from USER_DB ────────────────────────────────────────
+
+def fetch_user_stats() -> dict:
+    """
+    - active_users : distinct users who made ≥1 API call on CUTOFF (api_call_log)
+    - new_signups  : users whose account was created on CUTOFF (users.created_at)
+    - paid_orders  : payment_orders with status='paid' and updated on CUTOFF
+    - total_users  : all-time user count
+    - paid_users   : users with current_plan != 'free'
+    """
+    stats = {
+        'active_users': 'N/A', 'new_signups': 'N/A',
+        'paid_orders': 'N/A', 'total_users': 'N/A', 'paid_users': 'N/A',
+    }
+    engine = ENGINES.get('USER_DB')
+    if engine is None:
+        return stats
+    with engine.connect() as conn:
+        cutoff = CUTOFF.isoformat()
+        queries = {
+            'active_users': text("""
+                SELECT COUNT(DISTINCT user_id) FROM api_call_log
+                WHERE DATE(created_at) = :d
+            """),
+            'new_signups': text("""
+                SELECT COUNT(*) FROM users
+                WHERE DATE(created_at) = :d
+            """),
+            'paid_orders': text("""
+                SELECT COUNT(*) FROM payment_orders
+                WHERE status = 'paid' AND DATE(updated_at) = :d
+            """),
+            'total_users': text("SELECT COUNT(*) FROM users"),
+            'paid_users':  text("SELECT COUNT(*) FROM users WHERE current_plan != 'free'"),
+        }
+        for key, q in queries.items():
+            try:
+                params = {'d': cutoff} if ':d' in str(q) else {}
+                stats[key] = conn.execute(q, params).scalar() or 0
+            except Exception:
+                pass
+    return stats
+
+
+# ── Sales action suggestions ──────────────────────────────────────────────────
+
+def sales_actions(stats: dict) -> list[str]:
+    actions = []
+    total = stats.get('total_users', 0)
+    paid  = stats.get('paid_users', 0)
+    active = stats.get('active_users', 0)
+
+    if isinstance(total, int) and isinstance(paid, int) and total > 0:
+        free_pct = round((total - paid) / total * 100)
+        if free_pct > 80:
+            actions.append(
+                f'{free_pct}% users on free plan ({total - paid}/{total}) — '
+                f'send upgrade campaign to active free users'
+            )
+
+    if isinstance(active, int) and active > 0 and isinstance(paid, int):
+        if active > paid * 2:
+            actions.append(
+                f'{active} active users yesterday but only {paid} paid — '
+                f'consider triggered upsell email to heavy free users'
+            )
+
+    new = stats.get('new_signups', 0)
+    if isinstance(new, int) and new > 0:
+        actions.append(
+            f'{new} new signup(s) on {CUTOFF} — send onboarding email within 24h'
+        )
+
+    if not actions:
+        actions.append('No specific sales actions needed today')
+    return actions
+
+
 # ── Run all checks ────────────────────────────────────────────────────────────
 
 print(f"\n{'='*60}")
-print(f"Data Quality Check — {TODAY}")
+print(f"Data Quality Check — run {TODAY}, cutoff {CUTOFF}")
 print(f"{'='*60}\n")
 
 for args in TABLES:
     print(f"  Checking {args[0]} …")
     check_table(*args)
 
+print("  Fetching user & payment stats …")
+user_stats = fetch_user_stats()
+
 n_critical = sum(1 for i in issues if i['severity'] == 'CRITICAL')
 n_error    = sum(1 for i in issues if i['severity'] == 'ERROR')
 n_warning  = sum(1 for i in issues if i['severity'] == 'WARNING')
 
 print(f"\nResult: {n_critical} CRITICAL / {n_error} ERROR / {n_warning} WARNING")
+print(f"Users active T-1: {user_stats['active_users']} | New signups: {user_stats['new_signups']} | Paid orders: {user_stats['paid_orders']}")
 
 # ── Build HTML report ─────────────────────────────────────────────────────────
 
@@ -258,44 +342,70 @@ def issue_rows():
     return '\n'.join(rows)
 
 
+_actions = sales_actions(user_stats)
+
 html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-  body {{ font-family: -apple-system, Arial, sans-serif; color: #222; margin: 0; padding: 20px; }}
-  h2   {{ margin-bottom: 4px; }}
-  table {{ border-collapse: collapse; width: 100%; margin-bottom: 24px; font-size: 13px; }}
+  body  {{ font-family: -apple-system, Arial, sans-serif; color: #222;
+           max-width: 780px; margin: 0 auto; padding: 24px; }}
+  h2   {{ margin-bottom: 2px; color: #1a1a2e; }}
+  h3   {{ margin: 22px 0 6px; border-bottom: 2px solid #eee; padding-bottom: 4px; }}
+  ul   {{ margin: 6px 0; padding-left: 20px; line-height: 1.9; }}
+  table {{ border-collapse: collapse; width: 100%; margin-bottom: 16px; font-size: 13px; }}
   th   {{ background: #2c3e50; color: #fff; padding: 8px 10px; text-align: left; }}
   td   {{ border-bottom: 1px solid #e0e0e0; padding: 7px 10px; }}
-  tr:hover td {{ background: #f5f5f5; }}
-  code {{ background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 12px; }}
-  .badge {{ display:inline-block; padding: 6px 14px; border-radius: 20px;
-            color:#fff; font-weight:bold; font-size:15px; background:{overall_color}; }}
+  code {{ background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; }}
+  .badge {{ display:inline-block; padding: 5px 14px; border-radius: 16px;
+            color:#fff; font-weight:bold; font-size:14px; background:{overall_color}; }}
+  .kpi  {{ display:inline-block; background:#f4f6f8; border-radius:8px;
+           padding:10px 18px; margin:4px 8px 4px 0; text-align:center; min-width:90px; }}
+  .kpi-n {{ font-size:22px; font-weight:bold; color:#2c3e50; }}
+  .kpi-l {{ font-size:11px; color:#888; margin-top:2px; }}
 </style>
 </head>
 <body>
-<h2>🗄️ Viet Dataverse — Daily Data Quality Report</h2>
-<p style="color:#666; margin-top:2px">{TODAY.strftime('%A, %d %B %Y')} &nbsp;|&nbsp; Generated at {datetime.utcnow().strftime('%H:%M UTC')}</p>
 
-<p>Overall status: <span class="badge">{overall_label}</span>
-&nbsp; <span style="color:{STATUS_COLOR.get('CRITICAL','#c0392b')}">{n_critical} CRITICAL</span>
-&nbsp; <span style="color:{STATUS_COLOR.get('ERROR','#e67e22')}">{n_error} ERROR</span>
-&nbsp; <span style="color:{STATUS_COLOR.get('WARNING','#f1c40f')}">{n_warning} WARNING</span>
+<h2>🗄️ Viet Dataverse — Daily Report</h2>
+<p style="color:#888; margin-top:2px; font-size:13px">
+  Report date: <strong>{TODAY.strftime('%A, %d %B %Y')}</strong>
+  &nbsp;|&nbsp; Data cutoff: <strong>{CUTOFF}</strong>
+  &nbsp;|&nbsp; {datetime.utcnow().strftime('%H:%M UTC')}
+  &nbsp;|&nbsp; <span class="badge">{overall_label}</span>
 </p>
 
-<h3>Table Summary</h3>
+<h3>👤 No. User Visited</h3>
+<div>
+  <div class="kpi"><div class="kpi-n">{user_stats['active_users']}</div><div class="kpi-l">Active users (T-1)</div></div>
+  <div class="kpi"><div class="kpi-n">{user_stats['new_signups']}</div><div class="kpi-l">New signups</div></div>
+  <div class="kpi"><div class="kpi-n">{user_stats['total_users']}</div><div class="kpi-l">Total users</div></div>
+  <div class="kpi"><div class="kpi-n">{user_stats['paid_users']}</div><div class="kpi-l">Paid users</div></div>
+</div>
+
+<h3>💳 No. Payments</h3>
+<div>
+  <div class="kpi"><div class="kpi-n" style="color:#27ae60">{user_stats['paid_orders']}</div><div class="kpi-l">Orders paid on {CUTOFF}</div></div>
+</div>
+
+<h3>🚀 Action to Push Sales</h3>
+<ul>
+{''.join(f"<li>{a}</li>" for a in _actions)}
+</ul>
+
+<h3>📥 Ingestion Tools</h3>
+<p style="color:#888;font-size:12px;margin:0 0 4px">
+  {n_critical} CRITICAL &nbsp; {n_error} ERROR &nbsp; {n_warning} WARNING
+</p>
 <table>
   <thead>
-    <tr>
-      <th>Table</th><th>Rows</th><th>Fresh?</th>
-      <th>Nulls</th><th>Dups</th><th>Range Issues</th>
-    </tr>
+    <tr><th>Table</th><th>Rows</th><th>Fresh ({CUTOFF})?</th><th>Nulls</th><th>Dups</th><th>Range</th></tr>
   </thead>
   <tbody>{summary_rows()}</tbody>
 </table>
 
-<h3>Issue Details</h3>
+<h3>🔍 Data Quality Check</h3>
 <table>
   <thead>
     <tr><th>Severity</th><th>Table</th><th>Database</th><th>Check</th><th>Detail</th></tr>
@@ -303,9 +413,8 @@ html = f"""<!DOCTYPE html>
   <tbody>{issue_rows()}</tbody>
 </table>
 
-<p style="color:#aaa; font-size:11px; border-top:1px solid #eee; padding-top:10px">
-  Auto-generated by Viet Dataverse data-quality-check agent.
-  Reply to this email or check GitHub Actions for more details.
+<p style="color:#ccc; font-size:11px; border-top:1px solid #eee; margin-top:20px; padding-top:10px">
+  Auto-generated by Viet Dataverse DQ agent · {TODAY}
 </p>
 </body>
 </html>"""
