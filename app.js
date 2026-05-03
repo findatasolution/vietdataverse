@@ -1245,11 +1245,31 @@
         async function downloadData(dataType) {
             const base = window.APP_CONFIG.API_BASE_URL;
 
+            const userLevel = window._vdvUserLevel || localStorage.getItem('vdv_user_level') || 'free';
+            const isPremium = userLevel && userLevel !== 'free';
+
+            // Free users: 1-year window ending T-1 month
+            function freeUserDateRange() {
+                const end = new Date();
+                end.setMonth(end.getMonth() - 1);
+                const start = new Date(end);
+                start.setFullYear(start.getFullYear() - 1);
+                return {
+                    from: start.toISOString().split('T')[0],
+                    to:   end.toISOString().split('T')[0]
+                };
+            }
+
             // Map data types to API endpoints
+            let periodParam = isPremium ? 'all' : (() => {
+                const r = freeUserDateRange();
+                return `from=${r.from}&to=${r.to}`;
+            })();
+
             const endpointMap = {
-                'gold': 'gold?period=all',
-                'silver': 'silver?period=all',
-                'sbv': 'sbv-interbank?period=all'
+                'gold':   `gold?period=${periodParam}`,
+                'silver': `silver?period=${periodParam}`,
+                'sbv':    `sbv-interbank?period=${periodParam}`
             };
 
             const endpoint = endpointMap[dataType];
@@ -1259,10 +1279,8 @@
             }
 
             try {
-                // Show loading state (optional - could add a loading indicator)
-                console.log(`Downloading ${dataType} data...`);
+                console.log(`Downloading ${dataType} data (${isPremium ? 'full' : 'free 1yr'})...`);
 
-                // Fetch data from API
                 const response = await fetch(`${base}/${endpoint}`);
                 if (!response.ok) throw new Error('Failed to fetch data');
 
@@ -1277,18 +1295,12 @@
                 const data = jsonData.data;
 
                 if (dataType === 'gold' || dataType === 'silver') {
-                    // CSV header
-                    csvContent = 'Date,Buy Price,Sell Price\n';
-
-                    // CSV rows
+                    csvContent = 'Date,Buy Price (VND),Sell Price (VND)\n';
                     for (let i = 0; i < data.dates.length; i++) {
                         csvContent += `${data.dates[i]},${data.buy_prices[i]},${data.sell_prices[i]}\n`;
                     }
                 } else if (dataType === 'sbv') {
-                    // CSV header
                     csvContent = 'Date,Overnight,1 Month,3 Months,Rediscount,Refinancing\n';
-
-                    // CSV rows
                     for (let i = 0; i < data.dates.length; i++) {
                         csvContent += `${data.dates[i]},${data.overnight[i]},${data.month_1[i]},${data.month_3[i]},${data.rediscount[i]},${data.refinancing[i]}\n`;
                     }
@@ -1631,6 +1643,29 @@
         /* =========================================================
            DATA PARSERS FOR DIFFERENT CHART TYPES
         ========================================================= */
+        // Format VND for chart y-axis: 163,500,000 → "163,5tr" / 1,200,000,000 → "1,2tỷ"
+        function fmtVND(value) {
+            if (value >= 1_000_000_000) return (value / 1_000_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'tỷ';
+            if (value >= 1_000_000)     return (value / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'tr';
+            return value.toLocaleString('vi-VN');
+        }
+
+        // Format VND for tooltip: full number with unit
+        function fmtVNDFull(value) {
+            if (value >= 1_000_000_000) return (value / 1_000_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' tỷ';
+            if (value >= 1_000_000)     return (value / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr';
+            return value.toLocaleString('vi-VN');
+        }
+
+        // Shorten date labels on mobile: "2026-04-03" → "03/04" on narrow screens
+        function fmtDateLabel(dateStr) {
+            if (window.innerWidth >= 640) return dateStr; // desktop: keep full
+            // "2026-04-03" → "03/04"
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return parts[2] + '/' + parts[1];
+            return dateStr;
+        }
+
         function parseGoldSilverData(apiData, chartType) {
             // API format: { success: true, data: { dates: [...], buy_prices: [...], sell_prices: [...] } }
             if (!apiData || !apiData.data || !apiData.data.dates) {
@@ -1638,7 +1673,7 @@
                 return null;
             }
 
-            const dates = apiData.data.dates;
+            const dates = apiData.data.dates.map(fmtDateLabel);
             const buyPrices = apiData.data.buy_prices;
             const sellPrices = apiData.data.sell_prices;
 
@@ -1679,16 +1714,27 @@
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false
+                            intersect: false,
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${fmtVNDFull(ctx.parsed.y)} VND`
+                            }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#87867f', maxRotation: 45 },
+                            ticks: {
+                                color: '#87867f',
+                                maxRotation: 45,
+                                maxTicksLimit: window.innerWidth < 640 ? 6 : 12
+                            },
                             grid: { display: false }
                         },
                         y: {
-                            ticks: { color: '#87867f' },
+                            ticks: {
+                                color: '#87867f',
+                                callback: fmtVND,
+                                maxTicksLimit: 6
+                            },
                             grid: { display: false }
                         }
                     }
