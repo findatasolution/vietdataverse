@@ -1383,6 +1383,27 @@
         }
 
         async function downloadDataset(datasetId) {
+            // ── Auth gate ──────────────────────────────────────────────────
+            const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
+            if (!authed) {
+                const overlay = document.getElementById('notification-overlay');
+                if (overlay) overlay.classList.add('active');
+                if (typeof gtag === 'function') gtag('event', 'download_blocked', { data_type: datasetId, reason: 'not_authenticated' });
+                return;
+            }
+
+            // ── Free-user date range: 1 year ending T-1 month ─────────────
+            const userLevel = window._vdvUserLevel || localStorage.getItem('vdv_user_level') || 'free';
+            const isPremium = userLevel && userLevel !== 'free';
+            function freePeriodParams() {
+                const to = new Date();
+                to.setDate(1); to.setMonth(to.getMonth() - 1); // first day of last month
+                const from = new Date(to);
+                from.setFullYear(from.getFullYear() - 1);
+                return `from=${from.toISOString().split('T')[0]}&to=${to.toISOString().split('T')[0]}`;
+            }
+            const periodParam = isPremium ? 'period=all' : freePeriodParams();
+
             const base = window.APP_CONFIG.API_BASE_URL;
             const btn = event.currentTarget;
             const origHtml = btn.innerHTML;
@@ -1393,23 +1414,22 @@
                 let url, filename, rows2csv;
 
                 if (datasetId.startsWith('gold-')) {
-                    const type = datasetId.slice(5); // e.g. "DOJI HN"
-                    url = `${base}/gold?period=all&type=${encodeURIComponent(type)}`;
+                    const type = datasetId.slice(5);
+                    url = `${base}/gold?${periodParam}&type=${encodeURIComponent(type)}`;
                     filename = `gold_${type.replace(/ /g,'_')}`;
                     rows2csv = d => 'Date,Buy Price (VND),Sell Price (VND)\n' +
                         d.dates.map((dt,i) => `${dt},${d.buy_prices[i]},${d.sell_prices[i]}`).join('\n');
 
                 } else if (datasetId === 'silver') {
-                    url = `${base}/silver?period=all`;
+                    url = `${base}/silver?${periodParam}`;
                     filename = 'silver_phuquy';
                     rows2csv = d => 'Date,Buy Price (VND),Sell Price (VND)\n' +
                         d.dates.map((dt,i) => `${dt},${d.buy_prices[i]},${d.sell_prices[i]}`).join('\n');
 
                 } else if (datasetId.startsWith('fxrate-')) {
                     const [, bank, currency] = datasetId.split('-');
-                    url = `${base}/sbv-centralrate?period=all&bank=${bank}&currency=${currency}`;
+                    url = `${base}/sbv-centralrate?${periodParam}&bank=${bank}&currency=${currency}`;
                     filename = `fxrate_${bank}_${currency}`;
-                    // SBV: only central rate; VCB: include buy/sell
                     const isSBV = bank === 'SBV';
                     rows2csv = isSBV
                         ? d => 'Date,Central Rate (VND/USD)\n' +
@@ -1419,19 +1439,19 @@
 
                 } else if (datasetId.startsWith('termdepo-')) {
                     const bank = datasetId.slice(9);
-                    url = `${base}/termdepo?period=all&bank=${bank}`;
+                    url = `${base}/termdepo?${periodParam}&bank=${bank}`;
                     filename = `termdepo_${bank}`;
                     rows2csv = d => 'Date,1M(%),3M(%),6M(%),12M(%),24M(%)\n' +
                         d.dates.map((dt,i) => `${dt},${d.term_1m[i]??''},${d.term_3m[i]??''},${d.term_6m[i]??''},${d.term_12m[i]??''},${d.term_24m[i]??''}`).join('\n');
 
                 } else if (datasetId === 'sbv-interbank') {
-                    url = `${base}/sbv-interbank?period=all`;
+                    url = `${base}/sbv-interbank?${periodParam}`;
                     filename = 'sbv_interbank_rates';
                     rows2csv = d => 'Date,Overnight(%),1M(%),3M(%),6M(%),9M(%),Rediscount(%),Refinancing(%)\n' +
                         d.dates.map((dt,i) => `${dt},${d.overnight[i]??''},${d.month_1[i]??''},${d.month_3[i]??''},${d.month_6[i]??''},${d.month_9[i]??''},${d.rediscount[i]??''},${d.refinancing[i]??''}`).join('\n');
 
                 } else if (datasetId === 'global-macro') {
-                    url = `${base}/global-macro?period=all`;
+                    url = `${base}/global-macro?${periodParam}`;
                     filename = 'global_macro';
                     rows2csv = d => 'Date,Gold (USD/oz),Silver (USD/oz),NASDAQ\n' +
                         d.dates.map((dt,i) => `${dt},${d.gold_prices[i]??''},${d.silver_prices[i]??''},${d.nasdaq_prices[i]??''}`).join('\n');
@@ -1443,7 +1463,7 @@
                         d.map(r => `${r.ticker},"${r.company_name ?? ''}",${r.exchange ?? ''},${r.icb_sector ?? ''},${r.icb_industry ?? ''},${r.market_cap_billion ?? ''},${r.listed_date ?? ''}`).join('\n');
 
                 } else if (datasetId === 'vn30-prices') {
-                    url = `${base}/vn30/download/prices?period=all`;
+                    url = `${base}/vn30/download/prices?${periodParam}`;
                     filename = 'vn30_ohlcv_prices';
                     rows2csv = d => 'Ticker,Date,Open,High,Low,Close,Volume,Value (VND)\n' +
                         d.map(r => `${r.ticker},${r.date},${r.open??''},${r.high??''},${r.low??''},${r.close??''},${r.volume??''},${r.value??''}`).join('\n');
@@ -1455,7 +1475,7 @@
                         d.map(r => `${r.ticker},${r.year},Q${r.quarter},${r.revenue??''},${r.gross_profit??''},${r.ebit??''},${r.net_income??''},${r.eps??''}`).join('\n');
 
                 } else if (datasetId === 'vn30-ratios') {
-                    url = `${base}/vn30/download/ratios?period=all`;
+                    url = `${base}/vn30/download/ratios?${periodParam}`;
                     filename = 'vn30_financial_ratios';
                     rows2csv = d => 'Ticker,Date,P/E,P/B,P/S,ROE(%),ROA(%),EPS,Dividend Yield(%),Market Cap (tỷ)\n' +
                         d.map(r => `${r.ticker},${r.date},${r.pe??''},${r.pb??''},${r.ps??''},${r.roe??''},${r.roa??''},${r.eps??''},${r.dividend_yield??''},${r.market_cap_billion??''}`).join('\n');
@@ -2907,7 +2927,13 @@
             };
 
             // ── Download macro data as CSV
-            window.downloadMacroCSV = function (type) {
+            window.downloadMacroCSV = async function (type) {
+                const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
+                if (!authed) {
+                    const overlay = document.getElementById('notification-overlay');
+                    if (overlay) overlay.classList.add('active');
+                    return;
+                }
                 const configs = {
                     cpi:   { header: 'Year,CPI Inflation (%/year)',    file: 'vietdataverse_vn_cpi_annual' },
                     gdp:   { header: 'Year,GDP Growth (%/year)',        file: 'vietdataverse_vn_gdp_growth' },
