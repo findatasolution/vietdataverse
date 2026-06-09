@@ -45,6 +45,20 @@
         }
         .nav-logo:hover { opacity: 1; }
 
+        .settings-tabs { display: flex; align-items: center; gap: 4px; }
+        .settings-tab {
+            display: inline-flex; align-items: center;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 13px; font-weight: 500;
+            color: var(--olive-gray, #5e5d59); text-decoration: none;
+            transition: background .15s, color .15s;
+        }
+        .settings-tab:hover { background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); }
+        .settings-tab.active {
+            background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); font-weight: 600;
+            box-shadow: 0 0 0 1px var(--ring-warm, #d1cfc5);
+        }
+
         /* ── Page Header ─────────────────────────────────────── */
         .account-header {
             width: 100%;
@@ -523,12 +537,20 @@
             </svg>
             Viet Dataverse
         </a>
+        <!-- Settings sub-tabs -->
+        <div class="settings-tabs">
+            <a class="settings-tab active" href="/pages/account.html">Tài khoản</a>
+            <a class="settings-tab" href="/fe/#km/library" id="tab-library">My Library</a>
+            <a class="settings-tab" href="/fe/#km/wallet" id="tab-wallet">Wallet</a>
+            <a class="settings-tab" href="/fe/#km/seller-dashboard" id="tab-mystore">My Store</a>
+            <a class="settings-tab" href="/pages/developer.html">API Key</a>
+        </div>
     </nav>
 
     <!-- Page Header -->
     <div class="account-header">
-        <div class="account-badge">Tài khoản</div>
-        <h1 class="account-title">Hồ sơ của tôi</h1>
+        <div class="account-badge">Settings</div>
+        <h1 class="account-title">Tài khoản</h1>
     </div>
 
     <!-- Loading state -->
@@ -1201,6 +1223,20 @@
                  <button class="btn-outline" onclick="location.reload()">Thử lại</button>`;
         }
     });
+
+    // My Store tab: show become-seller if user is not a seller
+    (async function() {
+        const mystoreTab = document.getElementById('tab-mystore');
+        if (!mystoreTab) return;
+        try {
+            const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+            if (!token) { mystoreTab.href = '/fe/#km/become-seller'; mystoreTab.textContent = '+ Become a Seller'; return; }
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:8000/api/v1' : '/api/v1';
+            const res = await fetch(`${API_BASE}/seller/profile`, { headers: { Authorization: `Bearer ${token}` } });
+            if (!res.ok) { mystoreTab.href = '/fe/#km/become-seller'; mystoreTab.textContent = '+ Become a Seller'; }
+        } catch { mystoreTab.href = '/fe/#km/become-seller'; mystoreTab.textContent = '+ Become a Seller'; }
+    })();
 </script>
 </body>
 </html>

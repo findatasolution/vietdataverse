@@ -631,7 +631,7 @@
             initHeaderActions();
             initMobileMenu();
             initSidebarTabs();
-            initChartTabs();
+            initScrollSections();
             initFilterButtons();
             initNotifications();
             initPulseSidebar();
@@ -831,22 +831,23 @@
            HEADER ACTIONS: LANGUAGE + LOGIN
         ========================================================= */
         function initHeaderActions() {
-            const langBtn = document.getElementById('lang-toggle');
             const sidebarLangBtn = document.getElementById('sidebar-lang-toggle');
+            const ddLangBtn = document.getElementById('settings-dd-lang');
 
             /* ---------- LANGUAGE (ENG / VIE) ---------- */
             const savedLang = localStorage.getItem('lang') || 'vi';
             updateLanguage(savedLang);
 
-            if (langBtn) {
-                langBtn.addEventListener('click', () => {
+            if (sidebarLangBtn) {
+                sidebarLangBtn.addEventListener('click', () => {
                     const current = document.documentElement.lang || 'vi';
                     const next = current === 'vi' ? 'en' : 'vi';
                     updateLanguage(next);
                 });
             }
-            if (sidebarLangBtn) {
-                sidebarLangBtn.addEventListener('click', () => {
+            if (ddLangBtn) {
+                ddLangBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const current = document.documentElement.lang || 'vi';
                     const next = current === 'vi' ? 'en' : 'vi';
                     updateLanguage(next);
@@ -875,7 +876,7 @@
 
             const label = lang === 'vi' ? 'EN / VIE' : 'VIE / EN';
 
-            // Update header lang button
+            // Update settings dropdown lang button
             const langText = document.getElementById('lang-text');
             if (langText) langText.textContent = label;
 
@@ -948,16 +949,6 @@
             const mainContent = document.querySelector('.main-content');
             if (mainContent) mainContent.scrollTop = 0;
 
-            // If switching to data-portal, restore the inner chart tab
-            if (tabId === 'data-portal') {
-                const activeChartTab = document.querySelector('.chart-tab-btn.active');
-                if (activeChartTab) {
-                    const innerTabId = activeChartTab.dataset.tab;
-                    const innerTarget = document.getElementById(innerTabId);
-                    if (innerTarget) innerTarget.classList.add('active');
-                }
-            }
-
             // Close mobile sidebar
             const sidebar = document.querySelector('.sidebar');
             const mobileOverlay = document.getElementById('mobile-overlay');
@@ -1006,6 +997,9 @@
             'tab-seller':           'km/seller-dashboard',
         };
 
+        // Workspaces that have no useful sidebar — hide it and go full-width
+        const NO_SIDEBAR_WORKSPACES = ['data', 'pulse', 'km'];
+
         function setWorkspace(ws) {
             // Update workspace tab buttons
             document.querySelectorAll('.workspace-tab[data-workspace]').forEach(btn => {
@@ -1017,6 +1011,12 @@
             document.querySelectorAll('.sidebar-context[data-workspace]').forEach(ctx => {
                 ctx.classList.toggle('active', ctx.dataset.workspace === ws);
             });
+
+            // Hide sidebar for workspaces that don't need it
+            const container = document.querySelector('.app-container');
+            if (container) {
+                container.classList.toggle('no-sidebar', NO_SIDEBAR_WORKSPACES.includes(ws));
+            }
         }
 
         function setView(viewId) {
@@ -1085,12 +1085,12 @@
                 });
             });
 
-            // Footer lang toggle (sync with header lang toggle)
+            // Footer lang toggle (sync with settings dropdown lang toggle)
             const footerLangBtn = document.getElementById('footer-lang-toggle');
             if (footerLangBtn) {
                 footerLangBtn.addEventListener('click', () => {
-                    const headerLangBtn = document.getElementById('lang-toggle');
-                    if (headerLangBtn) headerLangBtn.click();
+                    const ddLangBtn = document.getElementById('settings-dd-lang');
+                    if (ddLangBtn) ddLangBtn.click();
                 });
             }
 
@@ -1110,9 +1110,10 @@
                     if (tabId === 'portal' && ws === 'data') {
                         activateTab('data-portal');
                         if (sub) {
-                            // Activate chart sub-tab if present
-                            const chartBtn = document.querySelector(`.chart-tab-btn[data-tab="tab-${sub}"]`);
-                            if (chartBtn) chartBtn.click();
+                            setTimeout(() => {
+                                const el = document.querySelector(`[data-lazy-section="${sub}"]`);
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
                         }
                     } else if (tabId && document.getElementById(tabId)) {
                         activateTab(tabId);
@@ -1313,65 +1314,49 @@
            CHART SUB-TABS (Vang & Bac / Tien te VN / Quoc te)
            WITH LAZY LOADING
         ========================================================= */
-        function initChartTabs() {
-            document.querySelectorAll('.chart-tab-btn[data-tab]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabId = btn.dataset.tab;
+        function loadChartsForSection(sectionKey) {
+            if (loadedSections[sectionKey]) return;
+            loadedSections[sectionKey] = true;
 
-                    // Toggle button active states
-                    document.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-
-                    // Toggle inner tab-contents within charts-section
-                    const chartsSection = btn.closest('.charts-section');
-                    if (chartsSection) {
-                        chartsSection.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    }
-                    const target = document.getElementById(tabId);
-                    if (target) target.classList.add('active');
-
-                    // Lazy load charts when tab is clicked for the first time
-                    loadChartsForTab(tabId);
-                });
-            });
-
-            // Load the first tab (gold & silver) immediately on page load
-            loadChartsForTab('tab-gold-silver');
-        }
-
-        /* =========================================================
-           LAZY LOAD CHARTS FOR A SPECIFIC TAB
-        ========================================================= */
-        function loadChartsForTab(tabId) {
-            // Skip if already loaded
-            if (loadedTabs[tabId]) {
-                return;
-            }
-
-            loadedTabs[tabId] = true;
-
-            // Load charts in parallel for each tab
-            if (tabId === 'tab-gold-silver') {
+            if (sectionKey === 'gold-silver') {
                 const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
                 Promise.all([
                     loadChartData('gold', '1m', goldType),
                     loadChartData('silver', '1m')
                 ]);
-            } else if (tabId === 'tab-currency') {
+            } else if (sectionKey === 'currency') {
                 const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
                 Promise.all([
                     loadChartData('td', '1y', null, bankCode),
                     loadChartData('sbv', '1m'),
                     loadChartData('fxrate', '1m')
                 ]);
-            } else if (tabId === 'tab-global') {
+            } else if (sectionKey === 'global') {
                 loadChartData('global', '1m');
-            } else if (tabId === 'tab-macro') {
+            } else if (sectionKey === 'macro') {
                 loadMacroCharts(20);
-            } else if (tabId === 'tab-stock') {
+            } else if (sectionKey === 'stock') {
                 loadVnindexChart('1y');
             }
-            // tab-download: no charts to load, content is static
+        }
+
+        function initScrollSections() {
+            // Load first section immediately (above fold)
+            loadChartsForSection('gold-silver');
+
+            // IntersectionObserver for remaining sections
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const key = entry.target.dataset.lazySection;
+                    loadChartsForSection(key);
+                    observer.unobserve(entry.target);
+                });
+            }, { rootMargin: '0px 0px 400px 0px' });
+
+            document.querySelectorAll('[data-lazy-section]').forEach(el => {
+                if (el.dataset.lazySection !== 'gold-silver') observer.observe(el);
+            });
         }
 
         /* =========================================================
@@ -1800,13 +1785,12 @@
         const chartCache = {};
 
         // Track which tabs have been loaded
-        const loadedTabs = {
-            'tab-gold-silver': false,
-            'tab-currency': false,
-            'tab-global': false,
-            'tab-macro': false,
-            'tab-stock': false,
-            'tab-download': false
+        const loadedSections = {
+            'gold-silver': false,
+            'currency':    false,
+            'global':      false,
+            'macro':       false,
+            'stock':       false
         };
 
         // Map chart types to their API endpoints
@@ -3080,4 +3064,61 @@
                     window.KM._updateActionBarAsync();
                 }
             };
+
+            // ── Topbar dropdowns (Docs + Settings) ──
+            (function () {
+                function toggleDropdown(btnId, ddId) {
+                    const btn = document.getElementById(btnId);
+                    const dd = document.getElementById(ddId);
+                    if (!btn || !dd) return;
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const isOpen = dd.classList.contains('open');
+                        document.querySelectorAll('.topbar-dropdown.open').forEach(el => el.classList.remove('open'));
+                        if (!isOpen) dd.classList.add('open');
+                    });
+                }
+                toggleDropdown('docs-topbar-btn', 'docs-dropdown');
+                toggleDropdown('settings-topbar-btn', 'settings-dropdown');
+
+                // Close on outside click
+                document.addEventListener('click', function () {
+                    document.querySelectorAll('.topbar-dropdown.open').forEach(el => el.classList.remove('open'));
+                });
+
+                // Update Settings dropdown: My Store vs + Become a Seller
+                async function updateSettingsSellerLink() {
+                    const token = localStorage.getItem('auth_token');
+                    const sellerLink = document.getElementById('settings-dd-seller');
+                    if (!sellerLink) return;
+                    if (!token) {
+                        sellerLink.textContent = '+ Become a Seller';
+                        sellerLink.href = '/fe/#km/become-seller';
+                        return;
+                    }
+                    try {
+                        const base = window.APP_CONFIG?.API_BASE_URL || '/api/v1';
+                        const res = await fetch(`${base}/seller/profile`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.success && data.seller) {
+                                sellerLink.textContent = 'My Store';
+                                sellerLink.href = '/fe/#km/seller-dashboard';
+                            } else {
+                                sellerLink.textContent = '+ Become a Seller';
+                                sellerLink.href = '/fe/#km/become-seller';
+                            }
+                        } else {
+                            sellerLink.textContent = '+ Become a Seller';
+                            sellerLink.href = '/fe/#km/become-seller';
+                        }
+                    } catch (_) {
+                        sellerLink.textContent = '+ Become a Seller';
+                        sellerLink.href = '/fe/#km/become-seller';
+                    }
+                }
+                document.addEventListener('DOMContentLoaded', updateSettingsSellerLink);
+            })();
         })();

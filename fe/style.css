@@ -108,6 +108,14 @@ html {
     margin: 0 auto;
 }
 
+.app-container.no-sidebar .sidebar {
+    display: none;
+}
+
+.app-container.no-sidebar {
+    grid-template-columns: 1fr;
+}
+
 .mobile-menu-btn {
     display: none;
     background: transparent;
@@ -277,6 +285,85 @@ html {
     background: var(--coral);
     border-color: var(--coral);
     box-shadow: var(--shadow-gold);
+}
+
+.header-btn.topbar-text-btn {
+    text-decoration: none;
+    font-size: 0.8125rem;
+    padding: 0.35rem 0.75rem;
+}
+
+.topbar-icon-btn {
+    background: none;
+    border: none;
+    color: var(--olive-gray);
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.18s, background 0.18s;
+}
+.topbar-icon-btn:hover {
+    color: var(--near-black);
+    background: var(--border-cream);
+}
+
+.topbar-dd-lang-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+/* ── Topbar dropdowns ── */
+.topbar-dropdown-wrap {
+    position: relative;
+}
+
+.topbar-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 180px;
+    background: var(--ivory);
+    border: 1px solid var(--border-cream);
+    border-radius: 12px;
+    box-shadow: rgba(0,0,0,0.08) 0px 8px 24px, 0px 0px 0px 1px var(--border-cream);
+    z-index: 200;
+    overflow: hidden;
+    padding: 4px 0;
+}
+
+.topbar-dropdown.open {
+    display: block;
+}
+
+.topbar-dropdown-item {
+    display: block;
+    padding: 9px 16px;
+    font-size: 0.875rem;
+    color: var(--olive-gray);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+
+.topbar-dropdown-item:hover {
+    background: var(--border-cream);
+    color: var(--near-black);
+}
+
+.topbar-dropdown-divider {
+    height: 1px;
+    background: var(--border-cream);
+    margin: 4px 0;
 }
 
 .lang-btn {
@@ -1321,6 +1408,32 @@ html {
 }
 
 /* ── Chart Cards ── */
+.charts-scroll-page {
+    padding: 1.5rem;
+}
+
+.chart-section-group {
+    margin-bottom: 2rem;
+}
+
+.chart-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--stone-gray);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-cream);
+}
+
+.chart-section-group:first-child .chart-section-heading {
+    margin-top: 0;
+}
+
 .charts-section {
     margin-bottom: 3rem;
 }
