@@ -125,13 +125,15 @@ def _row_to_list_item(row) -> dict:
         "frameworks":     row[5],
         "price_usd":      price_usd,
         "price_vnd":      int(round(price_usd * USD_VND_RATE)),
-        "price_credits":  row[7],                                                # backward-compat
+        "price_credits":  row[7],
         "rating_avg":     float(row[8]) if row[8] is not None else 0.0,
         "rating_count":   row[9],
         "download_count": row[10],
         "is_vd_owned":    row[11],
         "version":        row[12],
         "created_at":     row[13].isoformat() if row[13] else None,
+        "description":    row[14],
+        "seller_name":    row[15],
     }
 
 
@@ -194,30 +196,32 @@ async def list_products(
 
     try:
         with get_engine_knowledge().connect() as conn:
-            where_parts = ["status IN ('approved', 'published')"]
+            where_parts = ["kp.status IN ('approved', 'published')"]
             params: dict = {"limit": limit, "offset": offset}
 
             if category:
-                where_parts.append("category = :category")
+                where_parts.append("kp.category = :category")
                 params["category"] = category
             if fmt:
-                where_parts.append("format = :fmt")
+                where_parts.append("kp.format = :fmt")
                 params["fmt"] = fmt
 
             where_sql = "WHERE " + " AND ".join(where_parts)
 
             rows = conn.execute(text(f"""
-                SELECT id, slug, title, category, format, frameworks,
-                       price_usd, price_credits, rating_avg, rating_count, download_count,
-                       is_vd_owned, version, created_at
-                FROM knowledge_products
+                SELECT kp.id, kp.slug, kp.title, kp.category, kp.format, kp.frameworks,
+                       kp.price_usd, kp.price_credits, kp.rating_avg, kp.rating_count, kp.download_count,
+                       kp.is_vd_owned, kp.version, kp.created_at,
+                       kp.description, sp.display_name
+                FROM knowledge_products kp
+                LEFT JOIN seller_profiles sp ON sp.id = kp.seller_id
                 {where_sql}
-                ORDER BY is_vd_owned DESC, rating_avg DESC, created_at DESC
+                ORDER BY kp.is_vd_owned DESC, kp.rating_avg DESC, kp.created_at DESC
                 LIMIT :limit OFFSET :offset
             """), params).fetchall()
 
             total = conn.execute(text(f"""
-                SELECT COUNT(*) FROM knowledge_products {where_sql}
+                SELECT COUNT(*) FROM knowledge_products kp {where_sql}
             """), {k: v for k, v in params.items() if k not in ("limit", "offset")}).scalar()
 
         return _json_response({

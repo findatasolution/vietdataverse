@@ -147,20 +147,20 @@ def purchase_product(buyer_id: int, buyer_email: str, product_id: int) -> dict:
             "lk": license_key,
         }).scalar()
 
-        # Resolve seller user_id from seller_profiles
-        seller_user_id = conn.execute(
-            text("SELECT user_id FROM seller_profiles WHERE id = :s"),
-            {"s": seller_pid},
-        ).scalar()
-
-        # Credit seller earnings (upsert)
-        conn.execute(text("""
-            INSERT INTO seller_earnings (user_id, pending_vnd, updated_at)
-            VALUES (:u, :a, NOW())
-            ON CONFLICT (user_id) DO UPDATE
-                SET pending_vnd = seller_earnings.pending_vnd + :a,
-                    updated_at  = NOW()
-        """), {"u": seller_user_id, "a": seller_share_vnd})
+        # Credit seller earnings (upsert) — skip for free products or VD-owned (user_id=0)
+        if seller_share_vnd > 0:
+            seller_user_id = conn.execute(
+                text("SELECT user_id FROM seller_profiles WHERE id = :s"),
+                {"s": seller_pid},
+            ).scalar()
+            if seller_user_id and seller_user_id > 0:
+                conn.execute(text("""
+                    INSERT INTO seller_earnings (user_id, pending_vnd, updated_at)
+                    VALUES (:u, :a, NOW())
+                    ON CONFLICT (user_id) DO UPDATE
+                        SET pending_vnd = seller_earnings.pending_vnd + :a,
+                            updated_at  = NOW()
+                """), {"u": seller_user_id, "a": seller_share_vnd})
 
         return {
             "purchase_id":   purchase_id,
