@@ -56,6 +56,22 @@
         }
         .nav-cta:hover { filter: brightness(1.08); }
 
+        .docs-tabs {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .docs-tab {
+            display: inline-flex; align-items: center;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 13px; font-weight: 500;
+            color: var(--olive-gray, #5e5d59); text-decoration: none;
+            transition: background .15s, color .15s;
+        }
+        .docs-tab:hover { background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); }
+        .docs-tab.active {
+            background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); font-weight: 600;
+            box-shadow: 0 0 0 1px var(--ring-warm, #d1cfc5);
+        }
+
         .docs-hero {
             text-align: center;
             padding: 72px 24px 48px;
@@ -238,6 +254,15 @@
 
 <nav class="docs-nav">
     <a class="nav-logo" href="/index.html">← Viet Dataverse</a>
+    <div class="docs-tabs">
+        <a class="docs-tab active" href="/pages/api-docs.html">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;">
+                <path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+                <path d="M5 6h6M5 9h6M5 12h4"/>
+            </svg>
+            API Reference
+        </a>
+    </div>
     <a class="nav-cta" href="/pages/pricing.html">Mua API Key →</a>
 </nav>
 

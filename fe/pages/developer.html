@@ -24,7 +24,21 @@
             padding: 18px 20px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .nav-logo { font-family: 'Lora', Georgia, serif; font-size: 16px; font-weight: 500; color: var(--near-black); text-decoration: none; }
+        .nav-logo { font-family: 'Lora', Georgia, serif; font-size: 15px; font-weight: 500; color: var(--near-black); text-decoration: none; display:flex; align-items:center; gap:4px; opacity:.85; transition:opacity .2s; }
+        .nav-logo:hover { opacity: 1; }
+        .settings-tabs { display: flex; align-items: center; gap: 4px; }
+        .settings-tab {
+            display: inline-flex; align-items: center;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 13px; font-weight: 500;
+            color: var(--olive-gray, #5e5d59); text-decoration: none;
+            transition: background .15s, color .15s;
+        }
+        .settings-tab:hover { background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); }
+        .settings-tab.active {
+            background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); font-weight: 600;
+            box-shadow: 0 0 0 1px var(--ring-warm, #d1cfc5);
+        }
 
         .dev-badge {
             display: inline-flex; align-items: center; gap: 6px;
@@ -218,7 +232,26 @@
 <body>
 
 <nav class="page-nav">
-    <a class="nav-logo" href="/index.html">Viet Dataverse</a>
+    <a class="nav-logo" href="/index.html">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;">
+            <path d="M10 13L5 8l5-5"/>
+        </svg>
+        Viet Dataverse
+    </a>
+    <div class="settings-tabs">
+        <a class="settings-tab" href="/pages/account.html">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-right:5px;">
+                <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+            </svg>
+            Tài khoản
+        </a>
+        <a class="settings-tab active" href="/pages/developer.html">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-right:5px;">
+                <circle cx="6" cy="10" r="3"/><path d="M9 7l5-5M12 2l2 2M10 4l2 2"/>
+            </svg>
+            API Key
+        </a>
+    </div>
     <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
 </nav>
 
