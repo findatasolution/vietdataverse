@@ -25,16 +25,8 @@
 - Thêm "Test your key" button — gọi `/gold` với key của họ, show kết quả live
 - **Tại sao:** Reduce friction cho user mới
 
-### [KM-01] Web reader cho knowledge packs
-- Sau khi mua/unlock free pack, thêm tab "Đọc online" render markdown thành HTML
-- Không cần download, không cần IDE
-- Phục vụ 60% non-technical user
-- **Tại sao:** Hiện tại 60% user mua xong không biết làm gì với file .md
-
-### [KM-02] "Copy to Claude" button trên library page
-- Sau khi unlock pack, thêm button copy full content vào clipboard
-- Kèm instruction: "Paste vào Claude.ai → bắt đầu hỏi"
-- **Tại sao:** Quickest win cho non-technical user, 1 ngày build
+### ~~[KM-01] Web reader cho knowledge packs~~ ✅ Done
+### ~~[KM-02] "Copy to Claude" button trên library page~~ ✅ Done
 
 ### [CONTENT-01] Nâng cấp 5 pack mới — thêm section "Cách dùng"
 - Mỗi pack thêm section đầu: dành cho developer (IDE) và researcher (Copy to Claude)
@@ -152,6 +144,9 @@
 - [x] Fix list products API (description + seller_name)
 - [x] Remove junk test products (id 5, 15, 16, 17, 18)
 - [x] Admin access script (run_set_admin.py)
+- [x] KM-02 — Copy to Claude button (library card + post-purchase modal)
+- [x] KM-01 — Web reader inline (markdown → HTML modal, zero deps)
+- [x] Excel Add-in — manifest.xml + task pane, mount /excel-addin/, CORS for Office domains
 
 ---
 

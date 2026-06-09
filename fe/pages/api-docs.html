@@ -220,6 +220,13 @@
             margin-bottom: 12px;
         }
 
+        /* ── Use-case accordions ─────────────────────────────── */
+        details summary::-webkit-details-marker { display: none; }
+        details summary::after { content: '▾'; font-size: 12px; color: var(--text-tertiary); }
+        details[open] summary::after { content: '▴'; }
+        details[open] { border-color: rgba(201,100,66,.25) !important; }
+        details[open] > summary { color: var(--terracotta); }
+
         /* ── Error table ─────────────────────────────────────── */
         .error-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
         .error-table th, .error-table td {
@@ -249,7 +256,7 @@
         Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
     </p>
     <div class="hero-actions">
-        <a class="btn-primary" href="/pages/pricing.html">Bắt đầu — từ 149,000 ₫/tháng</a>
+        <a class="btn-primary" href="/pages/pricing.html">Bắt đầu — từ 33,000 ₫/tháng</a>
         <a class="btn-secondary" href="/pages/developer.html">Quản lý API Key →</a>
     </div>
 </div>
@@ -259,7 +266,8 @@
     <aside class="docs-sidebar">
         <div class="sidebar-group">
             <div class="sidebar-group-title">Tổng quan</div>
-            <a class="sidebar-link active" href="#quickstart">Quick Start</a>
+            <a class="sidebar-link active" href="#usecases">Use Cases</a>
+            <a class="sidebar-link" href="#quickstart">Quick Start</a>
             <a class="sidebar-link" href="#auth">Authentication</a>
             <a class="sidebar-link" href="#quota">Quota & Giới hạn</a>
             <a class="sidebar-link" href="#errors">Mã lỗi</a>
@@ -276,6 +284,119 @@
     </aside>
 
     <main class="docs-content">
+
+        <!-- Use Cases -->
+        <section class="docs-section" id="usecases">
+            <h2 class="section-title">Bạn muốn làm gì?</h2>
+            <p class="section-sub">Chọn use-case phù hợp — code sẵn sàng copy & chạy.</p>
+
+            <div style="display:grid;gap:10px;margin-bottom:8px;">
+
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                    <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                        📈 Tôi muốn pull giá vàng SJC vào Python mỗi ngày
+                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">commodity</span>
+                    </summary>
+                    <div style="padding:0 18px 18px;border-top:1px solid var(--border-cream);">
+                        <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 8px;">Lấy 30 ngày gần nhất, lọc theo SJC, lưu vào DataFrame:</p>
+                        <div class="code-block">import requests, pandas as pd
+
+API_KEY = "YOUR_API_KEY"
+BASE    = "https://api.vietdataverse.online/api/v1"
+
+r = requests.get(f"{BASE}/gold",
+    params={"type": "SJC", "period": "30d"},
+    headers={"X-API-Key": API_KEY})
+df = pd.DataFrame(r.json()["data"])
+df["period"] = pd.to_datetime(df["period"])
+print(df[["period", "buy_price", "sell_price"]].tail(5))</div>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Endpoint: <code>GET /api/v1/gold</code> · Params: <code>type</code> (SJC | DOJI | BTMC | PNJ), <code>period</code> (30d | 90d | 1y)</p>
+                    </div>
+                </details>
+
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                    <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                        💱 Tôi muốn theo dõi tỷ giá USD/VND của VCB hàng ngày
+                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">rates</span>
+                    </summary>
+                    <div style="padding:0 18px 18px;border-top:1px solid var(--border-cream);">
+                        <div class="code-block">import requests
+
+r = requests.get(
+    "https://api.vietdataverse.online/api/v1/sbv-rate",
+    params={"bank": "VCB", "currency": "USD", "period": "30d"},
+    headers={"X-API-Key": "YOUR_API_KEY"})
+
+for row in r.json()["data"][-5:]:
+    print(f"{row['period']}  mua={row['buy']:,}  bán={row['sell']:,}")</div>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Endpoint: <code>GET /api/v1/sbv-rate</code> · Params: <code>bank</code> (VCB | SBV), <code>currency</code> (USD | EUR | JPY…)</p>
+                    </div>
+                </details>
+
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                    <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                        🏦 Tôi muốn so sánh lãi suất tiết kiệm ngân hàng theo kỳ hạn
+                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">rates</span>
+                    </summary>
+                    <div style="padding:0 18px 18px;border-top:1px solid var(--border-cream);">
+                        <div class="code-block">import requests
+
+r = requests.get(
+    "https://api.vietdataverse.online/api/v1/termdepo",
+    params={"period": "90d"},
+    headers={"X-API-Key": "YOUR_API_KEY"})
+
+data = r.json()["data"]
+latest = data[-1]  # row mới nhất
+print(f"ACB — ngày {latest['period']}")
+print(f"  1 tháng:  {latest.get('term_1m', '-')}%")
+print(f"  6 tháng:  {latest.get('term_6m', '-')}%")
+print(f"  12 tháng: {latest.get('term_12m', '-')}%")</div>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Endpoint: <code>GET /api/v1/termdepo</code></p>
+                    </div>
+                </details>
+
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                    <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                        📊 Tôi muốn lấy CPI Việt Nam cho AI agent
+                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">macro</span>
+                    </summary>
+                    <div style="padding:0 18px 18px;border-top:1px solid var(--border-cream);">
+                        <div class="code-block">import requests
+
+def get_vn_cpi_context(api_key: str) -> str:
+    """Trả về context string để inject vào system prompt của AI agent."""
+    r = requests.get(
+        "https://api.vietdataverse.online/api/v1/macro/cpi",
+        params={"period": "1y"},
+        headers={"X-API-Key": api_key})
+    rows = r.json()["data"][-6:]  # 6 tháng gần nhất
+    lines = [f"- {d['period']}: CPI {d['value']}% YoY" for d in rows]
+    return "CPI Việt Nam 6 tháng gần nhất:\n" + "\n".join(lines)
+
+print(get_vn_cpi_context("YOUR_API_KEY"))</div>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Endpoint: <code>GET /api/v1/macro/cpi</code></p>
+                    </div>
+                </details>
+
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                    <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                        📋 Tôi muốn nhập dữ liệu thẳng vào Excel — không cần code
+                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">excel add-in</span>
+                    </summary>
+                    <div style="padding:0 18px 18px;border-top:1px solid var(--border-cream);">
+                        <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 10px;">Cài Excel Add-in — chọn loại dữ liệu, nhấn "Nhập vào Excel", xong.</p>
+                        <ol style="font-size:13px;color:var(--text-secondary);line-height:2;padding-left:18px;margin-bottom:12px;">
+                            <li>Vào <a href="/pages/account.html" style="color:var(--terracotta)">trang Account</a> → tải <strong>manifest.xml</strong></li>
+                            <li>Excel → <strong>Insert → Get Add-ins → Upload My Add-in</strong> → chọn file vừa tải</li>
+                            <li>Panel "Viet Dataverse" xuất hiện bên phải — nhập API key, chọn dữ liệu, nhấn <strong>Nhập vào Excel</strong></li>
+                        </ol>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Hỗ trợ: Vàng · Bạc · Tỷ giá · Lãi suất · CPI · VN30 OHLCV · Dữ liệu toàn cầu</p>
+                    </div>
+                </details>
+
+            </div>
+        </section>
 
         <!-- Quick Start -->
         <section class="docs-section" id="quickstart">
@@ -322,14 +443,14 @@ const { data } = await res.json();</div>
             <p class="section-sub">Quota reset vào ngày 1 hàng tháng (múi giờ Asia/Ho_Chi_Minh). Burst limit bảo vệ hệ thống.</p>
             <div class="quota-grid">
                 <div class="quota-card">
-                    <div class="quota-plan">API Supper Lite Monthly</div>
+                    <div class="quota-plan">API Super Lite — 33,000 ₫/tháng</div>
                     <div class="quota-num">1,000</div>
-                    <div class="quota-desc">requests/tháng</div>
+                    <div class="quota-desc">requests/tháng · reset ngày 1 hàng tháng</div>
                 </div>
                 <div class="quota-card">
-                    <div class="quota-plan">API Supper Lite Yearly</div>
+                    <div class="quota-plan">API Super Lite — Yearly</div>
                     <div class="quota-num">10,000</div>
-                    <div class="quota-desc">requests/tháng</div>
+                    <div class="quota-desc">requests/tháng · tiết kiệm hơn gói tháng</div>
                 </div>
             </div>
             <p style="font-size:13px;color:var(--text-secondary);">
