@@ -1408,6 +1408,32 @@ html {
 }
 
 /* ── Chart Cards ── */
+.charts-scroll-page {
+    padding: 1.5rem;
+}
+
+.chart-section-group {
+    margin-bottom: 2rem;
+}
+
+.chart-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--stone-gray);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-cream);
+}
+
+.chart-section-group:first-child .chart-section-heading {
+    margin-top: 0;
+}
+
 .charts-section {
     margin-bottom: 3rem;
 }

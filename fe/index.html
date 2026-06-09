@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=2026061002">
+    <link rel="stylesheet" href="style.css?v=2026061003">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#c96442">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -579,56 +579,28 @@
 
             <!-- Open Economic Data -->
             <div class="tab-content active" id="data-portal">
+                <div class="charts-scroll-page">
 
-
-                <!-- Charts Section with Tabs -->
-                <div class="charts-section">
-                    <!-- Tab Navigation -->
-                    <div class="chart-tabs">
-                        <button class="chart-tab-btn active" data-tab="tab-gold-silver">
+                    <!-- ── Section: Vàng & Bạc ── -->
+                    <div class="chart-section-group" data-lazy-section="gold-silver">
+                        <h2 class="chart-section-heading">
                             <i class="fas fa-coins"></i>
                             <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
-                        </button>
-                        <button class="chart-tab-btn" data-tab="tab-currency">
-                            <i class="fas fa-university"></i>
-                            <span data-i18n="tabCurrency">Tiền tệ VN</span>
-                        </button>
-                        <button class="chart-tab-btn" data-tab="tab-global">
-                            <i class="fas fa-globe"></i>
-                            <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
-                        </button>
-                        <button class="chart-tab-btn" data-tab="tab-macro">
-                            <i class="fas fa-chart-area"></i>
-                            <span data-i18n="tabMacro">Vĩ Mô</span>
-                        </button>
-                        <button class="chart-tab-btn" data-tab="tab-stock">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Chứng khoán</span>
-                        </button>
-                        <button class="chart-tab-btn" data-tab="tab-download">
-                            <i class="fas fa-database"></i>
-                            <span data-i18n="tabDownload">Download</span>
-                        </button>
-                    </div>
+                        </h2>
 
-                    <!-- Tab 1: Vàng & Bạc (Load immediately) -->
-                    <div class="tab-content active" id="tab-gold-silver">
                         <!-- Gold Price Chart -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="goldChart">Lịch Sử Giá Vàng Việt Nam</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Giá vàng mua/bán trong nước. Đơn vị: nghìn VND/chỉ (3.75g).">ⓘ</span>
+                                    <span class="chart-info-icon" data-tooltip="Giá vàng mua/bán trong nước. Đơn vị: nghìn VND/chỉ (3.75g).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <select id="goldTypeSelect" class="type-select"
-                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);">
+                                    <select id="goldTypeSelect" class="type-select" style="margin-right:10px;padding:8px;border-radius:4px;border:1px solid var(--border-warm);background:var(--warm-sand);color:var(--charcoal);">
                                         <option value="DOJI HN">DOJI HN</option>
                                     </select>
                                     <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="gold" data-period="1m">1
-                                        Month</button>
+                                    <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
                                     <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="gold" data-period="all">All</button>
                                     <button class="filter-btn" onclick="downloadDataset('gold-' + (document.getElementById('goldTypeSelect')?.value || 'DOJI HN'))" title="Tải CSV"><i class="fas fa-download"></i></button>
@@ -637,18 +609,16 @@
                             <div class="chart-container">
                                 <canvas id="goldChart"></canvas>
                                 <div class="chart-loading" id="goldLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 45%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
-                                        </div>
-                                    </div>
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:45%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                    </div></div>
                                 </div>
                             </div>
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
@@ -659,13 +629,11 @@
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="silverChart">Lịch Sử Giá Bạc Việt Nam - Phú Quý</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Giá bạc mua/bán của Phú Quý Group. Nguồn: giabac.vn & phuquygroup.vn. Đơn vị: nghìn VND/lượng (37.5g).">ⓘ</span>
+                                    <span class="chart-info-icon" data-tooltip="Giá bạc mua/bán của Phú Quý Group. Đơn vị: nghìn VND/lượng (37.5g).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="silver" data-period="1m">1
-                                        Month</button>
+                                    <button class="filter-btn active" data-chart="silver" data-period="1m">1 Month</button>
                                     <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="silver" data-period="all">All</button>
                                     <button class="filter-btn" onclick="downloadDataset('silver')" title="Tải CSV"><i class="fas fa-download"></i></button>
@@ -674,44 +642,42 @@
                             <div class="chart-container">
                                 <canvas id="silverChart"></canvas>
                                 <div class="chart-loading" id="silverLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
-                                        </div>
-                                    </div>
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                    </div></div>
                                 </div>
                             </div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
                         </div>
-
                     </div>
 
-                    <!-- Tab 2: Tiền tệ VN (Lazy load) -->
-                    <div class="tab-content" id="tab-currency">
-                        <!-- TD Chart - Term Deposit Interest Rates -->
+                    <!-- ── Section: Tiền Tệ VN ── -->
+                    <div class="chart-section-group" data-lazy-section="currency">
+                        <h2 class="chart-section-heading">
+                            <i class="fas fa-university"></i>
+                            <span data-i18n="tabCurrency">Tiền tệ VN</span>
+                        </h2>
+
+                        <!-- Term Deposit Chart -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="tdChart">Lãi Suất Gửi Tiết Kiệm</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Lãi suất gửi tiết kiệm kỳ hạn của các ngân hàng thương mại (ACB, VCB, SHB, CTG...). Nguồn: website chính thức từng ngân hàng. Đơn vị: %/năm.">ⓘ</span>
+                                    <span class="chart-info-icon" data-tooltip="Lãi suất gửi tiết kiệm kỳ hạn của các ngân hàng thương mại (ACB, VCB, SHB, CTG...). Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <select id="bankTypeSelect" class="type-select"
-                                        style="margin-right: 10px; padding: 8px; border-radius: 4px; border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);">
+                                    <select id="bankTypeSelect" class="type-select" style="margin-right:10px;padding:8px;border-radius:4px;border:1px solid var(--border-warm);background:var(--warm-sand);color:var(--charcoal);">
                                         <option value="ACB">ACB</option>
                                         <option value="CTG">CTG</option>
                                         <option value="SHB">SHB</option>
                                     </select>
-                                    <!-- <button class="filter-btn" data-chart="td" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="td" data-period="1m">1 Month</button> -->
                                     <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="td" data-period="all">All</button>
                                     <button class="filter-btn" onclick="downloadDataset('termdepo-' + (document.getElementById('bankTypeSelect')?.value || 'ACB'))" title="Tải CSV"><i class="fas fa-download"></i></button>
@@ -720,30 +686,27 @@
                             <div class="chart-container">
                                 <canvas id="tdChart"></canvas>
                                 <div class="chart-loading" id="tdLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
-                                        </div>
-                                    </div>
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                    </div></div>
                                 </div>
                             </div>
                             <small class="chart-source" id="tdChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://acb.com.vn/lai-suat-tien-gui" target="_blank" rel="noopener">acb.com.vn</a></small>
                         </div>
 
-                        <!-- SBV Interbank Rate Charts -->
+                        <!-- SBV Interbank Rate Chart -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="sbvChart">Lịch Sử Lãi Suất Liên Ngân Hàng SBV</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Gồm: qua đêm, 1 tháng, 9 tháng (thị trường liên ngân hàng), lãi suất chiết khấu, tái cấp vốn (lãi suất điều hành). Đơn vị: %/năm.">ⓘ</span>
+                                    <span class="chart-info-icon" data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
@@ -753,26 +716,22 @@
                                     <button class="filter-btn" onclick="downloadDataset('sbv-interbank')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
-                            <!-- Panel 1: Interbank rates -->
                             <p data-i18n="sbvPanelInterbank" style="font-size:0.78rem;color:var(--text-tertiary);margin:0.5rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Thị Trường Liên Ngân Hàng</p>
                             <div class="chart-container">
                                 <canvas id="sbvChart"></canvas>
                                 <div class="chart-loading" id="sbvLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 60%"></div>
-                                        </div>
-                                    </div>
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                    </div></div>
                                 </div>
                             </div>
-                            <!-- Panel 2: Policy rates -->
                             <p data-i18n="sbvPanelPolicy" style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
                             <div class="chart-container">
                                 <canvas id="sbv2Chart"></canvas>
@@ -780,19 +739,16 @@
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
-
-                        <!-- SBV Central Rate Chart (USD/VND) -->
+                        <!-- FX Rate Chart -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="fxrateChart">Tỷ Giá Trung Tâm USD/VND (NHNN)</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Tỷ giá trung tâm USD/VND do Ngân hàng Nhà nước Việt Nam (SBV) công bố hàng ngày. Đây là tỷ giá tham chiếu chính thức. Nguồn: SBV. Đơn vị: VND/USD.">ⓘ</span>
+                                    <span class="chart-info-icon" data-tooltip="Tỷ giá trung tâm USD/VND do Ngân hàng Nhà nước Việt Nam (SBV) công bố hàng ngày. Đơn vị: VND/USD.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="fxrate" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="fxrate" data-period="1m">1
-                                        Month</button>
+                                    <button class="filter-btn active" data-chart="fxrate" data-period="1m">1 Month</button>
                                     <button class="filter-btn" data-chart="fxrate" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="fxrate" data-period="all">All</button>
                                     <button class="filter-btn" onclick="downloadDataset('fxrate-SBV-USD')" title="Tải CSV"><i class="fas fa-download"></i></button>
@@ -801,40 +757,38 @@
                             <div class="chart-container">
                                 <canvas id="fxrateChart"></canvas>
                                 <div class="chart-loading" id="fxrateLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 72%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 78%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 74%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 76%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 73%"></div>
-                                        </div>
-                                    </div>
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:72%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:78%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:74%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:76%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:73%"></div>
+                                    </div></div>
                                 </div>
                             </div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/tỷ-giá" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
-
                     </div>
 
-                    <!-- Tab 3: Thị trường Quốc tế (Lazy load) -->
-                    <div class="tab-content" id="tab-global">
-                        <!-- Global Macro Chart -->
+                    <!-- ── Section: Thị trường Quốc tế ── -->
+                    <div class="chart-section-group" data-lazy-section="global">
+                        <h2 class="chart-section-heading">
+                            <i class="fas fa-globe"></i>
+                            <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
+                        </h2>
+
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc,
-                                        NASDAQ)</span>
-                                    <span class="chart-info-icon"
-                                        data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
+                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)</span>
+                                    <span class="chart-info-icon" data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="global" data-period="1m">1
-                                        Month</button>
+                                    <button class="filter-btn active" data-chart="global" data-period="1m">1 Month</button>
                                     <button class="filter-btn" data-chart="global" data-period="1y">1 Year</button>
                                     <button class="filter-btn" data-chart="global" data-period="all">All</button>
                                     <button class="filter-btn" onclick="downloadDataset('global-macro')" title="Tải CSV"><i class="fas fa-download"></i></button>
@@ -843,33 +797,35 @@
                             <div class="chart-container">
                                 <canvas id="globalChart"></canvas>
                                 <div class="chart-loading" id="globalLoading">
-                                    <div class="chart-skeleton">
-                                        <div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height: 75%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 55%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 90%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 65%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 80%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 50%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 70%"></div>
-                                            <div class="skeleton skeleton-bar" style="height: 85%"></div>
-                                        </div>
-                                    </div>
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                    </div></div>
                                 </div>
                             </div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://finance.yahoo.com/quote/GC=F" target="_blank" rel="noopener">Yahoo Finance</a></small>
                         </div>
-
                     </div>
 
-                    <!-- Tab 4: Kinh tế Vĩ mô (GSO / World Bank) -->
-                    <div class="tab-content" id="tab-macro">
+                    <!-- ── Section: Vĩ Mô ── -->
+                    <div class="chart-section-group" data-lazy-section="macro">
+                        <h2 class="chart-section-heading">
+                            <i class="fas fa-chart-area"></i>
+                            <span data-i18n="tabMacro">Vĩ Mô</span>
+                        </h2>
+
                         <!-- CPI -->
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="cpiChart">CPI Việt Nam (% YoY/năm)</span>
-                                    <span class="chart-info-icon" data-tooltip="Lạm phát CPI hàng năm (% so với cùng kỳ năm trước). Nguồn: GSO/NSO Việt Nam (nso.gov.vn), cập nhật hàng tháng.">ⓘ</span>
+                                    <span class="chart-info-icon" data-tooltip="Lạm phát CPI hàng năm (% so với cùng kỳ năm trước). Nguồn: GSO/NSO Việt Nam, cập nhật hàng tháng.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-macro-period="1" data-i18n="period1y">1 năm</button>
@@ -920,39 +876,18 @@
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" rel="noopener">World Bank Open Data</a></small>
                         </div>
 
-                        <!-- Trade Balance -->
-                        <!-- <div class="chart-card">
-                            <div class="chart-header">
-                                <h3 class="chart-title">
-                                    Xuất Nhập Khẩu Việt Nam (tỷ USD)
-                                    <span class="chart-info-icon" data-tooltip="Tổng giá trị xuất khẩu và nhập khẩu hàng hóa dịch vụ theo năm. Nguồn: GSO Việt Nam (qua World Bank Open Data). Đơn vị: tỷ USD.">ⓘ</span>
-                                </h3>
-                                <div class="chart-filters">
-                                    <button class="filter-btn" onclick="downloadMacroCSV('trade')" title="Tải CSV"><i class="fas fa-download"></i></button>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="macroTradeChart"></canvas>
-                                <div class="chart-loading" id="macroTradeLoading">
-                                    <div class="chart-skeleton"><div class="skeleton-bars">
-                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
-                                    </div></div>
-                                </div>
-                            </div>
-                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
-                        </div> -->
-
                         <p style="font-size:0.72rem;color:var(--text-tertiary);margin:0.5rem 1rem 1.5rem;text-align:right;">
                             <span data-i18n="macroNotePrefix">Note:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> <span data-i18n="macroNoteSuffix">Cập nhật hàng tháng (chưa chính thức)</span>
                         </p>
                     </div>
 
-                    <!-- Tab Stock: VNIndex -->
-                    <div class="tab-content" id="tab-stock">
+                    <!-- ── Section: Chứng khoán ── -->
+                    <div class="chart-section-group" data-lazy-section="stock">
+                        <h2 class="chart-section-heading">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Chứng khoán</span>
+                        </h2>
+
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
@@ -984,148 +919,7 @@
                         </div>
                     </div>
 
-                    <!-- Tab 5: Download -->
-                    <div class="tab-content" id="tab-download">
-                        <div class="chart-card" style="padding:1.5rem;">
-                            <div style="margin-bottom:1.5rem;">
-                                <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin:0 0 0.35rem;">
-                                    <i class="fas fa-database" style="color:#C9A55B;margin-right:0.5rem;"></i><span data-i18n="dlHeading">Tải Dữ Liệu (CSV)</span>
-                                </h3>
-                                <p data-i18n-html="dlSubtitle" style="font-size:0.82rem;color:var(--text-tertiary);margin:0;">Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).</p>
-                            </div>
-
-                            <!-- Category: Precious Metals -->
-                            <p class="dl-cat-label" data-i18n="dlCatMetals">Kim Loại Quý</p>
-                            <div class="dl-table">
-                                <div class="dl-row dl-header">
-                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-coins" class="icon-gold"></i>Gold – DOJI HN</span>
-                                    <span>Giá vàng mua/bán DOJI Hà Nội (VND/chỉ)</span>
-                                    <span>24h.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI HN')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-coins" class="icon-gold"></i>Gold – DOJI SG</span>
-                                    <span>Giá vàng mua/bán DOJI TP.HCM (VND/chỉ)</span>
-                                    <span>24h.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('gold-DOJI SG')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-coins" class="icon-gold"></i>Gold – BTMC SJC</span>
-                                    <span>Giá vàng BTMC SJC (VND/chỉ)</span>
-                                    <span>BTMC API</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('gold-BTMC SJC')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-circle" style="color:#A0A0A0;margin-right:6px;font-size:0.7em;"></i>Silver – Phú Quý</span>
-                                    <span>Giá bạc mua/bán Phú Quý (VND)</span>
-                                    <span>phuquy.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('silver')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                            </div>
-
-                            <!-- Category: Currency & FX -->
-                            <p class="dl-cat-label" style="margin-top:1.5rem;" data-i18n="dlCatFX">Tỷ Giá & Lãi Suất Tiết Kiệm</p>
-                            <div class="dl-table">
-                                <div class="dl-row dl-header">
-                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – SBV USD/VND</span>
-                                    <span>Tỷ giá trung tâm USD/VND (NHNN)</span>
-                                    <span>sbv.gov.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-SBV-USD')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – VCB USD</span>
-                                    <span>Tỷ giá USD mua/bán Vietcombank (VND)</span>
-                                    <span>Vietcombank</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-USD')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – VCB EUR</span>
-                                    <span>Tỷ giá EUR mua/bán Vietcombank (VND)</span>
-                                    <span>Vietcombank</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-EUR')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-exchange-alt" class="icon-blue"></i>FX – VCB JPY</span>
-                                    <span>Tỷ giá JPY mua/bán Vietcombank (VND)</span>
-                                    <span>Vietcombank</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('fxrate-VCB-JPY')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-piggy-bank" style="color:#66BB6A;margin-right:6px;"></i>Term Deposit – ACB</span>
-                                    <span>Lãi suất tiết kiệm kỳ hạn ACB (%/năm)</span>
-                                    <span>acb.com.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('termdepo-ACB')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                            </div>
-
-                            <!-- Category: SBV Policy & Global -->
-                            <p class="dl-cat-label" style="margin-top:1.5rem;" data-i18n="dlCatSBV">Lãi Suất NHNN & Thị Trường Quốc Tế</p>
-                            <div class="dl-table">
-                                <div class="dl-row dl-header">
-                                    <span data-i18n="dlColName">Tên bảng</span><span data-i18n="dlColDesc">Mô tả</span><span data-i18n="dlColSource">Nguồn</span><span></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-chart-line" style="color:#EF5350;margin-right:6px;"></i>SBV Interbank Rates</span>
-                                    <span>Lãi suất liên ngân hàng + điều hành NHNN (%/năm)</span>
-                                    <span>sbv.gov.vn</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('sbv-interbank')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-globe" style="color:#AB47BC;margin-right:6px;"></i>Global Macro</span>
-                                    <span>Vàng quốc tế (USD/oz), Bạc, NASDAQ Composite</span>
-                                    <span>Yahoo Finance</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('global-macro')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                            </div>
-
-                            <!-- Category: VN30 Stock Data -->
-                            <!-- <p class="dl-cat-label" style="margin-top:1.5rem;">VN30 – Dữ Liệu Cổ Phiếu</p>
-                            <div class="dl-table">
-                                <div class="dl-row dl-header">
-                                    <span>Tên bảng</span><span>Mô tả</span><span>Quyền</span><span></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-building" class="icon-blue"></i>VN30 Company Profile</span>
-                                    <span>Danh sách 30 mã: tên, sàn, ngành ICB, vốn hóa</span>
-                                    <span style="color:#66BB6A;font-size:0.75rem;font-weight:600;">FREE</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-profile')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-chart-candlestick" class="icon-gold"></i>VN30 OHLCV Prices</span>
-                                    <span>Giá mở/cao/thấp/đóng + khối lượng – toàn bộ 30 mã</span>
-                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-prices')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-file-invoice-dollar" style="color:#EF5350;margin-right:6px;"></i>VN30 Income Statement</span>
-                                    <span>Doanh thu, lợi nhuận gộp, EBIT, lợi nhuận ròng, EPS theo quý</span>
-                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-financials')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                                <div class="dl-row">
-                                    <span><i class="fas fa-percent" style="color:#AB47BC;margin-right:6px;"></i>VN30 Financial Ratios</span>
-                                    <span>P/E, P/B, P/S, ROE, ROA, EPS, Dividend Yield – toàn bộ 30 mã</span>
-                                    <span style="color:#C9A55B;font-size:0.75rem;font-weight:600;">PREMIUM</span>
-                                    <span><button class="dl-btn" onclick="downloadDataset('vn30-ratios')"><i class="fas fa-download"></i> CSV</button></span>
-                                </div>
-                            </div> -->
-
-                            <p data-i18n-html="dlFooter" style="font-size:0.75rem;color:var(--text-tertiary);margin-top:1.25rem;padding-top:1rem;border-top:1px solid #2a2a2a;">
-                                <i class="fas fa-info-circle" style="margin-right:4px;"></i>
-                                Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột.
-                                Dữ liệu <span style="color:#C9A55B;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium.
-                                Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.
-                            </p>
-                        </div>
-                    </div>
                 </div>
-
             </div>
 
             <!-- 1s Market Pulse -->

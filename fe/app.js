@@ -631,7 +631,7 @@
             initHeaderActions();
             initMobileMenu();
             initSidebarTabs();
-            initChartTabs();
+            initScrollSections();
             initFilterButtons();
             initNotifications();
             initPulseSidebar();
@@ -949,16 +949,6 @@
             const mainContent = document.querySelector('.main-content');
             if (mainContent) mainContent.scrollTop = 0;
 
-            // If switching to data-portal, restore the inner chart tab
-            if (tabId === 'data-portal') {
-                const activeChartTab = document.querySelector('.chart-tab-btn.active');
-                if (activeChartTab) {
-                    const innerTabId = activeChartTab.dataset.tab;
-                    const innerTarget = document.getElementById(innerTabId);
-                    if (innerTarget) innerTarget.classList.add('active');
-                }
-            }
-
             // Close mobile sidebar
             const sidebar = document.querySelector('.sidebar');
             const mobileOverlay = document.getElementById('mobile-overlay');
@@ -1120,9 +1110,10 @@
                     if (tabId === 'portal' && ws === 'data') {
                         activateTab('data-portal');
                         if (sub) {
-                            // Activate chart sub-tab if present
-                            const chartBtn = document.querySelector(`.chart-tab-btn[data-tab="tab-${sub}"]`);
-                            if (chartBtn) chartBtn.click();
+                            setTimeout(() => {
+                                const el = document.querySelector(`[data-lazy-section="${sub}"]`);
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
                         }
                     } else if (tabId && document.getElementById(tabId)) {
                         activateTab(tabId);
@@ -1323,65 +1314,49 @@
            CHART SUB-TABS (Vang & Bac / Tien te VN / Quoc te)
            WITH LAZY LOADING
         ========================================================= */
-        function initChartTabs() {
-            document.querySelectorAll('.chart-tab-btn[data-tab]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabId = btn.dataset.tab;
+        function loadChartsForSection(sectionKey) {
+            if (loadedSections[sectionKey]) return;
+            loadedSections[sectionKey] = true;
 
-                    // Toggle button active states
-                    document.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-
-                    // Toggle inner tab-contents within charts-section
-                    const chartsSection = btn.closest('.charts-section');
-                    if (chartsSection) {
-                        chartsSection.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    }
-                    const target = document.getElementById(tabId);
-                    if (target) target.classList.add('active');
-
-                    // Lazy load charts when tab is clicked for the first time
-                    loadChartsForTab(tabId);
-                });
-            });
-
-            // Load the first tab (gold & silver) immediately on page load
-            loadChartsForTab('tab-gold-silver');
-        }
-
-        /* =========================================================
-           LAZY LOAD CHARTS FOR A SPECIFIC TAB
-        ========================================================= */
-        function loadChartsForTab(tabId) {
-            // Skip if already loaded
-            if (loadedTabs[tabId]) {
-                return;
-            }
-
-            loadedTabs[tabId] = true;
-
-            // Load charts in parallel for each tab
-            if (tabId === 'tab-gold-silver') {
+            if (sectionKey === 'gold-silver') {
                 const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
                 Promise.all([
                     loadChartData('gold', '1m', goldType),
                     loadChartData('silver', '1m')
                 ]);
-            } else if (tabId === 'tab-currency') {
+            } else if (sectionKey === 'currency') {
                 const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
                 Promise.all([
                     loadChartData('td', '1y', null, bankCode),
                     loadChartData('sbv', '1m'),
                     loadChartData('fxrate', '1m')
                 ]);
-            } else if (tabId === 'tab-global') {
+            } else if (sectionKey === 'global') {
                 loadChartData('global', '1m');
-            } else if (tabId === 'tab-macro') {
+            } else if (sectionKey === 'macro') {
                 loadMacroCharts(20);
-            } else if (tabId === 'tab-stock') {
+            } else if (sectionKey === 'stock') {
                 loadVnindexChart('1y');
             }
-            // tab-download: no charts to load, content is static
+        }
+
+        function initScrollSections() {
+            // Load first section immediately (above fold)
+            loadChartsForSection('gold-silver');
+
+            // IntersectionObserver for remaining sections
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const key = entry.target.dataset.lazySection;
+                    loadChartsForSection(key);
+                    observer.unobserve(entry.target);
+                });
+            }, { rootMargin: '0px 0px 400px 0px' });
+
+            document.querySelectorAll('[data-lazy-section]').forEach(el => {
+                if (el.dataset.lazySection !== 'gold-silver') observer.observe(el);
+            });
         }
 
         /* =========================================================
@@ -1810,13 +1785,12 @@
         const chartCache = {};
 
         // Track which tabs have been loaded
-        const loadedTabs = {
-            'tab-gold-silver': false,
-            'tab-currency': false,
-            'tab-global': false,
-            'tab-macro': false,
-            'tab-stock': false,
-            'tab-download': false
+        const loadedSections = {
+            'gold-silver': false,
+            'currency':    false,
+            'global':      false,
+            'macro':       false,
+            'stock':       false
         };
 
         // Map chart types to their API endpoints
