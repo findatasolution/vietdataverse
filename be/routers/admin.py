@@ -353,6 +353,22 @@ async def admin_dashboard(request: Request):
                 LIMIT 10
             """), {"qm": qmonth}).fetchall()
 
+            # New users today / this week / this month
+            new_today = conn.execute(text("""
+                SELECT COUNT(*) FROM users
+                WHERE created_at >= CURRENT_DATE
+            """)).fetchone()[0]
+
+            new_week = conn.execute(text("""
+                SELECT COUNT(*) FROM users
+                WHERE created_at >= DATE_TRUNC('week', NOW())
+            """)).fetchone()[0]
+
+            new_month = conn.execute(text("""
+                SELECT COUNT(*) FROM users
+                WHERE created_at >= DATE_TRUNC('month', NOW())
+            """)).fetchone()[0]
+
         return _json_response({
             "success": True,
             "revenue": {
@@ -363,6 +379,9 @@ async def admin_dashboard(request: Request):
             "subscribers": {
                 "active_by_tier": active_by_tier,
                 "total_users":    int(total_users),
+                "new_today":      int(new_today),
+                "new_week":       int(new_week),
+                "new_month":      int(new_month),
             },
             "top_endpoints": [
                 {"endpoint": r[0], "calls": r[1], "unique_users": r[2]}
@@ -372,6 +391,37 @@ async def admin_dashboard(request: Request):
                 {"email": r[0], "requests_this_month": r[1]}
                 for r in top_keys
             ],
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/api/v1/admin/signup-trend")
+async def signup_trend(
+    request: Request,
+    days: int = Query(30, ge=7, le=90, description="Number of days to look back"),
+):
+    """Daily new user signups for the last N days."""
+    await authenticate_user(request)
+    _require_admin(request)
+    try:
+        with get_engine_user().connect() as conn:
+            rows = conn.execute(text("""
+                SELECT
+                    DATE(created_at AT TIME ZONE 'Asia/Ho_Chi_Minh') AS day,
+                    COUNT(*) AS count
+                FROM users
+                WHERE created_at >= NOW() - INTERVAL '1 day' * :days
+                GROUP BY 1
+                ORDER BY 1
+            """), {"days": days}).fetchall()
+
+        return _json_response({
+            "success": True,
+            "days": days,
+            "data": [{"day": str(r[0]), "count": int(r[1])} for r in rows],
         })
     except HTTPException:
         raise
