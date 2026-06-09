@@ -887,6 +887,7 @@
             + '<div class="km-card-footer">'
                 + '<div class="km-card-lib-actions">'
                     + '<button class="km-btn-primary km-btn-sm" onclick="event.stopPropagation();KM.downloadFromLibrary(\'' + lk + '\')">Tải</button>'
+                    + '<button class="km-btn-sand km-btn-sm" title="Copy nội dung → paste vào Claude.ai để hỏi ngay" onclick="event.stopPropagation();KM.copyToClaudeFromLibrary(\'' + lk + '\',\'' + escHtml(p.title || '') + '\')">📋 Claude</button>'
                     + '<button class="km-btn-sand km-btn-sm" onclick="event.stopPropagation();KM.removeFromLibrary(\'' + lk + '\')">Xoá</button>'
                 + '</div>'
             + '</div>'
@@ -1517,17 +1518,17 @@
             '</div>' +
 
             '<div style="background:rgba(102,187,106,0.08);border-left:3px solid #66BB6A;padding:0.85rem 1rem;border-radius:4px;margin-bottom:1.25rem;font-size:0.85rem;line-height:1.6;">' +
-                '<strong>Bước tiếp theo:</strong>' +
-                '<ol style="margin:0.4rem 0 0 1.2rem;padding:0;">' +
-                    '<li>Click <strong>"Tải file ngay"</strong> bên dưới — file sẽ tự động download về máy</li>' +
-                    '<li>Hoặc vào <strong>Thư viện</strong> bất cứ lúc nào trong 30 ngày để re-download</li>' +
-                    '<li>Dùng file trong AI agent / project của bạn theo hướng dẫn ở mô tả sản phẩm</li>' +
-                '</ol>' +
+                '<strong>Dùng pack này như thế nào?</strong>' +
+                '<div style="margin-top:0.5rem;display:grid;gap:0.4rem;">' +
+                    '<div>🤖 <strong>Dùng với Claude / ChatGPT:</strong> nhấn <strong>"📋 Copy to Claude"</strong> → paste vào chat → hỏi ngay</div>' +
+                    '<div>💻 <strong>Dùng trong IDE / AI agent:</strong> nhấn <strong>"⬇ Tải file"</strong> → thêm vào project context</div>' +
+                '</div>' +
             '</div>' +
 
-            '<div style="display:flex;gap:0.75rem;">' +
-                '<button class="km-btn-primary" style="flex:1;" onclick="KM.downloadByLicense(\'' + escHtml(licenseKey) + '\')">⬇ Tải file ngay</button>' +
-                '<button class="km-btn-secondary" onclick="KM.closeModal(\'km-modal-scan-result\'); KM.loadLibrary();">Vào thư viện</button>' +
+            '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;">' +
+                '<button class="km-btn-primary" style="flex:1;min-width:140px;" onclick="KM.copyToClaudeFromLibrary(\'' + escHtml(licenseKey) + '\',\'\')">📋 Copy to Claude</button>' +
+                '<button class="km-btn-sand" style="flex:1;min-width:120px;" onclick="KM.downloadByLicense(\'' + escHtml(licenseKey) + '\')">⬇ Tải file</button>' +
+                '<button class="km-btn-secondary" onclick="KM.closeModal(\'km-modal-scan-result\'); KM.loadLibrary();">Thư viện</button>' +
             '</div>';
 
         modal.style.display = 'flex';
@@ -1539,6 +1540,38 @@
                 var el = document.getElementById('km-license-display');
                 if (el) { el.style.borderColor = '#66BB6A'; setTimeout(function () { el.style.borderColor = ''; }, 1500); }
             });
+        }
+    }
+
+    async function copyToClaudeFromLibrary(licenseKey, title) {
+        if (!licenseKey) return;
+        var btn = event && event.target;
+        var origText = btn ? btn.textContent : '';
+        try {
+            if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+            const hdrs = await authHeaders();
+            const res = await fetch(apiBase() + '/knowledge/download/' + encodeURIComponent(licenseKey), { headers: hdrs });
+            const json = await res.json();
+            const url = json.download_url || (json.data && json.data.download_url);
+            if (!url) { alert('Không lấy được nội dung pack.'); return; }
+
+            // Fetch markdown content from R2 presigned URL
+            const contentRes = await fetch(url);
+            const markdown = await contentRes.text();
+
+            const preamble = 'Đây là knowledge pack "' + (title || 'Viet Dataverse') + '" — dữ liệu tài chính Việt Nam.\n'
+                + 'Hãy đọc kỹ nội dung dưới đây, sau đó trả lời câu hỏi của tôi về chủ đề này.\n\n---\n\n';
+
+            await navigator.clipboard.writeText(preamble + markdown);
+
+            if (btn) { btn.textContent = '✓ Đã copy!'; btn.style.background = '#66BB6A'; btn.style.color = '#fff'; }
+            setTimeout(function () {
+                if (btn) { btn.textContent = origText; btn.disabled = false; btn.style.background = ''; btn.style.color = ''; }
+            }, 2500);
+        } catch (e) {
+            console.error('[km] copy error:', e);
+            alert('⚠️ Không copy được. Thử lại hoặc dùng nút Tải.');
+            if (btn) { btn.textContent = origText; btn.disabled = false; }
         }
     }
 
@@ -2343,8 +2376,9 @@
         downloadByLicense:     downloadByLicense,
         loadLibrary:           loadLibrary,
         showMarketplace:       showMarketplace,
-        downloadFromLibrary:   downloadFromLibrary,
-        removeFromLibrary:     removeFromLibrary,
+        downloadFromLibrary:      downloadFromLibrary,
+        copyToClaudeFromLibrary:  copyToClaudeFromLibrary,
+        removeFromLibrary:        removeFromLibrary,
         exportLibrary:         exportLibrary,
         filterLibrary:         filterLibrary,
         sortLibrary:           sortLibrary,
