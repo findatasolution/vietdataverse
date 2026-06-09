@@ -4,6 +4,53 @@
 
 ---
 
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+
+Dán nội dung pack này vào **System Prompt** của agent — agent sẽ hiểu bối cảnh kinh tế vĩ mô VN mà không cần hỏi lại.
+
+```python
+import requests
+
+API_KEY = "your-api-key"  # Lấy tại vietdataverse.online/account
+headers = {"X-API-Key": API_KEY}
+
+# Lấy CPI mới nhất để agent cập nhật context realtime
+cpi = requests.get("https://api.vietdataverse.online/api/v1/macro/cpi",
+                   headers=headers).json()["data"]
+
+# Tỷ giá hôm nay
+fx  = requests.get("https://api.vietdataverse.online/api/v1/sbv-rate",
+                   headers=headers).json()["data"]
+
+# Inject vào prompt
+context = f"""
+CPI tháng gần nhất: {cpi[0]['cpi_yoy']}% (mục tiêu <4.5%)
+Tỷ giá USD/VND: {fx[0]['vcb_sell']:,.0f}
+"""
+```
+
+**Cách dùng trong system prompt:**
+```
+[Dán toàn bộ nội dung pack này vào system prompt]
+Thêm: "Hãy cập nhật số liệu CPI và tỷ giá mới nhất từ tool call trước khi trả lời."
+```
+
+### Dành cho Researcher / Người không biết code
+
+1. Nhấn **"📋 Copy to Claude"** trên trang thư viện Viet Dataverse
+2. Mở [Claude.ai](https://claude.ai) → paste vào cửa sổ chat
+3. Hỏi bất kỳ câu hỏi nào về kinh tế VN — Claude đã có đủ context
+
+**Câu hỏi gợi ý:**
+- "Lạm phát VN hiện tại ảnh hưởng thế nào đến quyết định gửi tiết kiệm của tôi?"
+- "Nếu Fed tăng lãi suất thêm, điều gì sẽ xảy ra với tỷ giá và chứng khoán VN?"
+- "Giải thích cho tôi mối liên hệ giữa lãi suất SBV và giá nhà đất"
+- "NHNN đang trong giai đoạn thắt chặt hay nới lỏng? Ý nghĩa với người tiết kiệm là gì?"
+
+---
+
 ## 1. Các chỉ số vĩ mô quan trọng nhất ở Việt Nam
 
 ### CPI (Lạm phát)

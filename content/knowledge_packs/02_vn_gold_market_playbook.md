@@ -4,6 +4,53 @@
 
 ---
 
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+
+Dán pack này vào system prompt để agent tự tính **premium SJC** và phân tích giá vàng VN so với quốc tế.
+
+```python
+import requests
+
+API_KEY = "your-api-key"  # Lấy tại vietdataverse.online/account
+headers = {"X-API-Key": API_KEY}
+
+# Giá vàng SJC trong nước (VND/lượng)
+sjc   = requests.get("https://api.vietdataverse.online/api/v1/gold?type=SJC HN",
+                     headers=headers).json()["data"][0]
+# Tỷ giá USD/VND
+fx    = requests.get("https://api.vietdataverse.online/api/v1/sbv-rate",
+                     headers=headers).json()["data"][0]
+# Giá vàng quốc tế (USD/oz)
+xauusd = requests.get("https://api.vietdataverse.online/api/v1/global?symbol=GC%3DF",
+                      headers=headers).json()["data"][0]
+
+# Tính premium
+usd_per_oz  = xauusd["close"]
+vcb_sell    = fx["vcb_sell"]
+gia_qt_vnd  = usd_per_oz * vcb_sell / 26.45  # VND/lượng
+premium     = sjc["sell_price"] - gia_qt_vnd
+
+print(f"SJC bán: {sjc['sell_price']:,.0f} VND/lượng")
+print(f"Giá quốc tế quy đổi: {gia_qt_vnd:,.0f} VND/lượng")
+print(f"Premium SJC: {premium/1_000_000:.1f} triệu VND/lượng")
+```
+
+### Dành cho Researcher / Người không biết code
+
+1. Nhấn **"📋 Copy to Claude"** trên trang thư viện Viet Dataverse
+2. Mở [Claude.ai](https://claude.ai) → paste vào cửa sổ chat
+3. Hỏi về thị trường vàng VN — Claude đã biết đặc thù premium SJC, mùa vụ, và cách đọc tín hiệu
+
+**Câu hỏi gợi ý:**
+- "Premium SJC là gì? Khi nào thì premium cao là bất thường?"
+- "Tôi muốn mua vàng để giữ giá trị, nên mua SJC hay DOJI hay nhẫn PNJ?"
+- "Vía Thần Tài năm nay tôi có nên mua vàng không?"
+- "Giá vàng quốc tế tăng thì vàng SJC có tăng tương tự không?"
+
+---
+
 ## 1. Tại sao vàng VN khác vàng quốc tế?
 
 ### Thương hiệu & chênh lệch giá (Premium)

@@ -4,6 +4,64 @@
 
 ---
 
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+
+Pack này là **bản đồ nguồn dữ liệu** — đọc một lần để biết lấy dữ liệu gì từ đâu, rồi dùng code snippets bên dưới ngay vào dự án.
+
+**Script khởi động — lấy tất cả dữ liệu VN cần thiết trong 20 dòng:**
+
+```python
+import requests
+
+API_KEY = "your-api-key"  # Lấy tại vietdataverse.online/account
+BASE    = "https://api.vietdataverse.online/api/v1"
+H       = {"X-API-Key": API_KEY}
+
+def get(path, **params):
+    r = requests.get(f"{BASE}/{path}", headers=H, params=params, timeout=10)
+    r.raise_for_status()
+    return r.json()["data"]
+
+# Dữ liệu vĩ mô
+cpi       = get("macro/cpi")                         # CPI hàng tháng
+sbv_rate  = get("sbv-rate")                          # Tỷ giá USD/VND hàng ngày
+termdepo  = get("termdepo", bank="ACB")              # Lãi suất tiết kiệm
+
+# Hàng hóa
+gold_sjc  = get("gold", type="SJC HN")              # Giá vàng SJC
+gold_doji = get("gold", type="DOJI HN")             # Giá vàng DOJI
+silver    = get("silver")                            # Giá bạc
+xauusd    = get("global", symbol="GC=F")            # Vàng quốc tế
+nasdaq    = get("global", symbol="^IXIC")           # Nasdaq
+
+# Cổ phiếu VN30
+vcb_ohlcv = get("vn30/ohlcv", ticker="VCB", period="3m")  # Vietcombank 3 tháng
+
+print(f"CPI: {cpi[0]['cpi_yoy']}% | Tỷ giá: {sbv_rate[0]['vcb_sell']:,.0f} | Vàng SJC: {gold_sjc[0]['sell_price']:,.0f}")
+```
+
+**Thêm vào .env của project:**
+```
+VIETDATAVERSE_API_KEY=your-api-key
+VIETDATAVERSE_BASE_URL=https://api.vietdataverse.online/api/v1
+```
+
+### Dành cho Researcher / Người không biết code
+
+1. Nhấn **"📋 Copy to Claude"** trên trang thư viện Viet Dataverse
+2. Mở [Claude.ai](https://claude.ai) → paste vào cửa sổ chat
+3. Dùng như một "từ điển nguồn dữ liệu VN" — hỏi Claude về chất lượng, độ tin cậy, cách dùng từng nguồn
+
+**Câu hỏi gợi ý:**
+- "Tôi muốn nghiên cứu về lạm phát VN — nguồn dữ liệu nào đáng tin nhất và lấy từ đâu?"
+- "Sự khác biệt giữa dữ liệu tỷ giá từ VCB và từ SBV là gì? Cái nào nên dùng?"
+- "Nếu tôi muốn phân tích giá cổ phiếu VCB 5 năm qua thì lấy từ nguồn nào?"
+- "API của TCBS có đáng tin cho nghiên cứu học thuật không?"
+
+---
+
 ## 1. Viet Dataverse API — Dữ liệu đã làm sạch
 
 Nguồn tổng hợp duy nhất ở VN có API có cấu trúc, free tier, và documentation:

@@ -4,6 +4,50 @@
 
 ---
 
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+
+Dán pack này vào system prompt để agent phân tích danh mục VN30, nhận biết sector đang được hưởng lợi dựa trên 3 tín hiệu vĩ mô: lãi suất SBV + tỷ giá + giá dầu.
+
+```python
+import requests
+
+API_KEY = "your-api-key"  # Lấy tại vietdataverse.online/account
+headers = {"X-API-Key": API_KEY}
+
+# 3 tín hiệu vĩ mô để xác định pha rotation
+sbv_rate = requests.get("https://api.vietdataverse.online/api/v1/sbv-rate",
+                        headers=headers).json()["data"]
+oil      = requests.get("https://api.vietdataverse.online/api/v1/global?symbol=CL%3DF",
+                        headers=headers).json()["data"]
+# Dữ liệu OHLCV cổ phiếu cụ thể
+vcb      = requests.get("https://api.vietdataverse.online/api/v1/vn30/ohlcv?ticker=VCB&period=3m",
+                        headers=headers).json()["data"]
+
+# Inject context vào agent:
+context = f"""
+Tỷ giá USD/VND hiện tại: {sbv_rate[0]['vcb_sell']:,.0f} (so 30 ngày trước: {sbv_rate[-1]['vcb_sell']:,.0f})
+Giá dầu WTI: ${oil[0]['close']:.1f}/thùng
+VCB 3 tháng qua: từ {vcb[-1]['close']:,.0f} → {vcb[0]['close']:,.0f}
+"""
+# Dùng context này kèm với nội dung pack để agent phân tích rotation
+```
+
+### Dành cho Researcher / Người không biết code
+
+1. Nhấn **"📋 Copy to Claude"** trên trang thư viện Viet Dataverse
+2. Mở [Claude.ai](https://claude.ai) → paste vào cửa sổ chat
+3. Hỏi về chiến lược cổ phiếu theo chu kỳ — Claude biết nhóm ngành nào hưởng lợi khi lãi suất thay đổi
+
+**Câu hỏi gợi ý:**
+- "SBV vừa cắt lãi suất lần đầu — nhóm cổ phiếu nào trong VN30 thường tăng mạnh nhất?"
+- "Tỷ giá USD/VND đang tăng — doanh nghiệp nào trong VN30 bị ảnh hưởng xấu nhất?"
+- "Tôi đang nắm VIC và VHM — nếu lãi suất tăng trở lại thì sao?"
+- "Giá dầu tăng mạnh ảnh hưởng thế nào đến GAS, PLX, và HVN trong VN30?"
+
+---
+
 ## 1. Phân nhóm ngành trong VN30
 
 ### Nhóm Ngân hàng (~40-45% tỷ trọng VN30)

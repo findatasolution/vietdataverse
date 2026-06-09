@@ -4,6 +4,71 @@
 
 ---
 
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+
+Dán pack này vào system prompt để agent tư vấn tiết kiệm cá nhân, tự tính lãi suất thực, và nhận biết pha chu kỳ lãi suất.
+
+```python
+import requests
+
+API_KEY = "your-api-key"  # Lấy tại vietdataverse.online/account
+headers = {"X-API-Key": API_KEY}
+
+# Lãi suất tiết kiệm ACB theo tất cả kỳ hạn
+td  = requests.get("https://api.vietdataverse.online/api/v1/termdepo?bank=ACB",
+                   headers=headers).json()["data"][0]
+# CPI mới nhất để tính lãi suất thực
+cpi = requests.get("https://api.vietdataverse.online/api/v1/macro/cpi",
+                   headers=headers).json()["data"][0]
+
+cpi_yoy = cpi["cpi_yoy"]  # ví dụ: 3.2
+
+# Tính lãi suất thực cho từng kỳ hạn
+print(f"CPI hiện tại: {cpi_yoy}%/năm")
+print(f"{'Kỳ hạn':<12} {'Danh nghĩa':>12} {'Thực':>12} {'Đánh giá':>16}")
+print("-" * 55)
+for term, rate in [
+    ("1 tháng",  td.get("term_1m")),
+    ("3 tháng",  td.get("term_3m")),
+    ("6 tháng",  td.get("term_6m")),
+    ("12 tháng", td.get("term_12m")),
+    ("24 tháng", td.get("term_24m")),
+]:
+    if rate is None:
+        continue
+    real = rate - cpi_yoy
+    note = "✅ sinh lời thực" if real > 2 else ("⚠️ khiêm tốn" if real >= 0 else "❌ âm")
+    print(f"{term:<12} {rate:>11.2f}%  {real:>11.2f}%  {note}")
+```
+
+**Bảng lãi suất thực vs danh nghĩa (ví dụ với CPI = 3.2%):**
+
+| Kỳ hạn | Lãi danh nghĩa | Lãi thực | Nhận xét |
+|--------|----------------|----------|---------|
+| 1 tháng | 3.8%/năm | 0.6%/năm | Dương, nhưng thấp |
+| 3 tháng | 4.2%/năm | 1.0%/năm | Bảo toàn vốn |
+| 6 tháng | 4.8%/năm | 1.6%/năm | Khá |
+| 12 tháng | 5.5%/năm | **2.3%/năm** | Tốt — sinh lời thực |
+| 24 tháng | 5.8%/năm | **2.6%/năm** | Tốt nhất nếu khóa được |
+
+*Lãi thực > 2%: tiền "thực sự tăng trưởng". Lãi thực < 0%: tiền đang mất giá trong ngân hàng.*
+
+### Dành cho Researcher / Người không biết code
+
+1. Nhấn **"📋 Copy to Claude"** trên trang thư viện Viet Dataverse
+2. Mở [Claude.ai](https://claude.ai) → paste vào cửa sổ chat
+3. Hỏi về tiết kiệm ngân hàng — Claude biết cách tính lãi thực, biết vòng chu kỳ lãi suất VN
+
+**Câu hỏi gợi ý:**
+- "Hiện tại lãi suất tiết kiệm 12 tháng có đang 'thực sự sinh lời' không khi tính cả lạm phát?"
+- "Tôi có 500 triệu muốn gửi tiết kiệm — nên chia như thế nào và kỳ hạn bao lâu?"
+- "NHNN vừa cắt lãi suất — tôi còn kịp khóa 12 tháng với lãi cao không?"
+- "Lãi tiết kiệm ngân hàng nhỏ cao hơn 2% so với Big 4 — rủi ro đó có đáng không?"
+
+---
+
 ## 1. Cấu trúc lãi suất tiết kiệm VN
 
 ### Phân loại ngân hàng và mức lãi suất thông thường
