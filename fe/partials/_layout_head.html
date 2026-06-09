@@ -37,7 +37,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2026061002">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#c96442">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -408,23 +408,37 @@
                 </nav>
             </div>
             <div class="app-topbar-right">
-                <!-- Docs icon -->
-                <a href="/fe/pages/api-docs.html" class="header-btn icon-btn" title="Docs" id="docs-topbar-btn">
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z"/>
-                        <path d="M5 6h6M5 9h6M5 12h4"/>
-                    </svg>
-                </a>
-                <!-- Settings icon -->
-                <a href="/fe/pages/account.html?tab=apikey" class="header-btn icon-btn" title="Settings" id="settings-topbar-btn">
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="8" cy="8" r="2"/>
-                        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
-                    </svg>
-                </a>
-                <button class="header-btn lang-btn" id="lang-toggle">
-                    <span id="lang-text">VI</span>
-                </button>
+                <!-- Docs dropdown -->
+                <div class="topbar-dropdown-wrap" id="docs-dropdown-wrap">
+                    <button class="topbar-icon-btn" id="docs-topbar-btn" title="Docs">
+                        <i class="fas fa-book-open"></i>
+                    </button>
+                    <div class="topbar-dropdown" id="docs-dropdown">
+                        <a href="/fe/pages/api-docs.html" class="topbar-dropdown-item">API Reference</a>
+                        <div class="topbar-dropdown-divider"></div>
+                        <a href="/fe/pages/guide-buyer.html" class="topbar-dropdown-item">Buyer Guide</a>
+                        <a href="/fe/pages/guide-seller.html" class="topbar-dropdown-item">Seller Guide</a>
+                    </div>
+                </div>
+                <!-- Settings dropdown -->
+                <div class="topbar-dropdown-wrap" id="settings-dropdown-wrap">
+                    <button class="topbar-icon-btn" id="settings-topbar-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <div class="topbar-dropdown" id="settings-dropdown">
+                        <a href="/fe/pages/account.html" class="topbar-dropdown-item">My account</a>
+                        <div class="topbar-dropdown-divider"></div>
+                        <a href="/fe/#km/library" class="topbar-dropdown-item" id="settings-dd-library">My Library</a>
+                        <a href="/fe/#km/wallet" class="topbar-dropdown-item" id="settings-dd-wallet">My Wallet</a>
+                        <a href="/fe/#km/seller-dashboard" class="topbar-dropdown-item" id="settings-dd-seller">My Store</a>
+                        <div class="topbar-dropdown-divider"></div>
+                        <a href="/fe/pages/developer.html" class="topbar-dropdown-item">API Key</a>
+                        <div class="topbar-dropdown-divider"></div>
+                        <button class="topbar-dropdown-item topbar-dd-lang-btn" id="settings-dd-lang">
+                            <i class="fas fa-globe" style="margin-right:6px;font-size:0.8rem;"></i><span id="lang-text">VI</span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Authenticated user chip (avatar + logout) -->
                 <div class="user-chip" id="user-info" style="display: none;">
@@ -475,41 +489,6 @@
                 <div class="km-nav-group">
                     <div class="km-nav-group-title">DISCOVER</div>
                     <a class="km-nav-item active" data-km-view="marketplace" href="#">Marketplace</a>
-                    <a class="km-nav-item" data-km-view="categories" href="#">Categories</a>
-                    <a class="km-nav-item" data-km-view="trending" href="#">New &amp; Trending</a>
-                </div>
-
-                <!-- MY STUFF (logged-in only) -->
-                <div class="km-nav-group km-nav-gated" data-gate="logged-in" style="display:none;">
-                    <div class="km-nav-group-title">MY STUFF</div>
-                    <a class="km-nav-item" data-km-view="library" href="#">
-                        My Library
-                        <span class="km-nav-badge" id="km-sidebar-library-count" style="display:none;"></span>
-                    </a>
-                    <a class="km-nav-item" data-km-view="wallet" href="#">
-                        Wallet
-                        <span class="km-nav-badge km-nav-balance" id="km-sidebar-balance">0 credits</span>
-                    </a>
-                </div>
-
-                <!-- SELL (seller-approved only) -->
-                <div class="km-nav-group km-nav-gated" data-gate="seller" id="km-sidebar-sell-group" style="display:none;">
-                    <div class="km-nav-group-title">SELL</div>
-                    <a class="km-nav-item" data-km-view="seller-dashboard" href="#">Seller Dashboard</a>
-                    <a class="km-nav-item" data-km-view="upload" href="#">Upload Product</a>
-                    <a class="km-nav-item" data-km-view="earnings" href="#">Earnings</a>
-                </div>
-
-                <!-- SELL — not yet registered (replaces SELL group when not-seller) -->
-                <div class="km-nav-group km-nav-gated" data-gate="become-seller" id="km-sidebar-become-seller-group" style="display:none;">
-                    <div class="km-nav-group-title">SELL</div>
-                    <a class="km-nav-item km-nav-item--cta" data-km-view="become-seller" href="#">+ Become a Seller</a>
-                </div>
-
-                <!-- SELL — email not verified (registered but pending) -->
-                <div class="km-nav-group km-nav-gated" data-gate="unverified" id="km-sidebar-unverified-group" style="display:none;">
-                    <div class="km-nav-group-title">SELL</div>
-                    <a class="km-nav-item km-nav-item--warning" data-km-view="verify-email" href="#">Verify Email</a>
                 </div>
 
                 <!-- ADMIN (admin role only) -->
@@ -518,12 +497,6 @@
                     <a class="km-nav-item km-nav-item--admin" data-km-view="admin" href="#">Admin Panel</a>
                 </div>
 
-                <!-- HELP -->
-                <div class="km-nav-group">
-                    <div class="km-nav-group-title">HELP</div>
-                    <a class="km-nav-item" href="/fe/pages/guide-buyer.html" target="_blank">Buyer Guide</a>
-                    <a class="km-nav-item" href="/fe/pages/guide-seller.html" target="_blank">Seller Guide</a>
-                </div>
 
             </div>
 

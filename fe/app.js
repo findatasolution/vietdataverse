@@ -831,22 +831,23 @@
            HEADER ACTIONS: LANGUAGE + LOGIN
         ========================================================= */
         function initHeaderActions() {
-            const langBtn = document.getElementById('lang-toggle');
             const sidebarLangBtn = document.getElementById('sidebar-lang-toggle');
+            const ddLangBtn = document.getElementById('settings-dd-lang');
 
             /* ---------- LANGUAGE (ENG / VIE) ---------- */
             const savedLang = localStorage.getItem('lang') || 'vi';
             updateLanguage(savedLang);
 
-            if (langBtn) {
-                langBtn.addEventListener('click', () => {
+            if (sidebarLangBtn) {
+                sidebarLangBtn.addEventListener('click', () => {
                     const current = document.documentElement.lang || 'vi';
                     const next = current === 'vi' ? 'en' : 'vi';
                     updateLanguage(next);
                 });
             }
-            if (sidebarLangBtn) {
-                sidebarLangBtn.addEventListener('click', () => {
+            if (ddLangBtn) {
+                ddLangBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const current = document.documentElement.lang || 'vi';
                     const next = current === 'vi' ? 'en' : 'vi';
                     updateLanguage(next);
@@ -875,7 +876,7 @@
 
             const label = lang === 'vi' ? 'EN / VIE' : 'VIE / EN';
 
-            // Update header lang button
+            // Update settings dropdown lang button
             const langText = document.getElementById('lang-text');
             if (langText) langText.textContent = label;
 
@@ -1006,6 +1007,9 @@
             'tab-seller':           'km/seller-dashboard',
         };
 
+        // Workspaces that have no useful sidebar — hide it and go full-width
+        const NO_SIDEBAR_WORKSPACES = ['data', 'pulse', 'km'];
+
         function setWorkspace(ws) {
             // Update workspace tab buttons
             document.querySelectorAll('.workspace-tab[data-workspace]').forEach(btn => {
@@ -1017,6 +1021,12 @@
             document.querySelectorAll('.sidebar-context[data-workspace]').forEach(ctx => {
                 ctx.classList.toggle('active', ctx.dataset.workspace === ws);
             });
+
+            // Hide sidebar for workspaces that don't need it
+            const container = document.querySelector('.app-container');
+            if (container) {
+                container.classList.toggle('no-sidebar', NO_SIDEBAR_WORKSPACES.includes(ws));
+            }
         }
 
         function setView(viewId) {
@@ -1085,12 +1095,12 @@
                 });
             });
 
-            // Footer lang toggle (sync with header lang toggle)
+            // Footer lang toggle (sync with settings dropdown lang toggle)
             const footerLangBtn = document.getElementById('footer-lang-toggle');
             if (footerLangBtn) {
                 footerLangBtn.addEventListener('click', () => {
-                    const headerLangBtn = document.getElementById('lang-toggle');
-                    if (headerLangBtn) headerLangBtn.click();
+                    const ddLangBtn = document.getElementById('settings-dd-lang');
+                    if (ddLangBtn) ddLangBtn.click();
                 });
             }
 
@@ -3080,4 +3090,61 @@
                     window.KM._updateActionBarAsync();
                 }
             };
+
+            // ── Topbar dropdowns (Docs + Settings) ──
+            (function () {
+                function toggleDropdown(btnId, ddId) {
+                    const btn = document.getElementById(btnId);
+                    const dd = document.getElementById(ddId);
+                    if (!btn || !dd) return;
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const isOpen = dd.classList.contains('open');
+                        document.querySelectorAll('.topbar-dropdown.open').forEach(el => el.classList.remove('open'));
+                        if (!isOpen) dd.classList.add('open');
+                    });
+                }
+                toggleDropdown('docs-topbar-btn', 'docs-dropdown');
+                toggleDropdown('settings-topbar-btn', 'settings-dropdown');
+
+                // Close on outside click
+                document.addEventListener('click', function () {
+                    document.querySelectorAll('.topbar-dropdown.open').forEach(el => el.classList.remove('open'));
+                });
+
+                // Update Settings dropdown: My Store vs + Become a Seller
+                async function updateSettingsSellerLink() {
+                    const token = localStorage.getItem('auth_token');
+                    const sellerLink = document.getElementById('settings-dd-seller');
+                    if (!sellerLink) return;
+                    if (!token) {
+                        sellerLink.textContent = '+ Become a Seller';
+                        sellerLink.href = '/fe/#km/become-seller';
+                        return;
+                    }
+                    try {
+                        const base = window.APP_CONFIG?.API_BASE_URL || '/api/v1';
+                        const res = await fetch(`${base}/seller/profile`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.success && data.seller) {
+                                sellerLink.textContent = 'My Store';
+                                sellerLink.href = '/fe/#km/seller-dashboard';
+                            } else {
+                                sellerLink.textContent = '+ Become a Seller';
+                                sellerLink.href = '/fe/#km/become-seller';
+                            }
+                        } else {
+                            sellerLink.textContent = '+ Become a Seller';
+                            sellerLink.href = '/fe/#km/become-seller';
+                        }
+                    } catch (_) {
+                        sellerLink.textContent = '+ Become a Seller';
+                        sellerLink.href = '/fe/#km/become-seller';
+                    }
+                }
+                document.addEventListener('DOMContentLoaded', updateSettingsSellerLink);
+            })();
         })();
