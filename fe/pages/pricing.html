@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Giá | Viet Dataverse</title>
-    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — VN30 Score, Market Pulse, API không giới hạn. Gói API Supper Lite từ 149.000đ/tháng.">
+    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — VN30 Score, Market Pulse, API không giới hạn. Gói API Supper Lite từ 99.000đ/tháng.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://vietdataverse.online/pages/pricing.html">
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <meta property="og:title" content="Bảng Giá | Viet Dataverse">
-    <meta property="og:description" content="Gói API Supper Lite — full history, API access, VN30 Score & Market Pulse không giới hạn. Từ 149.000đ/tháng.">
+    <meta property="og:description" content="Gói API Supper Lite — full history, API access, VN30 Score & Market Pulse không giới hạn. Từ 99.000đ/tháng.">
     <meta property="og:url" content="https://vietdataverse.online/pages/pricing.html">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
@@ -682,15 +682,20 @@
             <div class="plan-name">API Supper Lite</div>
             <div class="plan-tagline">Dành cho dự án cá nhân, học tập, nghiên cứu</div>
             <div class="plan-price-block">
+                <!-- Promo badge -->
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <span style="font-size:12px;text-decoration:line-through;color:var(--stone-gray);">198.000₫</span>
+                    <span style="font-size:11px;font-weight:600;background:#c96442;color:#faf9f5;border-radius:24px;padding:2px 8px;letter-spacing:0.12px;">-50% KM</span>
+                </div>
                 <div class="plan-price">
-                    <span class="price-amount" id="price-pro">149.000</span>
+                    <span class="price-amount" id="price-pro">99.000</span>
                     <span class="price-currency">₫</span>
                     <span class="price-period" id="price-period-pro">/tháng</span>
                 </div>
-                
+
                 <!-- Student discount badge -->
                 <span class="student-discount-badge" id="student-discount-badge" style="margin-top:auto;"
-                      title="Xác minh sinh viên để nhận giảm 50%">
+                      title="Xác minh sinh viên để nhận giảm thêm 50%">
                      -50% sinh viên
                 </span>
             </div>
@@ -938,27 +943,27 @@
     const PLANS = {
         monthly: {
             key:             'pro_monthly',
-            amount:          149_000,
-            amountStudent:   74_500,
-            display:         '149.000',
-            displayStudent:  '74.500',
+            amount:          99_000,
+            amountStudent:   49_500,     // -50% sinh viên
+            display:         '99.000',
+            displayStudent:  '49.500',
             period:          '/tháng',
-            alt:             '≈ $4.99 / month',
-            altStudent:      '(giảm 50% sinh viên) ≈ $2.49/month',
-            confirmLabel:    'Thanh toán 149.000₫/tháng →',
-            confirmLabelStu: 'Thanh toán 74.500₫/tháng →',
+            alt:             '≈ $3.99 / month · Khuyến mại -50%',
+            altStudent:      '(giảm 50% sinh viên) ≈ $1.99/month',
+            confirmLabel:    'Thanh toán 99.000₫/tháng →',
+            confirmLabelStu: 'Thanh toán 49.500₫/tháng →',
         },
         yearly: {
             key:             'pro_yearly',
-            amount:          1_519_800,  // 149k × 12 × 0.85
-            amountStudent:   759_900,    // 74.5k × 12 × 0.85
-            display:         '1.519.800',
-            displayStudent:  '759.900',
+            amount:          990_000,    // 99k × 10 (2 tháng free)
+            amountStudent:   495_000,    // 49.5k × 10
+            display:         '990.000',
+            displayStudent:  '495.000',
             period:          '/năm',
-            alt:             '≈ 126.650₫/tháng · tiết kiệm 268.200₫',
-            altStudent:      '(giảm 50% sinh viên) ≈ 63.325₫/tháng',
-            confirmLabel:    'Thanh toán 1.519.800₫/năm →',
-            confirmLabelStu: 'Thanh toán 759.900₫/năm →',
+            alt:             '≈ 82.500₫/tháng · tiết kiệm 198.000₫',
+            altStudent:      '(giảm 50% sinh viên) ≈ 41.250₫/tháng',
+            confirmLabel:    'Thanh toán 990.000₫/năm →',
+            confirmLabelStu: 'Thanh toán 495.000₫/năm →',
         },
     };
     let _billingPeriod = 'monthly';
