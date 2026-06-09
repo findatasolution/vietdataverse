@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="../auth.js" defer></script>
     <style>
         body { margin: 0; background: var(--parchment); }
@@ -141,6 +142,20 @@
             border-radius: 8px; color: var(--text-primary); font-family: inherit;
         }
 
+        /* ── Signup chart ────────────────────────────────── */
+        .chart-wrap { background: var(--pure-white); border: 1px solid var(--border-cream);
+            border-radius: var(--radius-xl); padding: 24px; margin-bottom: 24px; }
+        .chart-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+        .chart-title { font-size:13px; font-weight:600; color:var(--text-primary); }
+        .period-btns { display:flex; gap:6px; }
+        .period-btn {
+            padding:4px 12px; font-size:11px; font-weight:500;
+            border:1px solid var(--border-cream); border-radius:6px;
+            background:none; cursor:pointer; color:var(--text-secondary); font-family:inherit;
+            transition: all .15s;
+        }
+        .period-btn.active { background:rgba(201,100,66,.10); border-color:rgba(201,100,66,.3); color:var(--terracotta); }
+
         #loading { text-align:center; padding:80px; color:var(--text-tertiary); font-size:14px; }
         #access-denied { display:none; text-align:center; padding:80px; }
         .toast {
@@ -178,6 +193,22 @@
         <div class="kpi-card"><div class="kpi-label">Doanh thu YTD</div><div class="kpi-value" id="rev-ytd">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Active subscribers</div><div class="kpi-value" id="active-subs">—</div><div class="kpi-sub" id="tier-breakdown"></div></div>
         <div class="kpi-card"><div class="kpi-label">Tổng users</div><div class="kpi-value" id="total-users">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Đăng ký hôm nay</div><div class="kpi-value" id="new-today">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Đăng ký tuần này</div><div class="kpi-value" id="new-week">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Đăng ký tháng này</div><div class="kpi-value" id="new-month">—</div></div>
+    </div>
+
+    <!-- Signup trend chart -->
+    <div class="chart-wrap">
+        <div class="chart-header">
+            <span class="chart-title">Đăng ký mới theo ngày</span>
+            <div class="period-btns">
+                <button class="period-btn active" onclick="loadSignupTrend(7, this)">7 ngày</button>
+                <button class="period-btn" onclick="loadSignupTrend(30, this)">30 ngày</button>
+                <button class="period-btn" onclick="loadSignupTrend(90, this)">90 ngày</button>
+            </div>
+        </div>
+        <canvas id="signup-chart" height="80"></canvas>
     </div>
 
     <!-- Tabs -->
@@ -272,6 +303,7 @@ const API = window.location.hostname === 'localhost' || window.location.hostname
 let _token = null;
 let _usersPage = 0, _ordersPage = 0;
 const PAGE_SIZE = 50;
+let _signupChart = null;
 
 function showToast(msg, ok = true) {
     const el = document.getElementById('toast');
@@ -319,6 +351,62 @@ async function loadDashboard() {
     document.getElementById('active-subs').textContent = total.toLocaleString('vi-VN');
     document.getElementById('tier-breakdown').textContent =
         Object.entries(tiers).map(([k, v]) => `${k}: ${v}`).join(' · ');
+    document.getElementById('new-today').textContent = (d.subscribers.new_today  || 0).toLocaleString('vi-VN');
+    document.getElementById('new-week').textContent  = (d.subscribers.new_week   || 0).toLocaleString('vi-VN');
+    document.getElementById('new-month').textContent = (d.subscribers.new_month  || 0).toLocaleString('vi-VN');
+}
+
+// ── Signup trend chart ──────────────────────────────────────────────────────
+
+async function loadSignupTrend(days, btnEl) {
+    if (btnEl) {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+    }
+    const res = await fetch(`${API}/api/v1/admin/signup-trend?days=${days}`, {
+        headers: { Authorization: `Bearer ${_token}` }
+    });
+    if (!res.ok) return;
+    const d = await res.json();
+
+    const labels = d.data.map(r => {
+        const dt = new Date(r.day);
+        return dt.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+    });
+    const counts = d.data.map(r => r.count);
+
+    const ctx = document.getElementById('signup-chart').getContext('2d');
+    if (_signupChart) _signupChart.destroy();
+    _signupChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Đăng ký mới',
+                data: counts,
+                backgroundColor: 'rgba(201, 100, 66, 0.20)',
+                borderColor: '#c96442',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.parsed.y} users`
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#87867f' } },
+                y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 }, color: '#87867f' },
+                     grid: { color: '#f0eee6' } }
+            }
+        }
+    });
 }
 
 // ── Users ───────────────────────────────────────────────────────────────────
@@ -550,6 +638,7 @@ async function initAdmin() {
         document.getElementById('admin-app').style.display = 'block';
         loadDashboard();
         loadUsers();
+        loadSignupTrend(30);
     } catch {
         loadEl.style.display = 'none';
         document.getElementById('access-denied').style.display = 'block';

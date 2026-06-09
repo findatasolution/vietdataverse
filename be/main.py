@@ -61,13 +61,25 @@ _root = os.path.dirname(_cur)
 
 _fe = os.path.join(_root, "fe")
 
+_fe_pages = os.path.join(_root, "fe", "pages")
+
 if os.path.exists(_fe):
     app.mount("/fe", StaticFiles(directory=_fe, html=True), name="fe")
+
+# Alias /pages/* and /index.html → fe/ so standalone pages' internal links work
+if os.path.exists(_fe_pages):
+    app.mount("/pages", StaticFiles(directory=_fe_pages, html=True), name="fe_pages")
 
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/")
 async def root():
-    return {"message": "Agent Finance API is running"}
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/fe/")
+
+@app.get("/index.html")
+async def index_html():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/fe/")
 
 @app.get("/api/health")
 @app.get("/health")
