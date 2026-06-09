@@ -141,6 +141,55 @@ async def key_info(request: Request):
         session.close()
 
 
+@router.get("/verify-key")
+async def verify_key(request: Request):
+    """Kiểm tra X-API-Key có hợp lệ không.
+    - Nếu gửi X-API-Key header → validate key trực tiếp (public).
+    - Nếu gửi Authorization Bearer → validate key của user đó (authenticated).
+    """
+    api_key = request.headers.get("X-API-Key", "").strip()
+    session = _session()
+    try:
+        if api_key:
+            # Direct key test
+            row = session.execute(text("""
+                SELECT ak.key_id, ak.is_active, u.current_plan
+                FROM api_keys ak
+                JOIN users u ON u.user_id = ak.user_id
+                WHERE ak.key_value = :kv
+                LIMIT 1
+            """), {"kv": api_key}).fetchone()
+            if not row:
+                raise HTTPException(status_code=401, detail="API key không tồn tại hoặc đã bị thu hồi")
+            key_id, is_active, current_plan = row
+            if not is_active:
+                raise HTTPException(status_code=401, detail="API key đã bị vô hiệu hóa")
+        else:
+            # Bearer JWT → test key belonging to this user
+            await authenticate_user(request)
+            user = request.state.user
+            if user.get("user_level") != "premium_developer":
+                raise HTTPException(status_code=403, detail="Chỉ gói API mới có API key")
+            auth0_id = user.get("auth0_id")
+            row = session.execute(text("""
+                SELECT ak.key_id, ak.is_active, u.current_plan
+                FROM api_keys ak
+                JOIN users u ON u.user_id = ak.user_id
+                WHERE u.auth0_id = :aid AND ak.is_active = TRUE
+                ORDER BY ak.created_at DESC LIMIT 1
+            """), {"aid": auth0_id}).fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Chưa có API key. Tạo key trước.")
+            key_id, is_active, current_plan = row
+        return {
+            "valid": True,
+            "plan": current_plan,
+            "message": f"Key hợp lệ · gói {current_plan}",
+        }
+    finally:
+        session.close()
+
+
 @router.delete("/revoke-key")
 async def revoke_key(request: Request):
     """Thu hồi API key hiện tại."""

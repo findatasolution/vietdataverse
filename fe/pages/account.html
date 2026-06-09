@@ -658,10 +658,14 @@
             </div>
 
             <div class="card-divider"></div>
-            <div style="font-size:12px; color:var(--stone-gray); line-height:1.6">
+            <div style="font-size:12px; color:var(--stone-gray); line-height:1.6; margin-bottom:12px;">
                 Key dùng qua header <code style="background:var(--warm-sand);padding:1px 5px;border-radius:3px;font-size:11px">X-API-Key: &lt;your-key&gt;</code>.
                 Xem tài liệu tại <a href="/pages/api-docs.html" style="color:var(--terracotta);text-decoration:none">API Docs</a>.
             </div>
+            <button id="btn-inline-test" onclick="testExistingKey()" style="width:100%;padding:8px;background:#f5f4ed;border:1px solid #e8e6dc;border-radius:8px;font-size:12px;font-weight:500;color:#5e5d59;cursor:pointer;text-align:left;">
+                ⚡ Test key — gọi API thử ngay
+            </button>
+            <div id="inline-test-result" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.6;"></div>
 
             <div class="card-divider"></div>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -786,14 +790,43 @@
 
 <!-- ── One-time key reveal modal ─────────────────────────────── -->
 <div class="key-modal-backdrop" id="key-modal">
-    <div class="key-modal">
-        <div class="key-modal-title">API Key mới của bạn</div>
+    <div class="key-modal" style="max-width:520px;width:calc(100% - 32px);">
+        <div class="key-modal-title">🎉 API Key của bạn đã sẵn sàng</div>
         <div class="key-modal-warn">
-            ⚠️ Key này chỉ hiển thị <strong>một lần duy nhất</strong>. Hãy copy và lưu ngay trước khi đóng cửa sổ này.
+            ⚠️ Key này chỉ hiển thị <strong>một lần duy nhất</strong>. Hãy copy và lưu ngay.
         </div>
-        <div class="key-modal-display">
-            <span class="key-modal-value" id="modal-key-value">—</span>
+        <div class="key-modal-display" style="display:flex;gap:8px;align-items:center;">
+            <span class="key-modal-value" id="modal-key-value" style="flex:1;font-size:12px;word-break:break-all;">—</span>
+            <button id="btn-modal-copy" onclick="copyModalKey()" style="padding:6px 12px;background:#c96442;color:#faf9f5;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;">Copy</button>
         </div>
+
+        <!-- 3-step guide -->
+        <div style="margin:16px 0;background:#f5f4ed;border-radius:10px;padding:14px 16px;">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#87867f;margin-bottom:10px;">Bước tiếp theo</div>
+            <div style="display:grid;gap:8px;">
+                <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#141413;">
+                    <span style="width:20px;height:20px;border-radius:50%;background:#141413;color:#faf9f5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+                    <span>Lưu key vào <code style="background:#e8e6dc;padding:1px 5px;border-radius:4px;font-size:11px;">X-API-Key</code> header hoặc file <code style="background:#e8e6dc;padding:1px 5px;border-radius:4px;font-size:11px;">.env</code></span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#141413;">
+                    <span style="width:20px;height:20px;border-radius:50%;background:#141413;color:#faf9f5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
+                    <span>Test kết nối ngay bên dưới — xem thử dữ liệu live</span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#141413;">
+                    <span style="width:20px;height:20px;border-radius:50%;background:#141413;color:#faf9f5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</span>
+                    <span>Xem <a href="/pages/api-docs.html" style="color:#c96442;text-decoration:none;">API Docs</a> để tích hợp vào project của bạn</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live test -->
+        <div style="margin-bottom:14px;">
+            <button id="btn-test-key" onclick="testApiKey()" style="width:100%;padding:9px;background:#fff;border:1px solid #e8e6dc;border-radius:8px;font-size:13px;font-weight:500;color:#141413;cursor:pointer;transition:border-color .15s;">
+                ⚡ Test key — gọi API thử ngay
+            </button>
+            <div id="test-key-result" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.6;"></div>
+        </div>
+
         <div class="key-modal-actions">
             <button class="btn-generate" style="flex:1" onclick="copyAndCloseModal()">
                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -802,7 +835,7 @@
                 </svg>
                 Copy &amp; Đóng
             </button>
-            <button class="btn-revoke" onclick="closeModal()" style="min-width:80px">Bỏ qua</button>
+            <a href="/pages/api-docs.html" class="btn-revoke" style="min-width:80px;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">API Docs →</a>
         </div>
     </div>
 </div>
@@ -1045,15 +1078,88 @@
     }
 
     /* ── Modal helpers ───────────────────────────────────── */
-    function copyAndCloseModal() {
+    function copyModalKey() {
         const val = document.getElementById('modal-key-value').textContent;
         navigator.clipboard.writeText(val).then(() => {
-            closeModal();
+            const btn = document.getElementById('btn-modal-copy');
+            btn.textContent = '✓ Copied!';
+            btn.style.background = '#66BB6A';
+            setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = '#c96442'; }, 2000);
         });
     }
+
+    function copyAndCloseModal() {
+        const val = document.getElementById('modal-key-value').textContent;
+        navigator.clipboard.writeText(val).then(() => { closeModal(); });
+    }
+
     function closeModal() {
         document.getElementById('key-modal').classList.remove('open');
+        document.getElementById('test-key-result').style.display = 'none';
     }
+
+    async function testApiKey() {
+        const key = document.getElementById('modal-key-value').textContent.trim();
+        if (!key || key === '—') return;
+        await _runKeyTest(key, 'test-key-result', 'btn-test-key');
+    }
+
+    async function testExistingKey() {
+        const resultEl = document.getElementById('inline-test-result');
+        const btn = document.getElementById('btn-inline-test');
+        const origText = btn.textContent;
+        btn.textContent = '⏳ Đang kiểm tra...';
+        btn.disabled = true;
+        resultEl.style.display = 'none';
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API_BASE}/api/v1/developer/verify-key`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (res.ok && json.valid) {
+                _showTestResult(resultEl, true,
+                    `✓ ${json.message}\nAPI key đang hoạt động bình thường — sẵn sàng tích hợp.`);
+            } else {
+                const msg = json.detail || json.message || `HTTP ${res.status}`;
+                _showTestResult(resultEl, false, `⚠️ ${msg}`);
+            }
+        } catch (e) {
+            _showTestResult(resultEl, false, '⚠️ Không kết nối được server.');
+        } finally {
+            btn.textContent = origText;
+            btn.disabled = false;
+        }
+    }
+
+    async function _runKeyTest(key, resultId) {
+        const resultEl = document.getElementById(resultId);
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/developer/verify-key`, {
+                headers: { 'X-API-Key': key }
+            });
+            const json = await res.json();
+            if (res.ok && json.valid) {
+                _showTestResult(resultEl, true,
+                    `✓ ${json.message}\nAPI key hợp lệ — sẵn sàng tích hợp vào ứng dụng.`);
+            } else {
+                const msg = json.detail || json.message || `HTTP ${res.status}`;
+                _showTestResult(resultEl, false, `⚠️ ${msg}`);
+            }
+        } catch (e) {
+            _showTestResult(resultEl, false, '⚠️ Không kết nối được server. Thử lại sau.');
+        }
+    }
+
+    function _showTestResult(el, ok, msg) {
+        el.style.display = 'block';
+        el.style.background = ok ? 'rgba(76,175,80,0.08)' : 'rgba(181,51,51,0.07)';
+        el.style.borderLeft = `3px solid ${ok ? '#4caf50' : '#b53333'}`;
+        el.style.color = ok ? '#2e7d32' : '#b53333';
+        el.style.whiteSpace = 'pre-line';
+        el.textContent = msg;
+    }
+
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
     /* ── Render wallet ───────────────────────────────────── */
