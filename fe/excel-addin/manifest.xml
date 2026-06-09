@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+
+  <Id>A3F7C2D1-4E8B-4A9C-B1D5-2F3E4A5B6C7D</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Viet Dataverse</ProviderName>
+  <DefaultLocale>vi-VN</DefaultLocale>
+  <DisplayName DefaultValue="Viet Dataverse Data"/>
+  <Description DefaultValue="Nhập dữ liệu tài chính Việt Nam trực tiếp vào Excel — vàng, bạc, tỷ giá, lãi suất, CPI, VN30."/>
+  <IconUrl DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+  <HighResolutionIconUrl DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+  <SupportUrl DefaultValue="https://vietdataverse.online"/>
+  <AppDomains>
+    <AppDomain>api.vietdataverse.online</AppDomain>
+    <AppDomain>vietdataverse.online</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://api.vietdataverse.online/excel-addin/taskpane.html"/>
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="CommandsGroup">
+                <Label resid="CommandsGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="TaskpaneButton.Label"/>
+                  <Supertip>
+                    <Title resid="TaskpaneButton.Label"/>
+                    <Description resid="TaskpaneButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://vietdataverse.online"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://api.vietdataverse.online/excel-addin/taskpane.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://api.vietdataverse.online/excel-addin/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="Bắt đầu với Viet Dataverse"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="Viet Dataverse"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Nhập dữ liệu VN"/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Mở panel nhập dữ liệu tài chính Việt Nam"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Nhập dữ liệu vàng, tỷ giá, lãi suất, CPI, VN30 trực tiếp vào sheet."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

@@ -886,7 +886,8 @@
             + '<div class="km-card-divider"></div>'
             + '<div class="km-card-footer">'
                 + '<div class="km-card-lib-actions">'
-                    + '<button class="km-btn-primary km-btn-sm" onclick="event.stopPropagation();KM.downloadFromLibrary(\'' + lk + '\')">Tải</button>'
+                    + '<button class="km-btn-primary km-btn-sm" onclick="event.stopPropagation();KM.openWebReader(\'' + lk + '\',\'' + escHtml(p.title || '') + '\')">📖 Đọc</button>'
+                    + '<button class="km-btn-sand km-btn-sm" onclick="event.stopPropagation();KM.downloadFromLibrary(\'' + lk + '\')">Tải</button>'
                     + '<button class="km-btn-sand km-btn-sm" title="Copy nội dung → paste vào Claude.ai để hỏi ngay" onclick="event.stopPropagation();KM.copyToClaudeFromLibrary(\'' + lk + '\',\'' + escHtml(p.title || '') + '\')">📋 Claude</button>'
                     + '<button class="km-btn-sand km-btn-sm" onclick="event.stopPropagation();KM.removeFromLibrary(\'' + lk + '\')">Xoá</button>'
                 + '</div>'
@@ -1541,6 +1542,111 @@
                 if (el) { el.style.borderColor = '#66BB6A'; setTimeout(function () { el.style.borderColor = ''; }, 1500); }
             });
         }
+    }
+
+    // ── Simple markdown → HTML renderer (no external deps) ────────────────────
+    function _mdToHtml(md) {
+        var lines = md.split('\n');
+        var html = '';
+        var inCode = false;
+        var inList = false;
+        var codeLang = '';
+
+        function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function inline(s) {
+            s = esc(s);
+            s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            s = s.replace(/`([^`]+)`/g, '<code class="km-reader-inline-code">$1</code>');
+            return s;
+        }
+
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (line.startsWith('```')) {
+                if (inCode) {
+                    html += '</code></pre>';
+                    inCode = false;
+                } else {
+                    if (inList) { html += '</ul>'; inList = false; }
+                    codeLang = line.slice(3).trim();
+                    html += '<pre class="km-reader-pre"><code>';
+                    inCode = true;
+                }
+                continue;
+            }
+            if (inCode) { html += esc(line) + '\n'; continue; }
+            if (inList && !line.match(/^[\s]*[-*+]\s/) && line.trim() !== '') {
+                html += '</ul>';
+                inList = false;
+            }
+            if (line.startsWith('### ')) {
+                html += '<h3 class="km-reader-h3">' + inline(line.slice(4)) + '</h3>';
+            } else if (line.startsWith('## ')) {
+                html += '<h2 class="km-reader-h2">' + inline(line.slice(3)) + '</h2>';
+            } else if (line.startsWith('# ')) {
+                html += '<h1 class="km-reader-h1">' + inline(line.slice(2)) + '</h1>';
+            } else if (line.match(/^---+$/)) {
+                html += '<hr class="km-reader-hr">';
+            } else if (line.match(/^[\s]*[-*+]\s/)) {
+                if (!inList) { html += '<ul class="km-reader-ul">'; inList = true; }
+                html += '<li>' + inline(line.replace(/^[\s]*[-*+]\s/, '')) + '</li>';
+            } else if (line.trim() === '') {
+                if (inList) { html += '</ul>'; inList = false; }
+                html += '<br>';
+            } else {
+                html += '<p class="km-reader-p">' + inline(line) + '</p>';
+            }
+        }
+        if (inCode) html += '</code></pre>';
+        if (inList) html += '</ul>';
+        return html;
+    }
+
+    async function openWebReader(licenseKey, title) {
+        if (!licenseKey) return;
+        var btn = event && event.target;
+        var origText = btn ? btn.textContent : '';
+        try {
+            if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+            const hdrs = await authHeaders();
+            const res = await fetch(apiBase() + '/knowledge/download/' + encodeURIComponent(licenseKey), { headers: hdrs });
+            const json = await res.json();
+            const url = json.download_url || (json.data && json.data.download_url);
+            if (!url) { alert('Không lấy được nội dung.'); return; }
+
+            const contentRes = await fetch(url);
+            const markdown = await contentRes.text();
+            const rendered = _mdToHtml(markdown);
+
+            // Show in full-screen reader modal
+            var existing = document.getElementById('km-reader-modal');
+            if (existing) existing.remove();
+
+            var modal = document.createElement('div');
+            modal.id = 'km-reader-modal';
+            modal.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(20,20,19,0.55);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px;';
+            modal.innerHTML =
+                '<div style="background:#faf9f5;border-radius:16px;max-width:720px;width:100%;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.18);position:relative;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #f0eee6;position:sticky;top:0;background:#faf9f5;border-radius:16px 16px 0 0;z-index:1;">' +
+                        '<h2 style="font-family:Georgia,serif;font-size:1.1rem;font-weight:500;color:#141413;margin:0;">' + escHtml(title || 'Knowledge Pack') + '</h2>' +
+                        '<div style="display:flex;gap:8px;">' +
+                            '<button onclick="KM.copyToClaudeFromLibrary(\'' + escHtml(licenseKey) + '\',\'' + escHtml(title || '') + '\')" style="padding:5px 10px;border:1px solid #e8e6dc;border-radius:6px;background:#fff;font-size:12px;cursor:pointer;">📋 Copy to Claude</button>' +
+                            '<button onclick="document.getElementById(\'km-reader-modal\').remove()" style="padding:5px 12px;border:none;border-radius:6px;background:#141413;color:#faf9f5;font-size:12px;cursor:pointer;">✕ Đóng</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="km-reader-body" style="padding:24px 32px 32px;">' + rendered + '</div>' +
+                '</div>';
+
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) modal.remove();
+            });
+            document.body.appendChild(modal);
+        } catch (e) {
+            console.error('[km] reader error:', e);
+            alert('Không tải được nội dung. Thử lại sau.');
+        }
+        if (btn) { btn.textContent = origText; btn.disabled = false; }
     }
 
     async function copyToClaudeFromLibrary(licenseKey, title) {
@@ -2376,6 +2482,7 @@
         downloadByLicense:     downloadByLicense,
         loadLibrary:           loadLibrary,
         showMarketplace:       showMarketplace,
+        openWebReader:            openWebReader,
         downloadFromLibrary:      downloadFromLibrary,
         copyToClaudeFromLibrary:  copyToClaudeFromLibrary,
         removeFromLibrary:        removeFromLibrary,

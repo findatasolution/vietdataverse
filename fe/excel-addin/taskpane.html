@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Viet Dataverse — Excel Add-in</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="taskpane.css"/>
+</head>
+<body>
+  <div class="vd-header">
+    <span class="vd-logo">V</span>
+    <span class="vd-title">Viet Dataverse</span>
+  </div>
+
+  <!-- API Key setup -->
+  <div id="section-apikey" class="section">
+    <label class="label">API Key</label>
+    <div class="row-flex">
+      <input id="inp-apikey" type="password" class="inp" placeholder="vd_live_..."/>
+      <button id="btn-save-key" class="btn-primary" onclick="saveApiKey()">Lưu</button>
+    </div>
+    <div id="key-status" class="hint"></div>
+    <a href="https://vietdataverse.online/fe/pages/account.html" target="_blank" class="hint-link">Lấy API Key miễn phí →</a>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- Data selector -->
+  <div id="section-data" class="section">
+    <label class="label">Loại dữ liệu</label>
+    <select id="sel-datatype" class="inp" onchange="onDatatypeChange()">
+      <option value="gold">🥇 Giá Vàng (SJC / DOJI / BTMC / PNJ)</option>
+      <option value="silver">🥈 Giá Bạc (Phú Quý)</option>
+      <option value="sbv-rate">💱 Tỷ giá USD/VND</option>
+      <option value="termdepo">🏦 Lãi suất Tiết kiệm (ACB)</option>
+      <option value="macro/cpi">📊 CPI Việt Nam</option>
+      <option value="vn30/ohlcv">📈 VN30 OHLCV</option>
+      <option value="global">🌐 Dữ liệu Toàn cầu</option>
+    </select>
+
+    <!-- Sub-options per data type -->
+    <div id="sub-gold" class="sub-opts">
+      <label class="label">Thương hiệu</label>
+      <select id="sel-gold-type" class="inp">
+        <option value="">Tất cả</option>
+        <option value="SJC">SJC</option>
+        <option value="DOJI">DOJI</option>
+        <option value="BTMC">BTMC (Bảo Tín Minh Châu)</option>
+        <option value="PNJ">PNJ</option>
+      </select>
+    </div>
+
+    <div id="sub-sbvrate" class="sub-opts hidden">
+      <label class="label">Ngân hàng</label>
+      <select id="sel-bank" class="inp">
+        <option value="VCB">Vietcombank (VCB)</option>
+        <option value="SBV">NHNN (SBV trung tâm)</option>
+      </select>
+    </div>
+
+    <div id="sub-termdepo" class="sub-opts hidden">
+      <label class="label">Kỳ hạn</label>
+      <select id="sel-term" class="inp">
+        <option value="">Tất cả kỳ hạn</option>
+        <option value="1">1 tháng</option>
+        <option value="3">3 tháng</option>
+        <option value="6">6 tháng</option>
+        <option value="12">12 tháng</option>
+        <option value="24">24 tháng</option>
+      </select>
+    </div>
+
+    <div id="sub-vn30" class="sub-opts hidden">
+      <label class="label">Mã cổ phiếu</label>
+      <input id="inp-ticker" type="text" class="inp" placeholder="VCB" value="VCB" style="text-transform:uppercase"/>
+    </div>
+
+    <div id="sub-global" class="sub-opts hidden">
+      <label class="label">Symbol</label>
+      <select id="sel-global" class="inp">
+        <option value="GC=F">GC=F — Vàng quốc tế (XAU/USD)</option>
+        <option value="SI=F">SI=F — Bạc quốc tế (XAG/USD)</option>
+        <option value="^IXIC">^IXIC — Nasdaq Composite</option>
+        <option value="CL=F">CL=F — Dầu thô WTI</option>
+        <option value="DX-Y.NYB">DX-Y.NYB — Dollar Index</option>
+      </select>
+    </div>
+
+    <label class="label" style="margin-top:12px">Khoảng thời gian</label>
+    <div class="period-btns">
+      <button class="btn-period active" data-p="30d" onclick="setPeriod(this,'30d')">30 ngày</button>
+      <button class="btn-period" data-p="90d" onclick="setPeriod(this,'90d')">90 ngày</button>
+      <button class="btn-period" data-p="1y" onclick="setPeriod(this,'1y')">1 năm</button>
+      <button class="btn-period" data-p="all" onclick="setPeriod(this,'all')">Tất cả</button>
+    </div>
+
+    <label class="label" style="margin-top:12px">Nhập vào ô (tuỳ chọn)</label>
+    <input id="inp-cell" type="text" class="inp" placeholder="Ô hiện tại (để trống = tự động)"/>
+
+    <button id="btn-import" class="btn-primary btn-full" onclick="importData()" style="margin-top:16px">
+      ⬇ Nhập vào Excel
+    </button>
+
+    <div id="import-status" class="status-msg hidden"></div>
+  </div>
+
+  <div class="footer">
+    <a href="https://vietdataverse.online" target="_blank">vietdataverse.online</a>
+    &nbsp;·&nbsp;
+    <a href="https://vietdataverse.online/fe/pages/api-docs.html" target="_blank">API Docs</a>
+  </div>
+
+  <script src="taskpane.js"></script>
+</body>
+</html>

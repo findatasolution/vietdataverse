@@ -70,6 +70,11 @@ if os.path.exists(_fe):
 if os.path.exists(_fe_pages):
     app.mount("/pages", StaticFiles(directory=_fe_pages, html=True), name="fe_pages")
 
+# Excel Add-in static files — served at /excel-addin/
+_excel_addin = os.path.join(_root, "fe", "excel-addin")
+if os.path.exists(_excel_addin):
+    app.mount("/excel-addin", StaticFiles(directory=_excel_addin), name="excel_addin")
+
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/")
 async def root():

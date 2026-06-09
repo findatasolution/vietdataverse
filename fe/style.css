@@ -3934,3 +3934,31 @@ html {
         gap: 0.75rem;
     }
 }
+
+/* ── Knowledge Pack Web Reader ─────────────────────────────────────────────── */
+.km-reader-body { font-size: 0.94rem; color: #141413; line-height: 1.7; }
+.km-reader-h1 { font-family: Georgia, serif; font-size: 1.5rem; font-weight: 500; margin: 0 0 1rem; color: #141413; }
+.km-reader-h2 { font-family: Georgia, serif; font-size: 1.2rem; font-weight: 500; margin: 1.75rem 0 0.6rem; color: #141413; }
+.km-reader-h3 { font-family: Georgia, serif; font-size: 1rem; font-weight: 500; margin: 1.25rem 0 0.4rem; color: #3d3d3a; }
+.km-reader-p  { margin: 0.5rem 0; }
+.km-reader-hr { border: none; border-top: 1px solid #e8e6dc; margin: 1.5rem 0; }
+.km-reader-ul { margin: 0.5rem 0 0.5rem 1.25rem; }
+.km-reader-ul li { margin-bottom: 0.25rem; }
+.km-reader-pre {
+    background: #141413;
+    color: #faf9f5;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+.km-reader-pre code { background: none; color: inherit; padding: 0; }
+.km-reader-inline-code {
+    background: #f0eee6;
+    color: #c96442;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.88em;
+}
