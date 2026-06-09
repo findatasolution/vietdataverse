@@ -10,6 +10,13 @@ from core.utils import get_date_filter
 router = APIRouter()
 
 
+def _paginate(rows: list, page: int, limit: int) -> tuple[list, int]:
+    """Return (page_rows, total). page is 1-indexed."""
+    total  = len(rows)
+    start  = (page - 1) * limit
+    return rows[start:start + limit], total
+
+
 def _json_response(data: dict) -> Response:
     raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
     return Response(content=raw, media_type="application/json",
@@ -21,6 +28,8 @@ async def get_gold_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
     type: str = Query("DOJI HN", description="Gold type"),
+    page: int = Query(None, ge=1, description="Page number (enables row-based response)"),
+    limit: int = Query(30, ge=1, le=500, description="Rows per page"),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -36,15 +45,24 @@ async def get_gold_data(
         with get_engine_crawl().connect() as conn:
             rows = conn.execute(query, {"date_filter": date_filter, "gold_type": type}).fetchall()
 
+        rows = list(reversed(rows))  # chronological order
+
+        if page is not None:
+            page_rows, total = _paginate(rows, page, limit)
+            data = [{"date": r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]),
+                     "buy_price": float(r[1]) if r[1] else 0,
+                     "sell_price": float(r[2]) if r[2] else 0} for r in page_rows]
+            return _json_response({"success": True, "data": data,
+                                   "total": total, "page": page, "limit": limit,
+                                   "pages": (total + limit - 1) // limit,
+                                   "type": type, "period": period})
+
         dates = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
         buy   = [float(r[1]) if r[1] else 0 for r in rows]
         sell  = [float(r[2]) if r[2] else 0 for r in rows]
-
-        return _json_response({
-            "success": True,
-            "data": {"dates": dates[::-1], "buy_prices": buy[::-1], "sell_prices": sell[::-1]},
-            "type": type, "period": period, "count": len(dates),
-        })
+        return _json_response({"success": True,
+                               "data": {"dates": dates, "buy_prices": buy, "sell_prices": sell},
+                               "type": type, "period": period, "count": len(dates)})
     except HTTPException:
         raise
     except Exception as e:
@@ -75,30 +93,34 @@ async def get_gold_types(request: Request):
 async def get_silver_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
+    page: int = Query(None, ge=1),
+    limit: int = Query(30, ge=1, le=500),
 ):
     try:
         date_filter = get_date_filter(period)
-        query = text("""
-            SELECT date, buy_price, sell_price
-            FROM (
-                SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
-                FROM vn_macro_silver_daily
-                WHERE date >= :date_filter
-                ORDER BY date, crawl_time DESC
-            ) s ORDER BY date DESC
-        """)
         with get_engine_crawl().connect() as conn:
-            rows = conn.execute(query, {"date_filter": date_filter}).fetchall()
+            rows = list(reversed(conn.execute(text("""
+                SELECT date, buy_price, sell_price FROM (
+                    SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
+                    FROM vn_macro_silver_daily WHERE date >= :date_filter
+                    ORDER BY date, crawl_time DESC
+                ) s ORDER BY date DESC
+            """), {"date_filter": date_filter}).fetchall()))
+
+        if page is not None:
+            page_rows, total = _paginate(rows, page, limit)
+            data = [{"date": r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]),
+                     "buy_price": float(r[1]) if r[1] else 0,
+                     "sell_price": float(r[2]) if r[2] else 0} for r in page_rows]
+            return _json_response({"success": True, "data": data,
+                                   "total": total, "page": page, "limit": limit,
+                                   "pages": (total + limit - 1) // limit, "period": period})
 
         dates = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
-        buy   = [float(r[1]) if r[1] else 0 for r in rows]
-        sell  = [float(r[2]) if r[2] else 0 for r in rows]
-
-        return _json_response({
-            "success": True,
-            "data": {"dates": dates[::-1], "buy_prices": buy[::-1], "sell_prices": sell[::-1]},
-            "period": period, "count": len(dates),
-        })
+        return _json_response({"success": True,
+                               "data": {"dates": dates, "buy_prices": [float(r[1]) if r[1] else 0 for r in rows],
+                                        "sell_prices": [float(r[2]) if r[2] else 0 for r in rows]},
+                               "period": period, "count": len(dates)})
     except HTTPException:
         raise
     except Exception as e:
@@ -152,12 +174,15 @@ async def get_sbv_interbank_data(
         raise HTTPException(status_code=500, detail=f"Failed to fetch SBV data: {e}")
 
 
+@router.get("/api/v1/sbv-rate")
 @router.get("/api/v1/sbv-centralrate")
 async def get_sbv_central_rate(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
-    bank: str = Query("SBV", description="Bank code"),
+    bank: str = Query("VCB", description="Bank code"),
     currency: str = Query("USD", description="Currency code"),
+    page: int = Query(None, ge=1),
+    limit: int = Query(30, ge=1, le=500),
 ):
     try:
         bank_upper     = bank.upper()
@@ -193,14 +218,20 @@ async def get_sbv_central_rate(
         buy_cash  = [float(r[2]) if r[2] else None for r in rows]
         sell      = [float(r[3]) if r[3] else None for r in rows]
 
-        return _json_response({
-            "success": True,
-            "data": {
-                "dates": dates[::-1], "usd_vnd_rate": rates[::-1],
-                "buy_cash": buy_cash[::-1], "sell_rate": sell[::-1],
-            },
-            "period": period, "bank": bank_upper, "currency": currency_upper, "count": len(dates),
-        })
+        rows_asc = list(zip(dates[::-1], rates[::-1], buy_cash[::-1], sell[::-1]))
+
+        if page is not None:
+            page_rows, total = _paginate(rows_asc, page, limit)
+            data = [{"date": r[0], "buy": r[1], "buy_cash": r[2], "sell": r[3]} for r in page_rows]
+            return _json_response({"success": True, "data": data,
+                                   "total": total, "page": page, "limit": limit,
+                                   "pages": (total + limit - 1) // limit,
+                                   "bank": bank_upper, "currency": currency_upper, "period": period})
+
+        return _json_response({"success": True,
+                               "data": {"dates": dates[::-1], "usd_vnd_rate": rates[::-1],
+                                        "buy_cash": buy_cash[::-1], "sell_rate": sell[::-1]},
+                               "period": period, "bank": bank_upper, "currency": currency_upper, "count": len(dates)})
     except HTTPException:
         raise
     except Exception as e:
@@ -212,6 +243,8 @@ async def get_term_deposit_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
     bank: str = Query("ACB", description="Bank code"),
+    page: int = Query(None, ge=1),
+    limit: int = Query(30, ge=1, le=500),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -235,14 +268,22 @@ async def get_term_deposit_data(
         term_12m = [float(r[4]) if r[4] else 0 for r in rows]
         term_24m = [float(r[5]) if r[5] else 0 for r in rows]
 
-        return _json_response({
-            "success": True,
-            "data": {
-                "dates": dates[::-1], "term_1m": term_1m[::-1], "term_3m": term_3m[::-1],
-                "term_6m": term_6m[::-1], "term_12m": term_12m[::-1], "term_24m": term_24m[::-1],
-            },
-            "bank": bank, "period": period, "count": len(dates),
-        })
+        rows_asc = list(zip(dates[::-1], term_1m[::-1], term_3m[::-1],
+                            term_6m[::-1], term_12m[::-1], term_24m[::-1]))
+
+        if page is not None:
+            page_rows, total = _paginate(rows_asc, page, limit)
+            data = [{"date": r[0], "term_1m": r[1], "term_3m": r[2],
+                     "term_6m": r[3], "term_12m": r[4], "term_24m": r[5]} for r in page_rows]
+            return _json_response({"success": True, "data": data,
+                                   "total": total, "page": page, "limit": limit,
+                                   "pages": (total + limit - 1) // limit, "bank": bank, "period": period})
+
+        return _json_response({"success": True,
+                               "data": {"dates": dates[::-1], "term_1m": term_1m[::-1],
+                                        "term_3m": term_3m[::-1], "term_6m": term_6m[::-1],
+                                        "term_12m": term_12m[::-1], "term_24m": term_24m[::-1]},
+                               "bank": bank, "period": period, "count": len(dates)})
     except HTTPException:
         raise
     except Exception as e:
@@ -263,38 +304,43 @@ async def get_bank_types(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to fetch bank types: {e}")
 
 
+@router.get("/api/v1/global")
 @router.get("/api/v1/global-macro")
 async def get_global_macro_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
+    symbol: str = Query(None, description="Filter by symbol: GC=F, SI=F, ^IXIC"),
+    page: int = Query(None, ge=1),
+    limit: int = Query(30, ge=1, le=500),
 ):
     try:
         date_filter = get_date_filter(period)
-        query = text("""
-            SELECT date, gold_price, silver_price, nasdaq_price
-            FROM (
-                SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, crawl_time
-                FROM global_macro
-                WHERE date >= :date_filter
-                ORDER BY date, crawl_time DESC
-            ) s ORDER BY date DESC
-        """)
         with get_engine_global().connect() as conn:
-            rows = conn.execute(query, {"date_filter": date_filter}).fetchall()
+            rows = list(reversed(conn.execute(text("""
+                SELECT date, gold_price, silver_price, nasdaq_price FROM (
+                    SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, crawl_time
+                    FROM global_macro WHERE date >= :date_filter
+                    ORDER BY date, crawl_time DESC
+                ) s ORDER BY date DESC
+            """), {"date_filter": date_filter}).fetchall()))
 
         dates   = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
         gold    = [float(r[1]) if r[1] else 0 for r in rows]
         silver  = [float(r[2]) if r[2] else 0 for r in rows]
         nasdaq  = [float(r[3]) if r[3] else 0 for r in rows]
 
-        return _json_response({
-            "success": True,
-            "data": {
-                "dates": dates[::-1], "gold_prices": gold[::-1],
-                "silver_prices": silver[::-1], "nasdaq_prices": nasdaq[::-1],
-            },
-            "period": period, "count": len(dates),
-        })
+        if page is not None:
+            page_rows, total = _paginate(list(zip(dates, gold, silver, nasdaq)), page, limit)
+            data = [{"date": r[0], "gold_price": r[1], "silver_price": r[2], "nasdaq_price": r[3]}
+                    for r in page_rows]
+            return _json_response({"success": True, "data": data,
+                                   "total": total, "page": page, "limit": limit,
+                                   "pages": (total + limit - 1) // limit, "period": period})
+
+        return _json_response({"success": True,
+                               "data": {"dates": dates, "gold_prices": gold,
+                                        "silver_prices": silver, "nasdaq_prices": nasdaq},
+                               "period": period, "count": len(dates)})
     except HTTPException:
         raise
     except Exception as e:

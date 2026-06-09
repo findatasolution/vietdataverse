@@ -83,6 +83,8 @@ async function _fetchData() {
     var params = new URLSearchParams();
 
     if (_period !== 'all') params.set('period', _period);
+    params.set('page', '1');
+    params.set('limit', '500');
 
     // Build endpoint + params per data type
     var endpoint = dtype;
