@@ -19,6 +19,7 @@ class User(Base):
     email_verified = Column(Boolean, default=False, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
     user_level = Column(String(30), default="free", nullable=False, index=True)  # free | premium | premium_developer | admin
+    current_plan = Column(String(50), nullable=True)  # e.g. premium_monthly | premium_yearly | dev_monthly | dev_yearly
     registration_type = Column(String(30), default="google", nullable=False)     # google | anonymous | vdv_internal
     auth0_metadata = Column(JSON, nullable=True)
     is_premium = Column(Boolean, default=False, nullable=False)

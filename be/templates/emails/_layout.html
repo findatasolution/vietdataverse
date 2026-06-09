@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block subject %}Viet Dataverse{% endblock %}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f5f4ed;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #141413;
+    }
+  </style>
+</head>
+<body>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f4ed;padding:40px 16px;">
+  <tr>
+    <td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0"
+             style="max-width:520px;background:#ffffff;border-radius:16px;
+                    border:1px solid #e8e6dc;overflow:hidden;">
+
+        <!-- Header -->
+        <tr>
+          <td style="padding:28px 32px 20px;">
+            <span style="font-family:Georgia,serif;font-size:18px;font-weight:600;
+                         color:#141413;letter-spacing:-0.3px;">
+              Viet Dataverse
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 32px;">
+            <div style="height:1px;background:#e8e6dc;"></div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:28px 32px;">
+            {% block body %}{% endblock %}
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:0 32px;">
+            <div style="height:1px;background:#e8e6dc;"></div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 32px 24px;">
+            <p style="font-size:11px;color:#87867f;line-height:1.6;">
+              Viet Dataverse &middot;
+              <a href="https://vietdataverse.online" style="color:#87867f;text-decoration:none;">
+                vietdataverse.online
+              </a>
+              <br>
+              Bạn nhận email này vì tài khoản của bạn đăng ký dịch vụ tại Viet Dataverse.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

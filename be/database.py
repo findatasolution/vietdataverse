@@ -28,8 +28,6 @@ Base = declarative_base()
 SCHEMA = (os.getenv("DB_SCHEMA") or "public").strip() or None
 
 raw_url = (os.getenv("CRAWLING_BOT_DB") or "").strip().strip('"').strip("'")
-print(f"DEBUG: CRAWLING_BOT_DB environment variable: {os.getenv('CRAWLING_BOT_DB')}")
-print(f"DEBUG: raw_url after processing: {raw_url}")
 if raw_url.startswith("//"):
     raw_url = "postgresql+psycopg:" + raw_url
 if not raw_url:

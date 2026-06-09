@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".env"))
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
 
 from datetime import datetime
 from fastapi import FastAPI
@@ -15,7 +15,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_data, student_verify, referral
+from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_data, student_verify, referral, knowledge, wallet, seller, reports, takedown
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -49,22 +49,20 @@ app.include_router(developer.router)
 app.include_router(vn30_data.router)
 app.include_router(student_verify.router)
 app.include_router(referral.router)
+app.include_router(knowledge.router)
+app.include_router(wallet.router)
+app.include_router(seller.router)
+app.include_router(reports.router)
+app.include_router(takedown.router)
 
 # ── Static files ──────────────────────────────────────────────────────────────
 _cur  = os.path.dirname(os.path.abspath(__file__))
-_root = os.path.dirname(os.path.dirname(_cur))
+_root = os.path.dirname(_cur)
 
-_front = os.path.join(_cur, "../front")
-_vdv   = os.path.join(_root, "vietdataverse")
-if not os.path.exists(_front):
-    _front = "../front"
-if not os.path.exists(_vdv):
-    _vdv = "../../vietdataverse"
+_fe = os.path.join(_root, "fe")
 
-if os.path.exists(_front):
-    app.mount("/agent_finance/front", StaticFiles(directory=_front, html=True), name="agent_finance_front")
-if os.path.exists(_vdv):
-    app.mount("/vietdataverse", StaticFiles(directory=_vdv, html=True), name="vietdataverse")
+if os.path.exists(_fe):
+    app.mount("/fe", StaticFiles(directory=_fe, html=True), name="fe")
 
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/")

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hướng dẫn Buyer — Viet Dataverse Knowledge Market</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    body { padding: 2rem 1rem; min-height: 100vh; line-height: 1.7; }
+    .guide-container { max-width: 760px; margin: 0 auto; background: var(--surface); border-radius: 12px; padding: 2.5rem; border: 1px solid var(--border-cream); }
+    h1 { color: var(--text-primary); margin-top: 0; }
+    h2 { color: var(--terracotta); margin-top: 2rem; font-size: 1.2rem; }
+    h3 { color: var(--text-primary); font-size: 1rem; margin-top: 1.25rem; }
+    .step { background: var(--parchment); border-left: 3px solid var(--terracotta); padding: 1rem 1.25rem; border-radius: 4px; margin: 0.85rem 0; }
+    .step-num { display: inline-block; background: var(--terracotta); color: #fff; width: 1.6rem; height: 1.6rem; border-radius: 50%; text-align: center; line-height: 1.6rem; font-size: 0.85rem; font-weight: 600; margin-right: 0.5rem; }
+    .info-box { background: rgba(66, 165, 245, 0.08); border-left: 3px solid #42A5F5; padding: 0.85rem 1rem; border-radius: 4px; margin: 1rem 0; font-size: 0.9rem; }
+    .warn-box { background: rgba(239, 83, 80, 0.08); border-left: 3px solid #EF5350; padding: 0.85rem 1rem; border-radius: 4px; margin: 1rem 0; font-size: 0.9rem; }
+    code { background: #fff; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.88rem; border: 1px solid var(--border-cream); }
+    .back-link { display: inline-block; color: var(--terracotta); margin-bottom: 1.5rem; text-decoration: none; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+    <a href="/index.html#knowledge-market" class="back-link">← Quay lại Knowledge Market</a>
+    <h1>🛒 Hướng dẫn Buyer — Mua & Tải Knowledge Product</h1>
+    <p style="color:var(--text-secondary);">Sử dụng file agent-ready trong AI project của bạn.</p>
+
+    <h2>Tổng quan flow</h2>
+    <p>Browse marketplace → Xem preview → Mua (free hoặc paid) → Tải file → Dùng trong AI agent.</p>
+
+    <h2>Bước 1 — Browse & Tìm sản phẩm</h2>
+
+    <div class="step">
+      <span class="step-num">1</span> Mở tab <strong>Knowledge Market</strong> trên Viet Dataverse.
+    </div>
+    <div class="step">
+      <span class="step-num">2</span> Filter theo <strong>category</strong>: Kế toán, Trading, Vĩ mô, Chính sách, Sentiment, Rủi ro, ESG, Crypto.
+    </div>
+    <div class="step">
+      <span class="step-num">3</span> Click card sản phẩm → xem chi tiết:
+      <ul style="margin-top:0.5rem;">
+        <li>Mô tả đầy đủ</li>
+        <li>Seller info (LinkedIn nếu có)</li>
+        <li>Frameworks tương thích (claude, langchain, crewai...)</li>
+        <li>Preview 25% nội dung (cho biết file có giá trị không)</li>
+        <li>Lượt tải + rating (Phase 2)</li>
+      </ul>
+    </div>
+
+    <div class="info-box">
+      💡 <strong>Tip:</strong> Sản phẩm có badge <strong>"VD Official"</strong> = nội dung do team Viet Dataverse curate, chất lượng cao.
+    </div>
+
+    <h2>Bước 2 — Nạp Credits (cho sản phẩm trả phí)</h2>
+
+    <div class="step">
+      <span class="step-num">1</span> Click nút <strong>"Wallet"</strong> (header bar, hiển thị số credits hiện có).
+    </div>
+    <div class="step">
+      <span class="step-num">2</span> Click <strong>"Nạp credits"</strong>.
+    </div>
+    <div class="step">
+      <span class="step-num">3</span> Nhập số tiền (VND) muốn nạp:
+      <ul style="margin-top:0.5rem;">
+        <li>Tối thiểu <strong>50,000 VND</strong> (= 50 credits)</li>
+        <li><code>1 credit = 1,000 VND</code></li>
+      </ul>
+    </div>
+    <div class="step">
+      <span class="step-num">4</span> Thanh toán qua <strong>PayOS</strong> (VietQR, banking app).
+    </div>
+    <div class="step">
+      <span class="step-num">5</span> Credits sẽ tự động cộng vào tài khoản trong vòng 1-2 phút sau khi thanh toán xong.
+    </div>
+
+    <div class="info-box">
+      💡 <strong>Sản phẩm Free:</strong> Bạn không cần nạp credits cho sản phẩm <strong>"Miễn phí"</strong> — click "Tải miễn phí" là xong.
+    </div>
+
+    <h2>Bước 3 — Mua sản phẩm</h2>
+
+    <div class="step">
+      <span class="step-num">1</span> Trong product detail modal, click button:
+      <ul style="margin-top:0.5rem;">
+        <li><strong>"Tải miễn phí"</strong> nếu giá = 0 credits</li>
+        <li><strong>"Mua · N credits"</strong> nếu trả phí (N credits sẽ bị trừ khỏi balance)</li>
+      </ul>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span> Modal "Mua thành công" hiện ra với <strong>license key</strong> + hướng dẫn tiếp theo.
+    </div>
+    <div class="step">
+      <span class="step-num">3</span> Click <strong>"Tải file ngay"</strong> → browser tự download file về máy.
+    </div>
+
+    <div class="warn-box">
+      ⚠️ <strong>Lưu license key lại</strong> (copy bằng nút "📋 Copy"). Bạn có thể re-download file trong <strong>30 ngày</strong> bằng license key này.
+    </div>
+
+    <h2>Bước 4 — Dùng file trong AI Agent</h2>
+
+    <p>File đã download tùy format:</p>
+    <ul>
+      <li><code>.md</code> — Markdown, paste vào system prompt hoặc include vào RAG pipeline</li>
+      <li><code>.json</code> — Schema/data structure, load bằng <code>json.loads()</code> trong Python</li>
+      <li><code>.yaml</code> — Config/rules, load bằng <code>yaml.safe_load()</code></li>
+      <li><code>.csv</code> — Dataset, load bằng <code>pandas.read_csv()</code></li>
+    </ul>
+
+    <p>Ví dụ trong LangChain agent:</p>
+    <pre style="background:var(--parchment);padding:1rem;border-radius:6px;font-size:0.85rem;overflow-x:auto;"><code>from langchain.prompts import PromptTemplate
+import json
+
+# Load schema từ Viet Dataverse Knowledge Market
+with open('tt200-chart-of-accounts.json') as f:
+    chart_of_accounts = json.load(f)
+
+prompt = PromptTemplate(
+    input_variables=["transaction"],
+    template="""
+You are a VN accountant. Use this chart of accounts:
+{chart}
+
+Categorize this transaction: {transaction}
+""".format(chart=json.dumps(chart_of_accounts['accounts']))
+)
+</code></pre>
+
+    <h2>Thư viện cá nhân (My Library)</h2>
+
+    <p>Tất cả sản phẩm đã mua sẽ hiển thị trong <strong>"Thư viện"</strong>. Click sản phẩm → re-download bằng license key (trong 30 ngày).</p>
+
+    <h2>Báo cáo vi phạm</h2>
+
+    <p>Nếu phát hiện sản phẩm vi phạm bản quyền, chứa PII, hoặc spam:</p>
+    <ol>
+      <li>Click product detail → button <strong>"⚠️ Báo cáo vi phạm"</strong></li>
+      <li>Chọn lý do + mô tả chi tiết</li>
+      <li>Sản phẩm có ≥ 3 báo cáo độc lập sẽ tự động ẩn</li>
+    </ol>
+
+    <p>Báo cáo bản quyền chính thức (DMCA): <a href="/pages/takedown.html" style="color:var(--terracotta);">/pages/takedown.html</a></p>
+
+    <h2>FAQ</h2>
+
+    <h3>Có hoàn tiền không?</h3>
+    <p>Có. Trong <strong>1 giờ</strong> sau khi mua VÀ chưa tải file → click "Huỷ giao dịch" trong My Library để hoàn credits. Sau khi tải, không hoàn tiền.</p>
+
+    <h3>Mua 1 lần được tải bao nhiêu lần?</h3>
+    <p>Unlimited trong 30 ngày. Sau 30 ngày, file vẫn thuộc về bạn nhưng cần contact admin để re-issue download link.</p>
+
+    <h3>Sản phẩm cập nhật version mới, tôi có được không?</h3>
+    <p>Buyer đã mua được update miễn phí trong cùng <strong>major version</strong> (vd v1.0 → v1.5 free). Major upgrade (v1 → v2) được giảm 50%.</p>
+
+    <h3>Credits có hết hạn không?</h3>
+    <p>Không. Credits trong wallet vĩnh viễn.</p>
+
+    <h3>Tôi có thể bán lại file đã mua không?</h3>
+    <p>Không. License chỉ cho 1 user dùng. Vi phạm sẽ bị ban tài khoản.</p>
+
+    <hr style="margin-top:2.5rem;border:none;border-top:1px solid var(--border-cream);">
+    <p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;">
+      Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a>
+    </p>
+  </div>
+</body>
+</html>

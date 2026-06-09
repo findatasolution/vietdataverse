@@ -1,0 +1,284 @@
+
+            <!-- Knowledge Market Tab -->
+            <div class="tab-content" id="knowledge-market">
+
+                <!-- Section header -->
+                <div class="km-section-header">
+                    <h1 class="km-section-title">AI Agent Knowledge &amp; Skill Market</h1>
+                    <p class="km-section-subtitle">File agent-ready cho Dev xây AI tài chính Việt Nam — schema chuẩn, từ điển trader, context macro.</p>
+                </div>
+
+                <!-- Library view (hidden by default) -->
+                <div id="km-library-view" style="display:none;">
+
+                    <!-- Library header -->
+                    <div class="km-library-header">
+                        <div class="km-library-header-left">
+                            <button onclick="KM.showMarketplace()" class="km-btn-back">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Marketplace
+                            </button>
+                            <h2 class="km-library-title" id="km-library-title">Thư viện của tôi</h2>
+                        </div>
+                        <button class="km-btn-sand" id="km-library-export-btn" onclick="KM.exportLibrary()">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            Xuất tất cả
+                        </button>
+                    </div>
+
+                    <!-- Library filter row -->
+                    <div class="km-library-filterrow">
+                        <div class="km-filterbar-search">
+                            <svg class="km-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                            <input type="search" id="km-library-search" placeholder="Tìm trong bộ sưu tập..." class="km-search-input" oninput="KM.filterLibrary(this.value)" autocomplete="off">
+                        </div>
+                        <select class="km-dropdown" id="km-library-sort" onchange="KM.sortLibrary(this.value)">
+                            <option value="recent">Mới mua</option>
+                            <option value="az">A – Z</option>
+                            <option value="category">Danh mục</option>
+                        </select>
+                    </div>
+
+                    <!-- Library content: grouped by category or flat -->
+                    <div id="km-library-grid"></div>
+                </div>
+
+                <!-- Marketplace view (default) -->
+                <div id="km-marketplace-view">
+
+                    <!-- Filter & Sort Bar (§11.3) -->
+                    <div class="km-filterbar" id="km-filterbar">
+                        <!-- Row 1: search + dropdowns -->
+                        <div class="km-filterbar-row1">
+                            <div class="km-filterbar-search">
+                                <svg class="km-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                <input type="search" id="km-search-input" placeholder="Tìm pack, agent, skill..." class="km-search-input" oninput="KM.onSearch(this.value)" autocomplete="off">
+                            </div>
+                            <div class="km-filterbar-dropdowns" id="km-filterbar-dropdowns">
+                                <select class="km-dropdown" id="km-filter-type" onchange="KM.onFilterChange()">
+                                    <option value="">Loại</option>
+                                    <option value="knowledge">Knowledge Pack</option>
+                                    <option value="agent">Agent</option>
+                                    <option value="skill">Skill</option>
+                                    <option value="dataset">Dataset</option>
+                                </select>
+                                <select class="km-dropdown" id="km-filter-price" onchange="KM.onFilterChange()">
+                                    <option value="">Giá</option>
+                                    <option value="free">Miễn phí</option>
+                                    <option value="paid">Trả phí</option>
+                                </select>
+                                <select class="km-dropdown" id="km-filter-sort" onchange="KM.onFilterChange()">
+                                    <option value="popular">Phổ biến nhất</option>
+                                    <option value="newest">Mới nhất</option>
+                                    <option value="rating">Đánh giá cao</option>
+                                    <option value="downloads">Tải nhiều</option>
+                                </select>
+                            </div>
+                            <!-- Mobile: collapse dropdowns into single button -->
+                            <button class="km-filter-toggle-btn" id="km-filter-toggle-btn" onclick="KM.openFilterSheet()">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                Bộ lọc
+                            </button>
+                        </div>
+
+                        <!-- Row 2: category chips (§11.4) -->
+                        <div class="km-cat-chips" id="km-cat-chips">
+                            <button class="km-cat-chip active" data-cat="all"             onclick="KM.filterCategory('all')">Tất cả</button>
+                            <button class="km-cat-chip"        data-cat="accounting"      onclick="KM.filterCategory('accounting')">Kế toán</button>
+                            <button class="km-cat-chip"        data-cat="trading"         onclick="KM.filterCategory('trading')">Trading</button>
+                            <button class="km-cat-chip"        data-cat="macro"           onclick="KM.filterCategory('macro')">Vĩ mô</button>
+                            <button class="km-cat-chip"        data-cat="policy"          onclick="KM.filterCategory('policy')">Chính sách</button>
+                            <button class="km-cat-chip"        data-cat="sentiment"       onclick="KM.filterCategory('sentiment')">Sentiment</button>
+                            <button class="km-cat-chip"        data-cat="risk-management" onclick="KM.filterCategory('risk-management')">Rủi ro</button>
+                            <button class="km-cat-chip"        data-cat="esg"             onclick="KM.filterCategory('esg')">ESG</button>
+                            <button class="km-cat-chip"        data-cat="crypto"          onclick="KM.filterCategory('crypto')">Crypto</button>
+                        </div>
+                    </div>
+
+                    <!-- Product grid -->
+                    <div id="km-product-grid" class="km-grid">
+                        <!-- Skeleton cards rendered by JS on load -->
+                    </div>
+                </div>
+
+                <!-- Categories view -->
+                <div id="km-categories-view" style="display:none;">
+                    <h2 class="km-section-title-sm">Danh mục</h2>
+                    <p class="km-section-subtitle-sm">Chọn danh mục để xem các pack liên quan.</p>
+                    <div id="km-categories-grid" class="km-categories-grid"></div>
+                </div>
+
+                <!-- Trending view -->
+                <div id="km-trending-view" style="display:none;">
+                    <h2 class="km-section-title-sm">🔥 Đang thịnh hành tuần này</h2>
+                    <p class="km-section-subtitle-sm">Pack được tải nhiều nhất 7 ngày qua.</p>
+                    <div id="km-trending-grid" class="km-grid"></div>
+                </div>
+
+                <!-- Mobile bottom-sheet filter (§11.14) -->
+                <div id="km-filter-sheet-backdrop" class="km-sheet-backdrop" style="display:none;" onclick="KM.closeFilterSheet()"></div>
+                <div id="km-filter-sheet" class="km-filter-sheet" style="display:none;" aria-modal="true" role="dialog" aria-label="Bộ lọc">
+                    <div class="km-sheet-handle"></div>
+                    <h3 class="km-sheet-title">Bộ lọc &amp; Sắp xếp</h3>
+
+                    <div class="km-sheet-group">
+                        <p class="km-sheet-group-label">Loại sản phẩm</p>
+                        <div class="km-sheet-chips">
+                            <button class="km-sheet-chip active" data-filter-type="" onclick="KM._sheetFilterType(this, '')">Tất cả</button>
+                            <button class="km-sheet-chip" data-filter-type="knowledge" onclick="KM._sheetFilterType(this, 'knowledge')">Knowledge Pack</button>
+                            <button class="km-sheet-chip" data-filter-type="agent"     onclick="KM._sheetFilterType(this, 'agent')">Agent</button>
+                            <button class="km-sheet-chip" data-filter-type="skill"     onclick="KM._sheetFilterType(this, 'skill')">Skill</button>
+                            <button class="km-sheet-chip" data-filter-type="dataset"   onclick="KM._sheetFilterType(this, 'dataset')">Dataset</button>
+                        </div>
+                    </div>
+
+                    <div class="km-sheet-group">
+                        <p class="km-sheet-group-label">Giá</p>
+                        <div class="km-sheet-chips">
+                            <button class="km-sheet-chip active" data-filter-price="" onclick="KM._sheetFilterPrice(this, '')">Tất cả</button>
+                            <button class="km-sheet-chip" data-filter-price="free"    onclick="KM._sheetFilterPrice(this, 'free')">Miễn phí</button>
+                            <button class="km-sheet-chip" data-filter-price="paid"    onclick="KM._sheetFilterPrice(this, 'paid')">Trả phí</button>
+                        </div>
+                    </div>
+
+                    <div class="km-sheet-group">
+                        <p class="km-sheet-group-label">Sắp xếp</p>
+                        <div class="km-sheet-chips">
+                            <button class="km-sheet-chip active" data-filter-sort="popular"   onclick="KM._sheetFilterSort(this, 'popular')">Phổ biến nhất</button>
+                            <button class="km-sheet-chip"        data-filter-sort="newest"    onclick="KM._sheetFilterSort(this, 'newest')">Mới nhất</button>
+                            <button class="km-sheet-chip"        data-filter-sort="rating"    onclick="KM._sheetFilterSort(this, 'rating')">Đánh giá cao</button>
+                            <button class="km-sheet-chip"        data-filter-sort="downloads" onclick="KM._sheetFilterSort(this, 'downloads')">Tải nhiều</button>
+                        </div>
+                    </div>
+
+                    <div class="km-sheet-footer">
+                        <button class="km-btn-sand" onclick="KM.clearFilters()">Xoá bộ lọc</button>
+                        <button class="km-btn-primary" onclick="KM.applySheetFilters()">Áp dụng</button>
+                    </div>
+                </div>
+
+                <!-- Mobile FAB filter button (§11.14 — shown when scrolled past filterbar) -->
+                <button id="km-fab-filter" class="km-fab-filter" style="display:none;" onclick="KM.openFilterSheet()" aria-label="Bộ lọc">
+                    <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
+
+                <!-- Modals (all hidden by default) -->
+                <div id="km-modal-product-detail"   class="km-modal" style="display:none;"></div>
+                <div id="km-modal-wallet"            class="km-modal" style="display:none;"></div>
+                <div id="km-modal-seller-dashboard"  class="km-modal" style="display:none;"></div>
+                <div id="km-modal-upload-product"    class="km-modal" style="display:none;"></div>
+                <div id="km-modal-admin"             class="km-modal" style="display:none;"></div>
+
+                <!-- Scan result modal — shown after upload (success or reject) -->
+                <div id="km-modal-scan-result" class="km-modal" style="display:none;">
+                    <div class="km-modal-content" style="max-width:560px;">
+                        <button class="km-modal-close" onclick="KM.closeModal('km-modal-scan-result')">&times;</button>
+                        <div id="km-scan-result-body">
+                            <!-- Rendered dynamically by _showScanSuccess / _showScanReject -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report violation modal -->
+                <div id="km-modal-report" class="km-modal" style="display:none;">
+                    <div class="km-modal-content" style="max-width:520px;">
+                        <button class="km-modal-close" onclick="KM.closeModal('km-modal-report')">&times;</button>
+                        <h2 style="font-size:1.1rem;font-weight:600;margin:0 0 0.35rem;">Báo cáo vi phạm</h2>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1.25rem;">
+                            Báo cáo của bạn sẽ được xem xét. Sản phẩm có ≥ 3 báo cáo độc lập sẽ tự động ẩn.
+                        </p>
+
+                        <form id="km-report-form" onsubmit="KM.submitReport(event)">
+                            <input type="hidden" name="product_id" id="km-report-product-id">
+
+                            <div style="margin-bottom:1rem;">
+                                <label class="km-label">Lý do *</label>
+                                <select class="km-input" name="reason_code" required>
+                                    <option value="">-- Chọn lý do --</option>
+                                    <option value="copyright">Vi phạm bản quyền</option>
+                                    <option value="pii">Chứa thông tin cá nhân (CCCD/SĐT)</option>
+                                    <option value="malware">Mã độc / file độc hại</option>
+                                    <option value="misleading">Nội dung sai sự thật / lừa đảo</option>
+                                    <option value="spam">Spam / chất lượng thấp</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom:1rem;">
+                                <label class="km-label">Mô tả chi tiết (khuyến khích)</label>
+                                <textarea class="km-input" name="reason_text" rows="3" maxlength="500" placeholder="Bằng chứng, link nguồn gốc, hoặc chi tiết vi phạm..."></textarea>
+                            </div>
+
+                            <div id="km-report-email-wrap" style="margin-bottom:1rem;display:none;">
+                                <label class="km-label">Email (để chúng tôi phản hồi) *</label>
+                                <input class="km-input" name="reporter_email" type="email" placeholder="you@email.com">
+                            </div>
+
+                            <div style="display:flex;gap:0.75rem;">
+                                <button type="button" class="km-btn-secondary" onclick="KM.closeModal('km-modal-report')" style="flex:1;">Huỷ</button>
+                                <button type="submit" class="km-btn-primary" style="flex:1;">Gửi báo cáo</button>
+                            </div>
+                            <div id="km-report-status" style="font-size:0.82rem;margin-top:0.75rem;text-align:center;"></div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ToS modal — shown before seller register -->
+                <div id="km-modal-tos" class="km-modal" style="display:none;">
+                    <div class="km-modal-content" style="max-width:680px;">
+                        <button class="km-modal-close" onclick="KM.closeModal('km-modal-tos')">&times;</button>
+                        <h2 style="font-size:1.1rem;font-weight:600;margin:0 0 0.15rem;">Điều khoản Seller</h2>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">Phiên bản 1.0 &mdash; Hiệu lực từ 2026-05-19</p>
+
+                        <div style="max-height:380px;overflow-y:auto;border:1px solid var(--border-cream);border-radius:8px;padding:1rem;background:var(--parchment);font-size:0.88rem;line-height:1.6;" id="km-tos-content">
+                            <h3 style="margin:0 0 0.4rem;font-size:0.95rem;">1. Trách nhiệm về Nội dung</h3>
+                            <p style="margin:0 0 0.75rem;">Seller cam kết là chủ sở hữu hợp pháp hoặc có giấy phép phân phối thương mại đối với nội dung upload. KHÔNG vi phạm bản quyền, NDA, PDPD (Nghị định 13/2023/NĐ-CP). Seller chịu toàn bộ trách nhiệm pháp lý liên quan đến nội dung.</p>
+
+                            <h3 style="margin:0 0 0.4rem;font-size:0.95rem;">2. Vai trò Nền tảng</h3>
+                            <p style="margin:0 0 0.75rem;">Viet Dataverse là bên trung gian. Auto-kiểm tra: mã độc, PII, định dạng. KHÔNG kiểm duyệt nội dung trước đăng tải. Gỡ bỏ khi có ≥ 3 báo cáo độc lập hoặc DMCA takedown hợp lệ.</p>
+
+                            <h3 style="margin:0 0 0.4rem;font-size:0.95rem;">3. Chia sẻ Doanh thu</h3>
+                            <p style="margin:0 0 0.75rem;">Seller nhận <strong>90%</strong>, nền tảng giữ <strong>10%</strong>. Thanh toán thủ công qua chuyển khoản khi pending ≥ 500,000 VND. Seller tự kê khai và nộp thuế TNCN theo quy định.</p>
+
+                            <h3 style="margin:0 0 0.4rem;font-size:0.95rem;">4. Vi phạm Lặp lại</h3>
+                            <p style="margin:0 0 0.75rem;">3 lần vi phạm trong 12 tháng → <strong>đình chỉ vĩnh viễn</strong>. Doanh thu pending có thể bị giữ để bồi thường.</p>
+
+                            <h3 style="margin:0 0 0.4rem;font-size:0.95rem;">5. Quy định khác</h3>
+                            <p style="margin:0 0 0.5rem;">Hoàn tiền trong 1 giờ nếu chưa tải file. Seller phải đủ 18 tuổi. Điều khoản áp dụng theo pháp luật Việt Nam. Tranh chấp giải quyết tại TP. Hồ Chí Minh.</p>
+
+                            <p style="margin-top:1rem;"><a href="/pages/tos.html" target="_blank" style="color:var(--terracotta);">&#8594; Xem điều khoản đầy đủ</a></p>
+                        </div>
+
+                        <label style="display:flex;align-items:center;gap:0.5rem;margin-top:1rem;cursor:pointer;font-size:0.9rem;">
+                            <input type="checkbox" id="km-tos-accept" onchange="KM._onTosCheckChange()">
+                            <span>Tôi đã đọc và đồng ý với điều khoản trên</span>
+                        </label>
+
+                        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+                            <button type="button" class="km-btn-secondary" onclick="KM.closeModal('km-modal-tos')">Huỷ</button>
+                            <button type="button" class="km-btn-primary" id="km-tos-continue-btn" disabled onclick="KM._proceedToRegister()">Tiếp tục</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Check-email modal — shown after successful register -->
+                <div id="km-modal-check-email" class="km-modal" style="display:none;">
+                    <div class="km-modal-content" style="max-width:480px;text-align:center;">
+                        <button class="km-modal-close" onclick="KM.closeModal('km-modal-check-email')">&times;</button>
+                        <div style="font-size:3rem;margin:1rem 0;">&#128231;</div>
+                        <h2 style="margin:0 0 0.5rem;font-size:1.1rem;font-weight:600;">Kiểm tra email của bạn</h2>
+                        <p style="color:var(--text-secondary);font-size:0.92rem;line-height:1.6;">
+                            Chúng tôi đã gửi link xác minh đến<br>
+                            <strong id="km-check-email-addr">your@email.com</strong>
+                        </p>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;margin-top:1rem;">
+                            Click link trong email để kích hoạt tài khoản seller.<br>
+                            Link hết hạn sau <strong>24 giờ</strong>.
+                        </p>
+                        <button class="km-btn-secondary" onclick="KM.resendVerify()" id="km-resend-btn" style="margin-top:1.5rem;">
+                            Gửi lại email
+                        </button>
+                        <p id="km-resend-status" style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.75rem;min-height:1em;"></p>
+                    </div>
+                </div>
+            </div>

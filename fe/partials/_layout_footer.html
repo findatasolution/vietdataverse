@@ -1,0 +1,150 @@
+
+    <!-- Notification Overlay (Download) -->
+    <div class="notification-overlay" id="notification-overlay">
+        <div class="notification-card">
+            <div class="notification-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="notification-title" data-i18n="notifLoginTitle">Yêu cầu đăng nhập</h3>
+            <p class="notification-message" data-i18n="notifLoginMessage">
+                Bạn cần đăng nhập để tải dữ liệu. Vui lòng đăng nhập để tiếp tục sử dụng các tính năng của Viet
+                Dataverse.
+            </p>
+            <div class="notification-actions">
+                <button class="notification-btn secondary" id="cancel-btn">
+                    <span data-i18n="notifCancel">Hủy</span>
+                </button>
+                <button class="notification-btn primary" id="login-btn">
+                    <span data-i18n="loginBtn">Đăng nhập</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Overlay (API) -->
+    <div class="notification-overlay" id="api-notification-overlay">
+        <div class="notification-card">
+            <div class="notification-icon">
+                <i class="fas fa-code"></i>
+            </div>
+            <h3 class="notification-title" data-i18n="notifApiTitle">API đang phát triển</h3>
+            <p class="notification-message" id="api-message" data-i18n="notifApiMessage">
+                Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính
+                năng sẵn sàng.
+            </p>
+            <p class="notification-message" id="api-message-logged-in" style="display: none;" data-i18n="notifApiMessageLoggedIn">
+                Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính
+                năng sẵn sàng.
+            </p>
+            <div class="notification-actions">
+                <button class="notification-btn secondary" id="api-cancel-btn">
+                    <span data-i18n="notifClose">Đóng</span>
+                </button>
+                <button class="notification-btn primary" id="api-signup-btn">
+                    <span data-i18n="notifSignup">Tạo tài khoản</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js" defer></script>
+    <script src="app.knowledge.js" defer></script>
+
+    <!-- Chart info tooltip popup (position:fixed — escapes overflow:hidden on .chart-card) -->
+    <div id="chart-tooltip-popup"></div>
+
+    <!-- Premium Gate Modal -->
+    <div id="premium-gate-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,20,19,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--pure-white); border:1px solid var(--border-cream); border-radius:var(--radius-xl); padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative; box-shadow:var(--shadow-lg);">
+            <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--stone-gray);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+            <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
+            <h3 data-i18n="premiumGateTitle" style="font-family:'Lora',Georgia,serif;font-size:1.3rem;font-weight:500;color:var(--near-black);margin-bottom:0.5rem;">Nội dung Premium</h3>
+            <p data-i18n-html="premiumGateBody" style="color:var(--olive-gray);font-size:0.9rem;line-height:1.65;margin-bottom:1.5rem;">Báo cáo <strong style="color:var(--terracotta);">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
+            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+                <a data-i18n="premiumGateCTA" href="pages/pricing.html" style="background:var(--terracotta);color:var(--ivory);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-md);text-decoration:none;font-size:0.9rem;box-shadow:0 0 0 1px var(--terracotta);">Xem gói Premium</a>
+                <button data-i18n="premiumGateLater" onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:var(--warm-sand);color:var(--charcoal);border:1px solid var(--border-warm);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.9rem;">Để sau</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Listing Modal (DMCA inline — Phase 4 stub) -->
+    <div id="report-listing-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,20,19,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:var(--pure-white); border:1px solid var(--border-cream); border-radius:var(--radius-xl); padding:2.5rem 2rem; max-width:480px; width:90%; position:relative; box-shadow:var(--shadow-lg);">
+            <button onclick="document.getElementById('report-listing-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--stone-gray);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+            <h3 style="font-family:'Lora',Georgia,serif;font-size:1.3rem;font-weight:500;color:var(--near-black);margin-bottom:1rem;">Report this listing</h3>
+            <div style="margin-bottom:1rem;">
+                <label style="display:block;font-size:0.8125rem;color:var(--olive-gray);margin-bottom:0.4rem;">Reason</label>
+                <select id="report-reason" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-warm);border-radius:var(--radius-sm);font-size:0.9rem;color:var(--near-black);background:var(--ivory);">
+                    <option value="">Select a reason…</option>
+                    <option value="copyright">Copyright violation</option>
+                    <option value="fraud">Fraud / misleading</option>
+                    <option value="spam">Spam</option>
+                    <option value="inappropriate">Inappropriate content</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <label style="display:block;font-size:0.8125rem;color:var(--olive-gray);margin-bottom:0.4rem;">Description (optional)</label>
+                <textarea id="report-description" rows="4" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border-warm);border-radius:var(--radius-sm);font-size:0.9rem;color:var(--near-black);background:var(--ivory);resize:vertical;box-sizing:border-box;" placeholder="Describe the issue…"></textarea>
+            </div>
+            <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button onclick="document.getElementById('report-listing-modal').style.display='none'" style="background:var(--warm-sand);color:var(--charcoal);border:1px solid var(--border-warm);font-weight:500;padding:0.6rem 1.25rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.9rem;">Cancel</button>
+                <button id="report-submit-btn" style="background:var(--terracotta);color:var(--ivory);font-weight:500;padding:0.6rem 1.25rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.9rem;border:none;">Submit Report</button>
+            </div>
+            <!-- TODO: POST /api/v1/report with listingId, reason, description -->
+        </div>
+    </div>
+
+    <!-- ── Global Site Footer ── -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="site-footer-grid">
+
+                <!-- Col 1: Product -->
+                <div class="site-footer-col">
+                    <h4 class="site-footer-heading">Product</h4>
+                    <a class="site-footer-link" href="#" data-route="legal/about">About &amp; Terms</a>
+                    <a class="site-footer-link" href="pages/pricing.html">Pricing</a>
+                    <a class="site-footer-link" href="pages/guide-buyer.html" target="_blank">Buyer Guide</a>
+                    <a class="site-footer-link" href="pages/guide-seller.html" target="_blank">Seller Guide</a>
+                </div>
+
+                <!-- Col 2: Legal -->
+                <div class="site-footer-col">
+                    <h4 class="site-footer-heading">Legal</h4>
+                    <a class="site-footer-link" href="#" data-route="legal/privacy">Privacy Policy</a>
+                    <a class="site-footer-link" href="pages/takedown.html" target="_blank">DMCA / Takedown</a>
+                </div>
+
+                <!-- Col 3: Developers -->
+                <div class="site-footer-col">
+                    <h4 class="site-footer-heading">Developers</h4>
+                    <a class="site-footer-link" href="pages/api-docs.html">API Docs</a>
+                    <a class="site-footer-link" href="pages/developer.html">API Key</a>
+                    <a class="site-footer-link" href="#" data-route="legal/about">Status</a>
+                </div>
+
+                <!-- Col 4: Connect -->
+                <div class="site-footer-col">
+                    <h4 class="site-footer-heading">Connect</h4>
+                    <a class="site-footer-link" href="#" data-route="legal/contact">Contact</a>
+                    <a class="site-footer-link" href="https://github.com/vietdataverse" target="_blank" rel="noopener">GitHub</a>
+                    <a class="site-footer-link" href="mailto:hello@vietdataverse.vn">hello@vietdataverse.vn</a>
+                </div>
+
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="site-footer-bottom">
+                <span class="site-footer-copy">&copy; 2026 Viet Dataverse</span>
+                <div class="site-footer-bottom-right">
+                    <button class="site-footer-lang" id="footer-lang-toggle">EN / VI</button>
+                    <span class="site-footer-version">v2.0</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

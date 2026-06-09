@@ -1,0 +1,75 @@
+
+            <!-- 1s Market Pulse -->
+            <div class="tab-content" id="1smarket-portal">
+                <div class="section-header">
+                    <h1 class="section-title">
+                        <span data-i18n="pulseTitle">1s Market Pulse</span>
+                    </h1>
+                </div>
+
+                <!-- Filters -->
+                <div id="pulse-filters" class="pulse-filters">
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterSource">Nguồn:</label>
+                        <select id="filter-source" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="CNBC">CNBC</option>
+                            <option value="BBC">BBC</option>
+                            <option value="MarketWatch">MarketWatch</option>
+                        </select>
+                    </div>
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterMarket">Thị trường:</label>
+                        <select id="filter-label" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="VNINDEX">VN-Index</option>
+                            <option value="GOLD" data-i18n="pulseMarketGold">Vàng</option>
+                            <option value="REAL_ESTATE" data-i18n="pulseMarketRealEstate">Bất động sản</option>
+                            <option value="BANKING" data-i18n="pulseMarketBanking">Ngân hàng</option>
+                            <option value="FX" data-i18n="pulseMarketFX">Ngoại hối</option>
+                        </select>
+                    </div>
+                    <div class="pulse-filter-group">
+                        <label>MRI:</label>
+                        <select id="filter-mri" class="filter-select">
+                            <option value="" data-i18n="pulseFilterAll">Tất cả</option>
+                            <option value="positive" data-i18n="pulseMRIPositive">Tích cực (+)</option>
+                            <option value="negative" data-i18n="pulseMRINegative">Tiêu cực (-)</option>
+                        </select>
+                    </div>
+                    <button id="filter-reset" class="pulse-filter-reset" data-i18n="pulseFilterReset">Reset</button>
+                </div>
+
+                <div id="market-pulse-articles">
+                    <!-- Skeleton loading -->
+                    <div class="pulse-skeleton" style="animation:pulse 1.5s infinite;">
+                        <div
+                            style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                            <div
+                                style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                            </div>
+                            <div
+                                style="height:28px;width:70%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                            </div>
+                            <div
+                                style="height:16px;width:40%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
+                            </div>
+                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
+                        </div>
+                        <div
+                            style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                            <div
+                                style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                            </div>
+                            <div
+                                style="height:28px;width:60%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                            </div>
+                            <div
+                                style="height:16px;width:35%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
+                            </div>
+                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>

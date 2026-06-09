@@ -220,7 +220,12 @@ async def authenticate_user(request: Request):
             "is_admin":   is_admin,
         }
         return payload
-    except JWTError:
+    except JWTError as jwt_err:
+        print(f"[authenticate_user] JWT verify failed: {type(jwt_err).__name__}: {jwt_err}")
+        # Print token info (first/last 20 chars only) for debugging
+        if token:
+            print(f"  Token prefix: {token[:20]}...{token[-20:] if len(token) > 40 else ''}")
+            print(f"  Token length: {len(token)}")
         raise HTTPException(
             status_code=401,
             detail="Invalid authentication credentials",

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hướng dẫn Seller — Viet Dataverse Knowledge Market</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    body { padding: 2rem 1rem; min-height: 100vh; line-height: 1.7; }
+    .guide-container { max-width: 760px; margin: 0 auto; background: var(--surface); border-radius: 12px; padding: 2.5rem; border: 1px solid var(--border-cream); }
+    h1 { color: var(--text-primary); margin-top: 0; }
+    h2 { color: var(--terracotta); margin-top: 2rem; font-size: 1.2rem; }
+    h3 { color: var(--text-primary); font-size: 1rem; margin-top: 1.25rem; }
+    .step { background: var(--parchment); border-left: 3px solid var(--terracotta); padding: 1rem 1.25rem; border-radius: 4px; margin: 0.85rem 0; }
+    .step-num { display: inline-block; background: var(--terracotta); color: #fff; width: 1.6rem; height: 1.6rem; border-radius: 50%; text-align: center; line-height: 1.6rem; font-size: 0.85rem; font-weight: 600; margin-right: 0.5rem; }
+    .info-box { background: rgba(66, 165, 245, 0.08); border-left: 3px solid #42A5F5; padding: 0.85rem 1rem; border-radius: 4px; margin: 1rem 0; font-size: 0.9rem; }
+    .warn-box { background: rgba(239, 83, 80, 0.08); border-left: 3px solid #EF5350; padding: 0.85rem 1rem; border-radius: 4px; margin: 1rem 0; font-size: 0.9rem; }
+    code { background: #fff; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.88rem; border: 1px solid var(--border-cream); }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border-cream); padding: 0.5rem 0.75rem; text-align: left; }
+    th { background: var(--parchment); }
+    .back-link { display: inline-block; color: var(--terracotta); margin-bottom: 1.5rem; text-decoration: none; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+    <a href="/index.html#knowledge-market" class="back-link">← Quay lại Knowledge Market</a>
+    <h1>🛍️ Hướng dẫn Seller — Bán Knowledge Product</h1>
+    <p style="color:var(--text-secondary);">Trở thành seller trên Viet Dataverse Knowledge Market trong 5 phút.</p>
+
+    <h2>Tổng quan flow</h2>
+    <p>Tạo tài khoản seller → Upload file → System tự kiểm tra → Sản phẩm lên sàn ngay (không cần admin duyệt).</p>
+
+    <h2>Bước 1 — Đăng ký Seller</h2>
+
+    <div class="step">
+      <span class="step-num">1</span> Đăng nhập vào Viet Dataverse (góc phải header).
+    </div>
+    <div class="step">
+      <span class="step-num">2</span> Vào tab <strong>Knowledge Market</strong>.
+    </div>
+    <div class="step">
+      <span class="step-num">3</span> Click nút <strong>"+ Trở thành Seller"</strong>.
+    </div>
+    <div class="step">
+      <span class="step-num">4</span> Đọc Điều khoản → tick checkbox đồng ý → click <strong>"Tiếp tục"</strong>.
+    </div>
+    <div class="step">
+      <span class="step-num">5</span> System gửi email xác minh — vào inbox click link để kích hoạt.
+    </div>
+
+    <div class="info-box">
+      💡 <strong>Tips:</strong> Email xác minh có hiệu lực 24 giờ. Nếu không nhận được, click "Gửi lại email" sau 60 giây.
+    </div>
+
+    <h2>Bước 2 — Upload sản phẩm</h2>
+
+    <div class="step">
+      <span class="step-num">1</span> Sau khi verify email, action bar sẽ hiện <strong>"Seller dashboard"</strong>.
+    </div>
+    <div class="step">
+      <span class="step-num">2</span> Click <strong>"Upload sản phẩm mới"</strong>.
+    </div>
+    <div class="step">
+      <span class="step-num">3</span> Điền đầy đủ form:
+
+      <table>
+        <tr><th>Field</th><th>Yêu cầu</th></tr>
+        <tr><td>Tiêu đề</td><td>3-200 ký tự, tiếng Việt OK</td></tr>
+        <tr><td>Slug</td><td>URL-friendly, không dấu, dùng dấu <code>-</code> (vd: <code>vn-cpi-schema</code>)</td></tr>
+        <tr><td>Mô tả</td><td><strong>Tối thiểu 50 ký tự</strong> — mô tả nội dung, đối tượng dùng, giá trị</td></tr>
+        <tr><td>Category</td><td>Chọn 1 trong 8 categories</td></tr>
+        <tr><td>Format</td><td>.md / .json / .yaml / .csv</td></tr>
+        <tr><td>Giá (credits)</td><td><code>0</code> = miễn phí. <code>1 credit = 1,000 VND</code></td></tr>
+        <tr><td>Preview %</td><td>0-40, mặc định 25 (buyer xem trước bao nhiêu % trước khi mua)</td></tr>
+        <tr><td>Frameworks</td><td>AI tools tương thích, cách bằng dấu phẩy (<code>claude, langchain</code>)</td></tr>
+        <tr><td>File</td><td>Tối thiểu 100 bytes, UTF-8</td></tr>
+      </table>
+    </div>
+    <div class="step">
+      <span class="step-num">4</span> Click <strong>"Upload"</strong> → system tự kiểm tra 4 bước (vài giây):
+      <ul style="margin-top:0.5rem;">
+        <li>✅ Mã độc / magic bytes</li>
+        <li>✅ Định dạng file (parse được)</li>
+        <li>✅ Tối thiểu nội dung (≥ 100 bytes, mô tả ≥ 50 chars)</li>
+        <li>✅ Không chứa PII (CCCD, CMND, SĐT cá nhân)</li>
+      </ul>
+    </div>
+    <div class="step">
+      <span class="step-num">5</span> Pass tất cả → sản phẩm <strong>lên sàn ngay</strong> (status: published).
+    </div>
+
+    <div class="warn-box">
+      ⚠️ <strong>Bị reject?</strong> Modal sẽ hiện check nào fail + cách khắc phục. Sửa file/mô tả rồi upload lại.
+    </div>
+
+    <h2>Bước 3 — Quản lý doanh thu</h2>
+
+    <p>Mỗi giao dịch:</p>
+    <ul>
+      <li><strong>Seller nhận 90%</strong> (giá trị quy đổi VND)</li>
+      <li><strong>Platform giữ 10%</strong></li>
+    </ul>
+
+    <p>Doanh thu pending tích lũy trong <strong>Seller Dashboard</strong>. Khi đạt <strong>500,000 VND</strong>, bạn có thể request payout qua chuyển khoản ngân hàng (admin xử lý thủ công, gửi email yêu cầu thông tin tài khoản).</p>
+
+    <h2>Lưu ý quan trọng</h2>
+
+    <div class="warn-box">
+      <strong>Bản quyền:</strong> Seller chịu hoàn toàn trách nhiệm pháp lý về nội dung upload. Vi phạm 3 lần (qua DMCA hoặc buyer report) → tự động ban vĩnh viễn.
+    </div>
+
+    <div class="warn-box">
+      <strong>PII (PDPD):</strong> Tuyệt đối không upload file chứa CCCD/CMND/SĐT người khác — sẽ bị reject ngay.
+    </div>
+
+    <div class="info-box">
+      <strong>Thuế:</strong> Doanh thu ≥ 100M VND/năm cần kê khai thuế TNCN theo TT 40/2021. Seller tự chịu trách nhiệm.
+    </div>
+
+    <h2>FAQ</h2>
+
+    <h3>Tôi có thể chỉnh sửa sản phẩm sau khi đăng?</h3>
+    <p>Hiện chỉ chỉnh metadata (title, description, price). Nội dung file phải upload version mới (Phase 2).</p>
+
+    <h3>Có thể xóa sản phẩm không?</h3>
+    <p>Có. Vào Seller Dashboard → click <strong>"Ẩn"</strong> trên sản phẩm. Buyer đã mua vẫn download được trong 30 ngày.</p>
+
+    <h3>Buyer report tôi thì sao?</h3>
+    <p>1 report → cảnh báo. 3 reports trong 12 tháng → tự động ẩn sản phẩm + cảnh báo seller. Nếu thấy report sai, contact <code>support@vietdataverse.online</code>.</p>
+
+    <h3>Khi nào nhận được payout?</h3>
+    <p>Khi pending ≥ 500K VND, gửi email request đến <code>payout@vietdataverse.online</code>. Admin xử lý trong 5 ngày làm việc.</p>
+
+    <hr style="margin-top:2.5rem;border:none;border-top:1px solid var(--border-cream);">
+    <p style="text-align:center;color:var(--text-secondary);font-size:0.85rem;">
+      Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a>
+    </p>
+  </div>
+</body>
+</html>

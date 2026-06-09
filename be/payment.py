@@ -700,6 +700,11 @@ async def payos_webhook(request: Request):
     Nhận webhook từ PayOS sau khi user thanh toán thành công.
     PayOS gửi: { code, desc, success, data: { orderCode, amount, status, ..., signature } }
     Không yêu cầu Auth header — PayOS tự gọi.
+
+    Branches:
+      order_type='credit_topup'  → credit knowledge wallet via services.credit.credit_topup
+      order_type='subscription'  → activate premium (existing flow)
+      (null / unknown)           → fallback to subscription flow for backward compat
     """
     try:
         body = await request.json()
@@ -721,7 +726,10 @@ async def payos_webhook(request: Request):
     session = _session()
     try:
         order = session.execute(
-            text("SELECT user_id, plan, status FROM payment_orders WHERE order_code = :oc"),
+            text("""
+                SELECT user_id, plan, status, order_type, credit_amount
+                FROM payment_orders WHERE order_code = :oc
+            """),
             {"oc": order_code},
         ).fetchone()
 
@@ -729,26 +737,45 @@ async def payos_webhook(request: Request):
             print(f"[payos-webhook] order_code không tìm thấy: {order_code}")
             return {"success": True}
 
-        user_id, plan, current_status = order
+        user_id, plan, current_status, order_type, credit_amount = order
 
         if current_status == "paid":
             # Đã xử lý rồi — idempotency
             return {"success": True}
 
-        new_expiry = _activate_premium(session, user_id, plan)
-
+        # Mark order paid first (idempotency anchor)
         session.execute(text("""
             UPDATE payment_orders
             SET status = 'paid', updated_at = NOW()
             WHERE order_code = :oc
         """), {"oc": order_code})
 
-        # Credit referral reward
-        paid_amount = data.get("amount") or 0
-        _credit_referral(session, order_code, paid_amount)
+        # ── Branch on order_type ───────────────────────────────────────────
+        if order_type == "credit_topup":
+            credits = credit_amount or 0
+            if credits > 0:
+                from services.credit import credit_topup
+                result = credit_topup(
+                    user_id=user_id,
+                    credits=credits,
+                    idem_key=f"payos:{order_code}",
+                    note=f"PayOS topup order={order_code}",
+                )
+                print(
+                    f"[payos-webhook] credit_topup user_id={user_id} "
+                    f"credits={credits} balance={result['balance']} "
+                    f"duplicate={result['duplicate']}"
+                )
+            else:
+                print(f"[payos-webhook] credit_topup order={order_code} has 0 credits — skipping")
+        else:
+            # subscription (default) flow — same as before
+            new_expiry = _activate_premium(session, user_id, plan)
+            paid_amount = data.get("amount") or 0
+            _credit_referral(session, order_code, paid_amount)
+            print(f"[payos-webhook] subscription user_id={user_id} đến {new_expiry}")
 
         session.commit()
-        print(f"[payos-webhook] ✅ Premium user_id={user_id} đến {new_expiry}")
 
     finally:
         session.close()

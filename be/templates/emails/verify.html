@@ -1,0 +1,40 @@
+{% extends "_layout.html" %}
+
+{% block subject %}Xác nhận email người bán — Viet Dataverse{% endblock %}
+
+{% block body %}
+<p style="font-size:15px;font-weight:600;color:#141413;margin-bottom:6px;">
+  Xác nhận email để bắt đầu bán hàng
+</p>
+<p style="font-size:13px;color:#87867f;line-height:1.6;margin-bottom:24px;">
+  Chào {{ display_name }},<br>
+  Cảm ơn bạn đã đăng ký trở thành người bán trên Viet Dataverse.
+  Nhấn nút bên dưới để xác nhận email và kích hoạt tài khoản người bán.
+</p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+  <tr>
+    <td>
+      <a href="{{ verify_url }}"
+         style="display:inline-block;background:#c96442;color:#ffffff;
+                font-size:14px;font-weight:600;text-decoration:none;
+                border-radius:8px;padding:12px 28px;">
+        Xác nhận email
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="font-size:12px;color:#87867f;line-height:1.6;margin-bottom:8px;">
+  Hoặc copy đường dẫn này vào trình duyệt:
+</p>
+<p style="font-size:11px;color:#87867f;word-break:break-all;
+          background:#f5f4ed;padding:10px 12px;border-radius:6px;margin-bottom:20px;">
+  {{ verify_url }}
+</p>
+
+<p style="font-size:12px;color:#87867f;line-height:1.6;">
+  Liên kết có hiệu lực trong <strong>24 giờ</strong>.
+  Nếu bạn không yêu cầu, hãy bỏ qua email này.
+</p>
+{% endblock %}

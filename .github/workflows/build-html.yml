@@ -1,0 +1,45 @@
+name: Build HTML
+
+on:
+  push:
+    paths:
+      - 'fe/partials/**'
+      - 'fe/build.py'
+    branches: [main]
+  pull_request:
+    paths:
+      - 'fe/partials/**'
+      - 'fe/build.py'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build HTML
+        run: python fe/build.py
+
+      - name: Check if index.html changed
+        id: changes
+        run: |
+          if git diff --exit-code fe/index.html > /dev/null 2>&1; then
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "no_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push if changed
+        if: github.event_name == 'push' && steps.changes.outputs.no_changes == 'false'
+        run: |
+          git config user.name "Build Bot"
+          git config user.email "noreply@github.com"
+          git add fe/index.html
+          git commit -m "build: regenerate fe/index.html [skip ci]"
+          git push

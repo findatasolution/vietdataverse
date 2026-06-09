@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <!-- Google search -->
+    <meta name="google-site-verification" content="w7LUdUQqy_s1GEK4xpKPy8KSuyNMWFLz9bMuMyhtnNQ" />
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YB3PKHN2E5"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-YB3PKHN2E5');
+        gtag('config', 'G-B9BHYSYDES');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Risk Algorithm - Tải Dữ Liệu Vĩ Mô Miễn Phí | Viet Dataverse</title>
+    <meta name="description"
+        content="Market Risk Algorithm: phân bổ rủi ro các kênh đầu tư vĩ mô bằng Machine Learning, cập nhật hàng tuần. Tải miễn phí dữ liệu vĩ mô Việt Nam: giá vàng SJC/DOJI/BTMC, tỷ giá USD/VND, lãi suất ngân hàng từ 2015. Free API & CSV export.">
+    <meta name="keywords"
+        content="Market Risk Algorithm, Viet dataverse, Vietnam gold price, vietnam economic data, tải giá vàng, lịch sử giá vàng SJC, vietnam finance data api, dữ liệu vĩ mô Việt Nam, macro data Vietnam">
+    <meta name="author" content="Viet Dataverse">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="Vietnamese">
+    <meta name="geo.region" content="VN">
+    <meta name="geo.placename" content="Vietnam">
+    <!-- Favicon and Icons (hosted on imagekit.io) -->
+    <link rel="icon" type="image/png" sizes="16x16"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512"
+        href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#f5f4ed">
+    <meta name="msapplication-TileColor" content="#c96442">
+    <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
+
+    <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
+    <link rel="dns-prefetch" href="https://api.vietdataverse.online">
+    <link rel="canonical" href="https://vietdataverse.online/">
+    <link rel="alternate" hreflang="vi" href="https://vietdataverse.online/">
+    <link rel="alternate" hreflang="en" href="https://vietdataverse.online/">
+    <link rel="alternate" hreflang="x-default" href="https://vietdataverse.online/">
+
+    <!-- Open Graph for social sharing -->
+    <meta property="og:site_name" content="Viet Dataverse">
+    <meta property="og:title" content="Market Risk Algorithm & Dữ Liệu Vĩ Mô Miễn Phí | Vietnam Financial Intelligence | Viet Dataverse">
+    <meta property="og:description"
+        content="Market Risk Algorithm: dự đoán xác suất tăng giá cổ phiếu VN30 bằng Machine Learning, cập nhật hàng tuần. Tải miễn phí dữ liệu vĩ mô: giá vàng SJC/DOJI/BTMC từ 2015, tỷ giá USD/VND, lãi suất SBV. Free API & CSV.">
+    <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Viet Dataverse - Vietnam Economic Data Platform">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vietdataverse.online/">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@VietDataverse">
+    <meta name="twitter:creator" content="@VietDataverse">
+    <meta name="twitter:title" content="Market Risk Algorithm & Dữ Liệu Vĩ Mô Miễn Phí | Viet Dataverse">
+    <meta name="twitter:description"
+        content="Market Risk Algorithm: phân bổ rủi ro các kênh đầu tư vĩ mô bằng Machine Learning. Tải miễn phí dữ liệu vĩ mô Việt Nam: giá vàng SJC/DOJI/BTMC, tỷ giá USD/VND, lãi suất từ 2015. Free API & CSV.">
+    <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
+    <meta name="twitter:image:alt" content="Viet Dataverse Logo">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
+    <link rel="dns-prefetch" href="https://api.vietdataverse.online">
+    <link rel="preload" href="style.css" as="style">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Viet Dataverse",
+      "url": "https://vietdataverse.online/",
+      "logo": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png",
+      "description": "Nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở, cung cấp dữ liệu giá vàng, lãi suất và tỷ giá miễn phí.",
+      "sameAs": ["https://vietdataverse.online/"],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "contact@vietdataverse.online"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Giá Vàng Việt Nam: Hướng Dẫn Đọc Dữ Liệu & Phân Tích Xu Hướng",
+      "description": "Phân tích thị trường vàng, bạc Việt Nam: hiểu về cơ chế giá, các yếu tố ảnh hưởng và cách đọc dữ liệu lịch sử từ DOJI, SJC, BTMC.",
+      "author": {"@type": "Organization", "name": "Viet Dataverse"},
+      "publisher": {"@type": "Organization", "name": "Viet Dataverse", "logo": {"@type": "ImageObject", "url": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png"}},
+      "datePublished": "2025-01-01",
+      "dateModified": "2026-03-21",
+      "inLanguage": "vi-VN",
+      "url": "https://vietdataverse.online/",
+      "mainEntityOfPage": "https://vietdataverse.online/"
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Viet Dataverse",
+      "alternateName": ["VietDataverse", "vietdataverse", "Tải Giá Vàng", "Download Gold Price Vietnam"],
+      "url": "https://vietdataverse.online/",
+      "description": "Tải lịch sử giá vàng SJC, DOJI, BTMC miễn phí từ 2015. Download Vietnam gold price CSV, giá bạc, lãi suất ngân hàng. Cập nhật 2 lần/ngày.",
+      "inLanguage": "vi-VN",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://vietdataverse.online/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Tải Giá Vàng Việt Nam Miễn Phí - Download Vietnam Gold Price CSV",
+      "description": "Tải lịch sử giá vàng SJC, DOJI, BTMC từ 2015 miễn phí. Download Vietnam gold price data CSV cập nhật mỗi ngày. Free API & CSV export cho nghiên cứu kinh tế.",
+      "url": "https://vietdataverse.online/",
+      "keywords": ["tải giá vàng", "download gold price", "tải lịch sử giá vàng", "download vietnam gold price", "giá vàng csv", "gold price csv download", "vietnam gold price data", "lịch sử giá vàng sjc", "gold price api vietnam", "giá vàng hôm nay", "free gold price download"],
+      "creator": {
+        "@type": "Organization",
+        "name": "Viet Dataverse"
+      },
+      "distribution": [
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "CSV",
+          "contentUrl": "https://api.vietdataverse.online/api/v1/gold",
+          "name": "Tải dữ liệu giá vàng CSV",
+          "description": "Download Vietnam gold price historical data"
+        },
+        {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://api.vietdataverse.online/api/v1/gold",
+          "name": "Gold Price API",
+          "description": "RESTful API for Vietnam historical gold prices"
+        }
+      ],
+      "temporalCoverage": "2015/..",
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "Vietnam"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Dữ Liệu Giá Bạc Phú Quý Việt Nam",
+      "description": "Lịch sử giá bạc thỏi Phú Quý tại thị trường Việt Nam, cập nhật từ nguồn công khai",
+      "url": "https://vietdataverse.online/",
+      "keywords": ["giá bạc", "giá bạc hôm nay", "bạc Phú Quý", "giá bạc thỏi"],
+      "creator": {
+        "@type": "Organization",
+        "name": "Viet Dataverse"
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "CSV",
+        "contentUrl": "https://api.vietdataverse.online/api/v1/silver"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Giá vàng SJC hôm nay là bao nhiêu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Viet Dataverse cung cấp giá vàng trong nước được cập nhật hàng ngày. Bạn có thể xem biểu đồ lịch sử và tải dữ liệu miễn phí."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Làm thế nào để tải lịch sử giá vàng Việt Nam?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tại Viet Dataverse, bạn có thể tải lịch sử giá vàng SJC, DOJI, PNJ từ 2015 hoàn toàn miễn phí. Click vào nút 'Download' trong mục Download Datasets hoặc truy cập API tại https://api.vietdataverse.online/api/v1/gold"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How to download Vietnam historical gold price data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Download Vietnam historical gold price free at Viet Dataverse. Click 'Download' button in Download Datasets section or access API at https://api.vietdataverse.online/api/v1/gold. Data includes SJC, DOJI, PNJ prices from 2015."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Lãi suất liên ngân hàng SBV là gì?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Lãi suất liên ngân hàng SBV là lãi suất mà các ngân hàng thương mại cho vay lẫn nhau, được Ngân hàng Nhà nước Việt Nam công bố. Dữ liệu cập nhật hàng ngày tại Viet Dataverse."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Tải giá vàng ở đâu miễn phí?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bạn có thể tải giá vàng miễn phí tại Viet Dataverse (vietdataverse.online). Dữ liệu bao gồm giá vàng SJC, DOJI, BTMC từ 2015 đến nay, hỗ trợ tải CSV và truy cập qua API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where can I download Vietnam gold price data for free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can download Vietnam gold price data for free at Viet Dataverse (vietdataverse.online). Data includes SJC, DOJI, BTMC gold prices from 2015, available as CSV download and RESTful API."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Dữ liệu giá vàng được cập nhật bao lâu một lần?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dữ liệu giá vàng tại Viet Dataverse được cập nhật từ các nguồn uy tín như BTMC, DOJI, PNJ. Bạn có thể tải dữ liệu mới nhất bất cứ lúc nào."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "API tài chính Việt Nam miễn phí ở đâu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Viet Dataverse cung cấp API dữ liệu tài chính Việt Nam miễn phí tại api.vietdataverse.online. API bao gồm: giá vàng SJC/DOJI/BTMC, giá bạc, lãi suất liên ngân hàng SBV, lãi suất tiết kiệm, tỷ giá USD/VND Vietcombank, và dữ liệu VN30. Hỗ trợ định dạng JSON và CSV."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Tải Giá Vàng & Dữ Liệu Kinh Tế",
+          "item": "https://vietdataverse.online/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Download Gold Price Vietnam",
+          "item": "https://vietdataverse.online/#data-portal"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Download & API",
+          "item": "https://vietdataverse.online/#download-api"
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Viet Dataverse",
+      "alternateName": ["VietDataverse", "vietdataverse", "Viet Dataverse"],
+      "url": "https://vietdataverse.online/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "description": "Nền tảng dữ liệu kinh tế Việt Nam minh bạch, cung cấp giá vàng, giá bạc, lãi suất ngân hàng và các chỉ số thị trường",
+      "sameAs": [
+        "https://github.com/findatasolution/vietdataverse"
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Dữ Liệu Vĩ Mô Việt Nam - Vietnam Macroeconomic Dataset",
+      "description": "Bộ dữ liệu vĩ mô Việt Nam tập trung: giá vàng (SJC, DOJI, BTMC, PNJ), giá bạc Phú Quý, lãi suất tiết kiệm (ACB, VCB, CTG, SHB), lãi suất liên ngân hàng SBV, tỷ giá USD/VND Vietcombank, chỉ số COMEX và NASDAQ. Cập nhật liên tục từ 2015.",
+      "url": "https://vietdataverse.online/#data-portal",
+      "keywords": [
+        "dữ liệu vĩ mô Việt Nam", "macroeconomic data Vietnam", "giá vàng SJC lịch sử",
+        "lãi suất ngân hàng Việt Nam", "tỷ giá USD VND", "download gold price Vietnam",
+        "tải giá vàng CSV", "Vietnam economic data API", "SBV interbank rate", "term deposit rate Vietnam"
+      ],
+      "creator": {"@type": "Organization", "name": "Viet Dataverse"},
+      "distribution": [
+        {"@type": "DataDownload", "encodingFormat": "CSV", "contentUrl": "https://api.vietdataverse.online/api/v1/gold", "name": "Gold Price CSV Download"},
+        {"@type": "DataDownload", "encodingFormat": "CSV", "contentUrl": "https://api.vietdataverse.online/api/v1/silver", "name": "Silver Price CSV Download"},
+        {"@type": "DataDownload", "encodingFormat": "CSV", "contentUrl": "https://api.vietdataverse.online/api/v1/sbv", "name": "SBV Interbank Rate CSV Download"},
+        {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://api.vietdataverse.online/api/docs", "name": "RESTful API - Vietnam Financial Data"}
+      ],
+      "temporalCoverage": "2015/..",
+      "spatialCoverage": {"@type": "Place", "name": "Vietnam"},
+      "license": "https://creativecommons.org/licenses/by/4.0/"
+    }
+    </script>
+    <!-- Auth0 SPA SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+
+    <!-- Auth module -->
+    <script src="auth.js"></script>
+</head>
+
+<body>
+    <!-- Ad wallpaper is now inside section-header, see #data-portal -->
+    <!-- SEO: noscript fallback for crawlers that don't execute JavaScript -->
+    <noscript>
+        <div style="max-width:900px;margin:2rem auto;padding:1.5rem;font-family:sans-serif;line-height:1.7;">
+            <h1>VN30 Score & Dữ Liệu Vĩ Mô Việt Nam Miễn Phí | Viet Dataverse</h1>
+            <p>Viet Dataverse là nền tảng dữ liệu tài chính và vĩ mô Việt Nam tập trung. Sản phẩm chủ lực: <strong>VN30 Score</strong> — dự đoán xác suất tăng giá cổ phiếu VN30 bằng Machine Learning (XGBoost), cập nhật hàng tuần. Tải miễn phí (có giới hạn) dữ liệu vĩ mô: giá vàng SJC/DOJI/BTMC từ 2015, giá bạc Phú Quý, lãi suất tiết kiệm ngân hàng (ACB, VCB, CTG, SHB), lãi suất liên ngân hàng SBV và tỷ giá USD/VND Vietcombank — định dạng CSV hoặc JSON, API RESTful, cập nhật 2 lần mỗi ngày.</p>
+
+            <h2>Dữ liệu có sẵn để tải miễn phí</h2>
+            <ul>
+                <li><strong>Giá Vàng Trong Nước</strong> — Lịch sử giá vàng SJC, DOJI HN, DOJI SG, BTMC từ 2015. Đơn vị: nghìn VND/chỉ (3.75g). Cập nhật 2 lần/ngày.</li>
+                <li><strong>Giá Bạc Phú Quý</strong> — Lịch sử giá bạc thỏi Phú Quý tại thị trường Việt Nam. Đơn vị: nghìn VND/lượng.</li>
+                <li><strong>Lãi Suất Liên Ngân Hàng SBV</strong> — Lãi suất qua đêm, 1 tuần, 1 tháng, 3 tháng, 6 tháng, 9 tháng do Ngân hàng Nhà nước Việt Nam công bố.</li>
+                <li><strong>Lãi Suất Gửi Tiết Kiệm</strong> — ACB, VCB (Vietcombank), CTG (Vietinbank), SHB theo các kỳ hạn từ 1–36 tháng.</li>
+                <li><strong>Tỷ Giá USD/VND</strong> — Tỷ giá mua/bán Vietcombank và tỷ giá trung tâm SBV.</li>
+            </ul>
+
+            <h2>Phân Tích Thị Trường Vàng & Bạc Việt Nam</h2>
+            <p>Thị trường vàng Việt Nam vận hành theo cơ chế riêng biệt so với thế giới. Giá vàng trong nước được niêm yết theo đơn vị nghìn VND/chỉ (1 chỉ = 3.75g). Các thương hiệu uy tín gồm DOJI, SJC, BTMC — mỗi thương hiệu có giá mua vào và bán ra khác nhau tùy thời điểm thị trường. Khoảng cách giữa đường mua và bán (spread) phản ánh tính thanh khoản: spread rộng cho thấy thị trường biến động mạnh.</p>
+            <p>Giá vàng trong nước chịu tác động bởi hai nhóm yếu tố: (1) Quốc tế — giá vàng thế giới COMEX (USD/oz), tỷ giá USD/VND, chính sách lãi suất Fed; (2) Trong nước — cung cầu vàng vật chất, chính sách nhập khẩu vàng của SBV, tâm lý tích trữ dịp Tết. Lịch sử cho thấy giá vàng SJC thường giao dịch ở mức chênh lệch đáng kể so với giá thế giới (premium), đôi khi lên 15–20 triệu đồng/lượng vào giai đoạn căng thẳng nguồn cung.</p>
+
+            <h2>Lãi Suất Tiết Kiệm, Liên Ngân Hàng & Tỷ Giá USD/VND</h2>
+            <p>Lãi suất tiết kiệm kỳ hạn (%/năm) theo các kỳ hạn từ 1 tháng đến 36 tháng tại ACB, VCB, CTG, SHB. Từ 2022–2023, lãi suất leo thang mạnh do áp lực lạm phát, đỉnh điểm vượt 9–10%/năm. Bước sang 2024–2025, Ngân hàng Nhà nước hạ lãi suất điều hành, kéo mặt bằng huy động về 4–6%/năm kỳ hạn ngắn.</p>
+            <p>Lãi suất liên ngân hàng SBV phản ánh chi phí vay vốn ngắn hạn giữa các ngân hàng. Lãi suất qua đêm nhạy cảm nhất với thanh khoản tức thời — khi tăng đột biến là dấu hiệu căng thẳng thanh khoản hệ thống. Tỷ giá USD/VND do Vietcombank niêm yết được coi là tỷ giá tham chiếu chính thức của thị trường Việt Nam.</p>
+
+            <h2>Vàng, Bạc & NASDAQ Quốc Tế</h2>
+            <p>Giá vàng tương lai COMEX (GC=F, USD/troy oz) là chuẩn mực quốc tế. Các yếu tố dịch chuyển giá vàng COMEX: chính sách lãi suất Fed, chỉ số đô-la DXY, lạm phát CPI, căng thẳng địa chính trị. Bạc quốc tế (SI=F) có 50–60% nhu cầu từ công nghiệp (pin mặt trời, điện tử, y tế), khiến bạc nhạy cảm hơn với chu kỳ kinh tế toàn cầu. Chỉ số NASDAQ (^IXIC) đại diện cổ phiếu công nghệ — khi NASDAQ tăng, dòng tiền thường rút khỏi vàng, và ngược lại.</p>
+
+            <h2>Download Gold Price Vietnam — Free API</h2>
+            <p>Free API access: <a href="https://api.vietdataverse.online/api/docs">api.vietdataverse.online/api/docs</a></p>
+            <p>Download gold price CSV, silver price, SBV interbank rates, term deposit rates, USD/VND exchange rate from 2015 to present. Suitable for economic research, investment analysis, and financial application development.</p>
+
+            <h2>VN30 Score - Phân bổ rủi ro các kênh đầu tư vĩ mô bằng Machine Learning/h2>
+            <p>VN30 Score là tính năng mới của Viet Dataverse, sử dụng mô hình Machine Learning (XGBoost) để dự đoán xác suất tăng giá của từng mã cổ phiếu trong rổ VN30. Mỗi mã được chấm điểm từ 0–100%:</p>
+            <ul>
+                <li><strong>BUY (≥60%)</strong> — Xác suất tăng giá cao, xem xét mua vào</li>
+                <li><strong>NEUTRAL (40–59%)</strong> — Tín hiệu trung lập, theo dõi thêm</li>
+                <li><strong>SELL (&lt;40%)</strong> — Xác suất tăng giá thấp, thận trọng</li>
+            </ul>
+            <p>Dữ liệu VN30 Score cập nhật hàng tuần. Người dùng Free xem top 3 cổ phiếu. Người dùng Premium xem toàn bộ 30 mã cùng tín hiệu chi tiết. Đây là công cụ hỗ trợ ra quyết định đầu tư, không phải lời khuyên tài chính.</p>
+
+            <h2>Về Viet Dataverse</h2>
+            <p>Viet Dataverse là nền tảng dữ liệu kinh tế Việt Nam mã nguồn mở, cung cấp thông tin giá vàng, giá bạc, lãi suất ngân hàng và tỷ giá hối đoái được thu thập tự động từ các nguồn công khai uy tín. Dữ liệu được làm sạch, chuẩn hóa và lưu trữ lịch sử dài hạn để phục vụ nghiên cứu và phân tích. Liên hệ: <a href="mailto:contact@vietdataverse.online">contact@vietdataverse.online</a></p>
+        </div>
+    </noscript>
+
+    <div class="app-container">
+        <!-- Unified Top Bar -->
+        <header class="app-topbar">
+            <div class="app-topbar-left">
+                <div class="app-brand">
+                    <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Open menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="app-brand-icon">V</div>
+                    <span class="app-brand-name">Viet Dataverse</span>
+                </div>
+                <nav class="workspace-nav" role="tablist" aria-label="Workspace">
+                    <button class="workspace-tab active" data-workspace="data" role="tab" aria-selected="true">Open Data</button>
+                    <button class="workspace-tab" data-workspace="km" role="tab" aria-selected="false">Agent Market</button>
+                    <button class="workspace-tab" data-workspace="pulse" role="tab" aria-selected="false">1s Pulse</button>
+                </nav>
+            </div>
+            <div class="app-topbar-right">
+                <button class="header-btn lang-btn" id="lang-toggle">
+                    <span id="lang-text">VI</span>
+                </button>
+
+                <!-- Authenticated user chip (avatar + logout) -->
+                <div class="user-chip" id="user-info" style="display: none;">
+                    <a href="/pages/account.html" class="user-avatar-link" title="Xem hồ sơ">
+                        <div class="user-avatar" id="user-avatar"></div>
+                    </a>
+                    <button class="chip-logout" id="logout-btn" title="Đăng xuất">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Login button (shown when not authenticated) -->
+                <a href="#" class="header-link" id="login-link" onclick="event.preventDefault(); login();">
+                    <button class="header-btn primary">
+                        <span data-i18n="loginBtn">Đăng nhập</span>
+                    </button>
+                </a>
+            </div>
+        </header>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <!-- ── Workspace: data (Open Data) ── -->
+            <div class="sidebar-context active" data-workspace="data">
+                <div class="sidebar-section">
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-tab="data-portal">
+                                <div class="nav-content">
+                                    <h4 data-i18n="navDataPortal">Open Economic Data</h4>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <a class="sidebar-bottom-link" href="/pages/api-docs.html">
+                        API Docs
+                    </a>
+                    <a class="sidebar-bottom-link" href="/pages/developer.html">
+                        API Key
+                    </a>
+                </div>
+            </div>
+
+            <!-- ── Workspace: km (Agent Market) ── -->
+            <div class="sidebar-context" data-workspace="km">
+
+                <!-- DISCOVER -->
+                <div class="km-nav-group">
+                    <div class="km-nav-group-title">DISCOVER</div>
+                    <a class="km-nav-item active" data-km-view="marketplace" href="#">Marketplace</a>
+                    <a class="km-nav-item" data-km-view="categories" href="#">Categories</a>
+                    <a class="km-nav-item" data-km-view="trending" href="#">New &amp; Trending</a>
+                </div>
+
+                <!-- MY STUFF (logged-in only) -->
+                <div class="km-nav-group km-nav-gated" data-gate="logged-in" style="display:none;">
+                    <div class="km-nav-group-title">MY STUFF</div>
+                    <a class="km-nav-item" data-km-view="library" href="#">
+                        My Library
+                        <span class="km-nav-badge" id="km-sidebar-library-count" style="display:none;"></span>
+                    </a>
+                    <a class="km-nav-item" data-km-view="wallet" href="#">
+                        Wallet
+                        <span class="km-nav-badge km-nav-balance" id="km-sidebar-balance">0 credits</span>
+                    </a>
+                </div>
+
+                <!-- SELL (seller-approved only) -->
+                <div class="km-nav-group km-nav-gated" data-gate="seller" id="km-sidebar-sell-group" style="display:none;">
+                    <div class="km-nav-group-title">SELL</div>
+                    <a class="km-nav-item" data-km-view="seller-dashboard" href="#">Seller Dashboard</a>
+                    <a class="km-nav-item" data-km-view="upload" href="#">Upload Product</a>
+                    <a class="km-nav-item" data-km-view="earnings" href="#">Earnings</a>
+                </div>
+
+                <!-- SELL — not yet registered (replaces SELL group when not-seller) -->
+                <div class="km-nav-group km-nav-gated" data-gate="become-seller" id="km-sidebar-become-seller-group" style="display:none;">
+                    <div class="km-nav-group-title">SELL</div>
+                    <a class="km-nav-item km-nav-item--cta" data-km-view="become-seller" href="#">+ Become a Seller</a>
+                </div>
+
+                <!-- SELL — email not verified (registered but pending) -->
+                <div class="km-nav-group km-nav-gated" data-gate="unverified" id="km-sidebar-unverified-group" style="display:none;">
+                    <div class="km-nav-group-title">SELL</div>
+                    <a class="km-nav-item km-nav-item--warning" data-km-view="verify-email" href="#">Verify Email</a>
+                </div>
+
+                <!-- ADMIN (admin role only) -->
+                <div class="km-nav-group km-nav-gated" data-gate="admin" id="km-sidebar-admin-group" style="display:none;">
+                    <div class="km-nav-group-title">ADMIN</div>
+                    <a class="km-nav-item km-nav-item--admin" data-km-view="admin" href="#">Admin Panel</a>
+                </div>
+
+                <!-- HELP -->
+                <div class="km-nav-group">
+                    <div class="km-nav-group-title">HELP</div>
+                    <a class="km-nav-item" href="/pages/guide-buyer.html" target="_blank">Buyer Guide</a>
+                    <a class="km-nav-item" href="/pages/guide-seller.html" target="_blank">Seller Guide</a>
+                </div>
+
+            </div>
+
+            <!-- ── Workspace: pulse (1s Pulse) ── -->
+            <div class="sidebar-context" data-workspace="pulse">
+
+                <!-- FEED -->
+                <div class="km-nav-group">
+                    <div class="km-nav-group-title">FEED</div>
+                    <a class="km-nav-item active" data-pulse-view="live" href="#">Live Pulse</a>
+                    <a class="km-nav-item" data-pulse-view="breaking" href="#">Breaking</a>
+                    <a class="km-nav-item" data-pulse-view="bookmarks" href="#">Bookmarks</a>
+                </div>
+
+                <!-- WATCHLIST (localStorage MVP) -->
+                <div class="km-nav-group">
+                    <div class="km-nav-group-title">WATCHLIST</div>
+                    <div id="pulse-watchlist-items">
+                        <!-- JS: renderPulseWatchlist() injects .pulse-watchlist-item rows here -->
+                        <!-- Logged-out placeholder -->
+                        <div class="pulse-watchlist-placeholder" id="pulse-watchlist-placeholder">
+                            <span class="pulse-watchlist-hint">Sign in to track assets</span>
+                        </div>
+                    </div>
+                    <a class="km-nav-item km-nav-item--cta pulse-watchlist-add" id="pulse-watchlist-add-btn" href="#" style="display:none;">
+                        + Add to Watchlist
+                    </a>
+                </div>
+
+                <!-- FILTERS (multi-toggle chips) -->
+                <div class="km-nav-group">
+                    <div class="km-nav-group-title">FILTERS</div>
+                    <div class="pulse-filter-chips" id="pulse-filter-chips">
+                        <button class="pulse-filter-chip active" data-filter="all">All Sources</button>
+                        <button class="pulse-filter-chip" data-filter="macro">Macro</button>
+                        <button class="pulse-filter-chip" data-filter="equities">Equities</button>
+                        <button class="pulse-filter-chip" data-filter="fx">FX</button>
+                        <button class="pulse-filter-chip" data-filter="commodities">Commodities</button>
+                        <button class="pulse-filter-chip" data-filter="sentiment">Sentiment</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Mobile User Controls Section (all workspaces) -->
+            <div class="sidebar-section mobile-only">
+                <h2 class="sidebar-heading" data-i18n="sidebarAccount">Account</h2>
+
+                <!-- Language Toggle -->
+                <button class="sidebar-btn" id="sidebar-lang-toggle">
+                    <i class="fas fa-language"></i>
+                    <span id="sidebar-lang-text">En/Vie</span>
+                </button>
+
+                <!-- User Info (shown when authenticated) -->
+                <div class="sidebar-user-info" id="sidebar-user-info" style="display: none;">
+                    <div class="sidebar-user-email" id="sidebar-user-email"></div>
+                </div>
+
+                <!-- Login Link (shown when not authenticated) -->
+                <a href="#" class="sidebar-link" id="sidebar-login-link" onclick="event.preventDefault(); login();">
+                    <button class="sidebar-btn primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span data-i18n="loginBtn">Đăng nhập</span>
+                    </button>
+                </a>
+
+                <!-- Logout Button (shown when authenticated) -->
+                <button class="sidebar-btn danger" id="sidebar-logout-btn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span data-i18n="logoutBtn">Đăng xuất</span>
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Open Economic Data -->

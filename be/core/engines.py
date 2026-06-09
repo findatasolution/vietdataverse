@@ -15,9 +15,9 @@ _POOL_KWARGS = dict(pool_pre_ping=True, pool_size=3, max_overflow=5, pool_recycl
 def get_engine_user():
     global _engine_user
     if _engine_user is None:
-        db_url = os.getenv("USER_DB") or os.getenv("ARGUS_FINTEL_DB")
+        db_url = os.getenv("USER_DB")
         if not db_url:
-            raise HTTPException(status_code=500, detail="USER_DB or ARGUS_FINTEL_DB not set")
+            raise ValueError("USER_DB is not set — refusing to fall back to another database")
         _engine_user = create_engine(db_url, **_POOL_KWARGS)
     return _engine_user
 
@@ -71,3 +71,17 @@ def get_engine_corp():
             raise HTTPException(status_code=500, detail="CRAWLING_CORP_DB not set")
         _engine_corp = create_engine(db_url, **_POOL_KWARGS)
     return _engine_corp
+
+
+_engine_knowledge = None
+
+
+def get_engine_knowledge():
+    """KNOWLEDGE_MARKET_DB — Knowledge Marketplace (sellers, products, credits, purchases)."""
+    global _engine_knowledge
+    if _engine_knowledge is None:
+        db_url = os.getenv("KNOWLEDGE_MARKET_DB")
+        if not db_url:
+            raise RuntimeError("KNOWLEDGE_MARKET_DB env var not set")
+        _engine_knowledge = create_engine(db_url, **_POOL_KWARGS)
+    return _engine_knowledge
