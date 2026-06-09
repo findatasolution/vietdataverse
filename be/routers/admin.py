@@ -3,12 +3,14 @@ Admin panel API.
 Mọi endpoint yêu cầu user_level='admin' hoặc is_admin=True.
 """
 
+import csv
+import io
 import json
 from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -423,6 +425,63 @@ async def signup_trend(
             "days": days,
             "data": [{"day": str(r[0]), "count": int(r[1])} for r in rows],
         })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/api/v1/admin/users/export")
+async def export_users_csv(
+    request: Request,
+    level: Optional[str] = Query(None, description="Filter by user_level"),
+    q: Optional[str] = Query(None, description="Search by email"),
+):
+    """Export user list as CSV. Admin only."""
+    await authenticate_user(request)
+    _require_admin(request)
+    try:
+        with get_engine_user().connect() as conn:
+            where_clauses = []
+            params: dict = {}
+            if q:
+                where_clauses.append("email ILIKE :q")
+                params["q"] = f"%{q}%"
+            if level:
+                where_clauses.append("user_level = :level")
+                params["level"] = level
+            where = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+
+            rows = conn.execute(text(f"""
+                SELECT email, name, user_level, current_plan,
+                       is_premium, premium_expiry, api_request_count,
+                       created_at, updated_at
+                FROM users
+                {where}
+                ORDER BY created_at DESC
+            """), params).fetchall()
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["email", "name", "user_level", "current_plan",
+                         "is_premium", "premium_expiry", "api_calls",
+                         "created_at", "updated_at"])
+        for r in rows:
+            writer.writerow([
+                r[0], r[1], r[2], r[3], r[4],
+                r[5].isoformat() if r[5] else "",
+                r[6],
+                r[7].isoformat() if r[7] else "",
+                r[8].isoformat() if r[8] else "",
+            ])
+
+        filename = f"vd_users_{datetime.utcnow().strftime('%Y%m%d_%H%M')}.csv"
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
     except HTTPException:
         raise
     except Exception as e:

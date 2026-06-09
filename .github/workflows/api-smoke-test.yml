@@ -1,0 +1,73 @@
+name: API Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'be/**'
+      - '.github/workflows/api-smoke-test.yml'
+  schedule:
+    # 9:00 AM VN (2:00 AM UTC) — sau khi crawlers chạy xong lúc 8:30
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Run API smoke tests
+        run: |
+          BASE="https://api.vietdataverse.online/api/v1"
+          PASS=0
+          FAIL=0
+          ERRORS=""
+
+          check() {
+            local name="$1"
+            local url="$2"
+            local response
+            response=$(curl -sf --max-time 15 "$url" 2>&1)
+            local exit_code=$?
+
+            if [ $exit_code -ne 0 ]; then
+              echo "❌ $name — curl failed (exit $exit_code)"
+              ERRORS="$ERRORS\n  ❌ $name: curl error $exit_code"
+              FAIL=$((FAIL + 1))
+              return
+            fi
+
+            local success
+            success=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('success',''))" 2>/dev/null)
+            local count
+            count=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('data',[])))" 2>/dev/null)
+
+            if [ "$success" = "True" ] && [ "${count:-0}" -gt 0 ]; then
+              echo "✅ $name — $count rows"
+              PASS=$((PASS + 1))
+            else
+              echo "❌ $name — success=$success rows=$count"
+              ERRORS="$ERRORS\n  ❌ $name: success=$success rows=$count"
+              FAIL=$((FAIL + 1))
+            fi
+          }
+
+          echo "=== Viet Dataverse API Smoke Test ==="
+          echo "Base: $BASE"
+          echo ""
+
+          check "Gold (DOJI HN)"     "$BASE/gold?type=DOJI%20HN&period=7d"
+          check "Silver"             "$BASE/silver?period=7d"
+          check "SBV Rate (VCB)"     "$BASE/sbv-rate?bank=VCB&period=7d"
+          check "Term Deposit (ACB)" "$BASE/termdepo?bank=ACB&period=7d"
+          check "CPI"                "$BASE/macro/cpi?period=1y"
+          check "Global (XAU/USD)"   "$BASE/global?symbol=GC%3DF&period=7d"
+
+          echo ""
+          echo "=== Summary: $PASS passed, $FAIL failed ==="
+
+          if [ $FAIL -gt 0 ]; then
+            echo -e "Failed endpoints:$ERRORS"
+            exit 1
+          fi

@@ -234,6 +234,9 @@
                 <option value="false">Active</option>
                 <option value="true">Expired</option>
             </select>
+            <button onclick="exportUsersCsv()" style="padding:6px 14px;background:#141413;color:#faf9f5;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">
+                ⬇ Export CSV
+            </button>
         </div>
         <div style="overflow-x:auto;">
             <table class="admin-table" id="users-table">
@@ -606,6 +609,34 @@ async function loadStats() {
             <td>${k.requests_this_month.toLocaleString('vi-VN')}</td>
         </tr>
     `).join('') || '<tr><td colspan="3" style="color:var(--text-tertiary);text-align:center;padding:24px;">Chưa có dữ liệu</td></tr>';
+}
+
+// ── Export CSV ───────────────────────────────────────────────────────────────
+
+async function exportUsersCsv() {
+    const q     = document.getElementById('user-q').value.trim();
+    const level = document.getElementById('user-level-filter').value;
+    const params = new URLSearchParams();
+    if (q)     params.set('q', q);
+    if (level) params.set('level', level);
+
+    const url = `${API}/api/v1/admin/users/export?${params}`;
+    try {
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${_token}` } });
+        if (!res.ok) { showToast('Export thất bại — ' + res.status, false); return; }
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1]
+                     || 'vd_users.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+        showToast('Export thành công');
+    } catch (e) {
+        showToast('Lỗi khi export: ' + e.message, false);
+    }
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────

@@ -15,7 +15,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_data, student_verify, referral, knowledge, wallet, seller, reports, takedown
+from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_data, student_verify, referral, knowledge, wallet, seller, reports, takedown, webhooks
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -54,6 +54,7 @@ app.include_router(wallet.router)
 app.include_router(seller.router)
 app.include_router(reports.router)
 app.include_router(takedown.router)
+app.include_router(webhooks.router)
 
 # ── Static files ──────────────────────────────────────────────────────────────
 _cur  = os.path.dirname(os.path.abspath(__file__))

@@ -33,6 +33,21 @@ jobs:
         cd crawl_tools
         python crawl_gold_silver.py
 
+    - name: Trigger webhooks (gold + silver)
+      if: success()
+      env:
+        WEBHOOK_INTERNAL_SECRET: ${{ secrets.WEBHOOK_INTERNAL_SECRET }}
+        API_BASE: https://api.vietdataverse.online
+      run: |
+        for event in gold silver; do
+          curl -sf -X POST "${API_BASE}/api/v1/internal/webhooks/trigger" \
+            -H "Content-Type: application/json" \
+            -H "X-Internal-Secret: ${WEBHOOK_INTERNAL_SECRET}" \
+            -d "{\"event\": \"${event}\", \"data\": []}" \
+            && echo "✅ Webhook trigger: ${event}" \
+            || echo "⚠️ Webhook trigger failed for ${event} (non-critical)"
+        done
+
     - name: Show results
       if: always()
       run: echo "Gold & silver price crawl completed at $(date)"
