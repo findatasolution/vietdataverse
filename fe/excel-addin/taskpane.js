@@ -33,7 +33,7 @@ function saveApiKey() {
 async function _verifyKey(key) {
     try {
         var res = await fetch(API_BASE + '/gold?limit=1', {
-            headers: { 'Authorization': 'Bearer ' + key }
+            headers: { 'X-API-Key':key }
         });
         if (res.ok) {
             _setKeyStatus('✓ Key hợp lệ — sẵn sàng nhập dữ liệu', 'ok');
@@ -59,11 +59,12 @@ function onDatatypeChange() {
     var val = document.getElementById('sel-datatype').value;
     document.querySelectorAll('.sub-opts').forEach(function (el) { el.classList.add('hidden'); });
     var map = {
-        'gold': 'sub-gold',
-        'sbv-rate': 'sub-sbvrate',
-        'termdepo': 'sub-termdepo',
+        'gold':       'sub-gold',
+        'silver':     'sub-silver',
+        'sbv-rate':   'sub-sbvrate',
+        'termdepo':   'sub-termdepo',
         'vn30/ohlcv': 'sub-vn30',
-        'global': 'sub-global',
+        'global':     'sub-global',
     };
     if (map[val]) document.getElementById(map[val]).classList.remove('hidden');
 }
@@ -109,7 +110,7 @@ async function _fetchData() {
     var url = API_BASE + '/' + endpoint + '?' + params.toString();
 
     try {
-        var res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + _apiKey } });
+        var res = await fetch(url, { headers: { 'X-API-Key':_apiKey } });
         var json = await res.json();
         if (!res.ok) {
             var msg = (json.detail && typeof json.detail === 'string') ? json.detail : ('Lỗi ' + res.status);
