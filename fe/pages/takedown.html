@@ -5,133 +5,209 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Báo cáo Vi phạm Bản quyền (DMCA) — Viet Dataverse</title>
     <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { padding: 2rem 1rem; min-height: 100vh; background: var(--bg, #faf8f3); }
-        .takedown-container { max-width: 720px; margin: 0 auto; background: var(--surface, #fff); border-radius: 12px; padding: 2.5rem; border: 1px solid var(--border-cream, #e8dfd0); box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
-        .takedown-header { text-align: center; margin-bottom: 2rem; }
+        body { background: var(--parchment); color: var(--near-black); margin: 0; }
+
+        /* Form inputs */
         .form-group { margin-bottom: 1.25rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .checkbox-wrap { display: flex; align-items: flex-start; gap: 0.5rem; padding: 1rem; background: var(--parchment, #f5f0e8); border-radius: 8px; margin-bottom: 1rem; }
-        .takedown-btn { background: var(--terracotta, #c0392b); color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-size: 0.95rem; cursor: pointer; width: 100%; margin-top: 0.5rem; font-weight: 500; transition: opacity 0.15s; }
+        .km-label {
+            display: block; font-size: 0.875rem; font-weight: 500;
+            color: var(--near-black); margin-bottom: 6px;
+        }
+        .km-input {
+            width: 100%; box-sizing: border-box;
+            background: var(--ivory); border: 1px solid var(--border-cream);
+            border-radius: 8px; padding: 9px 12px;
+            font-size: 0.9375rem; color: var(--near-black); font-family: inherit;
+            transition: border-color .15s;
+        }
+        .km-input:focus { outline: none; border-color: #3898ec; box-shadow: 0 0 0 3px rgba(56,152,236,.12); }
+        textarea.km-input { resize: vertical; min-height: 96px; }
+
+        .checkbox-wrap {
+            display: flex; align-items: flex-start; gap: 0.5rem;
+            padding: 1rem; background: var(--parchment); border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .takedown-btn {
+            background: var(--terracotta); color: #fff; border: none;
+            padding: 0.75rem 2rem; border-radius: 8px;
+            font-size: 0.9375rem; cursor: pointer; width: 100%;
+            margin-top: 0.5rem; font-weight: 500;
+            font-family: inherit; transition: opacity 0.15s;
+        }
         .takedown-btn:hover { opacity: 0.88; }
         .takedown-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .success-card { background: rgba(102,187,106,0.1); border: 1px solid #66BB6A; padding: 1.5rem; border-radius: 8px; }
-        @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } .takedown-container { padding: 1.5rem; } }
+        .success-card {
+            background: rgba(102,187,106,0.1); border: 1px solid #66BB6A;
+            padding: 1.5rem; border-radius: 8px;
+        }
+
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <div class="takedown-container">
-        <div class="takedown-header">
-            <h1 style="margin:0 0 0.5rem;color:var(--text-primary,#1a1a1a);font-size:1.5rem;">Báo cáo Vi phạm Bản quyền</h1>
-            <p style="color:var(--text-secondary,#6b6b6b);font-size:0.92rem;margin:0;line-height:1.6;">
-                Form này dùng để gửi khiếu nại bản quyền (DMCA-style takedown) cho nội dung trên Viet Dataverse.<br>
-                Chúng tôi sẽ xử lý trong vòng <strong>48 giờ</strong>.
-            </p>
+
+<header class="doc-topbar">
+    <a class="doc-back" href="/index.html">← Viet Dataverse</a>
+    <span class="doc-topbar-title">Báo cáo Vi phạm Bản quyền</span>
+</header>
+
+<div class="doc-shell">
+
+    <!-- Minimal TOC -->
+    <nav class="doc-toc">
+        <div class="doc-toc-inner">
+            <div class="doc-toc-label">Nội dung</div>
+            <a class="doc-toc-item" href="#intro">Giới thiệu</a>
+            <a class="doc-toc-item" href="#form">Form khiếu nại</a>
         </div>
+    </nav>
 
-        <div id="takedown-form-wrap">
-            <form id="takedown-form" onsubmit="submitTakedown(event)">
+    <main class="doc-content">
 
-                <div class="form-group">
-                    <label class="km-label">URL nội dung vi phạm *</label>
-                    <input class="km-input" name="product_url" type="url" required placeholder="https://vietdataverse.online/...">
-                </div>
+        <h1>Báo cáo Vi phạm Bản quyền</h1>
+        <p class="doc-lead">Form này dùng để gửi khiếu nại bản quyền (DMCA-style takedown) cho nội dung trên Viet Dataverse. Chúng tôi sẽ xử lý trong vòng <strong>48 giờ</strong>.</p>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="km-label">Họ tên người khiếu nại *</label>
-                        <input class="km-input" name="claimant_name" required maxlength="200">
-                    </div>
-                    <div class="form-group">
-                        <label class="km-label">Email *</label>
-                        <input class="km-input" name="claimant_email" type="email" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="km-label">Tổ chức (tuỳ chọn)</label>
-                    <input class="km-input" name="claimant_org" maxlength="200" placeholder="Công ty, tổ chức nếu có">
-                </div>
-
-                <div class="form-group">
-                    <label class="km-label">Bằng chứng quyền sở hữu *</label>
-                    <textarea class="km-input" name="copyright_proof" required rows="4" maxlength="2000"
-                        placeholder="Mô tả tác phẩm gốc của bạn, link nguồn (nếu có), và bằng chứng quyền sở hữu (giấy đăng ký, ngày publish gốc, etc.)"></textarea>
-                </div>
-
-                <div class="checkbox-wrap">
-                    <input type="checkbox" id="sworn" name="sworn_statement" required style="margin-top:0.2rem;flex-shrink:0;">
-                    <label for="sworn" style="font-size:0.85rem;line-height:1.5;cursor:pointer;">
-                        <strong>Tôi cam đoan dưới sự trung thực</strong> rằng các thông tin trên là chính xác,
-                        tôi là chủ sở hữu hoặc đại diện hợp pháp của tác phẩm bị vi phạm,
-                        và tôi hiểu rằng khiếu nại sai sự thật có thể bị truy cứu trách nhiệm pháp lý.
-                    </label>
-                </div>
-
-                <button type="submit" class="takedown-btn">Gửi khiếu nại</button>
-                <p id="takedown-status" style="text-align:center;font-size:0.85rem;margin-top:1rem;min-height:1.2em;"></p>
-            </form>
-        </div>
-
-        <div id="takedown-success" style="display:none;">
-            <div class="success-card">
-                <h2 style="margin:0 0 0.5rem;color:#66BB6A;font-size:1.15rem;">&#9989; Đã gửi thành công</h2>
-                <p style="margin:0 0 0.5rem;font-size:0.92rem;">
-                    Mã tham chiếu: <strong id="takedown-ref-id">#DMCA-???</strong>
-                </p>
-                <p style="margin:0;color:var(--text-secondary,#6b6b6b);font-size:0.88rem;">
-                    Chúng tôi đã ghi nhận khiếu nại của bạn.<br>
-                    Sẽ phản hồi trong vòng <strong>48 giờ</strong>.
-                </p>
+        <section id="intro" class="doc-section">
+            <h2>Giới thiệu</h2>
+            <p>Nếu bạn tin rằng nội dung trên Viet Dataverse vi phạm bản quyền của bạn hoặc của tổ chức bạn đại diện, hãy điền form khiếu nại bên dưới. Chúng tôi cam kết xem xét mọi khiếu nại hợp lệ và xử lý theo quy trình DMCA trong vòng 48 giờ làm việc.</p>
+            <div class="doc-warn">
+                Khiếu nại sai sự thật có thể bị truy cứu trách nhiệm pháp lý. Chỉ gửi form nếu bạn thực sự tin rằng quyền sở hữu trí tuệ của bạn bị vi phạm.
             </div>
-            <a href="/index.html" class="takedown-btn" style="display:block;text-align:center;text-decoration:none;margin-top:1rem;">Quay lại trang chủ</a>
-        </div>
-    </div>
+        </section>
 
-    <script>
-        var apiBase = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-            ? 'http://localhost:8000/api/v1'
-            : 'https://api.vietdataverse.online/api/v1';
+        <section id="form" class="doc-section">
+            <h2>Form khiếu nại</h2>
 
-        async function submitTakedown(e) {
-            e.preventDefault();
-            var form = e.target;
-            var statusEl = document.getElementById('takedown-status');
-            var btn = form.querySelector('button[type="submit"]');
+            <div id="takedown-form-wrap">
+                <form id="takedown-form" onsubmit="submitTakedown(event)">
 
-            btn.disabled = true;
-            statusEl.textContent = 'Đang gửi...';
-            statusEl.style.color = '#888';
+                    <div class="form-group">
+                        <label class="km-label">URL nội dung vi phạm *</label>
+                        <input class="km-input" name="product_url" type="url" required placeholder="https://vietdataverse.online/...">
+                    </div>
 
-            var body = {
-                product_url:     form.product_url.value.trim(),
-                claimant_name:   form.claimant_name.value.trim(),
-                claimant_email:  form.claimant_email.value.trim(),
-                claimant_org:    form.claimant_org.value.trim() || null,
-                copyright_proof: form.copyright_proof.value.trim(),
-                sworn_statement: form.sworn_statement.checked
-            };
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="km-label">Họ tên người khiếu nại *</label>
+                            <input class="km-input" name="claimant_name" required maxlength="200">
+                        </div>
+                        <div class="form-group">
+                            <label class="km-label">Email *</label>
+                            <input class="km-input" name="claimant_email" type="email" required>
+                        </div>
+                    </div>
 
-            try {
-                var res = await fetch(apiBase + '/takedown', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                var json = await res.json();
+                    <div class="form-group">
+                        <label class="km-label">Tổ chức (tuỳ chọn)</label>
+                        <input class="km-input" name="claimant_org" maxlength="200" placeholder="Công ty, tổ chức nếu có">
+                    </div>
 
-                if (!res.ok) throw new Error((json && json.detail) ? json.detail : 'Gửi thất bại');
+                    <div class="form-group">
+                        <label class="km-label">Bằng chứng quyền sở hữu *</label>
+                        <textarea class="km-input" name="copyright_proof" required rows="4" maxlength="2000"
+                            placeholder="Mô tả tác phẩm gốc của bạn, link nguồn (nếu có), và bằng chứng quyền sở hữu (giấy đăng ký, ngày publish gốc, etc.)"></textarea>
+                    </div>
 
-                var refId = (json.reference_id) || (json.data && json.data.id) || '???';
-                document.getElementById('takedown-ref-id').textContent = '#DMCA-' + refId;
-                document.getElementById('takedown-form-wrap').style.display = 'none';
-                document.getElementById('takedown-success').style.display = 'block';
-            } catch (err) {
-                statusEl.textContent = '✗ ' + err.message;
-                statusEl.style.color = '#EF5350';
-                btn.disabled = false;
-            }
+                    <div class="checkbox-wrap">
+                        <input type="checkbox" id="sworn" name="sworn_statement" required style="margin-top:0.2rem;flex-shrink:0;">
+                        <label for="sworn" style="font-size:0.875rem;line-height:1.5;cursor:pointer;">
+                            <strong>Tôi cam đoan dưới sự trung thực</strong> rằng các thông tin trên là chính xác,
+                            tôi là chủ sở hữu hoặc đại diện hợp pháp của tác phẩm bị vi phạm,
+                            và tôi hiểu rằng khiếu nại sai sự thật có thể bị truy cứu trách nhiệm pháp lý.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="takedown-btn">Gửi khiếu nại</button>
+                    <p id="takedown-status" style="text-align:center;font-size:0.875rem;margin-top:1rem;min-height:1.2em;"></p>
+                </form>
+            </div>
+
+            <div id="takedown-success" style="display:none;">
+                <div class="success-card">
+                    <h2 style="margin:0 0 0.5rem;color:#66BB6A;font-size:1.15rem;">Đã gửi thành công</h2>
+                    <p style="margin:0 0 0.5rem;font-size:0.9375rem;">
+                        Mã tham chiếu: <strong id="takedown-ref-id">#DMCA-???</strong>
+                    </p>
+                    <p style="margin:0;color:var(--olive-gray);font-size:0.875rem;">
+                        Chúng tôi đã ghi nhận khiếu nại của bạn.<br>
+                        Sẽ phản hồi trong vòng <strong>48 giờ</strong>.
+                    </p>
+                </div>
+                <a href="/index.html" class="takedown-btn" style="display:block;text-align:center;text-decoration:none;margin-top:1rem;">Quay lại trang chủ</a>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    var apiBase = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+        ? 'http://localhost:8000/api/v1'
+        : 'https://api.vietdataverse.online/api/v1';
+
+    async function submitTakedown(e) {
+        e.preventDefault();
+        var form = e.target;
+        var statusEl = document.getElementById('takedown-status');
+        var btn = form.querySelector('button[type="submit"]');
+
+        btn.disabled = true;
+        statusEl.textContent = 'Đang gửi...';
+        statusEl.style.color = '#888';
+
+        var body = {
+            product_url:     form.product_url.value.trim(),
+            claimant_name:   form.claimant_name.value.trim(),
+            claimant_email:  form.claimant_email.value.trim(),
+            claimant_org:    form.claimant_org.value.trim() || null,
+            copyright_proof: form.copyright_proof.value.trim(),
+            sworn_statement: form.sworn_statement.checked
+        };
+
+        try {
+            var res = await fetch(apiBase + '/takedown', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            var json = await res.json();
+
+            if (!res.ok) throw new Error((json && json.detail) ? json.detail : 'Gửi thất bại');
+
+            var refId = (json.reference_id) || (json.data && json.data.id) || '???';
+            document.getElementById('takedown-ref-id').textContent = '#DMCA-' + refId;
+            document.getElementById('takedown-form-wrap').style.display = 'none';
+            document.getElementById('takedown-success').style.display = 'block';
+        } catch (err) {
+            statusEl.textContent = '✗ ' + err.message;
+            statusEl.style.color = '#EF5350';
+            btn.disabled = false;
         }
-    </script>
+    }
+</script>
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(!items.length) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+      }
+    });
+  }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+  document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+
 </body>
 </html>

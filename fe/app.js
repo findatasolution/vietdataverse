@@ -3078,7 +3078,6 @@
                         if (!isOpen) dd.classList.add('open');
                     });
                 }
-                toggleDropdown('docs-topbar-btn', 'docs-dropdown');
                 toggleDropdown('settings-topbar-btn', 'settings-dropdown');
 
                 // Close on outside click

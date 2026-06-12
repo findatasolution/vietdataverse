@@ -7,39 +7,58 @@
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="../auth.js" defer></script>
     <style>
-        .dev-page {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 48px 16px 80px;
-            background: var(--parchment);
+        :root {
+            --parchment:    #f5f4ed;
+            --ivory:        #faf9f5;
+            --pure-white:   #ffffff;
+            --warm-sand:    #e8e6dc;
+            --near-black:   #141413;
+            --olive-gray:   #5e5d59;
+            --stone-gray:   #87867f;
+            --terracotta:   #c96442;
+            --coral:        #d97757;
+            --error-red:    #b53333;
+            --border-cream: #f0eee6;
+            --border-warm:  #e8e6dc;
+            --ring-warm:    #d1cfc5;
+            --whisper:      rgba(20,20,19,0.05) 0px 4px 24px;
+            --text-primary:   #141413;
+            --text-secondary: #5e5d59;
+            --text-tertiary:  #87867f;
+            --border-subtle:  #e8e6dc;
+            --charcoal:       #4d4c48;
+            --dark-surface:   #30302e;
+            --warm-silver:    #b0aea5;
+            --radius-sm:  8px;
+            --radius-md:  12px;
+            --radius-xl:  20px;
         }
-        .page-nav {
-            width: 100%; max-width: 1120px; margin: 0 auto;
-            padding: 18px 20px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .nav-logo { font-family: 'Lora', Georgia, serif; font-size: 15px; font-weight: 500; color: var(--near-black); text-decoration: none; display:flex; align-items:center; gap:4px; opacity:.85; transition:opacity .2s; }
-        .nav-logo:hover { opacity: 1; }
+        body { margin: 0; background: var(--parchment); color: var(--near-black); }
+
+        /* Settings tabs in topbar right area */
         .settings-tabs { display: flex; align-items: center; gap: 4px; }
         .settings-tab {
             display: inline-flex; align-items: center;
             padding: 6px 12px; border-radius: 8px;
             font-size: 13px; font-weight: 500;
-            color: var(--olive-gray, #5e5d59); text-decoration: none;
+            color: var(--olive-gray); text-decoration: none;
             transition: background .15s, color .15s;
         }
-        .settings-tab:hover { background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); }
+        .settings-tab:hover { background: var(--warm-sand); color: var(--near-black); }
         .settings-tab.active {
-            background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); font-weight: 600;
-            box-shadow: 0 0 0 1px var(--ring-warm, #d1cfc5);
+            background: var(--warm-sand); color: var(--near-black); font-weight: 600;
+            box-shadow: 0 0 0 1px var(--ring-warm);
         }
 
+        /* Hero area */
+        .dev-hero {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 48px 16px 0;
+        }
         .dev-badge {
             display: inline-flex; align-items: center; gap: 6px;
             background: rgba(201,100,66,.08); border: 1px solid rgba(201,100,66,.22);
@@ -57,7 +76,13 @@
             margin-bottom: 40px; line-height: 1.7; max-width: 480px;
         }
 
-        /* ── Card ────────────────────────────────────────────── */
+        /* Main content column */
+        .dev-main {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0 16px 80px;
+        }
+
+        /* Cards */
         .dev-card {
             width: 100%; max-width: 600px;
             background: var(--pure-white);
@@ -72,7 +97,7 @@
             margin-bottom: 20px;
         }
 
-        /* ── Key display ─────────────────────────────────────── */
+        /* Key display */
         .key-display {
             display: flex; align-items: center; gap: 10px;
             background: var(--warm-sand);
@@ -84,12 +109,8 @@
             font-size: 14px;
         }
         .key-value {
-            flex: 1;
-            color: var(--charcoal);
-            letter-spacing: .04em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            flex: 1; color: var(--charcoal); letter-spacing: .04em;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .key-value.masked { color: var(--stone-gray); }
         .btn-copy {
@@ -101,7 +122,7 @@
         .btn-copy:hover { color: var(--terracotta); border-color: rgba(201,100,66,.3); }
         .key-meta { font-size: 11px; color: var(--stone-gray); margin-bottom: 20px; }
 
-        /* ── Buttons ─────────────────────────────────────────── */
+        /* Buttons */
         .btn-generate {
             width: 100%; padding: 13px;
             background: var(--terracotta);
@@ -123,7 +144,7 @@
         .btn-revoke:hover:not(:disabled) { background: rgba(181,51,51,.05); }
         .btn-revoke:disabled { opacity: .4; cursor: not-allowed; }
 
-        /* ── Notice ──────────────────────────────────────────── */
+        /* New key notice */
         .new-key-notice {
             display: none;
             background: rgba(45,122,79,.06); border: 1px solid rgba(45,122,79,.2);
@@ -140,7 +161,7 @@
         }
         .new-key-warning { color: var(--error-red); font-size: 11px; margin-top: 6px; }
 
-        /* ── Code examples ───────────────────────────────────── */
+        /* Code examples */
         .code-block {
             background: var(--near-black);
             border: 1px solid var(--dark-surface);
@@ -159,17 +180,17 @@
             text-transform: uppercase; color: var(--stone-gray); margin-bottom: 6px;
         }
 
-        /* ── Access denied ───────────────────────────────────── */
+        /* Access denied */
         #access-denied {
             display: none;
             text-align: center; padding: 40px;
         }
         #access-denied.visible { display: block; }
 
-        /* ── Loading ─────────────────────────────────────────── */
+        /* Loading */
         #loading-state { text-align: center; padding: 48px; color: var(--stone-gray); font-size: 13px; }
 
-        /* ── Expired banner ──────────────────────────────────── */
+        /* Expired banner */
         .expired-banner {
             display: none;
             width: 100%; max-width: 600px;
@@ -183,7 +204,7 @@
             text-decoration: underline; cursor: pointer;
         }
 
-        /* ── Usage quota card ────────────────────────────────── */
+        /* Usage quota card */
         .usage-card {
             width: 100%; max-width: 600px;
             background: var(--pure-white);
@@ -207,7 +228,7 @@
         }
         .usage-reset { font-size: 11px; color: var(--stone-gray); }
 
-        /* ── Subscription card ───────────────────────────────── */
+        /* Subscription card */
         .sub-card {
             width: 100%; max-width: 600px;
             background: var(--pure-white);
@@ -231,13 +252,8 @@
 </head>
 <body>
 
-<nav class="page-nav">
-    <a class="nav-logo" href="/index.html">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;">
-            <path d="M10 13L5 8l5-5"/>
-        </svg>
-        Viet Dataverse
-    </a>
+<header class="doc-topbar">
+    <a class="doc-back" href="/index.html">← Viet Dataverse</a>
     <div class="settings-tabs">
         <a class="settings-tab" href="/pages/account.html">Tài khoản</a>
         <a class="settings-tab" href="/fe/#km/library">My Library</a>
@@ -245,23 +261,25 @@
         <a class="settings-tab" href="/fe/#km/seller-dashboard">My Store</a>
         <a class="settings-tab active" href="/pages/developer.html">API Key</a>
     </div>
-    <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
-</nav>
+    <div id="nav-auth" style="margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13px;"></div>
+</header>
 
-<main class="dev-page">
-
+<div class="dev-hero">
     <span class="dev-badge">
         <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 6 2 8 4 10"/><polyline points="12 6 14 8 12 10"/><line x1="9" y1="4" x2="7" y2="12"/></svg>
         Developer
     </span>
     <h1 class="dev-title">API Key Management</h1>
     <p class="dev-subtitle">Sử dụng API key để tích hợp dữ liệu tài chính Viet Dataverse vào ứng dụng của bạn.</p>
+</div>
+
+<div class="dev-main">
 
     <div id="loading-state">Đang kiểm tra tài khoản…</div>
 
     <!-- Expired subscription banner -->
     <div class="expired-banner" id="expired-banner">
-        <span>⚠️ Subscription đã hết hạn — API key đã bị tạm ngưng.</span>
+        <span>Subscription đã hết hạn — API key đã bị tạm ngưng.</span>
         <a href="/pages/pricing.html">Gia hạn ngay →</a>
     </div>
 
@@ -279,9 +297,9 @@
 
         <!-- New key notice (shown once after generation) -->
         <div class="new-key-notice" id="new-key-notice">
-            <strong>✅ API key mới đã được tạo</strong>
+            <strong>API key mới đã được tạo</strong>
             <div class="new-key-raw" id="new-key-raw"></div>
-            <div class="new-key-warning">⚠️ Sao chép và lưu ngay — key sẽ không hiển thị lại sau khi rời trang.</div>
+            <div class="new-key-warning">Sao chép và lưu ngay — key sẽ không hiển thị lại sau khi rời trang.</div>
             <button class="btn-copy" style="margin-top:8px;" onclick="copyNewKey()">Sao chép key</button>
         </div>
 
@@ -356,7 +374,7 @@ const data = await res.json();</div>
         </p>
     </div>
 
-</main>
+</div>
 
 <script>
     const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -374,7 +392,7 @@ const data = await res.json();</div>
                 <span style="color:var(--text-secondary)">${user.email || ''}</span>
                 <button onclick="logout()" style="background:none;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Đăng xuất</button>`;
         } else {
-            nav.innerHTML = `<button onclick="login()" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-primary));border:none;color:#0A0A0C;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>`;
+            nav.innerHTML = `<button onclick="login()" style="background:var(--terracotta);border:none;color:var(--ivory);padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập</button>`;
         }
     }
 
@@ -392,7 +410,6 @@ const data = await res.json();</div>
             const user = await getUser();
             updateNavAuth(user);
 
-            // Check user level via payment status endpoint
             const token = await getToken();
             const res = await fetch(`${API}/api/v1/payment/status`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -426,7 +443,6 @@ const data = await res.json();</div>
             });
             const d = await res.json();
 
-            // Subscription card
             const sub = d.subscription || {};
             document.getElementById('sub-card').style.display = 'flex';
             const planLabels = {
@@ -445,7 +461,6 @@ const data = await res.json();</div>
                         : `Đã hết hạn: ${exp.toLocaleDateString('vi-VN')}`;
             }
 
-            // Quota card
             const q = d.quota_info || {};
             if (q.monthly_limit != null) {
                 const used = q.used_this_month || 0;
@@ -468,12 +483,10 @@ const data = await res.json();</div>
                 }
             }
 
-            // Expiry banner
             if (d.has_key && d.is_active === false) {
                 document.getElementById('expired-banner').classList.add('visible');
             }
 
-            // Key display
             if (d.has_key) {
                 _currentKeyPreview = d.key_preview;
                 document.getElementById('key-preview-text').textContent = d.key_preview;
@@ -515,7 +528,6 @@ const data = await res.json();</div>
             document.getElementById('new-key-raw').textContent = d.api_key;
             document.getElementById('new-key-notice').classList.add('visible');
 
-            // Update curl example with actual key
             document.getElementById('curl-example').textContent =
                 `curl https://api.vietdataverse.online/api/v1/gold \\\n  -H "X-API-Key: ${d.api_key}"`;
 

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chuẩn cấu trúc Knowledge Pack — Viet Dataverse</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="guide-seller.html">← Hướng dẫn Seller</a>
+  <span class="doc-topbar-title">Chuẩn cấu trúc Knowledge Pack</span>
+</header>
+
+<div class="doc-shell">
+
+  <!-- TOC sidebar -->
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview">Tổng quan</a>
+      <a class="doc-toc-item" href="#types">3 loại pack</a>
+      <a class="doc-toc-item" href="#type-knowledge">Loại 1: Knowledge Document</a>
+      <a class="doc-toc-item sub" href="#type-knowledge">Cấu trúc skeleton</a>
+      <a class="doc-toc-item sub" href="#type-knowledge">Ví dụ thực tế</a>
+      <a class="doc-toc-item" href="#type-agent">Loại 2: Agent Blueprint</a>
+      <a class="doc-toc-item sub" href="#type-agent">Cấu trúc YAML</a>
+      <a class="doc-toc-item sub" href="#type-agent">Ví dụ thực tế</a>
+      <a class="doc-toc-item" href="#type-dataset">Loại 3: Dataset Pack</a>
+      <a class="doc-toc-item" href="#structure">Cấu trúc bắt buộc</a>
+      <a class="doc-toc-item" href="#checklist">Checklist trước submit</a>
+      <a class="doc-toc-item" href="#disclaimer">Điều khoản tự động</a>
+      <a class="doc-toc-item" href="#upload">Cách upload</a>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="doc-content">
+
+    <h1>Chuẩn cấu trúc Knowledge Pack</h1>
+    <p class="doc-lead">Hướng dẫn kỹ thuật cho Seller — định nghĩa cấu trúc, yêu cầu nội dung và quy trình kiểm tra tự động áp dụng khi upload sản phẩm lên Viet Dataverse.</p>
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="doc-section">
+      <h2>Tổng quan: Knowledge Pack là gì?</h2>
+      <p>Knowledge Pack là file chứa kiến thức chuyên biệt về thị trường tài chính Việt Nam, được đóng gói theo chuẩn để AI agent có thể load và sử dụng ngay mà không cần tiền xử lý thêm.</p>
+      <p>Khác với prompt thông thường, một Knowledge Pack có đầy đủ: cấu trúc rõ ràng, code snippet sẵn chạy được, prompt snippet định nghĩa hành vi agent, và tham chiếu nguồn dữ liệu thực tế từ Viet Dataverse API.</p>
+
+      <div class="doc-info">
+        <strong>Tương thích với:</strong> Claude, GPT-4o, Cursor, n8n, Dify, LangChain, CrewAI — bất kỳ LLM pipeline nào hỗ trợ system context injection.
+      </div>
+
+      <h3>Tại sao cần chuẩn cấu trúc?</h3>
+      <p>System kiểm tra tự động (auto-validator) chạy ngay khi Seller upload. Pack đạt chuẩn thì lên sàn ngay, không cần admin duyệt. Pack thiếu phần bắt buộc bị reject với thông báo chi tiết để sửa.</p>
+    </section>
+
+    <!-- TYPES OVERVIEW -->
+    <section id="types" class="doc-section">
+      <h2>3 loại pack</h2>
+      <p>Viet Dataverse hỗ trợ ba định dạng sản phẩm, mỗi loại phục vụ một use case khác nhau trong AI agent pipeline:</p>
+
+      <div class="pack-type-grid">
+
+        <div class="pack-type-card">
+          <span class="pack-type-badge type-knowledge">Knowledge Document</span>
+          <h4>Tài liệu kiến thức</h4>
+          <p>Chứa facts, data ranges, công thức tính, cơ chế thị trường VN. Agent load vào system context để reasoning. Phù hợp cho bất kỳ LLM nào.</p>
+          <div class="pack-type-ext">Định dạng: <code>.md</code></div>
+        </div>
+
+        <div class="pack-type-card">
+          <span class="pack-type-badge type-agent">Agent Blueprint</span>
+          <h4>Bản thiết kế Agent</h4>
+          <p>Định nghĩa toàn bộ hành vi agent — tools, routing logic, system prompt, few-shot examples. Import trực tiếp vào LangChain, n8n, Dify như workflow definition.</p>
+          <div class="pack-type-ext">Định dạng: <code>.yaml</code> / <code>.json</code></div>
+        </div>
+
+        <div class="pack-type-card">
+          <span class="pack-type-badge type-dataset">Dataset Pack</span>
+          <h4>Bộ dữ liệu lịch sử</h4>
+          <p>Bảng dữ liệu timeseries — lãi suất theo năm, CPI series, VN30 benchmark. Agent dùng cho RAG lookup, few-shot context, hoặc backtest pipeline.</p>
+          <div class="pack-type-ext">Định dạng: <code>.csv</code> / <code>.json</code></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TYPE: KNOWLEDGE DOCUMENT -->
+    <section id="type-knowledge" class="doc-section">
+      <h2>Loại 1: Knowledge Document (.md)</h2>
+      <p>Knowledge Document là loại pack phổ biến nhất. File Markdown chứa kiến thức chuyên sâu về một chủ đề tài chính VN, cấu trúc theo 7 phần bắt buộc để developer và researcher đều dùng được ngay.</p>
+
+      <h3>Cấu trúc skeleton</h3>
+      <pre><code># [Tên chủ đề]
+**Dành cho:** [use case chính — 1 câu]
+**Tầm quan trọng:** [tại sao quan trọng với nền kinh tế VN — 1-2 câu]
+
+---
+
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+```python
+import requests
+API_KEY = "your-api-key"
+headers = {"X-API-Key": API_KEY}
+
+# Gọi Viet Dataverse API
+data = requests.get(
+    "https://api.vietdataverse.online/api/v1/[endpoint]",
+    params={"period": "1y"},
+    headers=headers
+).json()["data"]
+
+# Ví dụ output:
+# [{"period": "2024-01-15", "value": ...}, ...]
+print(f"Dữ liệu mới nhất: {data[-1]}")
+```
+
+### Dành cho Researcher / Người không biết code
+1. Nhấn "📋 Copy to Claude" trên thư viện VDV
+2. Mở Claude.ai → paste vào chat
+3. Đặt câu hỏi bên dưới
+**Câu hỏi gợi ý:**
+- "[Câu hỏi cụ thể có con số thực tế]"
+- "[Câu hỏi so sánh hoặc tìm nguyên nhân]"
+- "[Câu hỏi về tác động hoặc kịch bản what-if]"
+
+---
+
+## 1. [Phần nội dung — thực trạng / số liệu]
+
+[Số liệu, bảng ASCII, cơ chế thị trường — kèm nguồn + năm]
+
+## 2. [Phần nội dung — phân tích / cơ chế]
+
+| Yếu tố | Giá trị / Ngưỡng | Ý nghĩa |
+|--------|-----------------|---------|
+| ...    | ...             | ...     |
+
+## Prompt snippet cho agent [tên ngành]
+```
+Khi phân tích [chủ đề]:
+
+1. [Bước đầu tiên]
+2. [Bước hai — kiểm tra gì]
+3. [Bước ba — kết luận thế nào]
+
+Dấu hiệu tốt:   [điều kiện] → [ý nghĩa]
+Dấu hiệu xấu:  [điều kiện] → [ý nghĩa]
+
+KHÔNG đưa ra khuyến nghị mua/bán tuyệt đối.
+Luôn kết hợp với [context bổ sung cần thiết].
+```
+
+---
+
+## Nguồn dữ liệu
+```python
+GET https://api.vietdataverse.online/api/v1/[endpoint-1]
+GET https://api.vietdataverse.online/api/v1/[endpoint-2]
+
+# Nguồn thực tế (không có API):
+# [Tên tổ chức]: https://[url]
+```</code></pre>
+
+      <h3>Ví dụ thực tế — rút gọn từ pack "Vietnam Gold Market Playbook"</h3>
+      <pre><code># Thị trường Vàng Việt Nam — Cơ chế & Số liệu Chuyên sâu
+**Dành cho:** Agent phân tích giá vàng VN, nhà đầu tư cá nhân, nhà nghiên cứu kinh tế vĩ mô
+**Tầm quan trọng:** Vàng tại Việt Nam không chỉ là hàng hoá — đây là kênh trú ẩn chính khi đồng VND mất giá,
+với thị trường nội địa thường cách biệt đáng kể so với giá quốc tế do chính sách nhập khẩu hạn chế của SBV.
+
+---
+
+## Cách dùng pack này
+
+### Dành cho Developer / Agent Builder
+```python
+import requests
+
+API_KEY = "your-api-key"
+BASE    = "https://api.vietdataverse.online/api/v1"
+
+# Lấy 90 ngày giá vàng SJC
+r = requests.get(f"{BASE}/gold",
+    params={"type": "SJC", "period": "90d"},
+    headers={"X-API-Key": API_KEY})
+
+data = r.json()["data"]
+latest = data[-1]
+print(f"SJC {latest['period']}: mua={latest['buy_price']:,} | bán={latest['sell_price']:,} VND/lượng")
+# Output: SJC 2025-06-08: mua=121,500,000 | bán=123,000,000 VND/lượng
+```
+
+### Dành cho Researcher / Người không biết code
+1. Nhấn "📋 Copy to Claude" trên thư viện Viet Dataverse
+2. Mở Claude.ai → paste vào chat
+3. Đặt câu hỏi bên dưới
+
+**Câu hỏi gợi ý:**
+- "Chênh lệch giá vàng SJC so với DOJI hiện tại là bao nhiêu? Nguyên nhân?"
+- "Khi USD/VND tăng 1%, giá vàng VN thường phản ứng thế nào trong lịch sử?"
+- "SBV có những công cụ nào để kiểm soát chênh lệch giá vàng nội địa—quốc tế?"
+
+---
+
+## 1. Thực trạng thị trường vàng VN (2024–2025)
+
+```
+Tổ chức      Loại      Mua vào       Bán ra        Chênh lệch
+SJC          24K 1 lượng 120,500,000  122,500,000   2,000,000 VND
+DOJI         24K 1 lượng 119,800,000  121,300,000   1,500,000 VND
+BTMC         24K 1 lượng 119,700,000  121,200,000   1,500,000 VND
+
+Giá vàng quốc tế (XAU): ~3,320 USD/oz → ~109,000,000 VND/lượng (tỷ giá 25,450)
+Chênh lệch nội địa–quốc tế: ~10–13 triệu VND/lượng (khoảng 10–12%)
+
+Nguồn: Viet Dataverse API / SJC / DOJI / BTMC, tháng 6/2025
+```
+
+## Prompt snippet cho agent phân tích vàng
+```
+Khi người dùng hỏi về giá vàng Việt Nam:
+
+1. Lấy giá SJC + DOJI + BTMC mới nhất từ Viet Dataverse API
+2. Tính chênh lệch mua–bán của từng thương hiệu
+3. So sánh với giá XAU quốc tế quy đổi VND theo tỷ giá VCB
+4. Nhận xét xu hướng 30 ngày gần nhất
+
+Ngưỡng chênh lệch đáng chú ý: >5 triệu VND/lượng so quốc tế → áp lực thị trường cao.
+
+KHÔNG đưa ra khuyến nghị mua/bán tuyệt đối.
+Luôn kết hợp với diễn biến tỷ giá USD/VND và chính sách SBV.
+```
+
+## Nguồn dữ liệu
+```python
+GET https://api.vietdataverse.online/api/v1/gold?type=SJC&period=90d
+GET https://api.vietdataverse.online/api/v1/gold?type=DOJI&period=90d
+GET https://api.vietdataverse.online/api/v1/sbv-centralrate?currency=USD
+
+# Nguồn tham khảo:
+# SBV: https://www.sbv.gov.vn
+# SJC: https://sjc.com.vn
+```</code></pre>
+    </section>
+
+    <!-- TYPE: AGENT BLUEPRINT -->
+    <section id="type-agent" class="doc-section">
+      <h2>Loại 2: Agent Blueprint (.yaml / .json)</h2>
+      <p>Agent Blueprint là file YAML hoặc JSON định nghĩa toàn bộ hành vi của một AI agent chuyên biệt. Khác với Knowledge Document chỉ là reference material, Blueprint có thể import trực tiếp vào LangChain, n8n, Dify như một workflow definition — tools, routing logic, few-shot examples đều được khai báo sẵn.</p>
+
+      <div class="doc-info">
+        <strong>Import được vào:</strong> LangChain (agent config), n8n (workflow JSON), Dify (agent YAML), Claude Tools, bất kỳ pipeline nào hỗ trợ YAML/JSON agent definition.
+      </div>
+
+      <h3>Cấu trúc skeleton</h3>
+      <pre><code># VDV Agent Blueprint v1
+meta:
+  name: "Tên agent"
+  version: "1.0"
+  description: "Mô tả 1 câu — agent làm gì, cho ai"
+  domains: [macro, gold, fx]        # lĩnh vực chuyên môn
+  compatible_with: [langchain, n8n, dify, claude-tools]
+
+system_prompt: |
+  Bạn là agent phân tích [lĩnh vực] cho thị trường Việt Nam.
+  Chuyên môn: [liệt kê cụ thể]
+  Nguyên tắc trả lời:
+  - Luôn trích dẫn nguồn dữ liệu
+  - Chỉ cung cấp thông tin tham khảo
+  KHÔNG đưa ra khuyến nghị mua/bán.
+
+tools:
+  - name: get_gold_price
+    description: "Lấy giá vàng VN từ Viet Dataverse"
+    endpoint: "https://api.vietdataverse.online/api/v1/gold"
+    params: {type: string, period: string}
+    auth: x-api-key
+
+  - name: get_fx_rate
+    description: "Lấy tỷ giá USD/VND"
+    endpoint: "https://api.vietdataverse.online/api/v1/sbv-centralrate"
+    params: {currency: string, period: string}
+    auth: x-api-key
+
+routing:
+  - intent: "hỏi về vàng"
+    tool: get_gold_price
+    then: analyze_and_respond
+  - intent: "hỏi về tỷ giá"
+    tool: get_fx_rate
+    then: analyze_and_respond
+
+few_shot_examples:
+  - user: "Giá vàng SJC hôm nay bao nhiêu?"
+    assistant: |
+      Dựa trên dữ liệu từ Viet Dataverse (cập nhật [ngày]):
+      - SJC mua vào: 120,500,000 VND/lượng
+      - SJC bán ra: 122,500,000 VND/lượng
+      Chênh lệch so với giá quốc tế: khoảng 11 triệu VND/lượng (~10%).
+
+disclaimer: |
+  Agent này chỉ cung cấp thông tin tham khảo.
+  Không chịu trách nhiệm về các quyết định đầu tư dựa trên thông tin từ agent.</code></pre>
+
+      <h3>Ví dụ thực tế — Credit Scoring Support Agent (rút gọn)</h3>
+      <pre><code># VDV Agent Blueprint v1
+meta:
+  name: "VN Credit Context Agent"
+  version: "1.2"
+  description: "Agent cung cấp context lãi suất & tín dụng VN cho hệ thống credit scoring"
+  domains: [finance, credit, termdepo, sbv-policy]
+  compatible_with: [langchain, n8n, dify, openai-function-calling]
+
+system_prompt: |
+  Bạn là agent chuyên cung cấp dữ liệu nền tảng về thị trường tín dụng Việt Nam.
+  Mục tiêu: hỗ trợ mô hình credit scoring bằng cách cung cấp context lãi suất thực tế.
+
+  Khi được hỏi, luôn:
+  1. Truy vấn dữ liệu mới nhất từ Viet Dataverse
+  2. Cung cấp khoảng lãi suất thị trường theo kỳ hạn
+  3. Nêu xu hướng 3 tháng gần nhất
+  4. Đặt trong bối cảnh chính sách SBV hiện hành
+
+  KHÔNG đưa ra đánh giá tín dụng cá nhân.
+  KHÔNG đưa ra khuyến nghị cho vay hay từ chối vay.
+
+tools:
+  - name: get_termdepo_rates
+    description: "Lấy lãi suất tiết kiệm ngân hàng theo kỳ hạn"
+    endpoint: "https://api.vietdataverse.online/api/v1/termdepo"
+    params:
+      period: {type: string, options: [30d, 90d, 1y], default: 90d}
+    auth: x-api-key
+    output_format: |
+      Trả về mảng [{period, term_1m, term_3m, term_6m, term_12m}]
+
+  - name: get_sbv_policy_rate
+    description: "Lấy lãi suất điều hành SBV"
+    endpoint: "https://api.vietdataverse.online/api/v1/sbv-interbank"
+    params:
+      period: {type: string, default: 90d}
+    auth: x-api-key
+
+routing:
+  - intent: "lãi suất hiện tại"
+    tool: get_termdepo_rates
+    then: summarize_rates
+  - intent: "lãi suất SBV"
+    tool: get_sbv_policy_rate
+    then: summarize_rates
+  - intent: "so sánh kỳ hạn"
+    tool: get_termdepo_rates
+    then: compare_tenors
+
+few_shot_examples:
+  - user: "Lãi suất tiết kiệm 12 tháng hiện nay là bao nhiêu?"
+    assistant: |
+      Theo dữ liệu từ Viet Dataverse (ACB, cập nhật tháng 6/2025):
+      - 1 tháng: 3.1%/năm
+      - 3 tháng: 3.5%/năm
+      - 6 tháng: 4.2%/năm
+      - 12 tháng: 5.0%/năm
+      Xu hướng 3 tháng: lãi suất 12 tháng tăng nhẹ +0.3% so với tháng 3/2025.
+
+disclaimer: |
+  Dữ liệu lấy từ Viet Dataverse API, có thể trễ 1 ngày so với niêm yết thực tế.
+  Chỉ dùng cho mục đích tham khảo trong credit scoring pipeline.
+  Không thay thế thẩm định tín dụng chuyên nghiệp.</code></pre>
+    </section>
+
+    <!-- TYPE: DATASET -->
+    <section id="type-dataset" class="doc-section">
+      <h2>Loại 3: Dataset Pack (.csv / .json)</h2>
+      <p>Dataset Pack là file dữ liệu lịch sử dạng bảng — timeseries về lãi suất, CPI, giá vàng, hoặc benchmark VN30. Agent dùng cho RAG lookup, few-shot context injection, hoặc backtesting pipeline.</p>
+
+      <h3>Required fields</h3>
+      <table class="doc-table">
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Mô tả</th><th>Ví dụ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>period</code></td><td>string</td><td>Ngày hoặc tháng theo ISO 8601</td><td><code>2024-06-01</code> / <code>2024-06</code></td></tr>
+          <tr><td><code>value</code></td><td>number</td><td>Giá trị chính</td><td><code>4.5</code></td></tr>
+          <tr><td><code>source</code></td><td>string</td><td>Nguồn dữ liệu</td><td><code>GSO/NSO</code></td></tr>
+          <tr><td><code>unit</code></td><td>string</td><td>Đơn vị</td><td><code>%/year</code> / <code>VND/oz</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Ví dụ CSV (CPI series)</h3>
+      <pre><code>period,value,source,unit,indicator
+2024-01,3.37,GSO,% YoY,CPI
+2024-02,3.98,GSO,% YoY,CPI
+2024-03,3.97,GSO,% YoY,CPI
+2024-04,4.40,GSO,% YoY,CPI
+2024-05,4.44,GSO,% YoY,CPI
+2024-06,4.34,GSO,% YoY,CPI
+2024-07,3.45,GSO,% YoY,CPI
+2024-08,3.45,GSO,% YoY,CPI
+2024-09,2.63,GSO,% YoY,CPI
+2024-10,2.89,GSO,% YoY,CPI</code></pre>
+
+      <div class="doc-tip">
+        Dataset Pack không cần "7 phần bắt buộc" như Knowledge Document. Chỉ cần đủ 4 required fields, file có ít nhất 12 rows, và có file <code>README.md</code> hoặc field <code>description</code> trong JSON metadata.
+      </div>
+    </section>
+
+    <!-- STRUCTURE TABLE -->
+    <section id="structure" class="doc-section">
+      <h2>Cấu trúc bắt buộc (7 phần)</h2>
+      <p>Áp dụng cho Knowledge Document (<code>.md</code>). Auto-validator kiểm tra tất cả 7 phần theo thứ tự khi upload.</p>
+
+      <div class="doc-warn">
+        System tự động reject pack thiếu phần bắt buộc. Bạn sẽ nhận thông báo chi tiết check nào fail và cách khắc phục — không cần liên hệ admin.
+      </div>
+
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Phần</th>
+            <th>Bắt buộc?</th>
+            <th>Mô tả</th>
+            <th>Áp dụng cho</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><code># Tiêu đề</code><br><code>**Dành cho:**</code><br><code>**Tầm quan trọng:**</code></td>
+            <td>Bắt buộc</td>
+            <td>3 dòng header. <code>**Dành cho:**</code> phải xuất hiện trong 5 dòng đầu file.</td>
+            <td>Knowledge Document</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><code>## Cách dùng pack này</code></td>
+            <td>Bắt buộc</td>
+            <td>Phải có 2 sub-section: Developer path (code Python tối thiểu 10 dòng) + Researcher path (3 bước + 3–5 câu hỏi gợi ý cụ thể).</td>
+            <td>Knowledge Document</td>
+          </tr>
+          <tr>
+            <td>3–N</td>
+            <td>Phần nội dung chính</td>
+            <td>Tối thiểu 2 phần</td>
+            <td>Mỗi phần có heading <code>##</code>. Số liệu phải kèm nguồn + năm. Dùng code block cho bảng ASCII và công thức.</td>
+            <td>Knowledge Document</td>
+          </tr>
+          <tr>
+            <td>N+1</td>
+            <td><code>## Prompt snippet cho agent</code></td>
+            <td>Bắt buộc</td>
+            <td>System/user prompt sẵn dùng, tối thiểu 10 dòng. Phải kết thúc bằng ít nhất 1 dòng disclaimer ("KHÔNG đưa ra khuyến nghị mua/bán").</td>
+            <td>Knowledge Document</td>
+          </tr>
+          <tr>
+            <td>N+2</td>
+            <td><code>## Nguồn dữ liệu</code></td>
+            <td>Bắt buộc</td>
+            <td>Ít nhất 1 API endpoint hoặc URL tham khảo có thể truy cập được. Dùng code block Python.</td>
+            <td>Knowledge Document</td>
+          </tr>
+          <tr>
+            <td>Auto</td>
+            <td>Disclaimer footer</td>
+            <td>Tự động</td>
+            <td>Platform tự inject khi lưu — Seller không cần viết. Xem chi tiết tại mục Điều khoản tự động.</td>
+            <td>Tất cả</td>
+          </tr>
+          <tr>
+            <td>Kích thước</td>
+            <td>File size</td>
+            <td>Bắt buộc</td>
+            <td>Tối thiểu 2 KB, tối đa 50 KB. Pack quá ngắn không đủ giá trị. Pack quá dài nên tách thành nhiều chủ đề con.</td>
+            <td>Knowledge Document</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Nội dung bị cấm (auto-reject)</h3>
+      <table class="doc-table">
+        <thead>
+          <tr><th>Bị cấm</th><th>Lý do</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Khuyến nghị mua/bán tài sản tài chính</td><td>Pháp lý — không có giấy phép tư vấn đầu tư</td></tr>
+          <tr><td>Dự báo giá cụ thể ("sẽ tăng lên X vào ngày Y")</td><td>Sai lệch, gây hại cho người dùng</td></tr>
+          <tr><td>Số liệu không có nguồn</td><td>Thông tin không kiểm chứng được</td></tr>
+          <tr><td>Thông tin cá nhân (SĐT, CMND/CCCD người khác)</td><td>Vi phạm bảo mật cá nhân (PDPD)</td></tr>
+          <tr><td>Nội dung ngoài lĩnh vực tài chính/kinh tế VN</td><td>Lệch focus sản phẩm</td></tr>
+          <tr><td>API key, secrets, credentials thật</td><td>Bảo mật — bị scan tự động ngay khi upload</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- CHECKLIST -->
+    <section id="checklist" class="doc-section">
+      <h2>Checklist trước khi submit</h2>
+      <p>Tự kiểm tra trước khi upload để tránh bị reject:</p>
+
+      <ul class="doc-checklist">
+        <li>Header có <code>**Dành cho:**</code> và <code>**Tầm quan trọng:**</code> trong 5 dòng đầu</li>
+        <li>Mục <code>## Cách dùng pack này</code> có đủ 2 sub-section (Developer + Researcher)</li>
+        <li>Code Python trong phần Developer có ít nhất 10 dòng và chạy được</li>
+        <li>Có ít nhất 3 câu hỏi gợi ý cụ thể (không hỏi chung chung)</li>
+        <li>Có ít nhất 2 phần nội dung chính với heading <code>##</code></li>
+        <li>Mọi số liệu đều kèm tên nguồn và năm</li>
+        <li>Có mục <code>## Prompt snippet cho agent</code> với tối thiểu 10 dòng</li>
+        <li>Prompt snippet kết thúc bằng dòng disclaimer "KHÔNG đưa ra khuyến nghị..."</li>
+        <li>Có mục <code>## Nguồn dữ liệu</code> với ít nhất 1 URL hoặc endpoint thực tế</li>
+        <li>File size từ 2 KB đến 50 KB</li>
+        <li>Không chứa API key thật, SĐT cá nhân, CMND, hoặc thông tin bí mật khác</li>
+        <li>Mô tả sản phẩm (field "Mô tả" trên form upload) có ít nhất 50 ký tự</li>
+      </ul>
+    </section>
+
+    <!-- DISCLAIMER -->
+    <section id="disclaimer" class="doc-section">
+      <h2>Điều khoản &amp; Disclaimer tự động</h2>
+      <p>Seller <strong>không cần viết disclaimer</strong> vào file. Platform tự động inject đoạn sau vào cuối mỗi pack khi lưu vào hệ thống:</p>
+
+      <div style="background:var(--parchment);border:1px solid var(--border-cream);border-left:3px solid var(--terracotta);border-radius:0 8px 8px 0;padding:16px 20px;margin:16px 0;">
+        <p style="margin:0 0 8px;font-size:0.8125rem;color:var(--stone-gray);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Nội dung được inject tự động</p>
+        <pre style="margin:0;background:none;padding:0;font-size:0.8125rem;color:var(--olive-gray);line-height:1.65;white-space:pre-wrap;font-family:monospace;">---
+## Điều khoản sử dụng
+
+Knowledge pack này được cung cấp **chỉ cho mục đích sử dụng cá nhân** (personal use).
+Nghiêm cấm sử dụng cho mục đích thương mại dưới bất kỳ hình thức nào mà không có
+sự cho phép bằng văn bản của Viet Dataverse và/hoặc tác giả.
+
+Thông tin trong pack này mang tính tham khảo và giáo dục.
+**Viet Dataverse (và/hoặc tác giả) không chịu trách nhiệm** về bất kỳ kết quả,
+tổn thất, hay hậu quả nào phát sinh từ việc sử dụng hoặc áp dụng thông tin này,
+bao gồm nhưng không giới hạn ở các quyết định đầu tư, tài chính, hoặc kinh doanh.
+
+*Phiên bản: được tạo tự động bởi Viet Dataverse Platform.*</pre>
+      </div>
+
+      <div class="doc-info">
+        Disclaimer được inject ở server-side khi lưu file, không phải lúc upload. File gốc của Seller giữ nguyên nội dung. Buyer nhận file đã có disclaimer khi download.
+      </div>
+    </section>
+
+    <!-- UPLOAD -->
+    <section id="upload" class="doc-section">
+      <h2>Cách upload</h2>
+      <p>Quy trình upload 3 bước — không có admin review, pack lên sàn ngay khi pass validator:</p>
+
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">
+          <strong>Upload file</strong> — Vào Seller Dashboard, click "Upload sản phẩm mới", điền form (tiêu đề, mô tả, giá, category) và chọn file. Click "Upload".
+        </div>
+      </div>
+
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">
+          <strong>Auto validate</strong> — System chạy 4 bước kiểm tra trong vài giây: kiểm tra mã độc, parse định dạng, kiểm tra cấu trúc 7 phần, quét PII và secrets. Nếu fail, modal hiển thị check nào fail và hướng dẫn sửa.
+        </div>
+      </div>
+
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">
+          <strong>Live ngay</strong> — Pass tất cả checks, sản phẩm lên sàn ngay với status "Published". Không cần chờ admin duyệt. Buyer có thể xem preview và mua trong vài phút.
+        </div>
+      </div>
+
+      <div class="doc-tip">
+        Xem các pack mẫu VD Official (packs 01–13) trong Knowledge Market để tham khảo ví dụ thực tế đã được publish và đạt chuẩn validator.
+      </div>
+
+      <p>Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a> hoặc xem <a href="guide-seller.html" style="color:var(--terracotta);">Hướng dẫn Seller</a> để biết thêm về quy trình đăng ký và payout.</p>
+    </section>
+
+  </main>
+</div>
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(!items.length) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+      }
+    });
+  }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+  document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+
+</body>
+</html>
