@@ -531,20 +531,21 @@
     }
 
     function renderProductCard(p) {
-        // Price (§11.6) — primary: USD + VND chip
+        // Price — locale-aware: VI → VND only, EN → USD only
         var _price = _formatPrice(p);
+        var isVI = (typeof currentLang !== 'undefined' ? currentLang : localStorage.getItem('lang') || 'vi') === 'vi';
         var priceHtml = _price.isFree
-            ? '<span class="km-card-price km-price-free">' + _price.usd + '</span>'
-            : '<span class="km-card-price km-price-paid">' + escHtml(_price.usd)
-                + (_price.vnd ? ' <span class="km-price-vnd">~' + escHtml(_price.vnd) + '</span>' : '')
+            ? '<span class="km-card-price km-price-free">Miễn phí</span>'
+            : '<span class="km-card-price km-price-paid">'
+                + escHtml(isVI ? _price.vnd : _price.usd)
                 + '</span>';
 
-        // Format badge — top-right of tag row (§11.5)
+        // Format badge — top-right of tag row
         const fmtHtml = p.format
             ? '<span class="km-card-format">.' + escHtml(p.format) + '</span>'
             : '';
 
-        // Category chip — top-left of tag row (§11.1)
+        // Category chip — top-left of tag row
         const catHtml = '<span class="km-card-cat">' + categoryLabel(p.category) + '</span>';
 
         // Rating (§11.7) — coral star, NOT gold
@@ -565,15 +566,28 @@
                 + dlHtml + '</div>'
             : '';
 
-        // Seller row footer (§11.5) — VD Official badge ONLY here, never next to title
-        const sellerName = p.seller ? escHtml(p.seller.display_name || p.seller_handle || '') : escHtml(p.seller_handle || '');
-        const vdBadgeHtml = p.is_vd_owned
-            ? '<span class="km-vd-official"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>VD Official</span>'
-            : '';
-        const sellerHtml = '<div class="km-card-seller">'
-            + (sellerName ? '<span class="km-card-seller-name">@' + sellerName + '</span>' : '')
-            + vdBadgeHtml
-            + '</div>';
+        // Author avatar — initials from display_name, or VD logo if official
+        const sellerDisplay = p.seller ? (p.seller.display_name || p.seller_handle || '') : (p.seller_handle || '');
+        const initials = sellerDisplay
+            ? sellerDisplay.trim().split(/\s+/).map(function(w){ return w[0]; }).slice(0,2).join('').toUpperCase()
+            : '?';
+
+        var sellerHtml;
+        if (p.is_vd_owned) {
+            // VD Official — premium badge with logo
+            sellerHtml = '<div class="km-card-seller">'
+                + '<span class="km-vd-official-badge">'
+                    + '<span class="km-vd-logo-mark">V</span>'
+                    + '<span class="km-vd-official-text">VD Official</span>'
+                + '</span>'
+                + '</div>';
+        } else {
+            // Regular seller — avatar circle + name on hover via title attr
+            sellerHtml = '<div class="km-card-seller">'
+                + '<span class="km-seller-avatar" title="' + escHtml(sellerDisplay) + '">' + escHtml(initials) + '</span>'
+                + (sellerDisplay ? '<span class="km-card-seller-name">' + escHtml(sellerDisplay) + '</span>' : '')
+                + '</div>';
+        }
 
         // Description — line-clamp:2
         const desc = escHtml((p.description || '').slice(0, 140))
@@ -581,10 +595,10 @@
 
         const slug = escHtml(p.slug || '');
 
-        return '<div class="km-card" data-slug="' + slug + '" onclick="KM.showProductDetail(\'' + slug + '\')">'
+        return '<div class="km-card" data-slug="' + slug + '" onclick="KM.showProductDetail(\'' + slug + '\')" tabindex="0" role="button" aria-label="' + escHtml(p.title) + '">'
             // Tag row: cat chip left, format badge right
             + '<div class="km-card-tagrow">' + catHtml + fmtHtml + '</div>'
-            // Title — Anthropic Serif, line-clamp:2
+            // Title — Serif, line-clamp:2
             + '<h3 class="km-card-title">' + escHtml(p.title) + '</h3>'
             // Description
             + '<p class="km-card-desc">' + desc + '</p>'
@@ -592,13 +606,10 @@
             + metaHtml
             // Divider
             + '<div class="km-card-divider"></div>'
-            // Footer: seller left, price + CTA right
+            // Footer: seller/badge left, price right — no CTA button
             + '<div class="km-card-footer">'
                 + sellerHtml
-                + '<div class="km-card-footer-right">'
-                    + priceHtml
-                    + '<button class="km-card-cta" onclick="event.stopPropagation();KM.showProductDetail(\'' + slug + '\')">Xem &#8250;</button>'
-                + '</div>'
+                + '<div class="km-card-footer-right">' + priceHtml + '</div>'
             + '</div>'
         + '</div>';
     }
@@ -866,7 +877,6 @@
         var fmtHtml = p.format ? '<span class="km-card-format">.' + escHtml(p.format) + '</span>' : '';
         var desc = escHtml((p.description || '').slice(0, 100)) + (p.description && p.description.length > 100 ? '&hellip;' : '');
 
-        // "Đã mua" date
         var purchaseDate = item.purchased_at || item.created_at || '';
         var dateLabel = '';
         if (purchaseDate) {
@@ -874,6 +884,22 @@
                 var d = new Date(purchaseDate);
                 dateLabel = 'Đã mua ' + d.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit' });
             } catch (_) { dateLabel = ''; }
+        }
+
+        // Author row — same pattern as marketplace card
+        var sellerDisplay = (p.seller && (p.seller.display_name || p.seller_handle)) || p.seller_handle || '';
+        var authorHtml;
+        if (p.is_vd_owned) {
+            authorHtml = '<span class="km-vd-official-badge">'
+                + '<span class="km-vd-logo-mark">V</span>'
+                + '<span class="km-vd-official-text">VD Official</span>'
+                + '</span>';
+        } else {
+            var initials = sellerDisplay
+                ? sellerDisplay.trim().split(/\s+/).map(function(w){ return w[0]; }).slice(0,2).join('').toUpperCase()
+                : '?';
+            authorHtml = '<span class="km-seller-avatar" title="' + escHtml(sellerDisplay) + '">' + escHtml(initials) + '</span>'
+                + (sellerDisplay ? '<span class="km-card-seller-name">' + escHtml(sellerDisplay) + '</span>' : '');
         }
 
         var lk = escHtml(item.license_key || '');
@@ -884,7 +910,8 @@
             + '<p class="km-card-desc">' + desc + '</p>'
             + (dateLabel ? '<div class="km-card-purchase-date">' + dateLabel + '</div>' : '')
             + '<div class="km-card-divider"></div>'
-            + '<div class="km-card-footer">'
+            + '<div class="km-card-footer" style="flex-direction:column;align-items:flex-start;gap:10px;">'
+                + '<div class="km-card-seller">' + authorHtml + '</div>'
                 + '<div class="km-card-lib-actions">'
                     + '<button class="km-btn-primary km-btn-sm" onclick="event.stopPropagation();KM.openWebReader(\'' + lk + '\',\'' + escHtml(p.title || '') + '\')">📖 Đọc</button>'
                     + '<button class="km-btn-sand km-btn-sm" onclick="event.stopPropagation();KM.downloadFromLibrary(\'' + lk + '\')">Tải</button>'
