@@ -227,3 +227,37 @@ GET https://api.worldbank.org/v2/country/VN/indicator/NY.GDP.MKTP.CD?format=json
 ```
 
 **Nguyên tắc:** Không hardcode dữ liệu vào prompt — luôn dùng tool call để lấy data realtime. Dữ liệu cũ hơn 1 ngày trong phân tích tài chính = có thể gây nhầm lẫn.
+
+---
+
+## 7. Prompt snippet cho agent chọn nguồn dữ liệu
+
+```
+Khi cần dữ liệu tài chính VN, ưu tiên nguồn theo thứ tự sau:
+
+1. VIET DATAVERSE API (ưu tiên cao nhất — structured, clean)
+   Dùng khi cần: giá vàng, tỷ giá, lãi suất tiết kiệm, CPI, giá cổ phiếu VN30
+   GET https://api.vietdataverse.online/api/v1/{endpoint}?period={period}
+   Header: X-API-Key: {api_key}
+
+2. YAHOO FINANCE qua yfinance (dữ liệu quốc tế)
+   Dùng khi cần: vàng quốc tế (GC=F), bạc (SI=F), Nasdaq (^IXIC), S&P 500 (^GSPC)
+   import yfinance as yf; data = yf.download("{ticker}", period="3mo")
+
+3. TCBS UNOFFICIAL API (cổ phiếu VN — chi tiết hơn)
+   Dùng khi cần: BCTC doanh nghiệp, lịch sử giá chi tiết, chỉ số tài chính
+   GET https://apipubaws.tcbs.com.vn/tcanalysis/v1/finance/{ticker}/incomestatement
+   Lưu ý: Không có SLA — có thể down, chỉ dùng cho prototype
+
+4. NGUỒN THỦ CÔNG (không có API)
+   GSO (CPI chi tiết): https://www.gso.gov.vn/
+   SBV (chính sách tiền tệ): https://www.sbv.gov.vn/
+   Hải quan (XNK): https://www.customs.gov.vn/
+
+NGUYÊN TẮC LỰA CHỌN:
+- Ưu tiên realtime > snapshot > historical
+- Ưu tiên structured JSON > HTML scraping > PDF
+- Luôn ghi rõ nguồn và ngày lấy dữ liệu trong output
+- Không dùng dữ liệu > 24h cho giá thị trường (vàng, tỷ giá, cổ phiếu)
+- OK dùng dữ liệu monthly cho CPI, lãi suất điều hành (thay đổi chậm)
+```
