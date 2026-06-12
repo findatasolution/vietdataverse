@@ -557,17 +557,20 @@ async def seller_create_product(
     ext        = os.path.splitext(filename.lower())[1].lstrip(".")
 
     # ── Scan chain (fail-fast) ────────────────────────────────────────────────
-    from services.file_scan import scan_file, check_format_validity, check_min_content
+    from services.file_scan import scan_file, check_format_validity, check_min_content, check_knowledge_pack_structure
     from services.pii_scan import scan_pii
 
     failed_checks: list[dict] = []
     rejection_reason: Optional[str] = None
 
     checks = [
-        ("security_scan",     lambda: scan_file(file_bytes, filename)),
-        ("format_validity",   lambda: check_format_validity(file_bytes, ext)),
-        ("min_content",       lambda: check_min_content(file_bytes, description)),
-        ("pii_scan",          lambda: scan_pii(file_bytes.decode("utf-8", errors="ignore"))),
+        ("security_scan",        lambda: scan_file(file_bytes, filename)),
+        ("format_validity",      lambda: check_format_validity(file_bytes, ext)),
+        ("min_content",          lambda: check_min_content(file_bytes, description)),
+        ("pii_scan",             lambda: scan_pii(file_bytes.decode("utf-8", errors="ignore"))),
+        # Structure spec only applies to .md knowledge packs
+        *([("knowledge_pack_structure", lambda: check_knowledge_pack_structure(file_bytes))]
+          if ext == "md" else []),
     ]
 
     scan_result = None
@@ -579,6 +582,10 @@ async def seller_create_product(
             reason_detail = result.get("detail") or result.get("reason") or {}
             if isinstance(reason_detail, dict):
                 reason_text = reason_detail.get("reason", str(reason_detail))
+                # Append structured error list if present (knowledge_pack_structure check)
+                sub_errors = reason_detail.get("errors")
+                if sub_errors:
+                    reason_text = reason_text + " | " + " | ".join(sub_errors)
             else:
                 reason_text = str(reason_detail)
             failed_checks.append({"name": check_name, "detail": reason_text})
@@ -689,6 +696,12 @@ async def seller_create_product(
         )
 
     # ── PASSED path ───────────────────────────────────────────────────────────
+
+    # Auto-inject disclaimer footer for .md knowledge packs
+    if ext == "md":
+        from services.file_scan import inject_disclaimer
+        file_bytes = inject_disclaimer(file_bytes)
+        file_size  = len(file_bytes)
 
     # Upload to R2
     r2_key: Optional[str] = None

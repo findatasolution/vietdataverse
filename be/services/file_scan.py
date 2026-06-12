@@ -164,3 +164,129 @@ def check_min_content(data: bytes, description: str) -> dict:
     if len((description or "").strip()) < 50:
         return {"result": "infected", "detail": {"reason": "Description too short (< 50 chars)"}}
     return {"result": "clean", "detail": {"size": len(data), "desc_len": len(description)}}
+
+
+# ── Knowledge Pack Structure Spec (see .claude/rules/KNOWLEDGE_PACK_SPEC.md) ──
+
+_DISCLAIMER_FOOTER = """
+---
+
+## ⚖️ Điều khoản sử dụng
+
+Knowledge pack này được cung cấp **chỉ cho mục đích sử dụng cá nhân** (personal use).
+Nghiêm cấm sử dụng cho mục đích thương mại dưới bất kỳ hình thức nào mà không có
+sự cho phép bằng văn bản của Viet Dataverse và/hoặc tác giả.
+
+Thông tin trong pack này mang tính tham khảo và giáo dục.
+**Viet Dataverse (và/hoặc tác giả) không chịu trách nhiệm** về bất kỳ kết quả,
+tổn thất, hay hậu quả nào phát sinh từ việc sử dụng hoặc áp dụng thông tin này,
+bao gồm nhưng không giới hạn ở các quyết định đầu tư, tài chính, hoặc kinh doanh.
+
+*Phiên bản: được tạo tự động bởi Viet Dataverse Platform.*
+"""
+
+_DISCLAIMER_MARKER = "## ⚖️ Điều khoản sử dụng"
+
+
+def inject_disclaimer(data: bytes) -> bytes:
+    """
+    Append the standard VD disclaimer footer to a .md knowledge pack.
+    Idempotent — skips if the marker is already present.
+    """
+    text = data.decode("utf-8")
+    if _DISCLAIMER_MARKER in text:
+        return data  # already injected
+    return (text.rstrip() + "\n" + _DISCLAIMER_FOOTER).encode("utf-8")
+
+_KP_MIN_BYTES = 2_048
+_KP_MAX_BYTES = 51_200
+
+# Match "nên mua/bán" only when NOT on a question line (ends with ?)
+# and forecast phrases that appear as statements
+# "nên mua/bán" is only banned on lines that do NOT contain "?" anywhere
+# (lines with "?" are sample questions for the researcher path — legitimate)
+_BANNED_PHRASES = re.compile(
+    r"(?m)^(?!.*\?).*(?:nên mua|nên bán)|sẽ tăng lên|sẽ giảm xuống",
+    re.IGNORECASE,
+)
+
+
+def check_knowledge_pack_structure(data: bytes) -> dict:
+    """
+    Validate .md knowledge pack against the VD Knowledge Pack Spec.
+    Only runs for .md files.
+
+    Returns {result: "clean"|"infected", detail: {reason?, warnings?: []}}
+    """
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        return {"result": "infected", "detail": {"reason": "File không phải UTF-8"}}
+
+    size = len(data)
+    if size < _KP_MIN_BYTES:
+        return {"result": "infected", "detail": {
+            "reason": f"Pack quá ngắn ({size:,} bytes). Tối thiểu {_KP_MIN_BYTES:,} bytes."
+        }}
+    if size > _KP_MAX_BYTES:
+        return {"result": "infected", "detail": {
+            "reason": f"Pack quá dài ({size:,} bytes). Tối đa {_KP_MAX_BYTES:,} bytes. "
+                      "Hãy tách thành nhiều pack nhỏ hơn."
+        }}
+
+    lines = text.splitlines()
+    first_5 = "\n".join(lines[:5])
+
+    errors = []
+
+    # 1. Header metadata
+    if "**Dành cho:**" not in first_5:
+        errors.append("Thiếu **Dành cho:** trong 5 dòng đầu (xem spec mục 3.1)")
+
+    # 2. Cách dùng section
+    if not re.search(r"^##\s+Cách dùng", text, re.MULTILINE | re.IGNORECASE):
+        errors.append("Thiếu section '## Cách dùng pack này' (xem spec mục 3.2)")
+    else:
+        # 3. Developer code block inside Cách dùng
+        # Extract text from "Cách dùng" to next ## or end
+        m = re.search(r"(##\s+Cách dùng.*?)(?=\n##\s|\Z)", text, re.DOTALL | re.IGNORECASE)
+        if m and "```" not in m.group(1):
+            errors.append("Section 'Cách dùng' thiếu code block (```) cho Developer path (xem spec mục 3.2)")
+
+    # 4. Prompt snippet (## Prompt snippet ... OR ## N. Prompt snippet ...)
+    if not re.search(r"^##\s+(?:\d+\.\s+)?Prompt snippet", text, re.MULTILINE | re.IGNORECASE):
+        errors.append("Thiếu section '## Prompt snippet cho agent' (xem spec mục 3.4)")
+    else:
+        m = re.search(r"(##\s+(?:\d+\.\s+)?Prompt snippet.*?)(?=\n##\s|\Z)", text, re.DOTALL | re.IGNORECASE)
+        if m:
+            snippet_lines = [l for l in m.group(1).splitlines() if l.strip()]
+            if len(snippet_lines) < 10:
+                errors.append("Prompt snippet quá ngắn (< 10 dòng có nội dung) (xem spec mục 3.4)")
+
+    # 5. Nguồn dữ liệu — accept: "## Nguồn", "## N. Nguồn", "## N. Dữ liệu API"
+    if not re.search(
+        r"^##\s+(?:\d+\.\s+)?(?:Nguồn|Dữ liệu API)",
+        text, re.MULTILINE | re.IGNORECASE
+    ):
+        errors.append("Thiếu section '## Nguồn dữ liệu' (xem spec mục 3.5)")
+
+    # 6. Banned phrases
+    banned = _BANNED_PHRASES.findall(text)
+    if banned:
+        unique = list(dict.fromkeys(b.lower() for b in banned))
+        errors.append(
+            f"Pack chứa cụm từ bị cấm: {unique}. "
+            "Không được đưa ra khuyến nghị mua/bán tuyệt đối (xem spec mục 4)."
+        )
+
+    if errors:
+        return {
+            "result": "infected",
+            "detail": {
+                "reason": "Pack không đúng chuẩn VD Knowledge Pack Spec",
+                "errors": errors,
+                "hint":   "Xem đầy đủ tại .claude/rules/KNOWLEDGE_PACK_SPEC.md",
+            },
+        }
+
+    return {"result": "clean", "detail": {"size": size, "checks_passed": 6}}

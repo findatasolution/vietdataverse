@@ -1030,6 +1030,12 @@ async def admin_create_product(
         raise HTTPException(status_code=400, detail="slug must be 1-120 characters")
 
     file_bytes = await file.read()
+
+    # Auto-inject disclaimer footer for .md packs
+    if fmt == "md":
+        from services.file_scan import inject_disclaimer
+        file_bytes = inject_disclaimer(file_bytes)
+
     file_size  = len(file_bytes)
     file_hash  = hashlib.sha256(file_bytes).hexdigest()
 
