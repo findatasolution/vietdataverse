@@ -636,6 +636,7 @@
             initNotifications();
             initPulseSidebar();
             initReportListing();
+            loadMarketMovement();
 
             // Initialize Auth0 and check authentication status
             await initAuth0AndUpdateUI();
@@ -2297,6 +2298,81 @@
                     }
                 }
             };
+        }
+
+        /* =========================================================
+           MARKET MOVEMENT CARD (gold-silver section sidebar)
+        ========================================================= */
+        async function loadMarketMovement() {
+            const base = window.APP_CONFIG.API_BASE_URL;
+
+            function setRow(valueId, changeId, value, delta, pct, decimals) {
+                const valueEl = document.getElementById(valueId);
+                const changeEl = document.getElementById(changeId);
+                if (!valueEl || !changeEl) return;
+
+                valueEl.textContent = value.toLocaleString('vi-VN', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                });
+
+                const sign = delta >= 0 ? '+' : '';
+                changeEl.textContent = `${sign}${delta.toLocaleString('vi-VN', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                })} (${sign}${pct.toFixed(2)}%)`;
+                changeEl.classList.remove('positive', 'negative');
+                changeEl.classList.add(delta >= 0 ? 'positive' : 'negative');
+            }
+
+            function lastChange(series) {
+                if (!series || series.length < 2) return null;
+                const last = series[series.length - 1];
+                const prev = series[series.length - 2];
+                if (last == null || prev == null) return null;
+                return { last, delta: last - prev, pct: (last - prev) / prev * 100 };
+            }
+
+            // USD/VND — SBV central rate
+            try {
+                let fxData = window._prefetchPromises && window._prefetchPromises['fxrate-1m']
+                    ? await window._prefetchPromises['fxrate-1m']
+                    : null;
+                if (!fxData) {
+                    const r = await fetchWithTimeout(`${base}/sbv-centralrate?period=7d&bank=SBV&currency=USD`, {}, 15000);
+                    if (r.ok) fxData = await r.json();
+                }
+                const rates = fxData && fxData.data ? fxData.data.usd_vnd_rate : fxData ? fxData.usd_vnd_rate : null;
+                const fx = lastChange(rates);
+                if (fx) setRow('mmFxValue', 'mmFxChange', fx.last, fx.delta, fx.pct, 0);
+            } catch (e) {
+                console.warn('[market-movement] fxrate failed:', e);
+            }
+
+            // Vàng thế giới — XAU/USD (gold future)
+            try {
+                const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, {}, 15000);
+                if (r.ok) {
+                    const json = await r.json();
+                    const gold = lastChange(json && json.data ? json.data.gold_prices : null);
+                    if (gold) setRow('mmGoldValue', 'mmGoldChange', gold.last, gold.delta, gold.pct, 2);
+                }
+            } catch (e) {
+                console.warn('[market-movement] global-macro failed:', e);
+            }
+
+            // VN-Index
+            try {
+                const r = await fetchWithTimeout(`${base}/market/vnindex?period=7d`, {}, 15000);
+                if (r.ok) {
+                    const json = await r.json();
+                    const closes = (json.data || []).map(d => d.close);
+                    const vnindex = lastChange(closes);
+                    if (vnindex) setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
+                }
+            } catch (e) {
+                console.warn('[market-movement] vnindex failed:', e);
+            }
         }
 
         /* =========================================================
