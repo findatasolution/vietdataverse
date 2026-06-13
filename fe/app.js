@@ -1549,8 +1549,8 @@
                 // Show loading state (optional - could add a loading indicator)
                 console.log(`Downloading ${dataType} data...`);
 
-                // Fetch data from API
-                const response = await fetch(`${base}/${endpoint}`);
+                // Fetch data from API (đính kèm token — endpoint giờ cần auth)
+                const response = await fetch(`${base}/${endpoint}`, { headers: await _authHeaders() });
                 if (!response.ok) throw new Error('Failed to fetch data');
 
                 const jsonData = await response.json();
@@ -1657,10 +1657,30 @@
             return data;
         }
 
+        // Build Authorization header từ Auth0 token — data endpoints giờ cần đăng nhập (free tier 1.000 req/tháng).
+        async function _authHeaders() {
+            try {
+                if (typeof getToken === 'function') {
+                    const t = await getToken();
+                    if (t) return { Authorization: 'Bearer ' + t };
+                }
+            } catch (_) { /* ignore */ }
+            return {};
+        }
+
         async function downloadDataset(datasetId) {
             const base = window.APP_CONFIG.API_BASE_URL;
             const btn = event.currentTarget;
             const origHtml = btn.innerHTML;
+
+            // Yêu cầu đăng nhập — tải dữ liệu cần tài khoản (miễn phí) để hệ thống đo được usage.
+            const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
+            if (!authed) {
+                const overlay = document.getElementById('notification-overlay');
+                if (overlay) overlay.classList.add('active');
+                return;
+            }
+
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
             btn.disabled = true;
 
@@ -1739,7 +1759,7 @@
                     throw new Error('Unknown dataset: ' + datasetId);
                 }
 
-                const res = await fetch(url);
+                const res = await fetch(url, { headers: await _authHeaders() });
                 if (!res.ok) throw new Error(`API error ${res.status}`);
                 const json = await res.json();
                 if (!json.success || !json.data) throw new Error('Invalid response');

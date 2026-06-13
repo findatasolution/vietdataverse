@@ -62,22 +62,28 @@ def _is_metered(path: str) -> bool:
 async def meter_open_data(request, call_next):
     from fastapi import HTTPException
     from fastapi.responses import JSONResponse
-    from middleware import _auth_via_api_key
+    from middleware import _auth_via_api_key, _auth_via_bearer
 
     path = request.url.path
     if request.method == "GET" and _is_metered(path):
         api_key = request.headers.get("X-API-Key")
-        if not api_key:
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "success": False,
-                    "detail": "Cần API key. Đăng nhập và tạo free API key (1.000 req/tháng) "
-                              "tại /pages/developer.html.",
-                },
-            )
+        auth_header = request.headers.get("Authorization", "")
         try:
-            ok = await _auth_via_api_key(request, api_key)
+            if api_key:
+                # API consumer / Excel add-in
+                ok = await _auth_via_api_key(request, api_key)
+            elif auth_header.startswith("Bearer "):
+                # FE đã đăng nhập (download CSV, chart cần dữ liệu live)
+                ok = await _auth_via_bearer(request, auth_header[7:])
+            else:
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "success": False,
+                        "detail": "Cần đăng nhập. Tài khoản miễn phí được 1.000 request/tháng — "
+                                  "đăng nhập hoặc lấy API key tại /pages/developer.html.",
+                    },
+                )
         except HTTPException as exc:
             return JSONResponse(
                 status_code=exc.status_code,
@@ -87,7 +93,7 @@ async def meter_open_data(request, call_next):
         if not ok:
             return JSONResponse(
                 status_code=401,
-                content={"success": False, "detail": "API key không hợp lệ hoặc đã bị thu hồi."},
+                content={"success": False, "detail": "Thông tin xác thực không hợp lệ hoặc đã bị thu hồi."},
             )
 
     return await call_next(request)

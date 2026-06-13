@@ -283,12 +283,12 @@
         <a href="/pages/pricing.html">Gia hạn ngay →</a>
     </div>
 
-    <!-- Access denied -->
+    <!-- Access denied (chỉ hiện khi CHƯA đăng nhập) -->
     <div id="access-denied">
-        <p style="font-size:32px;margin-bottom:12px;">🔒</p>
-        <p style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Yêu cầu API Supper Lite</p>
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Tính năng API Key chỉ dành cho tài khoản API Supper Lite trở lên.</p>
-        <a href="/pages/pricing.html" style="display:inline-block;padding:10px 20px;background:var(--terracotta);color:var(--ivory);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">Nâng cấp ngay chỉ 99.000₫/tháng →</a>
+        <p style="font-size:32px;margin-bottom:12px;">🔑</p>
+        <p style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Đăng nhập để lấy API key miễn phí</p>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Tài khoản miễn phí được cấp ngay API key với hạn mức 1.000 request/tháng — đủ để thử nghiệm và dùng Excel Add-in.</p>
+        <button onclick="login()" style="display:inline-block;padding:10px 20px;background:var(--terracotta);color:var(--ivory);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Đăng nhập / Đăng ký →</button>
     </div>
 
     <!-- API Key card -->
@@ -416,14 +416,10 @@ const data = await res.json();</div>
             });
 
             if (!res.ok) throw new Error('auth error');
-            const d = await res.json();
+            await res.json();
 
-            if (d.user_level !== 'premium_developer') {
-                loadEl.style.display = 'none';
-                document.getElementById('access-denied').classList.add('visible');
-                return;
-            }
-
+            // Mọi user đã đăng nhập đều tạo được key (free tier: 1.000 req/tháng).
+            // Backend quyết định hạn mức theo user_level; FE không gate nữa.
             loadEl.style.display = 'none';
             document.getElementById('key-card').style.display = 'block';
             document.getElementById('guide-card').style.display = 'block';
@@ -450,7 +446,7 @@ const data = await res.json();</div>
                 dev_yearly:  'Dev Yearly (100,000 req/tháng)',
             };
             document.getElementById('sub-plan-label').textContent =
-                planLabels[sub.plan] || 'API Supper Lite';
+                planLabels[sub.plan] || 'Free (1.000 req/tháng)';
             if (sub.premium_expiry) {
                 const exp = new Date(sub.premium_expiry);
                 const now = new Date();

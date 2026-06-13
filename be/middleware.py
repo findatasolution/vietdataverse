@@ -151,6 +151,86 @@ async def _auth_via_api_key(request: Request, api_key: str) -> bool:
         return False
 
 
+def _raise_quota_exceeded(q):
+    """Map QuotaResult(allowed=False) → HTTPException — dùng chung cho cả 2 đường auth."""
+    reset_iso = q.reset_at.isoformat()
+    if q.reason == "no_access":
+        raise HTTPException(status_code=403, detail="Tài khoản không có quyền truy cập API.")
+    if q.reason == "burst":
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit burst {q.burst_per_sec} req/s. Thử lại sau 1 giây.",
+            headers={"Retry-After": "1",
+                     "X-RateLimit-Limit": str(q.monthly_limit or 0),
+                     "X-RateLimit-Reset": reset_iso},
+        )
+    raise HTTPException(
+        status_code=429,
+        detail=f"Hết quota tháng ({q.monthly_limit} req). Reset vào {reset_iso} (giờ VN).",
+        headers={"X-RateLimit-Limit": str(q.monthly_limit),
+                 "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": reset_iso},
+    )
+
+
+async def _auth_via_bearer(request: Request, token: str) -> bool:
+    """
+    Meter một request mang Auth0 Bearer token (FE đã đăng nhập: download, chart
+    cần dữ liệu live). Resolve user_id + tier từ DB rồi áp cùng quota/log như
+    đường API key. Không có expiry-deactivation (đó là logic riêng của API key).
+    Trả False nếu token không hợp lệ hoặc user chưa provision; raise khi cạn quota.
+    """
+    from core.engines import get_engine_user
+    from auth import verify_auth0_token, NAMESPACE
+
+    try:
+        payload  = verify_auth0_token(token)
+        auth0_id = payload.get("sub")
+        email    = payload.get(f"{NAMESPACE}/email") or payload.get("email", "")
+    except Exception:
+        return False
+    if not auth0_id:
+        return False
+
+    engine = get_engine_user()
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(text("""
+                SELECT user_id, email, user_level, is_admin, current_plan
+                FROM users WHERE auth0_id = :aid
+                LIMIT 1
+            """), {"aid": auth0_id}).fetchone()
+        if not row:
+            return False  # chưa có dòng user → /me sẽ tạo; tạm coi như chưa đo được
+
+        user_id, db_email, user_level, is_admin, current_plan = row
+
+        with engine.begin() as conn:
+            q = check_and_consume(conn, user_id=user_id,
+                                  user_level=user_level, plan=current_plan)
+            if not q.allowed:
+                _raise_quota_exceeded(q)
+            conn.execute(text("""
+                UPDATE users SET api_request_count = api_request_count + 1
+                WHERE user_id = :uid
+            """), {"uid": user_id})
+
+        request.state.user = {
+            "auth0_id": auth0_id, "email": db_email or email,
+            "user_level": user_level, "is_admin": bool(is_admin),
+            "user_id": user_id, "auth_method": "bearer",
+        }
+        request.state.quota = {
+            "limit": q.monthly_limit, "remaining": q.remaining,
+            "reset": q.reset_at.isoformat(),
+        }
+        asyncio.ensure_future(_log_api_call(user_id, None, request.url.path, 200))
+        return True
+    except HTTPException:
+        raise
+    except Exception:
+        return False
+
+
 async def authenticate_user(request: Request):
     """
     Authenticate via X-API-Key header (Dev API key) or Auth0 Bearer token.
