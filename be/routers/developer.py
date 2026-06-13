@@ -1,6 +1,7 @@
 """
 Developer API Key management.
-Chỉ dành cho user_level = premium_developer.
+Mọi user đã đăng nhập đều tạo được API key (free tier: 1.000 req/tháng).
+Gói trả phí (premium_developer) có hạn mức cao hơn. Ẩn danh không có key.
 """
 
 import secrets
@@ -33,17 +34,12 @@ def _get_user_row(session, auth0_id: str):
 @router.post("/generate-key")
 async def generate_key(request: Request):
     """
-    Tạo API key mới cho premium_developer.
-    Key cũ (nếu có) bị thu hồi tự động.
+    Tạo API key cho user đã đăng nhập (mọi tier, kể cả free → 1.000 req/tháng).
+    Key cũ (nếu có) bị thu hồi tự động. Ẩn danh không thể gọi (cần Bearer token).
     """
     await authenticate_user(request)
     user = request.state.user
-
-    if user.get("user_level") != "premium_developer":
-        raise HTTPException(
-            status_code=403,
-            detail="Chỉ tài khoản API Supper Lite trở lên mới có thể tạo API key",
-        )
+    user_level = user.get("user_level", "free")
 
     auth0_id = user.get("auth0_id")
     session = _session()
@@ -68,7 +64,7 @@ async def generate_key(request: Request):
         session.commit()
 
         with get_engine_user().connect() as conn:
-            quota_info = read_usage(conn, user_id, "premium_developer", current_plan)
+            quota_info = read_usage(conn, user_id, user_level, current_plan)
 
         return {
             "api_key": new_key,
@@ -88,9 +84,7 @@ async def key_info(request: Request):
     """Xem thông tin API key hiện tại (masked) + usage quota tháng này."""
     await authenticate_user(request)
     user = request.state.user
-
-    if user.get("user_level") != "premium_developer":
-        raise HTTPException(status_code=403, detail="Chỉ API Supper Lite trở lên")
+    user_level = user.get("user_level", "free")
 
     auth0_id = user.get("auth0_id")
     session = _session()
@@ -109,7 +103,7 @@ async def key_info(request: Request):
         """), {"uid": user_id}).fetchone()
 
         with get_engine_user().connect() as conn:
-            quota_info = read_usage(conn, user_id, "premium_developer", current_plan)
+            quota_info = read_usage(conn, user_id, user_level, current_plan)
 
         if not krow:
             return {
@@ -168,8 +162,6 @@ async def verify_key(request: Request):
             # Bearer JWT → test key belonging to this user
             await authenticate_user(request)
             user = request.state.user
-            if user.get("user_level") != "premium_developer":
-                raise HTTPException(status_code=403, detail="Chỉ gói API mới có API key")
             auth0_id = user.get("auth0_id")
             row = session.execute(text("""
                 SELECT ak.key_id, ak.is_active, u.current_plan
@@ -196,9 +188,6 @@ async def revoke_key(request: Request):
     await authenticate_user(request)
     user = request.state.user
 
-    if user.get("user_level") != "premium_developer":
-        raise HTTPException(status_code=403, detail="Chỉ API Supper Lite trở lên")
-
     auth0_id = user.get("auth0_id")
     session = _session()
     try:
@@ -224,9 +213,11 @@ async def list_endpoints():
     """
     return {
         "quota": {
-            "dev_monthly": {"monthly_requests": 10_000,  "burst_per_sec": 10},
-            "dev_yearly":  {"monthly_requests": 100_000, "burst_per_sec": 20},
+            "free":        {"monthly_requests": 1_000,    "burst_per_sec": 2},
+            "dev_monthly": {"monthly_requests": 10_000,   "burst_per_sec": 10},
+            "dev_yearly":  {"monthly_requests": 100_000,  "burst_per_sec": 20},
             "auth_header": "X-API-Key",
+            "note": "Mọi endpoint dữ liệu cần API key (free hoặc trả phí). Đăng nhập để tạo key.",
             "error_codes": {
                 "401": "Key không tồn tại hoặc đã bị thu hồi",
                 "402": "Subscription hết hạn — gia hạn để tiếp tục",

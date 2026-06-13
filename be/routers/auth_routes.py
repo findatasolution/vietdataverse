@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException, Request
@@ -17,6 +17,36 @@ router = APIRouter()
 
 def _get_session():
     return sessionmaker(bind=get_engine_user())()
+
+
+_LOGIN_SESSION_GAP = timedelta(minutes=30)
+
+
+def _record_login(session, db_user, method: str, ip: str = None):
+    """
+    Ghi nhận một phiên đăng nhập. Throttle: chỉ tính phiên mới (login_count +1
+    + 1 dòng login_events) nếu lần đăng nhập trước cách >30 phút — tránh đếm
+    trùng khi cả /callback lẫn /me cùng chạy trong một lần login. last_login_at
+    luôn được cập nhật để biết "lần cuối thấy user".
+    Không bao giờ làm vỡ luồng auth nếu lỗi.
+    """
+    try:
+        now = datetime.now()
+        last = db_user.last_login_at
+        is_new_session = last is None or (now - last) > _LOGIN_SESSION_GAP
+        db_user.last_login_at = now
+        if is_new_session:
+            db_user.login_count = (db_user.login_count or 0) + 1
+            session.flush()  # đảm bảo db_user.id có giá trị
+            session.execute(
+                text("""
+                    INSERT INTO login_events (user_id, method, ip)
+                    VALUES (:uid, :method, :ip)
+                """),
+                {"uid": db_user.id, "method": method, "ip": ip},
+            )
+    except Exception:
+        pass  # tracking lỗi không được chặn đăng nhập
 
 
 @router.get("/auth/login")
@@ -69,6 +99,9 @@ async def auth0_callback(request: Request, code: str = None, error: str = None):
             user.name           = user_info.get("name")
             user.picture        = user_info.get("picture")
             user.email_verified = user_info.get("email_verified", False)
+
+        _record_login(session, user, "google",
+                      request.client.host if request.client else None)
 
         session.commit()
         session.close()
@@ -155,6 +188,11 @@ async def get_current_user_info(request: Request):
             session.commit()
             session.refresh(db_user)
 
+        # Ghi nhận login (throttled — không trùng với /callback trong cùng phiên)
+        _record_login(session, db_user, "google",
+                      request.client.host if request.client else None)
+        session.commit()
+
         result = {
             "email":             db_user.email,
             "name":              db_user.name,
@@ -199,6 +237,15 @@ async def dashboard_data(request: Request):
     try:
         await authenticate_user(request)
         user = request.state.user
+        auth0_id = user.get("auth0_id")
+        with get_engine_user().connect() as conn:
+            row = conn.execute(text("""
+                SELECT last_login_at, login_count, api_request_count, created_at
+                FROM users WHERE auth0_id = :aid
+            """), {"aid": auth0_id}).fetchone()
+        last_login_at, login_count, api_request_count, created_at = (
+            row if row else (None, 0, 0, None)
+        )
         return {
             "user": {
                 "email":      user["email"],
@@ -206,9 +253,10 @@ async def dashboard_data(request: Request):
                 "is_admin":   user["is_admin"],
             },
             "dashboard_data": {
-                "total_users":     1000,
-                "active_sessions": 50,
-                "last_login":      datetime.now().isoformat(),
+                "login_count":       int(login_count or 0),
+                "last_login_at":     last_login_at.isoformat() if last_login_at else None,
+                "api_request_count": int(api_request_count or 0),
+                "member_since":      created_at.isoformat() if created_at else None,
             },
             "timestamp": datetime.now().isoformat(),
         }

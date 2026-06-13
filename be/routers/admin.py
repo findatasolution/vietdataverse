@@ -371,6 +371,23 @@ async def admin_dashboard(request: Request):
                 WHERE created_at >= DATE_TRUNC('month', NOW())
             """)).fetchone()[0]
 
+            # Login engagement — unique user đã từng đăng nhập + DAU/WAU/MAU
+            ever_logged_in = conn.execute(text("""
+                SELECT COUNT(*) FROM users WHERE login_count > 0
+            """)).fetchone()[0]
+            dau = conn.execute(text("""
+                SELECT COUNT(DISTINCT user_id) FROM login_events
+                WHERE at >= CURRENT_DATE
+            """)).fetchone()[0]
+            wau = conn.execute(text("""
+                SELECT COUNT(DISTINCT user_id) FROM login_events
+                WHERE at >= DATE_TRUNC('week', NOW())
+            """)).fetchone()[0]
+            mau = conn.execute(text("""
+                SELECT COUNT(DISTINCT user_id) FROM login_events
+                WHERE at >= DATE_TRUNC('month', NOW())
+            """)).fetchone()[0]
+
         return _json_response({
             "success": True,
             "revenue": {
@@ -384,6 +401,12 @@ async def admin_dashboard(request: Request):
                 "new_today":      int(new_today),
                 "new_week":       int(new_week),
                 "new_month":      int(new_month),
+            },
+            "logins": {
+                "ever_logged_in": int(ever_logged_in),
+                "dau":            int(dau),
+                "wau":            int(wau),
+                "mau":            int(mau),
             },
             "top_endpoints": [
                 {"endpoint": r[0], "calls": r[1], "unique_users": r[2]}

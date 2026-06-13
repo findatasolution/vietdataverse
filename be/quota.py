@@ -2,13 +2,14 @@
 Quota & rate-limit layer cho API key auth.
 
 Chính sách (đã quyết định):
-  - Free tier KHÔNG có API access (chỉ user_level='premium_developer' mới được
-    generate key qua /api/v1/developer/generate-key).
+  - free                             → 1,000 req / tháng (free key, phải đăng nhập)
+  - premium                          → 1,000 req / tháng (chung mức free key)
   - premium_developer / dev_monthly  → 10,000 req / tháng
   - premium_developer / dev_yearly   → 100,000 req / tháng
   - admin                            → unlimited
-  - Burst rate-limit token-bucket in-memory per-process: 10 req/s cho
-    premium_developer, 100 req/s cho admin. Khi scale lên multi-worker
+  - Ẩn danh (không đăng nhập)        → KHÔNG có API access (không cấp key).
+  - Burst rate-limit token-bucket in-memory per-process: 2 req/s cho free/premium,
+    10 req/s cho premium_developer, 100 req/s cho admin. Khi scale lên multi-worker
     migrate sang Postgres advisory lock / Redis.
   - Quota month reset theo timezone Asia/Ho_Chi_Minh (business VN).
 """
@@ -36,6 +37,8 @@ except Exception:  # pragma: no cover — fallback cho môi trường thiếu tz
 
 # Default theo user_level (dùng khi không biết plan cụ thể)
 QUOTA_BY_LEVEL = {
+    "free":              {"monthly": 1_000,   "burst_per_sec": 2},     # free key — hạn mức an toàn cho hạ tầng free
+    "premium":           {"monthly": 1_000,   "burst_per_sec": 2},     # premium (không dev) dùng chung mức free key
     "premium_developer": {"monthly": 10_000,  "burst_per_sec": 10},
     "admin":             {"monthly": None,    "burst_per_sec": 100},   # None = unlimited
 }

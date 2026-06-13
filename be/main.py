@@ -15,7 +15,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_data, student_verify, referral, knowledge, wallet, seller, reports, takedown, webhooks, chat
+from routers import market_data, analysis, auth_routes, interest, admin, developer, vn30_data, student_verify, referral, knowledge, wallet, seller, reports, takedown, webhooks
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -29,6 +29,71 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# ── API metering gate ─────────────────────────────────────────────────────────
+# Open Data endpoints require a (free or paid) API key so mọi lời gọi đều đi qua
+# quota + api_call_log → trả lời được "ai gọi endpoint gì, bao nhiêu, lúc nào".
+# Ẩn danh (không key) → 401, đẩy user đăng nhập lấy free API key.
+# Chỉ gate đúng các prefix dữ liệu; KM/wallet/seller/auth/admin không đụng tới.
+# Đăng ký TRƯỚC CORS để CORS bọc ngoài → response short-circuit (401/429) vẫn có
+# CORS headers (nếu không, browser/Excel sẽ thấy lỗi CORS thay vì lỗi 401 sạch).
+METERED_PREFIXES = (
+    "/api/v1/gold",            # gold + gold/types  (KHÔNG gồm gold-analysis)
+    "/api/v1/silver",
+    "/api/v1/sbv-interbank",
+    "/api/v1/sbv-rate",
+    "/api/v1/sbv-centralrate",
+    "/api/v1/termdepo",        # termdepo + termdepo/banks
+    "/api/v1/global",          # global + global-macro
+    "/api/v1/vn30",            # vn30 data
+    # KHÔNG gate /api/v1/macro: biểu đồ CPI công khai (app.js) gọi trực tiếp
+    # /api/v1/macro/cpi cho khách vãng lai (hook), chưa có bản static JSON.
+    # Các chart gold/silver/sbv/termdepo/global đọc fe/data/*.json nên gate
+    # các endpoint live đó chỉ ảnh hưởng API/Excel consumer — đúng đối tượng cần đo.
+)
+
+
+def _is_metered(path: str) -> bool:
+    if path.startswith("/api/v1/gold-analysis"):
+        return False  # teaser công khai — giữ mở
+    return any(path.startswith(p) for p in METERED_PREFIXES)
+
+
+@app.middleware("http")
+async def meter_open_data(request, call_next):
+    from fastapi import HTTPException
+    from fastapi.responses import JSONResponse
+    from middleware import _auth_via_api_key
+
+    path = request.url.path
+    if request.method == "GET" and _is_metered(path):
+        api_key = request.headers.get("X-API-Key")
+        if not api_key:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "success": False,
+                    "detail": "Cần API key. Đăng nhập và tạo free API key (1.000 req/tháng) "
+                              "tại /pages/developer.html.",
+                },
+            )
+        try:
+            ok = await _auth_via_api_key(request, api_key)
+        except HTTPException as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"success": False, "detail": exc.detail},
+                headers=getattr(exc, "headers", None),
+            )
+        if not ok:
+            return JSONResponse(
+                status_code=401,
+                content={"success": False, "detail": "API key không hợp lệ hoặc đã bị thu hồi."},
+            )
+
+    return await call_next(request)
+
+
+# CORS + GZip added AFTER meter → wrap nó (last-added = outermost trong Starlette).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOW_ORIGINS,
@@ -37,6 +102,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "Accept", "X-API-Key"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(payment_router)
@@ -55,7 +121,6 @@ app.include_router(seller.router)
 app.include_router(reports.router)
 app.include_router(takedown.router)
 app.include_router(webhooks.router)
-app.include_router(chat.router)
 
 # ── Static files ──────────────────────────────────────────────────────────────
 _cur  = os.path.dirname(os.path.abspath(__file__))
