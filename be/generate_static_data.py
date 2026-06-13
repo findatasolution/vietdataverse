@@ -405,6 +405,45 @@ def generate_global_data():
 # ============================================================
 # MANIFEST FILE
 # ============================================================
+def generate_cpi_data():
+    """
+    CPI tĩnh từ vn_gso_cpi_monthly → cpi_annual.json + cpi_monthly.json.
+    Khớp shape API /api/v1/macro/cpi để FE đọc tĩnh (không gọi live → cho phép
+    gate /api/v1/macro mà không vỡ biểu đồ CPI công khai).
+    """
+    print("\n--- Generating CPI Data ---")
+    try:
+        with engine_crawl.connect() as conn:
+            # Annual: avg YoY mỗi năm (tối đa 30 năm gần nhất)
+            annual_rows = conn.execute(text("""
+                SELECT LEFT(period, 4) AS yr,
+                       ROUND(AVG(cpi_yoy_pct)::numeric, 2) AS avg_yoy,
+                       COUNT(*) AS months
+                FROM vn_gso_cpi_monthly
+                WHERE cpi_yoy_pct IS NOT NULL
+                GROUP BY LEFT(period, 4)
+                ORDER BY yr
+            """)).fetchall()
+            annual = [{"period": r[0], "yoy_pct": float(r[1]), "months": r[2]}
+                      for r in annual_rows]
+
+            # Monthly: 24 tháng gần nhất (đủ cho chart 1 năm + dự phòng)
+            monthly_rows = conn.execute(text("""
+                SELECT period, cpi_mom_pct, cpi_yoy_pct
+                FROM vn_gso_cpi_monthly
+                WHERE cpi_yoy_pct IS NOT NULL
+                ORDER BY period DESC
+                LIMIT 24
+            """)).fetchall()
+            monthly = [{"period": r[0], "mom_pct": r[1], "yoy_pct": r[2]}
+                       for r in reversed(monthly_rows)]
+
+        save_json('cpi_annual.json', annual)
+        save_json('cpi_monthly.json', monthly)
+    except Exception as e:
+        print(f"  CPI generation failed: {e}")
+
+
 def generate_manifest():
     """Generate manifest file listing all available static data."""
     print("\n--- Generating Manifest ---")
@@ -436,6 +475,7 @@ def main():
         generate_termdepo_data()
         generate_global_data()
         generate_market_pulse_data()
+        generate_cpi_data()
         generate_manifest()
 
         print("\n" + "=" * 60)

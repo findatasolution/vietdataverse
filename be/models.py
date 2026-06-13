@@ -26,6 +26,8 @@ class User(Base):
     premium_expiry = Column(DateTime, nullable=True)
     api_request_count = Column(Integer, default=0, nullable=False)
     wallet_balance = Column(BigInteger, default=0, nullable=False)   # VND, credited from rewards/top-up
+    last_login_at = Column(DateTime, nullable=True)                  # cập nhật mỗi phiên đăng nhập (throttled)
+    login_count = Column(Integer, default=0, nullable=False)         # tổng số phiên đăng nhập
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
 
