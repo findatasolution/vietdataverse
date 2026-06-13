@@ -957,14 +957,52 @@
 
             <!-- 1s Market Pulse -->
             <div class="tab-content" id="1smarket-portal">
+
+                <!-- Hero -->
+                <div class="pulse-hero">
+                    <div class="pulse-hero-text">
+                        <p class="pulse-hero-greeting" data-i18n="pulseHeroGreeting">Xin chào, nhà đầu tư!</p>
+                        <h1 class="pulse-hero-title">
+                            <span data-i18n="pulseHeroTitleMain">Nắm bắt nhịp đập thị trường</span>
+                            <span class="pulse-hero-title-accent" data-i18n="pulseHeroTitleAccent">trong 1 giây</span>
+                        </h1>
+                        <p class="pulse-hero-bio" data-i18n="pulseHeroBio">Theo dõi tâm lý thị trường theo thời gian thực — mỗi tin tức quốc tế được AI gắn nhãn tích cực/tiêu cực theo từng kênh đầu tư (vàng, chứng khoán, tỷ giá...), giúp bạn nắm bắt xu hướng đánh giá của thị trường ngay khi tin vừa xuất hiện.</p>
+                        <div class="pulse-hero-cta">
+                            <a href="#market-pulse-articles" class="btn-pulse-primary"><i class="fas fa-bolt"></i> <span data-i18n="pulseHeroCTAExplore">Khám phá 1s Pulse</span></a>
+                            <a href="#pulse-guide" class="btn-pulse-secondary"><i class="fas fa-circle-info"></i> <span data-i18n="pulseHeroCTAGuide">Xem hướng dẫn</span></a>
+                        </div>
+                    </div>
+                    <div class="pulse-hero-stats">
+                        <div class="pulse-stat-card" id="pulse-stat-vnindex">
+                            <div class="pulse-stat-label">VN-Index</div>
+                            <div class="pulse-stat-score" id="pulse-stat-vnindex-score">—</div>
+                            <div class="pulse-stat-spark" id="pulse-stat-vnindex-spark"></div>
+                            <div class="pulse-stat-detail" id="pulse-stat-vnindex-detail" data-i18n="pulseStatNoData">Chưa có dữ liệu 24h qua</div>
+                        </div>
+                        <div class="pulse-stat-card" id="pulse-stat-gold">
+                            <div class="pulse-stat-label" data-i18n="pulseMarketGold">Vàng</div>
+                            <div class="pulse-stat-score" id="pulse-stat-gold-score">—</div>
+                            <div class="pulse-stat-spark" id="pulse-stat-gold-spark"></div>
+                            <div class="pulse-stat-detail" id="pulse-stat-gold-detail" data-i18n="pulseStatNoData">Chưa có dữ liệu 24h qua</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guide -->
+                <div class="pulse-guide-box" id="pulse-guide">
+                    <strong data-i18n="pulseGuideTitle">Cách đọc 1s Pulse</strong>
+                    <span data-i18n="pulseGuideBody">Mỗi tin tức được AI đọc và gắn nhãn theo kênh đầu tư liên quan (VN-Index, Vàng, Bất động sản, Ngân hàng, Ngoại hối) cùng chỉ số MRI (Market Reaction Index) — thể hiện mức độ tích cực/tiêu cực mà tin đó có thể tạo ra đối với kênh đầu tư đó. MRI dương = tin có xu hướng tích cực, MRI âm = tiêu cực; giá trị tuyệt đối càng lớn, mức độ tác động được AI đánh giá càng mạnh.</span>
+                </div>
+
                 <div class="section-header">
-                    <h1 class="section-title">
+                    <h2 class="section-title">
                         <span data-i18n="pulseTitle">1s Market Pulse</span>
-                    </h1>
+                    </h2>
                 </div>
 
                 <!-- Filters -->
-                <div id="pulse-filters" class="pulse-filters">
+                <div id="pulse-filters" class="pulse-quick-filters">
+                    <span class="pulse-filters-label" data-i18n="pulseFiltersLabel">Bộ lọc nhanh:</span>
                     <div class="pulse-filter-group">
                         <label data-i18n="pulseFilterSource">Nguồn:</label>
                         <select id="filter-source" class="filter-select">
@@ -986,46 +1024,73 @@
                         </select>
                     </div>
                     <div class="pulse-filter-group">
-                        <label>MRI:</label>
+                        <label data-i18n="pulseFilterSentiment">MRI:</label>
                         <select id="filter-mri" class="filter-select">
                             <option value="" data-i18n="pulseFilterAll">Tất cả</option>
                             <option value="positive" data-i18n="pulseMRIPositive">Tích cực (+)</option>
                             <option value="negative" data-i18n="pulseMRINegative">Tiêu cực (-)</option>
                         </select>
                     </div>
-                    <button id="filter-reset" class="pulse-filter-reset" data-i18n="pulseFilterReset">Reset</button>
+                    <div class="pulse-filter-group">
+                        <label data-i18n="pulseFilterTime">Thời gian:</label>
+                        <select id="filter-time" class="filter-select">
+                            <option value="" data-i18n="pulseFilterTimeAll">Tất cả</option>
+                            <option value="1h" data-i18n="pulseFilterTime1h">1 giờ qua</option>
+                            <option value="24h" data-i18n="pulseFilterTime24h">24 giờ qua</option>
+                            <option value="7d" data-i18n="pulseFilterTime7d">7 ngày qua</option>
+                        </select>
+                    </div>
+                    <button id="filter-reset" class="pulse-filter-reset" data-i18n="pulseFilterReset">Làm mới</button>
                 </div>
+                <p class="pulse-filters-hint" data-i18n="pulseFiltersHint">Chọn thị trường bạn quan tâm để xem ngay các tin tức mới nhất đang ảnh hưởng đến thị trường đó.</p>
 
-                <div id="market-pulse-articles">
-                    <!-- Skeleton loading -->
-                    <div class="pulse-skeleton" style="animation:pulse 1.5s infinite;">
-                        <div
-                            style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                <div class="pulse-layout">
+                    <div id="market-pulse-articles">
+                        <!-- Skeleton loading -->
+                        <div class="pulse-skeleton" style="animation:pulse 1.5s infinite;">
                             <div
-                                style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                                style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                                <div
+                                    style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                                </div>
+                                <div
+                                    style="height:28px;width:70%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                                </div>
+                                <div
+                                    style="height:16px;width:40%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
+                                </div>
+                                <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
                             </div>
                             <div
-                                style="height:28px;width:70%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                                style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+                                <div
+                                    style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
+                                </div>
+                                <div
+                                    style="height:28px;width:60%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
+                                </div>
+                                <div
+                                    style="height:16px;width:35%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
+                                </div>
+                                <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
                             </div>
-                            <div
-                                style="height:16px;width:40%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
-                            </div>
-                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
-                        </div>
-                        <div
-                            style="background:var(--bg-secondary);border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
-                            <div
-                                style="height:20px;width:80px;background:var(--border-color);border-radius:4px;margin-bottom:0.75rem;">
-                            </div>
-                            <div
-                                style="height:28px;width:60%;background:var(--border-color);border-radius:4px;margin-bottom:0.5rem;">
-                            </div>
-                            <div
-                                style="height:16px;width:35%;background:var(--border-color);border-radius:4px;margin-bottom:1rem;">
-                            </div>
-                            <div style="height:60px;width:100%;background:var(--border-color);border-radius:4px;"></div>
                         </div>
                     </div>
+
+                    <aside class="pulse-sidebar">
+                        <div class="pulse-sidebar-card">
+                            <h3 data-i18n="pulseOverviewTitle">Tổng quan 24h</h3>
+                            <div id="pulse-overview-body">
+                                <p style="font-size:0.8125rem;color:var(--stone-gray);" data-i18n="pulseSidebarLoading">Đang tải...</p>
+                            </div>
+                        </div>
+                        <div class="pulse-sidebar-card">
+                            <h3 data-i18n="pulseHotTopicsTitle">Chủ đề nóng</h3>
+                            <div id="pulse-hot-topics-list">
+                                <p style="font-size:0.8125rem;color:var(--stone-gray);" data-i18n="pulseSidebarLoading">Đang tải...</p>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
 
             </div>

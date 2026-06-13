@@ -143,6 +143,26 @@
                 pulseMarketFX: 'Ngoại hối',
                 pulseMRIPositive: 'Tích cực (+)',
                 pulseMRINegative: 'Tiêu cực (-)',
+                pulseFilterSentiment: 'Tâm lý:',
+                pulseFilterTime: 'Thời gian:',
+                pulseFilterTimeAll: 'Tất cả',
+                pulseFilterTime1h: '1 giờ qua',
+                pulseFilterTime24h: '24 giờ qua',
+                pulseFilterTime7d: '7 ngày qua',
+                pulseFiltersLabel: 'Bộ lọc nhanh:',
+                pulseFiltersHint: 'Chọn thị trường bạn quan tâm để xem ngay các tin tức mới nhất đang ảnh hưởng đến thị trường đó.',
+                pulseHeroGreeting: 'Xin chào, nhà đầu tư!',
+                pulseHeroTitleMain: 'Nắm bắt nhịp đập thị trường',
+                pulseHeroTitleAccent: 'trong 1 giây',
+                pulseHeroBio: 'Theo dõi tâm lý thị trường theo thời gian thực — mỗi tin tức quốc tế được AI gắn nhãn tích cực/tiêu cực theo từng kênh đầu tư (vàng, chứng khoán, tỷ giá...), giúp bạn nắm bắt xu hướng đánh giá của thị trường ngay khi tin vừa xuất hiện.',
+                pulseHeroCTAExplore: 'Khám phá 1s Pulse',
+                pulseHeroCTAGuide: 'Xem hướng dẫn',
+                pulseStatNoData: 'Chưa có dữ liệu 24h qua',
+                pulseGuideTitle: 'Cách đọc 1s Pulse',
+                pulseGuideBody: 'Mỗi tin tức được AI đọc và gắn nhãn theo kênh đầu tư liên quan (VN-Index, Vàng, Bất động sản, Ngân hàng, Ngoại hối) cùng chỉ số MRI (Market Reaction Index) — thể hiện mức độ tích cực/tiêu cực mà tin đó có thể tạo ra đối với kênh đầu tư đó. MRI dương = tin có xu hướng tích cực, MRI âm = tiêu cực; giá trị tuyệt đối càng lớn, mức độ tác động được AI đánh giá càng mạnh.',
+                pulseOverviewTitle: 'Tổng quan 24h',
+                pulseHotTopicsTitle: 'Chủ đề nóng',
+                pulseSidebarLoading: 'Đang tải...',
                 // 1s Future Outlook cards
                 foFeatured: 'Báo cáo nổi bật',
                 foGoldTitle: 'Dự báo Giá Vàng 2026',
@@ -339,6 +359,26 @@
                 pulseMarketFX: 'FX',
                 pulseMRIPositive: 'Positive (+)',
                 pulseMRINegative: 'Negative (-)',
+                pulseFilterSentiment: 'Sentiment:',
+                pulseFilterTime: 'Time:',
+                pulseFilterTimeAll: 'All',
+                pulseFilterTime1h: 'Last 1h',
+                pulseFilterTime24h: 'Last 24h',
+                pulseFilterTime7d: 'Last 7d',
+                pulseFiltersLabel: 'Quick filters:',
+                pulseFiltersHint: 'Pick a market you care about to see the latest news affecting it right now.',
+                pulseHeroGreeting: 'Hello, investor!',
+                pulseHeroTitleMain: 'Catch the market’s pulse',
+                pulseHeroTitleAccent: 'in 1 second',
+                pulseHeroBio: 'Track market sentiment in real time — every international news item is AI-tagged positive/negative for each investment channel (gold, stocks, FX...), so you can spot how the market is reacting the moment news breaks.',
+                pulseHeroCTAExplore: 'Explore 1s Pulse',
+                pulseHeroCTAGuide: 'View guide',
+                pulseStatNoData: 'No data in the last 24h',
+                pulseGuideTitle: 'How to read 1s Pulse',
+                pulseGuideBody: 'Every article is read by AI and tagged with the related investment channel (VN-Index, Gold, Real Estate, Banking, FX) plus an MRI (Market Reaction Index) — how positive/negative that article could be for that channel. Positive MRI = bullish-leaning, negative MRI = bearish-leaning; the larger the absolute value, the stronger the estimated impact.',
+                pulseOverviewTitle: '24h Overview',
+                pulseHotTopicsTitle: 'Hot Topics',
+                pulseSidebarLoading: 'Loading...',
                 // 1s Future Outlook cards
                 foFeatured: 'Featured Report',
                 foGoldTitle: 'Gold Price Forecast 2026',
@@ -2482,12 +2522,12 @@
             FX: '#AB47BC'
         };
 
-        const LABEL_NAMES_VI = {
-            VNINDEX: 'VN-Index',
-            GOLD: 'Vang',
-            REAL_ESTATE: 'BDS',
-            BANKING: 'Ngan hang',
-            FX: 'Ngoai hoi'
+        const PULSE_LABEL_NAMES = {
+            VNINDEX:     { vi: 'VN-Index',       en: 'VN-Index' },
+            GOLD:        { vi: 'Vàng',           en: 'Gold' },
+            REAL_ESTATE: { vi: 'Bất động sản',   en: 'Real Estate' },
+            BANKING:     { vi: 'Ngân hàng',      en: 'Banking' },
+            FX:          { vi: 'Ngoại hối',      en: 'FX' }
         };
 
         function formatPulseDate(isoStr) {
@@ -2498,21 +2538,49 @@
             } catch { return isoStr; }
         }
 
-        function renderMriBadge(mri) {
-            if (mri == null) return '';
-            const color = mri > 0 ? '#4CAF50' : mri < 0 ? '#EF5350' : '#888';
-            const arrow = mri > 0 ? '&#9650;' : mri < 0 ? '&#9660;' : '&#9654;';
-            return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:0.8rem;font-weight:600;color:${color};background:${color}1a;">${arrow} MRI ${mri > 0 ? '+' : ''}${mri}</span>`;
+        // Relative time ("5 phút trước" / "5m ago") — falls back to absolute date past 7 days
+        function formatPulseRelativeTime(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return isoStr;
+            const isVi = (localStorage.getItem('lang') || 'vi') === 'vi';
+            const minutes = Math.floor((Date.now() - d.getTime()) / 60000);
+            if (minutes < 1) return isVi ? 'Vừa xong' : 'Just now';
+            if (minutes < 60) return isVi ? `${minutes} phút trước` : `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return isVi ? `${hours} giờ trước` : `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return isVi ? `${days} ngày trước` : `${days}d ago`;
+            return formatPulseDate(isoStr);
         }
 
-        function renderPulseArticle(item) {
+        function renderMriBadge(mri) {
+            if (mri == null) return '';
+            const isVi = (localStorage.getItem('lang') || 'vi') === 'vi';
+            const cls = mri > 0 ? 'positive' : mri < 0 ? 'negative' : 'neutral';
+            const label = mri > 0
+                ? (isVi ? 'Tích cực' : 'Positive')
+                : mri < 0
+                    ? (isVi ? 'Tiêu cực' : 'Negative')
+                    : (isVi ? 'Trung lập' : 'Neutral');
+            const sign = mri > 0 ? '+' : '';
+            const tooltip = isVi
+                ? `Chỉ số phản ứng thị trường (MRI): ${sign}${mri}. Mức độ tích cực/tiêu cực mà AI đánh giá tin này tạo ra cho thị trường liên quan.`
+                : `Market Reaction Index (MRI): ${sign}${mri}. AI-estimated sentiment intensity of this article for the related market.`;
+            return `<span class="pulse-sentiment-badge ${cls}" title="${tooltip}">${label} · MRI ${sign}${mri}</span>`;
+        }
+
+        function renderPulseArticle(item, index) {
             const labelColor = LABEL_COLORS[item.label] || '#888';
+            const rank = (index != null) ? `<span class="pulse-article-rank">${index + 1}</span>` : '';
             return `
     <article class="article-featured" style="margin-bottom:1.5rem;">
         <div class="article-header" style="padding:1.5rem 2rem 1rem;">
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+                ${rank}
                 <span class="article-tag" style="border-color:${labelColor}40;color:${labelColor};background:${labelColor}15;margin-bottom:0;">${item.label || 'NEWS'}</span>
                 ${renderMriBadge(item.mri)}
+                <span style="margin-left:auto;font-size:0.75rem;color:var(--stone-gray);">${formatPulseRelativeTime(item.generated_at)}</span>
             </div>
             <h2 class="article-title" style="font-size:1.5rem;margin-bottom:0.75rem;">
                 <a href="${item.url || '#'}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${item.title || 'Untitled'}</a>
@@ -2528,6 +2596,108 @@
             </div>
         </div>
     </article>`;
+        }
+
+        // Inline SVG sparkline for hero stat cards — values: array of numbers (MRI history)
+        function buildPulseSparkline(values, color) {
+            if (!values || values.length < 2) return '';
+            const w = 100, h = 28;
+            const max = Math.max(...values), min = Math.min(...values);
+            const range = (max - min) || 1;
+            const step = w / (values.length - 1);
+            const points = values.map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`).join(' ');
+            return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        }
+
+        // Hero stat cards — aggregate MRI sentiment per market (VN-Index, Gold) from the last 24h
+        function renderPulseHero() {
+            const isVi = (localStorage.getItem('lang') || 'vi') === 'vi';
+            const now = Date.now();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            [{ label: 'VNINDEX', prefix: 'vnindex' }, { label: 'GOLD', prefix: 'gold' }].forEach(({ label, prefix }) => {
+                const scoreEl  = document.getElementById(`pulse-stat-${prefix}-score`);
+                const detailEl = document.getElementById(`pulse-stat-${prefix}-detail`);
+                const sparkEl  = document.getElementById(`pulse-stat-${prefix}-spark`);
+                const cardEl   = document.getElementById(`pulse-stat-${prefix}`);
+                if (!scoreEl) return;
+
+                const items = pulseDataCache
+                    .filter(i => i.label === label && i.mri != null && i.generated_at)
+                    .sort((a, b) => new Date(a.generated_at) - new Date(b.generated_at));
+                const last24h = items.filter(i => (now - new Date(i.generated_at).getTime()) <= dayMs);
+
+                if (!last24h.length) {
+                    scoreEl.textContent = '—';
+                    detailEl.textContent = isVi ? 'Chưa có dữ liệu 24h qua' : 'No data in the last 24h';
+                    cardEl?.classList.remove('is-positive', 'is-negative');
+                    if (sparkEl) sparkEl.innerHTML = '';
+                    return;
+                }
+
+                const pos = last24h.filter(i => i.mri > 0).length;
+                const neg = last24h.filter(i => i.mri < 0).length;
+                const avgMri = Math.round(last24h.reduce((sum, i) => sum + i.mri, 0) / last24h.length);
+                const positive = avgMri >= 0;
+
+                scoreEl.textContent = `MRI ${avgMri > 0 ? '+' : ''}${avgMri}`;
+                detailEl.textContent = isVi
+                    ? `${pos} tin tích cực · ${neg} tin tiêu cực (24h)`
+                    : `${pos} positive · ${neg} negative (24h)`;
+                cardEl?.classList.toggle('is-positive', positive);
+                cardEl?.classList.toggle('is-negative', !positive);
+
+                if (sparkEl) {
+                    const values = items.slice(-10).map(i => i.mri);
+                    sparkEl.innerHTML = buildPulseSparkline(values, positive ? 'var(--coral)' : 'var(--error-red)');
+                }
+            });
+        }
+
+        // Sidebar: 24h overview (sentiment split) + hot topics (article counts per market)
+        function renderPulseSidebar() {
+            const lang = localStorage.getItem('lang') || 'vi';
+            const isVi = lang === 'vi';
+            const overviewEl = document.getElementById('pulse-overview-body');
+            const topicsEl   = document.getElementById('pulse-hot-topics-list');
+            if (!overviewEl && !topicsEl) return;
+
+            const withMri = pulseDataCache.filter(i => i.mri != null);
+            const posCount = withMri.filter(i => i.mri > 0).length;
+            const negCount = withMri.filter(i => i.mri < 0).length;
+            const posPct = withMri.length ? Math.round(posCount / withMri.length * 100) : 0;
+            const negPct = withMri.length ? Math.round(negCount / withMri.length * 100) : 0;
+
+            const counts = {};
+            pulseDataCache.forEach(i => { counts[i.label] = (counts[i.label] || 0) + 1; });
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            const topLabel = sorted.length ? (PULSE_LABEL_NAMES[sorted[0][0]]?.[lang] || sorted[0][0]) : '—';
+
+            if (overviewEl) {
+                overviewEl.innerHTML = `
+<div class="pulse-overview-row"><span class="label">${isVi ? 'Tổng số tin' : 'Total articles'}</span><span class="value">${pulseDataCache.length}</span></div>
+<div class="pulse-overview-row"><span class="label">${isVi ? 'Tích cực' : 'Positive'}</span><span class="value positive">${posCount} (${posPct}%)</span></div>
+<div class="pulse-overview-row"><span class="label">${isVi ? 'Tiêu cực' : 'Negative'}</span><span class="value negative">${negCount} (${negPct}%)</span></div>
+<div class="pulse-overview-row"><span class="label">${isVi ? 'Thị trường nổi bật' : 'Most active market'}</span><span class="value">${topLabel}</span></div>`;
+            }
+
+            if (topicsEl) {
+                if (!sorted.length) {
+                    topicsEl.innerHTML = `<p style="font-size:0.8125rem;color:var(--stone-gray);">${isVi ? 'Chưa có dữ liệu.' : 'No data yet.'}</p>`;
+                } else {
+                    topicsEl.innerHTML = sorted.slice(0, 5).map(([label, count]) => {
+                        const name = PULSE_LABEL_NAMES[label]?.[lang] || label;
+                        return `<div class="pulse-hot-topic-row"><span class="tag" data-pulse-topic="${label}">#${name}</span><span class="count">${count}</span></div>`;
+                    }).join('');
+
+                    topicsEl.querySelectorAll('[data-pulse-topic]').forEach(el => {
+                        el.addEventListener('click', () => {
+                            const sel = document.getElementById('filter-label');
+                            if (sel) { sel.value = el.dataset.pulseTopic; renderFilteredPulse(); }
+                        });
+                    });
+                }
+            }
         }
 
         // ============================================================
@@ -2567,7 +2737,7 @@
                 if (base) {
                     const token = await getToken().catch(() => null);
                     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                    const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=20`, { headers });
+                    const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=50`, { headers });
                     if (res.ok) {
                         const json = await res.json();
                         data = json.data || [];
@@ -2581,6 +2751,8 @@
                 }
 
                 pulseDataCache = data;
+                renderPulseHero();
+                renderPulseSidebar();
                 renderFilteredPulse();
             } catch (e) {
                 console.error('Market Pulse fetch failed:', e);
@@ -2640,24 +2812,32 @@
             const sourceFilter = document.getElementById('filter-source')?.value || '';
             const labelFilter  = document.getElementById('filter-label')?.value  || '';
             const mriFilter    = document.getElementById('filter-mri')?.value    || '';
+            const timeFilter   = document.getElementById('filter-time')?.value   || '';
 
             let filtered = pulseDataCache;
             if (sourceFilter) filtered = filtered.filter(i => i.source_name?.includes(sourceFilter));
             if (labelFilter)  filtered = filtered.filter(i => i.label === labelFilter);
             if (mriFilter === 'positive') filtered = filtered.filter(i => i.mri > 0);
             else if (mriFilter === 'negative') filtered = filtered.filter(i => i.mri < 0);
+            const timeRangeMs = { '1h': 3600000, '24h': 86400000, '7d': 604800000 }[timeFilter];
+            if (timeRangeMs) {
+                const now = Date.now();
+                filtered = filtered.filter(i => i.generated_at && (now - new Date(i.generated_at).getTime()) <= timeRangeMs);
+            }
 
             if (filtered.length === 0) {
                 container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Không có kết quả phù hợp.</p>';
                 return;
             }
 
-            const displayMax = 10;
+            // Wider time ranges allow more articles through (24h/7d views are meant to show
+            // everything in that window, not just the latest 10).
+            const displayMax = timeFilter === '7d' ? 50 : timeFilter === '24h' ? 20 : 10;
             const items = filtered.slice(0, displayMax);
 
             // No gate → render all normally
             if (pulseGatedPreview === null || pulseGatedPreview >= items.length) {
-                container.innerHTML = items.map(renderPulseArticle).join('');
+                container.innerHTML = items.map((item, i) => renderPulseArticle(item, i)).join('');
                 return;
             }
 
@@ -2666,12 +2846,12 @@
             const gatedItems  = items.slice(pulseGatedPreview);
             const hiddenCount = gatedItems.length;
 
-            const clearHtml  = clearItems.map(renderPulseArticle).join('');
+            const clearHtml  = clearItems.map((item, i) => renderPulseArticle(item, i)).join('');
             const gateHtml   = _renderPulseGate(hiddenCount);
             const gatedHtml  = `
 <div style="position:relative;pointer-events:none;user-select:none;">
   <div style="filter:blur(4px);opacity:.55;">
-    ${gatedItems.map(renderPulseArticle).join('')}
+    ${gatedItems.map((item, i) => renderPulseArticle(item, clearItems.length + i)).join('')}
   </div>
   <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0%,var(--bg-primary,#f5f4ed) 85%);"></div>
 </div>`;
@@ -2682,13 +2862,14 @@
         // Initialize Market Pulse with filter listeners
         document.addEventListener('DOMContentLoaded', () => {
             loadMarketPulse();
-            ['filter-source', 'filter-label', 'filter-mri'].forEach(id => {
+            ['filter-source', 'filter-label', 'filter-mri', 'filter-time'].forEach(id => {
                 document.getElementById(id)?.addEventListener('change', renderFilteredPulse);
             });
             document.getElementById('filter-reset')?.addEventListener('click', () => {
                 document.getElementById('filter-source').value = '';
                 document.getElementById('filter-label').value = '';
                 document.getElementById('filter-mri').value = '';
+                document.getElementById('filter-time').value = '';
                 renderFilteredPulse();
             });
         });

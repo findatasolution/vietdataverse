@@ -2269,21 +2269,6 @@ html {
     animation: pulseGlow 3s ease-in-out infinite;
 }
 
-.pulse-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto 1.5rem;
-    padding: 0.85rem 1.25rem;
-    background: rgba(48, 48, 46, 0.6);
-    border: 1px solid var(--dark-surface);
-    border-radius: var(--radius-md);
-    width: fit-content;
-    max-width: 100%;
-}
-
 .pulse-filter-group {
     display: flex;
     align-items: center;
@@ -2292,28 +2277,313 @@ html {
 
 .pulse-filter-group label {
     font-size: 0.85rem;
-    color: var(--warm-silver);
+    color: var(--olive-gray);
     white-space: nowrap;
 }
 
 .pulse-filter-reset {
     padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid var(--dark-surface);
-    background: transparent;
-    color: var(--warm-silver);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-warm);
+    background: var(--warm-sand);
+    color: var(--charcoal);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    margin-left: auto;
 }
 
 .pulse-filter-reset:hover {
     border-color: var(--terracotta);
-    color: var(--coral);
+    color: var(--terracotta);
+    background: var(--ring-warm);
+}
+
+/* ── 1s Pulse Hero ── */
+.pulse-hero {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2rem;
+    align-items: stretch;
+    background: var(--ivory);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-xl);
+    padding: 2rem 2.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.pulse-hero-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pulse-hero-greeting {
+    font-size: 0.875rem;
+    color: var(--stone-gray);
+    margin-bottom: 0.5rem;
+}
+
+.pulse-hero-title {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 2.25rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--near-black);
+    margin-bottom: 0.75rem;
+}
+
+.pulse-hero-title-accent {
+    display: block;
+    color: var(--terracotta);
+}
+
+.pulse-hero-bio {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--olive-gray);
+    margin-bottom: 1.25rem;
+    max-width: 46ch;
+}
+
+.pulse-hero-cta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-pulse-primary,
+.btn-pulse-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+.btn-pulse-primary {
+    background: var(--terracotta);
+    color: var(--ivory);
+    box-shadow: 0px 0px 0px 0px var(--terracotta), 0px 0px 0px 1px var(--terracotta);
+}
+
+.btn-pulse-primary:hover { background: var(--coral); }
+
+.btn-pulse-secondary {
+    background: var(--pure-white);
+    color: var(--near-black);
+    border: 1px solid var(--border-warm);
+}
+
+.btn-pulse-secondary:hover { background: var(--warm-sand); }
+
+.pulse-hero-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pulse-stat-card {
+    background: var(--pure-white);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pulse-stat-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--charcoal);
+}
+
+.pulse-stat-score {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--stone-gray);
+}
+
+.pulse-stat-card.is-positive .pulse-stat-score { color: var(--coral); }
+.pulse-stat-card.is-negative .pulse-stat-score { color: var(--error-red); }
+
+.pulse-stat-spark {
+    width: 100%;
+    height: 28px;
+}
+
+.pulse-stat-spark svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.pulse-stat-detail {
+    font-size: 0.75rem;
+    color: var(--stone-gray);
+}
+
+/* ── 1s Pulse Guide box ── */
+.pulse-guide-box {
+    background: rgba(201, 100, 66, 0.06);
+    border: 1px solid rgba(201, 100, 66, 0.18);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--olive-gray);
+    line-height: 1.6;
+}
+
+.pulse-guide-box strong {
+    display: block;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--near-black);
+    margin-bottom: 0.35rem;
+}
+
+/* ── 1s Pulse quick filters (restyled, light theme) ── */
+.pulse-quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    background: var(--ivory);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-lg);
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--ring-sand);
+}
+
+.pulse-filters-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--charcoal);
+}
+
+.pulse-filters-hint {
+    font-size: 0.8125rem;
+    color: var(--stone-gray);
+    margin-bottom: 1.5rem;
+}
+
+/* ── 1s Pulse layout: feed + sidebar ── */
+.pulse-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.pulse-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 80px;
+}
+
+.pulse-sidebar-card {
+    background: var(--ivory);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+}
+
+.pulse-sidebar-card h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    color: var(--near-black);
+    margin-bottom: 0.75rem;
+}
+
+.pulse-overview-row,
+.pulse-hot-topic-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-cream);
+    font-size: 0.8125rem;
+}
+
+.pulse-overview-row:last-child,
+.pulse-hot-topic-row:last-child {
+    border-bottom: none;
+}
+
+.pulse-overview-row .label { color: var(--olive-gray); }
+.pulse-overview-row .value { font-weight: 500; color: var(--near-black); }
+.pulse-overview-row .value.positive { color: var(--coral); }
+.pulse-overview-row .value.negative { color: var(--error-red); }
+
+.pulse-hot-topic-row .tag {
+    color: var(--terracotta);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.pulse-hot-topic-row .count {
+    background: var(--warm-sand);
+    color: var(--charcoal);
+    border-radius: 24px;
+    padding: 1px 9px;
+    font-size: 0.75rem;
+}
+
+/* ── 1s Pulse article rank + sentiment badge ── */
+.pulse-article-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--warm-sand);
+    color: var(--charcoal);
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.pulse-sentiment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 9px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.pulse-sentiment-badge.positive { color: var(--coral); background: rgba(217, 119, 87, 0.12); }
+.pulse-sentiment-badge.negative { color: var(--error-red); background: rgba(181, 51, 51, 0.10); }
+.pulse-sentiment-badge.neutral { color: var(--stone-gray); background: var(--border-cream); }
+
+@media (max-width: 1024px) {
+    .pulse-layout { grid-template-columns: 1fr; }
+    .pulse-sidebar { position: static; }
+}
+
+@media (max-width: 900px) {
+    .pulse-hero { grid-template-columns: 1fr; }
+    .pulse-hero-stats { flex-direction: row; }
 }
 
 @media (max-width: 640px) {
-    .pulse-filters { width: 100%; }
+    .pulse-quick-filters { width: 100%; }
+    .pulse-hero-stats { flex-direction: column; }
     .pulse-filter-group {
         flex: 1 1 100%;
         justify-content: space-between;
