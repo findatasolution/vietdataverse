@@ -181,6 +181,29 @@ async def list_categories():
     })
 
 
+@router.get("/platform-stats")
+async def platform_stats():
+    """Public aggregate stats for marketing/social-proof display (About Us page)."""
+    engine = get_engine_user()
+    with engine.connect() as conn:
+        total_users = conn.execute(text("SELECT COUNT(*) FROM users")).scalar()
+        total_products = conn.execute(text(
+            "SELECT COUNT(*) FROM knowledge_products WHERE status IN ('approved', 'published')"
+        )).scalar()
+        total_api_requests = conn.execute(text(
+            "SELECT COALESCE(SUM(api_request_count), 0) FROM users"
+        )).scalar()
+    return _json_response({
+        "success": True,
+        "source": "platform_stats",
+        "data": {
+            "total_users":              int(total_users or 0),
+            "total_knowledge_products": int(total_products or 0),
+            "total_api_requests":       int(total_api_requests or 0),
+        },
+    })
+
+
 @router.get("/products")
 async def list_products(
     category: Optional[str] = Query(None),

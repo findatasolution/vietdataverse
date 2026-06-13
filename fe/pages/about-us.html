@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giới thiệu — Viet Dataverse</title>
+  <meta name="description" content="Viet Dataverse là nền tảng dữ liệu tài chính & kinh tế Việt Nam mở — API, Agent Market, 1s Pulse. Vision, Mission và Disclaimer.">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+
+    .about-vm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+    .about-vm-card {
+      background: var(--pure-white);
+      border: 1px solid var(--border-cream);
+      border-radius: 16px;
+      padding: 28px 24px;
+    }
+    .about-vm-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12px;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 10px;
+    }
+    .about-vm-text {
+      font-size: 0.9375rem;
+      color: var(--olive-gray);
+      line-height: 1.70;
+      margin: 0;
+    }
+
+    .about-disclaimer-box {
+      background: rgba(181,51,51,.06);
+      border: 1px solid rgba(181,51,51,.22);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-top: 12px;
+    }
+    .about-disclaimer-box .disclaimer-en {
+      font-weight: 600;
+      color: var(--near-black);
+      font-size: 0.9375rem;
+      margin-bottom: 10px;
+    }
+    .about-disclaimer-box .disclaimer-vi {
+      font-size: 0.875rem;
+      color: var(--olive-gray);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .about-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .about-stat-card {
+      background: var(--pure-white);
+      border: 1px solid var(--border-cream);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: rgba(20,20,19,.05) 0px 4px 24px;
+    }
+    .about-stat-number {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--near-black);
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .about-stat-label {
+      font-size: 0.8125rem;
+      color: var(--olive-gray);
+      line-height: 1.4;
+    }
+
+    .about-contact-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .about-contact-list li {
+      font-size: 0.9375rem;
+      color: var(--olive-gray);
+    }
+    .about-contact-list a {
+      color: var(--terracotta);
+      text-decoration: none;
+    }
+    .about-contact-list a:hover { text-decoration: underline; }
+
+    @media (max-width: 680px) {
+      .about-vm-grid { grid-template-columns: 1fr; }
+      .about-stat-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="/index.html">← Viet Dataverse</a>
+  <span class="doc-topbar-title" style="display:none;">Giới thiệu</span>
+</header>
+
+<div class="doc-shell">
+
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#who">Chúng tôi là ai</a>
+      <a class="doc-toc-item" href="#authority">Vì sao tin dữ liệu</a>
+      <a class="doc-toc-item" href="#trust-ai">Vì sao tin AI</a>
+      <a class="doc-toc-item" href="#vision-mission">Vision &amp; Mission</a>
+      <a class="doc-toc-item" href="#why">Tại sao xây dựng</a>
+      <a class="doc-toc-item" href="#disclaimer">Disclaimer</a>
+      <a class="doc-toc-item" href="#social-proof">Hôm nay</a>
+      <a class="doc-toc-item" href="#contact">Liên hệ</a>
+    </div>
+  </nav>
+
+  <main class="doc-content">
+
+    <h1>Về Viet Dataverse</h1>
+    <p class="doc-lead">Nền tảng dữ liệu tài chính & kinh tế Việt Nam mở — từ dữ liệu macro đến Agent Market cho developer AI.</p>
+
+    <!-- WHO -->
+    <section id="who" class="doc-section">
+      <h2>Chúng tôi là ai?</h2>
+      <p>Viet Dataverse là nền tảng tập hợp, chuẩn hoá và phân phối dữ liệu tài chính & kinh tế Việt Nam qua ba sản phẩm chính:</p>
+      <ul>
+        <li><strong>Open Data</strong> — dữ liệu macro công khai (giá vàng, bạc, tỷ giá, lãi suất tiết kiệm, CPI, VN30) được crawl tự động hằng ngày từ các nguồn chính thống, truy cập qua REST API hoặc static JSON miễn phí.</li>
+        <li><strong>Agent Market</strong> — chợ knowledge pack (.md/.json/.yaml) chứa tri thức tài chính VN đã được cấu trúc hoá, sẵn sàng paste vào system prompt hoặc RAG pipeline của AI agent. Sellers là chuyên gia tài chính, developer và researcher.</li>
+        <li><strong>1s Market Pulse</strong> — mỗi tin tức quốc tế được AI gắn nhãn theo kênh đầu tư (vàng, chứng khoán, tỷ giá…) + chỉ số MRI (Market Reaction Index), cập nhật gần thời gian thực.</li>
+      </ul>
+      <p>Nguồn dữ liệu: GSO/TCTK, NHNN (SBV), ACB, BTMC · DOJI · SJC · PNJ, Phú Quý, VCB, Yahoo Finance — mỗi bản ghi đều ghi rõ <code>source</code> và thời điểm crawl (<code>crawl_time</code>).</p>
+    </section>
+
+    <!-- AUTHORITY -->
+    <section id="authority" class="doc-section">
+      <h2>Tại sao tin dữ liệu của chúng tôi?</h2>
+      <p>Viet Dataverse không tự tổng hợp hay diễn giải số liệu — chúng tôi <strong>tổng hợp và chuẩn hoá dữ liệu công khai</strong> từ các tổ chức có thẩm quyền (ngân hàng nhà nước, cơ quan thống kê, sàn vàng, sàn chứng khoán), sau đó phân phối lại theo cấu trúc nhất quán.</p>
+      <p>Cam kết minh bạch:</p>
+      <ul>
+        <li>Mọi bản ghi đều có trường <code>source</code> (URL/tên tổ chức nguồn) và <code>crawl_time</code> (thời điểm thu thập, UTC).</li>
+        <li>Quy trình validate trước khi lưu: kiểm tra số liệu hợp lệ (range check), loại bỏ outlier OCR, không viết row thiếu trường bắt buộc.</li>
+        <li>Lịch sử dữ liệu có thể audit: mọi thay đổi đều traceable qua <code>crawl_time</code>.</li>
+      </ul>
+      <p>Xem thêm chi tiết phương pháp thu thập tại <a href="/index.html#legal/about" style="color:var(--terracotta);">Về Nguồn Dữ Liệu & Phương Pháp</a>.</p>
+    </section>
+
+    <!-- TRUST AI -->
+    <section id="trust-ai" class="doc-section">
+      <h2>Tại sao tin AI của chúng tôi?</h2>
+      <p>1s Market Pulse dùng mô hình language model để gắn nhãn sentiment (tích cực / tiêu cực) cho tin tức theo từng kênh đầu tư, không phải đưa ra dự báo giá cụ thể.</p>
+      <p>Những điều chúng tôi cam kết về AI:</p>
+      <ul>
+        <li><strong>Công khai methodology</strong>: MRI (Market Reaction Index) là chỉ số tổng hợp mức độ tích cực/tiêu cực mà AI đánh giá tin đó có thể tạo ra — không phải signal giao dịch.</li>
+        <li><strong>AI có thể sai</strong>: mô hình đọc ngữ cảnh tin tức, không "biết" diễn biến thực tế thị trường. MRI dương không đồng nghĩa giá sẽ tăng.</li>
+        <li><strong>Không ẩn dấu AI</strong>: bài viết nào do AI label sẽ rõ ràng — bạn luôn có thể xem nguồn tin gốc.</li>
+      </ul>
+      <div class="about-disclaimer-box" style="margin-top:16px;">
+        <p class="disclaimer-en">⚠ Information provided is for educational purposes only and does not constitute investment advice.</p>
+        <p class="disclaimer-vi">Toàn bộ thông tin và phân tích trên Viet Dataverse (bao gồm MRI/1s Pulse) chỉ nhằm mục đích giáo dục và tham khảo, KHÔNG cấu thành lời khuyên đầu tư. Người dùng tự chịu trách nhiệm với quyết định tài chính của mình.</p>
+      </div>
+    </section>
+
+    <!-- VISION & MISSION -->
+    <section id="vision-mission" class="doc-section">
+      <h2>Vision &amp; Mission</h2>
+      <div class="about-vm-grid">
+        <div class="about-vm-card">
+          <div class="about-vm-label">Vision</div>
+          <p class="about-vm-text">Trở thành lớp dữ liệu tài chính Việt Nam mở, đáng tin cậy và sẵn sàng cho AI — nơi mọi developer, nhà nghiên cứu và AI agent có thể truy cập dữ liệu kinh tế VN với cùng chất lượng và tốc độ như dữ liệu thị trường quốc tế.</p>
+        </div>
+        <div class="about-vm-card">
+          <div class="about-vm-label">Mission</div>
+          <p class="about-vm-text">Thu thập, chuẩn hoá và mở (qua API + Agent Market) dữ liệu macro, tài chính, hàng hoá và doanh nghiệp Việt Nam — đồng thời xây dựng nơi các knowledge pack tài chính VN được tạo ra, chia sẻ và tái sử dụng bởi cộng đồng agent builder.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY -->
+    <section id="why" class="doc-section">
+      <h2>Tại sao xây dựng Viet Dataverse?</h2>
+      <p>Dữ liệu tài chính & kinh tế Việt Nam hiện rời rạc và khó tiếp cận đối với developer:</p>
+      <ul>
+        <li>Mỗi ngân hàng, sàn vàng, cơ quan thống kê có website/format khác nhau — không có API thống nhất.</li>
+        <li>Dữ liệu chủ yếu ở dạng HTML/PDF hoặc bảng Excel tải thủ công, không phù hợp để tích hợp tự động.</li>
+        <li>AI agent cần dữ liệu có cấu trúc, nguồn rõ ràng — nhưng hầu hết knowledge về tài chính VN vẫn nằm trong bài báo, PDF không máy-đọc-được.</li>
+      </ul>
+      <p>Viet Dataverse ra đời để lấp khoảng trống đó: gom dữ liệu công khai về một chỗ, chuẩn hoá schema, expose qua API REST, và tạo Agent Market để cộng đồng có thể chia sẻ & mua bán tri thức tài chính VN đã được "agent-ready hoá".</p>
+    </section>
+
+    <!-- DISCLAIMER -->
+    <section id="disclaimer" class="doc-section">
+      <h2>Disclaimer</h2>
+      <p>Viet Dataverse là nền tảng dữ liệu và công nghệ — không phải tổ chức tư vấn đầu tư, không có giấy phép tư vấn tài chính theo quy định của pháp luật Việt Nam.</p>
+      <div class="about-disclaimer-box">
+        <p class="disclaimer-en">⚠ Information provided is for educational purposes only and does not constitute investment advice.</p>
+        <p class="disclaimer-vi">Toàn bộ thông tin, dữ liệu và phân tích (bao gồm MRI / 1s Market Pulse) trên Viet Dataverse chỉ nhằm mục đích giáo dục và tham khảo, KHÔNG cấu thành lời khuyên đầu tư. Các quyết định tài chính là trách nhiệm hoàn toàn của người dùng. Vui lòng tham khảo chuyên gia tài chính có chứng chỉ trước khi đưa ra bất kỳ quyết định đầu tư nào.</p>
+      </div>
+    </section>
+
+    <!-- SOCIAL PROOF -->
+    <section id="social-proof" class="doc-section">
+      <h2>Viet Dataverse hôm nay</h2>
+      <p>Số liệu cập nhật theo thời gian thực từ hệ thống.</p>
+      <div class="about-stat-row">
+        <div class="about-stat-card">
+          <div class="about-stat-number" id="stat-users">—</div>
+          <div class="about-stat-label">Người dùng đã đăng ký</div>
+        </div>
+        <div class="about-stat-card">
+          <div class="about-stat-number" id="stat-products">—</div>
+          <div class="about-stat-label">Knowledge pack đang hoạt động</div>
+        </div>
+        <div class="about-stat-card">
+          <div class="about-stat-number" id="stat-requests">—</div>
+          <div class="about-stat-label">API requests đã xử lý</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="doc-section">
+      <h2>Liên hệ</h2>
+      <p>Chúng tôi phản hồi email trong vòng <strong>24–48 giờ làm việc</strong>.</p>
+      <ul class="about-contact-list">
+        <li>
+          <strong>Hỗ trợ kỹ thuật & dữ liệu</strong><br>
+          <a href="mailto:findatasolution@gmail.com">findatasolution@gmail.com</a>
+        </li>
+        <li>
+          <strong>Hợp tác / Quảng cáo</strong><br>
+          <a href="mailto:findatasolution@gmail.com">findatasolution@gmail.com</a>
+          — hoặc dùng form tại <a href="/index.html#legal/contact">trang Liên hệ</a>
+        </li>
+        <li>
+          <strong>Pháp lý / DMCA / Báo cáo vi phạm bản quyền</strong><br>
+          <a href="takedown.html">Trang báo cáo vi phạm bản quyền →</a>
+        </li>
+        <li>
+          <strong>Email chính thức</strong><br>
+          <a href="mailto:contact@vietdataverse.online">contact@vietdataverse.online</a>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+</div><!-- /.doc-shell -->
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  // Scroll-spy TOC
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(items.length){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+        }
+      });
+    }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+    document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+  }
+
+  // Platform stats
+  var API = (window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')
+    ? 'http://localhost:8000'
+    : 'https://api.vietdataverse.online';
+
+  function fmt(n){ return (n||0).toLocaleString('vi-VN'); }
+
+  fetch(API+'/api/v1/knowledge/platform-stats')
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(!j.success) return;
+      var d = j.data;
+      var u = document.getElementById('stat-users');
+      var p = document.getElementById('stat-products');
+      var r = document.getElementById('stat-requests');
+      if(u) u.textContent = fmt(d.total_users);
+      if(p) p.textContent = fmt(d.total_knowledge_products);
+      if(r) r.textContent = fmt(d.total_api_requests);
+    })
+    .catch(function(){});
+})();
+</script>
+
+</body>
+</html>

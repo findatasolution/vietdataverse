@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie Policy — Viet Dataverse</title>
+  <meta name="description" content="Chính sách cookie của Viet Dataverse — cách chúng tôi sử dụng cookie và local storage.">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+
+    .cookie-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.875rem;
+    }
+    .cookie-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--warm-sand);
+      color: var(--charcoal, #4d4c48);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-warm);
+    }
+    .cookie-table td {
+      padding: 10px 14px;
+      color: var(--olive-gray);
+      border-bottom: 1px solid var(--border-cream);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    .cookie-table tr:last-child td { border-bottom: none; }
+    .cookie-table code { font-size: 0.8125rem; color: var(--near-black); }
+
+    .cookie-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .cookie-badge.essential { background: rgba(181,51,51,.1); color: var(--error-red, #b53333); }
+    .cookie-badge.functional { background: rgba(201,100,66,.1); color: var(--terracotta); }
+    .cookie-badge.analytics { background: rgba(94,93,89,.1); color: var(--olive-gray); }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="/index.html">← Viet Dataverse</a>
+  <span class="doc-topbar-title" style="display:none;">Cookie Policy</span>
+</header>
+
+<div class="doc-shell">
+
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#what">Cookie là gì?</a>
+      <a class="doc-toc-item" href="#types">Cookie chúng tôi dùng</a>
+      <a class="doc-toc-item" href="#manage">Quản lý cookie</a>
+      <a class="doc-toc-item" href="#updates">Cập nhật chính sách</a>
+    </div>
+  </nav>
+
+  <main class="doc-content">
+
+    <h1>Cookie Policy</h1>
+    <p class="doc-lead">Chính sách này mô tả cách Viet Dataverse sử dụng cookie và local storage khi bạn truy cập nền tảng.</p>
+    <p style="font-size:0.8125rem;color:var(--stone-gray);">Cập nhật lần cuối: 2026-06-14</p>
+
+    <!-- WHAT -->
+    <section id="what" class="doc-section">
+      <h2>Cookie là gì?</h2>
+      <p>Cookie là các tệp văn bản nhỏ mà trình duyệt lưu trên thiết bị của bạn khi bạn truy cập một website. Cookie giúp website ghi nhớ các tuỳ chọn và trạng thái đăng nhập giữa các lần truy cập.</p>
+      <p>Ngoài cookie, Viet Dataverse còn sử dụng <code>localStorage</code> — bộ nhớ trình duyệt phía client, không gửi lên server, chỉ lưu tuỳ chọn giao diện cục bộ.</p>
+    </section>
+
+    <!-- TYPES -->
+    <section id="types" class="doc-section">
+      <h2>Cookie và storage chúng tôi sử dụng</h2>
+
+      <table class="cookie-table">
+        <thead>
+          <tr>
+            <th>Loại</th>
+            <th>Tên / Key</th>
+            <th>Mục đích</th>
+            <th>Phân loại</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Auth0 Session</strong></td>
+            <td><code>auth0.*</code></td>
+            <td>Lưu trạng thái đăng nhập, refresh token và session ID. Được quản lý bởi Auth0 SPA SDK (<code>auth.js</code>). Cần thiết để duy trì phiên đăng nhập giữa các trang.</td>
+            <td><span class="cookie-badge essential">Bắt buộc</span></td>
+          </tr>
+          <tr>
+            <td><strong>Ngôn ngữ</strong></td>
+            <td><code>localStorage: lang</code></td>
+            <td>Lưu tuỳ chọn ngôn ngữ (vi/en) của bạn. Dữ liệu chỉ lưu trong trình duyệt, không gửi lên server.</td>
+            <td><span class="cookie-badge functional">Chức năng</span></td>
+          </tr>
+          <tr>
+            <td><strong>Google Analytics</strong></td>
+            <td><code>_ga, _gid, _ga_*</code></td>
+            <td>Đo lường lưu lượng truy cập ẩn danh (trang xem, thời gian phiên, nguồn truy cập) để cải thiện sản phẩm. Dữ liệu được thu thập bởi Google Analytics (Measurement ID: G-YB3PKHN2E5, G-B9BHYSYDES). Google không dùng dữ liệu này để nhận diện cá nhân.</td>
+            <td><span class="cookie-badge analytics">Phân tích</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="doc-info" style="margin-top:20px;">
+        <strong>Lưu ý:</strong> Viet Dataverse không dùng cookie quảng cáo (advertising/tracking cookie) hoặc chia sẻ dữ liệu cookie với bên thứ ba ngoài Google Analytics và Auth0.
+      </div>
+    </section>
+
+    <!-- MANAGE -->
+    <section id="manage" class="doc-section">
+      <h2>Quản lý cookie</h2>
+
+      <h3>Xoá cookie qua trình duyệt</h3>
+      <p>Bạn có thể xoá hoặc chặn cookie bằng cách vào phần cài đặt của trình duyệt:</p>
+      <ul>
+        <li><strong>Chrome</strong>: Settings → Privacy and security → Clear browsing data</li>
+        <li><strong>Firefox</strong>: Options → Privacy & Security → Cookies and Site Data → Clear Data</li>
+        <li><strong>Safari</strong>: Preferences → Privacy → Manage Website Data</li>
+        <li><strong>Edge</strong>: Settings → Privacy, search, and services → Clear browsing data</li>
+      </ul>
+
+      <div class="doc-warn" style="margin-top:12px;">
+        <strong>Lưu ý:</strong> Xoá cookie Auth0 (<code>auth0.*</code>) sẽ <strong>đăng xuất</strong> bạn khỏi Viet Dataverse. Bạn cần đăng nhập lại để tiếp tục sử dụng các tính năng cần tài khoản.
+      </div>
+
+      <h3>Tắt Google Analytics</h3>
+      <p>Bạn có thể từ chối thu thập dữ liệu Analytics bằng cách cài <a href="https://tools.google.com/dlpage/gaoptout" style="color:var(--terracotta);" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a> hoặc dùng chế độ chặn script của trình duyệt (uBlock Origin, Brave Shield…).</p>
+
+      <h3>Xoá localStorage</h3>
+      <p>Mở DevTools (F12) → Application → Local Storage → chọn domain → xoá key <code>lang</code>. Tuỳ chọn ngôn ngữ sẽ về mặc định (tiếng Việt) sau lần tải trang tiếp theo.</p>
+    </section>
+
+    <!-- UPDATES -->
+    <section id="updates" class="doc-section">
+      <h2>Cập nhật chính sách</h2>
+      <p>Chúng tôi có thể cập nhật Cookie Policy này khi sản phẩm thay đổi (thêm tính năng mới, đổi nhà cung cấp dịch vụ…). Khi có thay đổi quan trọng, ngày "Cập nhật lần cuối" ở đầu trang sẽ được sửa và chúng tôi có thể thông báo qua email cho người dùng đã đăng ký.</p>
+      <p>Xem thêm: <a href="/index.html#legal/privacy" style="color:var(--terracotta);">Chính sách Bảo mật (Privacy Policy)</a></p>
+      <p>Liên hệ về chính sách cookie: <a href="mailto:contact@vietdataverse.online" style="color:var(--terracotta);">contact@vietdataverse.online</a></p>
+    </section>
+
+  </main>
+</div><!-- /.doc-shell -->
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(!items.length) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+      }
+    });
+  }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+  document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+
+</body>
+</html>

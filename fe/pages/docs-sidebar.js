@@ -5,14 +5,22 @@
 
   var currentFile = window.location.pathname.split('/').pop();
 
-  // 1. Replace existing .doc-topbar with unified docs topbar
-  var oldTopbar = document.querySelector('.doc-topbar');
+  // 1. Replace existing .doc-topbar/.page-nav with unified docs topbar,
+  //    but preserve .settings-tabs and #nav-auth so account pages keep their nav.
+  var oldTopbar = document.querySelector('.doc-topbar') || document.querySelector('.page-nav');
   var pageTitle = '';
+  var settingsTabs = null;
+  var navAuth = null;
   if (oldTopbar) {
     var titleEl = oldTopbar.querySelector('.doc-topbar-title');
     if (titleEl) pageTitle = titleEl.textContent.trim();
+    settingsTabs = oldTopbar.querySelector('.settings-tabs');
+    if (settingsTabs) settingsTabs = oldTopbar.removeChild(settingsTabs);
+    navAuth = oldTopbar.querySelector('#nav-auth');
+    if (navAuth) navAuth = oldTopbar.removeChild(navAuth);
     oldTopbar.parentNode.removeChild(oldTopbar);
   }
+
   var newTopbar = document.createElement('header');
   newTopbar.className = 'docs-topbar';
   newTopbar.innerHTML =
@@ -26,6 +34,17 @@
         ? '<span class="docs-topbar-sep">/</span>'
           + '<span class="docs-topbar-section">' + pageTitle + '</span>'
         : '');
+
+  // Re-attach preserved controls into topbar right side
+  if (settingsTabs || navAuth) {
+    var actions = document.createElement('div');
+    actions.className = 'docs-topbar-actions';
+    actions.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:12px;';
+    if (settingsTabs) actions.appendChild(settingsTabs);
+    if (navAuth) actions.appendChild(navAuth);
+    newTopbar.appendChild(actions);
+  }
+
   document.body.insertBefore(newTopbar, document.body.firstChild);
 
   // 2. Hide existing page-section .doc-toc (site nav replaces it)
@@ -54,6 +73,12 @@
     + '<div class="docs-snav-group">'
     + '<div class="docs-snav-label">Pháp lý</div>'
     + '<a class="docs-snav-item' + (currentFile === 'takedown.html' ? ' active' : '') + '" href="takedown.html">DMCA / Takedown</a>'
+    + '</div>'
+
+    + '<div class="docs-snav-group">'
+    + '<div class="docs-snav-label">Về Viet Dataverse</div>'
+    + '<a class="docs-snav-item' + (currentFile === 'about-us.html'      ? ' active' : '') + '" href="about-us.html">Giới thiệu</a>'
+    + '<a class="docs-snav-item' + (currentFile === 'cookie-policy.html' ? ' active' : '') + '" href="cookie-policy.html">Cookie Policy</a>'
     + '</div>'
 
     + '</div>'

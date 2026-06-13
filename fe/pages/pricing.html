@@ -607,12 +607,14 @@
 </head>
 <body>
 
-<nav class="page-nav">
-    <a class="nav-logo" href="/index.html">Viet Dataverse</a>
-    <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
-</nav>
+<header class="doc-topbar">
+    <a class="doc-back" href="/index.html">← Viet Dataverse</a>
+    <span class="doc-topbar-title" style="display:none;">Giới hạn &amp; Giá</span>
+    <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;margin-left:auto;"></div>
+</header>
 
-<main class="pricing-page">
+<div class="doc-shell">
+<main class="doc-content pricing-page">
 
     <!-- Result banner (PayOS redirect) -->
     <div id="result-banner"></div>
@@ -761,6 +763,9 @@
     </div>
 
 </main>
+</div><!-- /.doc-shell -->
+
+<script src="docs-sidebar.js"></script>
 
 <!-- ══════════════════════════════════════════════════════════════
      Checkout overlay — multi-step panel

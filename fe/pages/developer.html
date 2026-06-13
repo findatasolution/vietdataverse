@@ -254,6 +254,7 @@
 
 <header class="doc-topbar">
     <a class="doc-back" href="/index.html">← Viet Dataverse</a>
+    <span class="doc-topbar-title" style="display:none;">API Keys &amp; Auth</span>
     <div class="settings-tabs">
         <a class="settings-tab" href="/pages/account.html">Tài khoản</a>
         <a class="settings-tab" href="/fe/#km/library">My Library</a>
@@ -261,8 +262,11 @@
         <a class="settings-tab" href="/fe/#km/seller-dashboard">My Store</a>
         <a class="settings-tab active" href="/pages/developer.html">API Key</a>
     </div>
-    <div id="nav-auth" style="margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13px;"></div>
+    <div id="nav-auth" style="display:flex;align-items:center;gap:12px;font-size:13px;"></div>
 </header>
+
+<div class="doc-shell">
+<main class="doc-content">
 
 <div class="dev-hero">
     <span class="dev-badge">
@@ -567,5 +571,9 @@ const data = await res.json();</div>
     window.addEventListener('load', initPage);
 </script>
 
+</main>
+</div><!-- /.doc-shell -->
+
+<script src="docs-sidebar.js"></script>
 </body>
 </html>
