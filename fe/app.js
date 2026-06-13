@@ -2854,8 +2854,23 @@
 
             // ── Fetch CPI from internal GSO API
             async function cpiFetch(view, years) {
+                // Ưu tiên file tĩnh (không tốn quota, hoạt động cho khách vãng lai).
+                try {
+                    const file = view === 'monthly' ? 'cpi_monthly.json' : 'cpi_annual.json';
+                    const sr = await fetch(`./data/${file}`);
+                    if (sr.ok) {
+                        const sj = await sr.json();
+                        const arr = sj.data || [];
+                        if (arr.length) {
+                            return view === 'monthly' ? arr.slice(-12) : arr.slice(-years);
+                        }
+                    }
+                } catch (_) { /* rơi xuống live API */ }
+
+                // Fallback live API (endpoint /api/v1/macro — kèm token nếu đã đăng nhập).
                 const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || '/api/v1';
-                const r = await fetch(`${base}/macro/cpi?view=${view}&years=${years}`);
+                const r = await fetch(`${base}/macro/cpi?view=${view}&years=${years}`,
+                                     { headers: await _authHeaders() });
                 if (!r.ok) throw new Error(`CPI API ${r.status}`);
                 const json = await r.json();
                 return json.data || [];

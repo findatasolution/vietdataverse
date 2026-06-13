@@ -45,10 +45,8 @@ METERED_PREFIXES = (
     "/api/v1/termdepo",        # termdepo + termdepo/banks
     "/api/v1/global",          # global + global-macro
     "/api/v1/vn30",            # vn30 data
-    # KHÔNG gate /api/v1/macro: biểu đồ CPI công khai (app.js) gọi trực tiếp
-    # /api/v1/macro/cpi cho khách vãng lai (hook), chưa có bản static JSON.
-    # Các chart gold/silver/sbv/termdepo/global đọc fe/data/*.json nên gate
-    # các endpoint live đó chỉ ảnh hưởng API/Excel consumer — đúng đối tượng cần đo.
+    "/api/v1/macro",           # macro (CPI/GDP/trade) — chart CPI công khai giờ
+                               # đọc data/cpi_*.json nên gate live endpoint an toàn.
 )
 
 
