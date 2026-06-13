@@ -612,12 +612,15 @@
             // These promises are consumed by loadChartData() when it runs later
             const base = window.APP_CONFIG.API_BASE_URL;
             window._prefetchPromises = {};
-            window._prefetchPromises['gold-1m-DOJI HN'] = fetch(`${base}/gold?period=1m&type=${encodeURIComponent('DOJI HN')}`)
+            // Prefetch gold/silver from static files (generated daily) — anonymous
+            // visitors don't carry an API key/Bearer token, and these endpoints
+            // are now metered, so the default chart must not depend on a live call.
+            window._prefetchPromises['gold-1m-DOJI HN'] = fetch('./data/gold_DOJI_HN_1m.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
-                .catch(e => { console.warn('[prefetch] gold failed:', e); return null; });
-            window._prefetchPromises['silver-1m'] = fetch(`${base}/silver?period=1m`)
+                .catch(e => { console.warn('[prefetch] gold static failed:', e); return null; });
+            window._prefetchPromises['silver-1m'] = fetch('./data/silver_1m.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
-                .catch(e => { console.warn('[prefetch] silver failed:', e); return null; });
+                .catch(e => { console.warn('[prefetch] silver static failed:', e); return null; });
             // Prefetch fxrate from static file (generated daily from SBV data)
             window._prefetchPromises['fxrate-1m'] = fetch('./data/fxrate_SBV_USD_1m.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
@@ -1860,7 +1863,7 @@
                     if (chartType === 'gold' && goldType) apiUrl += `&type=${encodeURIComponent(goldType)}`;
                     if (chartType === 'td' && bankCode) apiUrl += `&bank=${encodeURIComponent(bankCode)}`;
                     if (chartType === 'fxrate') apiUrl += `&bank=SBV&currency=USD`;
-                    const res = await fetchWithTimeout(apiUrl, {}, 20000);
+                    const res = await fetchWithTimeout(apiUrl, { headers: await _authHeaders() }, 20000);
                     if (!res.ok) throw new Error(`API error: ${res.status}`);
                     data = await res.json();
                 }
@@ -2339,7 +2342,7 @@
                     ? await window._prefetchPromises['fxrate-1m']
                     : null;
                 if (!fxData) {
-                    const r = await fetchWithTimeout(`${base}/sbv-centralrate?period=7d&bank=SBV&currency=USD`, {}, 15000);
+                    const r = await fetchWithTimeout(`${base}/sbv-centralrate?period=7d&bank=SBV&currency=USD`, { headers: await _authHeaders() }, 15000);
                     if (r.ok) fxData = await r.json();
                 }
                 const rates = fxData && fxData.data ? fxData.data.usd_vnd_rate : fxData ? fxData.usd_vnd_rate : null;
@@ -2351,7 +2354,7 @@
 
             // Vàng thế giới — XAU/USD (gold future)
             try {
-                const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, {}, 15000);
+                const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, { headers: await _authHeaders() }, 15000);
                 if (r.ok) {
                     const json = await r.json();
                     const gold = lastChange(json && json.data ? json.data.gold_prices : null);

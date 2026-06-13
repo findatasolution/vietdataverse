@@ -77,8 +77,14 @@ def generate_gold_data():
 
     print(f"  Gold types: {gold_types}")
 
+    # FE prefetches "DOJI HN" as the default gold chart (app.js) — must always
+    # be generated even if it falls outside the top-5 alphabetical types.
+    types_to_generate = list(dict.fromkeys(['DOJI HN'] + gold_types[:5]))
+
     # Generate for each type and period
-    for gold_type in gold_types[:5]:  # Top 5 types
+    for gold_type in types_to_generate:
+        if gold_type not in gold_types:
+            continue
         for period in ['7d', '1m', '1y']:
             date_filter = get_date_filter(period)
 
