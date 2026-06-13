@@ -81,7 +81,8 @@ async def get_all_users(
             rows = conn.execute(text(f"""
                 SELECT user_id, email, auth0_id, name, email_verified, is_admin,
                        user_level, registration_type, current_plan,
-                       is_premium, premium_expiry, api_request_count, created_at, updated_at
+                       is_premium, premium_expiry, api_request_count, created_at, updated_at,
+                       last_login_at, login_count
                 FROM users
                 {where}
                 ORDER BY created_at DESC
@@ -107,6 +108,8 @@ async def get_all_users(
             "api_request_count": r[11],
             "created_at":        r[12].isoformat() if r[12] else None,
             "updated_at":        r[13].isoformat() if r[13] else None,
+            "last_login_at":     r[14].isoformat() if r[14] else None,
+            "login_count":       r[15] or 0,
         } for r in rows]
 
         return _json_response({"success": True, "data": users, "total": total,

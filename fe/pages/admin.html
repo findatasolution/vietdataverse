@@ -198,6 +198,15 @@
         <div class="kpi-card"><div class="kpi-label">Đăng ký tháng này</div><div class="kpi-value" id="new-month">—</div></div>
     </div>
 
+    <!-- Login engagement -->
+    <div class="section-h" style="margin-top:0;">Engagement đăng nhập</div>
+    <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Đã từng đăng nhập</div><div class="kpi-value" id="ever-logged-in">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">DAU (hôm nay)</div><div class="kpi-value" id="dau">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">WAU (tuần này)</div><div class="kpi-value" id="wau">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">MAU (tháng này)</div><div class="kpi-value" id="mau">—</div></div>
+    </div>
+
     <!-- Signup trend chart -->
     <div class="chart-wrap">
         <div class="chart-header">
@@ -242,7 +251,7 @@
             <table class="admin-table" id="users-table">
                 <thead><tr>
                     <th>ID</th><th>Email</th><th>Level</th><th>Plan</th>
-                    <th>Expiry</th><th>API calls</th><th>Joined</th><th></th>
+                    <th>Expiry</th><th>API calls</th><th>Last login</th><th>Logins</th><th>Joined</th><th></th>
                 </tr></thead>
                 <tbody id="users-body"></tbody>
             </table>
@@ -357,6 +366,12 @@ async function loadDashboard() {
     document.getElementById('new-today').textContent = (d.subscribers.new_today  || 0).toLocaleString('vi-VN');
     document.getElementById('new-week').textContent  = (d.subscribers.new_week   || 0).toLocaleString('vi-VN');
     document.getElementById('new-month').textContent = (d.subscribers.new_month  || 0).toLocaleString('vi-VN');
+
+    const logins = d.logins || {};
+    document.getElementById('ever-logged-in').textContent = (logins.ever_logged_in || 0).toLocaleString('vi-VN');
+    document.getElementById('dau').textContent = (logins.dau || 0).toLocaleString('vi-VN');
+    document.getElementById('wau').textContent = (logins.wau || 0).toLocaleString('vi-VN');
+    document.getElementById('mau').textContent = (logins.mau || 0).toLocaleString('vi-VN');
 }
 
 // ── Signup trend chart ──────────────────────────────────────────────────────
@@ -447,11 +462,13 @@ async function loadUsers() {
                 ${u.premium_expiry ? new Date(u.premium_expiry).toLocaleDateString('vi-VN') : '—'}
             </td>
             <td>${(u.api_request_count || 0).toLocaleString('vi-VN')}</td>
+            <td style="font-size:11px;color:var(--text-tertiary);">${u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('vi-VN') : '—'}</td>
+            <td>${(u.login_count || 0).toLocaleString('vi-VN')}</td>
             <td style="font-size:11px;color:var(--text-tertiary);">${u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : '—'}</td>
             <td><button class="btn-edit" onclick="toggleEdit(${u.user_id}, '${u.user_level}', '${u.current_plan || ''}', '${u.premium_expiry || ''}')">Edit</button></td>
         </tr>
         <tr class="edit-row" id="uedit-${u.user_id}">
-            <td colspan="8">
+            <td colspan="10">
                 <div class="edit-form">
                     <div class="edit-field">
                         <label>Level</label>
