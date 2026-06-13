@@ -4455,9 +4455,7 @@ html {
 .doc-topbar-title { font-size:0.875rem; color:var(--near-black); font-weight:500; }
 
 .doc-shell {
-  display: flex; max-width: 1100px; margin: 0 auto;
-  padding: 48px 24px 80px; gap: 48px;
-  box-sizing: border-box;
+  display: flex; min-height: calc(100vh - 52px);
 }
 
 /* Sticky TOC sidebar */
@@ -4489,7 +4487,7 @@ html {
 .doc-toc-item.sub { padding-left:20px; font-size:0.75rem; }
 
 /* Main content */
-.doc-content { flex:1; min-width:0; }
+.doc-content { flex:1; min-width:0; padding: 48px 56px 80px; box-sizing: border-box; }
 .doc-content h1 {
   font-family:'Lora',Georgia,serif; font-size:2rem; font-weight:500;
   color:var(--near-black); margin:0 0 8px; line-height:1.2;
@@ -4585,7 +4583,8 @@ html {
 
 /* Responsive */
 @media (max-width:768px) {
-  .doc-shell { flex-direction:column; padding:24px 16px 60px; gap:24px; }
+  .doc-shell { flex-direction:column; }
+  .doc-content { padding:24px 16px 60px; }
   .doc-toc { width:100%; }
   .doc-toc-inner { position:static; flex-direction:row; flex-wrap:wrap; gap:4px; }
   .doc-toc-label { display:none; }
@@ -4620,11 +4619,15 @@ html {
 
 /* ── Docs Sidebar Nav (shared across doc pages) ── */
 .docs-sidebar-nav {
-  width: 220px; flex-shrink: 0;
+  width: 260px; flex-shrink: 0;
+  background: var(--parchment);
   border-right: 1px solid var(--border-cream);
+  position: sticky; top: 52px; height: calc(100vh - 52px);
+  overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-warm) transparent;
 }
+.docs-sidebar-nav::-webkit-scrollbar { width: 4px; }
+.docs-sidebar-nav::-webkit-scrollbar-thumb { background: var(--border-warm); border-radius: 4px; }
 .docs-sidebar-nav-inner {
-  position: sticky; top: 52px;
   padding: 20px 12px 40px;
   display: flex; flex-direction: column; gap: 0;
 }

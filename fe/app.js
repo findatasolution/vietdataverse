@@ -2725,39 +2725,48 @@
         let pulseDataCache = [];
         let pulseGatedPreview = 1; // articles visible before gate (set from API response)
 
-        async function loadMarketPulse() {
-            const base = window.APP_CONFIG.API_BASE_URL;
+        async function _doPulseFetch(base, lang, token) {
             const container = document.getElementById('market-pulse-articles');
             if (!container) return;
-
-            const lang = localStorage.getItem('lang') || 'vi';
-            let data = null;
-
             try {
-                if (base) {
-                    const token = await getToken().catch(() => null);
-                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                    const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=50`, { headers });
-                    if (res.ok) {
-                        const json = await res.json();
-                        data = json.data || [];
-                        pulseGatedPreview = json.free_preview_count ?? null; // null = no gate
-                    }
-                }
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chưa có bài viết nào.</p>';
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(`${base}/market-pulse?lang=${lang}&limit=50`, { headers });
+                if (!res.ok) {
+                    if (!token) container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Không thể tải dữ liệu.</p>';
                     return;
                 }
-
+                const json = await res.json();
+                const data = json.data || [];
+                if (!data.length) {
+                    if (!token) container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Chưa có bài viết nào.</p>';
+                    return;
+                }
                 pulseDataCache = data;
+                pulseGatedPreview = json.free_preview_count ?? null;
                 renderPulseHero();
                 renderPulseSidebar();
                 renderFilteredPulse();
             } catch (e) {
-                console.error('Market Pulse fetch failed:', e);
-                container.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Không thể tải dữ liệu.</p>';
+                if (!token) {
+                    console.error('Market Pulse fetch failed:', e);
+                    const c = document.getElementById('market-pulse-articles');
+                    if (c) c.innerHTML = '<p style="text-align:center;color:var(--text-tertiary);padding:3rem;">Không thể tải dữ liệu.</p>';
+                }
             }
+        }
+
+        async function loadMarketPulse() {
+            const base = window.APP_CONFIG.API_BASE_URL;
+            if (!base) return;
+            const lang = localStorage.getItem('lang') || 'vi';
+
+            // Phase 1: fetch immediately without auth → shows guest preview fast (<1s)
+            _doPulseFetch(base, lang, null);
+
+            // Phase 2: once Auth0 resolves, re-fetch with token if logged in → unlocks full data
+            getToken().then(token => {
+                if (token) _doPulseFetch(base, lang, token);
+            }).catch(() => {});
         }
 
         function _renderPulseGate(hiddenCount) {
