@@ -2387,6 +2387,9 @@
                 if (typeof Chart === 'undefined') return;
                 const existing = Chart.getChart(canvas);
                 if (existing) existing.destroy();
+                // Fix height: set CSS explicitly so maintainAspectRatio:false respects it
+                canvas.style.height = '56px';
+                canvas.style.maxHeight = '56px';
                 const color = up ? '#16a34a' : '#b53333';
                 new Chart(canvas, {
                     type: 'line',
@@ -2404,7 +2407,8 @@
                         }]
                     },
                     options: {
-                        responsive: false,
+                        responsive: true,
+                        maintainAspectRatio: false,
                         animation: false,
                         plugins: { legend: { display: false }, tooltip: { enabled: false } },
                         scales: { x: { display: false }, y: { display: false } },
