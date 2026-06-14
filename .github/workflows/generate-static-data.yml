@@ -47,13 +47,13 @@ jobs:
     - name: List generated files
       run: |
         echo "Generated static files:"
-        ls -la data/ || echo "No data directory"
+        ls -la fe/data/ || echo "No fe/data directory"
 
     - name: Commit and push static data
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add -f data/
+        git add -f fe/data/
         git diff --staged --quiet || git commit -m "Update static chart data [skip ci]"
         git push || echo "Nothing to push"
 

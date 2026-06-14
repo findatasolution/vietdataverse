@@ -15,8 +15,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Output directory for static JSON files
-STATIC_DIR = Path(__file__).parent.parent / 'data'
+# Output directory for static JSON files — must be inside fe/ so FastAPI serves at /fe/data/
+STATIC_DIR = Path(__file__).parent.parent / 'fe' / 'data'
 STATIC_DIR.mkdir(exist_ok=True)
 
 # Database connections
