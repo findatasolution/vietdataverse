@@ -1426,17 +1426,27 @@ html {
     margin-bottom: 0.875rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-warm) transparent;
+    padding-bottom: 6px;
 }
 
 .ticker-strip::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+}
+
+.ticker-strip::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ticker-strip::-webkit-scrollbar-thumb {
+    background: var(--border-warm);
+    border-radius: 4px;
 }
 
 .ticker-card-sm {
-    flex: 0 0 172px;
-    width: 172px;
+    flex: 0 0 180px;
+    width: 180px;
     background: var(--pure-white);
     border: 1px solid var(--border-cream);
     border-radius: var(--radius-xl);
@@ -1457,6 +1467,7 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 6px;
     margin-bottom: 4px;
 }
 
@@ -1464,9 +1475,15 @@ html {
     font-size: 0.75rem;
     color: var(--olive-gray);
     font-weight: 400;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ticker-badge {
+    flex: 0 0 auto;
     font-size: 0.625rem;
     font-weight: 600;
     color: var(--stone-gray);
@@ -1474,6 +1491,7 @@ html {
     padding: 2px 7px;
     border-radius: 99px;
     letter-spacing: 0.04em;
+    white-space: nowrap;
 }
 
 .ticker-price-row {
@@ -1521,8 +1539,8 @@ html {
 
 @media (max-width: 768px) {
     .ticker-card-sm {
-        flex: 0 0 148px;
-        width: 148px;
+        flex: 0 0 156px;
+        width: 156px;
     }
 }
 
