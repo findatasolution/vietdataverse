@@ -12,79 +12,6 @@
     *, *::before, *::after { box-sizing: border-box; }
     body { background: var(--parchment); color: var(--near-black); margin: 0; font-family: system-ui, -apple-system, sans-serif; }
 
-    /* ── Topbar ── */
-    .docs-topbar {
-      position: sticky; top: 0; z-index: 40;
-      background: var(--ivory); border-bottom: 1px solid var(--border-cream);
-      display: flex; align-items: center; gap: 20px;
-      padding: 0 24px; height: 52px;
-    }
-    .docs-topbar-brand {
-      display: flex; align-items: center; gap: 10px;
-      text-decoration: none; color: var(--near-black);
-    }
-    .docs-topbar-logo {
-      width: 28px; height: 28px; border-radius: 6px;
-      background: linear-gradient(135deg, var(--terracotta), #d97757);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Lora', Georgia, serif; font-size: 0.875rem; font-weight: 600; color: #fff;
-      flex-shrink: 0;
-    }
-    .docs-topbar-name { font-size: 0.9375rem; font-weight: 500; color: var(--near-black); }
-    .docs-topbar-sep { color: var(--border-warm); font-size: 1.25rem; margin: 0 4px; }
-    .docs-topbar-section { font-size: 0.9375rem; color: var(--olive-gray); }
-    .docs-topbar-search {
-      margin-left: auto; display: flex; align-items: center; gap: 8px;
-      background: var(--warm-sand); border: 1px solid var(--border-warm); border-radius: 8px;
-      padding: 5px 12px; cursor: pointer;
-    }
-    .docs-topbar-search span { font-size: 0.8125rem; color: var(--stone-gray); }
-    .docs-topbar-search kbd { font-size: 0.6875rem; color: var(--stone-gray); background: var(--border-cream); padding: 1px 5px; border-radius: 4px; }
-
-    /* ── Shell ── */
-    .docs-shell {
-      display: flex; min-height: calc(100vh - 52px);
-    }
-
-    /* ── Sidebar ── */
-    .docs-sidebar {
-      width: 260px; flex-shrink: 0;
-      background: var(--parchment);
-      border-right: 1px solid var(--border-cream);
-      position: sticky; top: 52px; height: calc(100vh - 52px);
-      overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-warm) transparent;
-    }
-    .docs-sidebar::-webkit-scrollbar { width: 4px; }
-    .docs-sidebar::-webkit-scrollbar-thumb { background: var(--border-warm); border-radius: 4px; }
-
-    .docs-sidebar-inner { padding: 20px 12px 40px; }
-
-    .docs-nav-group { margin-bottom: 24px; }
-    .docs-nav-group-title {
-      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.1em; color: var(--stone-gray);
-      padding: 0 8px; margin-bottom: 4px;
-    }
-    .docs-nav-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 8px; border-radius: 6px;
-      font-size: 0.8125rem; color: var(--olive-gray);
-      text-decoration: none; cursor: pointer;
-      transition: background 0.12s, color 0.12s;
-      line-height: 1.4;
-      border-left: 3px solid transparent;
-    }
-    .docs-nav-item:hover { background: var(--border-cream); color: var(--near-black); }
-    .docs-nav-item.active {
-      background: var(--warm-sand);
-      color: var(--near-black);
-      border-left-color: var(--terracotta);
-    }
-    .docs-nav-item-icon {
-      width: 16px; height: 16px; flex-shrink: 0; color: var(--stone-gray);
-    }
-    .docs-nav-item.active .docs-nav-item-icon { color: var(--near-black); }
-
     /* ── Main content ── */
     .docs-main {
       flex: 1; min-width: 0;
@@ -151,142 +78,23 @@
 
     /* Mobile */
     @media (max-width: 768px) {
-      .docs-sidebar { display: none; }
       .docs-main { padding: 24px 20px 60px; }
       .docs-hero h1 { font-size: 1.625rem; }
       .docs-card-grid { grid-template-columns: 1fr; }
     }
     @media (min-width: 769px) and (max-width: 1024px) {
-      .docs-sidebar { width: 220px; }
       .docs-main { padding: 36px 36px 60px; }
-    }
-
-    /* Mobile topnav for sidebar on mobile */
-    .docs-mobile-nav {
-      display: none;
-      background: var(--ivory); border-bottom: 1px solid var(--border-cream);
-      padding: 8px 16px; gap: 6px; overflow-x: auto; scrollbar-width: none;
-    }
-    .docs-mobile-nav::-webkit-scrollbar { display: none; }
-    .docs-mobile-nav a {
-      flex-shrink: 0; padding: 5px 12px; border-radius: 24px;
-      font-size: 0.8125rem; color: var(--olive-gray); text-decoration: none;
-      border: 1px solid var(--border-cream); white-space: nowrap;
-    }
-    .docs-mobile-nav a:hover { background: var(--warm-sand); color: var(--near-black); }
-    @media (max-width: 768px) {
-      .docs-mobile-nav { display: flex; }
     }
   </style>
 </head>
 <body>
 
-<!-- Topbar -->
-<header class="docs-topbar">
-  <a class="docs-topbar-brand" href="/index.html">
-    <div class="docs-topbar-logo">V</div>
-    <span class="docs-topbar-name">Viet Dataverse</span>
-  </a>
-  <span class="docs-topbar-sep">/</span>
-  <span class="docs-topbar-section">Documentation</span>
-  <div class="docs-topbar-search" onclick="document.getElementById('docs-search').focus()">
-    <svg width="14" height="14" fill="none" stroke="#87867f" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <span>Tìm kiếm tài liệu...</span>
-    <kbd>⌘K</kbd>
-  </div>
+<header class="doc-topbar">
+  <span class="doc-topbar-title" style="display:none;">Tổng quan</span>
 </header>
 
-<!-- Mobile quick nav -->
-<nav class="docs-mobile-nav">
-  <a href="api-docs.html">API Reference</a>
-  <a href="guide-seller.html">Seller Guide</a>
-  <a href="guide-buyer.html">Buyer Guide</a>
-  <a href="knowledge-pack-spec.html">Knowledge Pack</a>
-  <a href="#terms">Điều khoản</a>
-</nav>
-
 <!-- Shell -->
-<div class="docs-shell">
-
-  <!-- Sidebar -->
-  <nav class="docs-sidebar">
-    <div class="docs-sidebar-inner">
-
-      <!-- Getting Started -->
-      <div class="docs-nav-group">
-        <div class="docs-nav-group-title">Bắt đầu</div>
-        <a class="docs-nav-item active" href="docs.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          Tổng quan
-        </a>
-      </div>
-
-      <!-- API -->
-      <div class="docs-nav-group">
-        <div class="docs-nav-group-title">API</div>
-        <a class="docs-nav-item" href="api-docs.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          API Reference
-        </a>
-        <a class="docs-nav-item" href="developer.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-          API Keys &amp; Auth
-        </a>
-        <a class="docs-nav-item" href="pricing.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-          Giới hạn &amp; Giá
-        </a>
-      </div>
-
-      <!-- Guides -->
-      <div class="docs-nav-group">
-        <div class="docs-nav-group-title">Hướng dẫn</div>
-        <a class="docs-nav-item" href="guide-seller.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-          Seller Guide
-        </a>
-        <a class="docs-nav-item" href="guide-buyer.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-          Buyer Guide
-        </a>
-        <a class="docs-nav-item" href="knowledge-pack-spec.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-          Tạo Knowledge Pack
-        </a>
-      </div>
-
-      <!-- Legal -->
-      <div class="docs-nav-group">
-        <div class="docs-nav-group-title">Pháp lý</div>
-        <a class="docs-nav-item" href="/index.html#legal/about">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Điều khoản dịch vụ
-        </a>
-        <a class="docs-nav-item" href="/index.html#legal/privacy">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          Chính sách bảo mật
-        </a>
-        <a class="docs-nav-item" href="takedown.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-          DMCA / Takedown
-        </a>
-      </div>
-
-      <!-- Về Viet Dataverse -->
-      <div class="docs-nav-group">
-        <div class="docs-nav-group-title">Về Viet Dataverse</div>
-        <a class="docs-nav-item" href="about-us.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-          Giới thiệu
-        </a>
-        <a class="docs-nav-item" href="cookie-policy.html">
-          <svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Cookie Policy
-        </a>
-      </div>
-
-    </div>
-  </nav>
+<div class="doc-shell">
 
   <!-- Main content -->
   <main class="docs-main">
@@ -400,19 +208,7 @@
 
 </div>
 
-<script>
-// Highlight active sidebar item based on referrer / current path
-(function(){
-  var path = window.location.pathname;
-  document.querySelectorAll('.docs-nav-item').forEach(function(a){
-    var href = a.getAttribute('href') || '';
-    if(href && path.endsWith(href.replace(/^.*\//, ''))) {
-      document.querySelectorAll('.docs-nav-item').forEach(function(i){ i.classList.remove('active'); });
-      a.classList.add('active');
-    }
-  });
-})();
-</script>
+<script src="docs-sidebar.js"></script>
 
 </body>
 </html>
