@@ -2390,143 +2390,161 @@
                 });
             }
 
+            // All tickers fetch independently and in parallel — a slow/failing
+            // live API (FX, gold, VN-Index) must not delay the static ones.
+            const tasks = [];
+
             // USD/VND — SBV central rate (from static prefetch)
-            try {
-                let fxData = window._prefetchPromises && window._prefetchPromises['fxrate-1m']
-                    ? await window._prefetchPromises['fxrate-1m']
-                    : null;
-                if (!fxData) {
-                    const r = await fetchWithTimeout(`${base}/sbv-centralrate?period=7d&bank=SBV&currency=USD`, { headers: await _authHeaders() }, 15000);
-                    if (r.ok) fxData = await r.json();
+            tasks.push((async () => {
+                try {
+                    let fxData = window._prefetchPromises && window._prefetchPromises['fxrate-1m']
+                        ? await window._prefetchPromises['fxrate-1m']
+                        : null;
+                    if (!fxData) {
+                        const r = await fetchWithTimeout(`${base}/sbv-centralrate?period=7d&bank=SBV&currency=USD`, { headers: await _authHeaders() }, 15000);
+                        if (r.ok) fxData = await r.json();
+                    }
+                    const fxInner = fxData && fxData.data ? fxData.data : fxData;
+                    const rates = fxInner ? fxInner.usd_vnd_rate : null;
+                    const fxDates = fxInner ? fxInner.dates : null;
+                    const fx = lastChange(rates);
+                    if (fx) {
+                        setRow('mmFxValue', 'mmFxChange', fx.last, fx.delta, fx.pct, 0);
+                        const lastDate = fxDates && fxDates.length ? fxDates[fxDates.length - 1] : null;
+                        setTicker('tk-fx-price', 'tk-fx-change', 'tk-fx-ts', fx.last, fx.delta, fx.pct, 0, lastDate);
+                        drawSpark('tk-fx-spark', rates, fx.delta >= 0);
+                    }
+                } catch (e) {
+                    console.warn('[market-movement] fxrate failed:', e);
                 }
-                const fxInner = fxData && fxData.data ? fxData.data : fxData;
-                const rates = fxInner ? fxInner.usd_vnd_rate : null;
-                const fxDates = fxInner ? fxInner.dates : null;
-                const fx = lastChange(rates);
-                if (fx) {
-                    setRow('mmFxValue', 'mmFxChange', fx.last, fx.delta, fx.pct, 0);
-                    const lastDate = fxDates && fxDates.length ? fxDates[fxDates.length - 1] : null;
-                    setTicker('tk-fx-price', 'tk-fx-change', 'tk-fx-ts', fx.last, fx.delta, fx.pct, 0, lastDate);
-                    drawSpark('tk-fx-spark', rates, fx.delta >= 0);
-                }
-            } catch (e) {
-                console.warn('[market-movement] fxrate failed:', e);
-            }
+            })());
 
             // Vàng thế giới — XAU/USD: sparkline from static 1y data, price from live API if authed
-            try {
-                const staticR = await fetch('./data/global_1y.json').catch(() => null);
-                if (staticR && staticR.ok) {
-                    const sj = await staticR.json();
-                    const gPrices = sj && sj.data && sj.data.gold_prices ? sj.data.gold_prices : null;
-                    const gDates = sj && sj.data && sj.data.dates ? sj.data.dates : null;
-                    if (gPrices && gPrices.length > 5) {
-                        const slice = gPrices.slice(-30);
-                        const lc = lastChange(slice);
-                        if (lc) {
-                            const lastDate = gDates ? gDates[gDates.length - 1] : null;
-                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
-                            drawSpark('tk-xau-spark', slice, lc.delta >= 0);
+            tasks.push((async () => {
+                try {
+                    const staticR = await fetch('./data/global_1y.json').catch(() => null);
+                    if (staticR && staticR.ok) {
+                        const sj = await staticR.json();
+                        const gPrices = sj && sj.data && sj.data.gold_prices ? sj.data.gold_prices : null;
+                        const gDates = sj && sj.data && sj.data.dates ? sj.data.dates : null;
+                        if (gPrices && gPrices.length > 5) {
+                            const slice = gPrices.slice(-30);
+                            const lc = lastChange(slice);
+                            if (lc) {
+                                const lastDate = gDates ? gDates[gDates.length - 1] : null;
+                                setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
+                                drawSpark('tk-xau-spark', slice, lc.delta >= 0);
+                            }
                         }
                     }
-                }
-                const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, { headers: await _authHeaders() }, 15000);
-                if (r.ok) {
-                    const json = await r.json();
-                    const goldPrices = json && json.data ? json.data.gold_prices : null;
-                    const goldDates = json && json.data ? json.data.dates : null;
-                    const gold = lastChange(goldPrices);
-                    if (gold) {
-                        setRow('mmGoldValue', 'mmGoldChange', gold.last, gold.delta, gold.pct, 2);
-                        const lastDate = goldDates && goldDates.length ? goldDates[goldDates.length - 1] : null;
-                        setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', gold.last, gold.delta, gold.pct, 2, lastDate);
-                        drawSpark('tk-xau-spark', goldPrices, gold.delta >= 0);
+                    const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, { headers: await _authHeaders() }, 15000);
+                    if (r.ok) {
+                        const json = await r.json();
+                        const goldPrices = json && json.data ? json.data.gold_prices : null;
+                        const goldDates = json && json.data ? json.data.dates : null;
+                        const gold = lastChange(goldPrices);
+                        if (gold) {
+                            setRow('mmGoldValue', 'mmGoldChange', gold.last, gold.delta, gold.pct, 2);
+                            const lastDate = goldDates && goldDates.length ? goldDates[goldDates.length - 1] : null;
+                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', gold.last, gold.delta, gold.pct, 2, lastDate);
+                            drawSpark('tk-xau-spark', goldPrices, gold.delta >= 0);
+                        }
                     }
+                } catch (e) {
+                    console.warn('[market-movement] global-macro failed:', e);
                 }
-            } catch (e) {
-                console.warn('[market-movement] global-macro failed:', e);
-            }
+            })());
 
             // VN-Index
-            try {
-                const r = await fetchWithTimeout(`${base}/market/vnindex?period=7d`, {}, 15000);
-                if (r.ok) {
-                    const json = await r.json();
-                    const closes = (json.data || []).map(d => d.close);
-                    const jsonDates = (json.data || []).map(d => d.date);
-                    const vnindex = lastChange(closes);
-                    if (vnindex) {
-                        setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
-                        const lastDate = jsonDates.length ? jsonDates[jsonDates.length - 1] : null;
-                        setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', vnindex.last, vnindex.delta, vnindex.pct, 2, lastDate);
-                        drawSpark('tk-vni-spark', closes, vnindex.delta >= 0);
+            tasks.push((async () => {
+                try {
+                    const r = await fetchWithTimeout(`${base}/market/vnindex?period=7d`, {}, 15000);
+                    if (r.ok) {
+                        const json = await r.json();
+                        const closes = (json.data || []).map(d => d.close);
+                        const jsonDates = (json.data || []).map(d => d.date);
+                        const vnindex = lastChange(closes);
+                        if (vnindex) {
+                            setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
+                            const lastDate = jsonDates.length ? jsonDates[jsonDates.length - 1] : null;
+                            setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', vnindex.last, vnindex.delta, vnindex.pct, 2, lastDate);
+                            drawSpark('tk-vni-spark', closes, vnindex.delta >= 0);
+                        }
                     }
+                } catch (e) {
+                    console.warn('[market-movement] vnindex failed:', e);
                 }
-            } catch (e) {
-                console.warn('[market-movement] vnindex failed:', e);
-            }
+            })());
 
             // Bạc (Phú Quý) — static 1m data
-            try {
-                const r = await fetch('./data/silver_1m.json').catch(() => null);
-                if (r && r.ok) {
-                    const sj = await r.json();
-                    const prices = sj && sj.data ? sj.data.sell_prices : null;
-                    const dates = sj && sj.data ? sj.data.dates : null;
-                    const silver = lastChange(prices);
-                    if (silver) {
-                        const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
-                        setTicker('tk-silver-price', 'tk-silver-change', 'tk-silver-ts', silver.last, silver.delta, silver.pct, 0, lastDate);
-                        drawSpark('tk-silver-spark', prices, silver.delta >= 0);
+            tasks.push((async () => {
+                try {
+                    const r = await fetch('./data/silver_1m.json').catch(() => null);
+                    if (r && r.ok) {
+                        const sj = await r.json();
+                        const prices = sj && sj.data ? sj.data.sell_prices : null;
+                        const dates = sj && sj.data ? sj.data.dates : null;
+                        const silver = lastChange(prices);
+                        if (silver) {
+                            const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
+                            setTicker('tk-silver-price', 'tk-silver-change', 'tk-silver-ts', silver.last, silver.delta, silver.pct, 0, lastDate);
+                            drawSpark('tk-silver-spark', prices, silver.delta >= 0);
+                        }
                     }
+                } catch (e) {
+                    console.warn('[market-movement] silver failed:', e);
                 }
-            } catch (e) {
-                console.warn('[market-movement] silver failed:', e);
-            }
+            })());
 
             // Lãi suất gửi tiết kiệm 12 tháng (ACB) — static 1m data
-            try {
-                const r = await fetch('./data/termdepo_ACB_1m.json').catch(() => null);
-                if (r && r.ok) {
-                    const sj = await r.json();
-                    const rates = sj && sj.data ? sj.data.term_12m : null;
-                    const dates = sj && sj.data ? sj.data.dates : null;
-                    const savings = lastChange(rates);
-                    if (savings) {
-                        const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
-                        setTicker('tk-savings-price', 'tk-savings-change', 'tk-savings-ts', savings.last, savings.delta, savings.pct, 2, lastDate);
-                        drawSpark('tk-savings-spark', rates, savings.delta >= 0);
+            tasks.push((async () => {
+                try {
+                    const r = await fetch('./data/termdepo_ACB_1m.json').catch(() => null);
+                    if (r && r.ok) {
+                        const sj = await r.json();
+                        const rates = sj && sj.data ? sj.data.term_12m : null;
+                        const dates = sj && sj.data ? sj.data.dates : null;
+                        const savings = lastChange(rates);
+                        if (savings) {
+                            const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
+                            setTicker('tk-savings-price', 'tk-savings-change', 'tk-savings-ts', savings.last, savings.delta, savings.pct, 2, lastDate);
+                            drawSpark('tk-savings-spark', rates, savings.delta >= 0);
+                        }
                     }
+                } catch (e) {
+                    console.warn('[market-movement] savings rate failed:', e);
                 }
-            } catch (e) {
-                console.warn('[market-movement] savings rate failed:', e);
-            }
+            })());
 
             // Lãi suất liên ngân hàng (SBV) — qua đêm & 3 tháng, static 1m data
-            try {
-                const r = await fetch('./data/sbv_1m.json').catch(() => null);
-                if (r && r.ok) {
-                    const sj = await r.json();
-                    const dates = sj && sj.data ? sj.data.dates : null;
-                    const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
+            tasks.push((async () => {
+                try {
+                    const r = await fetch('./data/sbv_1m.json').catch(() => null);
+                    if (r && r.ok) {
+                        const sj = await r.json();
+                        const dates = sj && sj.data ? sj.data.dates : null;
+                        const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
 
-                    const overnight = sj && sj.data ? sj.data.overnight : null;
-                    const ibon = lastChange(overnight);
-                    if (ibon) {
-                        setTicker('tk-ibon-price', 'tk-ibon-change', 'tk-ibon-ts', ibon.last, ibon.delta, ibon.pct, 2, lastDate);
-                        drawSpark('tk-ibon-spark', overnight, ibon.delta >= 0);
-                    }
+                        const overnight = sj && sj.data ? sj.data.overnight : null;
+                        const ibon = lastChange(overnight);
+                        if (ibon) {
+                            setTicker('tk-ibon-price', 'tk-ibon-change', 'tk-ibon-ts', ibon.last, ibon.delta, ibon.pct, 2, lastDate);
+                            drawSpark('tk-ibon-spark', overnight, ibon.delta >= 0);
+                        }
 
-                    const month3 = sj && sj.data ? sj.data.month_3 : null;
-                    const ib3m = lastChange(month3);
-                    if (ib3m) {
-                        setTicker('tk-ib3m-price', 'tk-ib3m-change', 'tk-ib3m-ts', ib3m.last, ib3m.delta, ib3m.pct, 2, lastDate);
-                        drawSpark('tk-ib3m-spark', month3, ib3m.delta >= 0);
+                        const month3 = sj && sj.data ? sj.data.month_3 : null;
+                        const ib3m = lastChange(month3);
+                        if (ib3m) {
+                            setTicker('tk-ib3m-price', 'tk-ib3m-change', 'tk-ib3m-ts', ib3m.last, ib3m.delta, ib3m.pct, 2, lastDate);
+                            drawSpark('tk-ib3m-spark', month3, ib3m.delta >= 0);
+                        }
                     }
+                } catch (e) {
+                    console.warn('[market-movement] interbank rate failed:', e);
                 }
-            } catch (e) {
-                console.warn('[market-movement] interbank rate failed:', e);
-            }
+            })());
+
+            await Promise.all(tasks);
         }
 
         /* =========================================================
