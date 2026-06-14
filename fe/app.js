@@ -678,6 +678,16 @@
             window._prefetchPromises['vnindex-7d'] = fetch('./data/vnindex_7d.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .catch(e => { console.warn('[prefetch] vnindex static failed:', e); return null; });
+            // Prefetch VN-Index 1y for the stock chart
+            window._prefetchPromises['vnindex-1y'] = fetch('./data/vnindex_1y.json')
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .catch(e => { console.warn('[prefetch] vnindex 1y static failed:', e); return null; });
+            // Prefetch global markets (gold/silver/NASDAQ) — live endpoint requires
+            // auth, and the 7d/1m static data is empty when the crawler is behind,
+            // so 1y is the most reliable static source.
+            window._prefetchPromises['global-1y'] = fetch('./data/global_1y.json')
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .catch(e => { console.warn('[prefetch] global static failed:', e); return null; });
         })();
 
         /* =========================================================
@@ -1362,7 +1372,7 @@
                     loadChartData('fxrate', '1m')
                 ]);
             } else if (sectionKey === 'global') {
-                loadChartData('global', '1m');
+                loadChartData('global', '1y');
             } else if (sectionKey === 'macro') {
                 loadMacroCharts(20);
             } else if (sectionKey === 'stock') {
@@ -2591,12 +2601,30 @@
                 if (loading) loading.style.display = 'flex';
 
                 try {
+                    // Static-first: render immediately from prefetched data, then
+                    // refine with the live API (free endpoint, but may be slower).
+                    const prefetchKey = `vnindex-${period}`;
+                    if (window._prefetchPromises && window._prefetchPromises[prefetchKey]) {
+                        const sj = await window._prefetchPromises[prefetchKey];
+                        delete window._prefetchPromises[prefetchKey];
+                        const sData = sj && sj.data && sj.data.dates
+                            ? sj.data.dates.map((d, i) => ({ date: d, close: sj.data.close[i] }))
+                            : null;
+                        if (sData && sData.length) {
+                            _vnindexCache[period] = sData;
+                            renderVnindex(sData);
+                            if (loading) loading.style.display = 'none';
+                        }
+                    }
+
                     const r = await fetch(`${API_BASE}/market/vnindex?period=${period}`);
                     if (!r.ok) throw new Error(`VNIndex API ${r.status}`);
                     const json = await r.json();
                     const data = json.data || [];
-                    _vnindexCache[period] = data;
-                    renderVnindex(data);
+                    if (data.length) {
+                        _vnindexCache[period] = data;
+                        renderVnindex(data);
+                    }
                 } catch (e) {
                     console.error('[vnindex] fetch failed:', e);
                 } finally {
