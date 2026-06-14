@@ -672,7 +672,6 @@
         ========================================================= */
         document.addEventListener('DOMContentLoaded', async () => {
             initHeaderActions();
-            initMobileMenu();
             initSidebarTabs();
             initScrollSections();
             initFilterButtons();
@@ -932,27 +931,6 @@
         }
 
         /* =========================================================
-           MOBILE MENU
-        ========================================================= */
-        function initMobileMenu() {
-            const toggle = document.getElementById('mobile-menu-toggle');
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('mobile-overlay');
-
-            if (!toggle || !sidebar || !overlay) return;
-
-            toggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            });
-
-            overlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-        }
-
-        /* =========================================================
            SIDEBAR TABS (main-level only)
         ========================================================= */
         let _tabDwellTimer = null;
@@ -993,11 +971,6 @@
             const mainContent = document.querySelector('.main-content');
             if (mainContent) mainContent.scrollTop = 0;
 
-            // Close mobile sidebar
-            const sidebar = document.querySelector('.sidebar');
-            const mobileOverlay = document.getElementById('mobile-overlay');
-            if (sidebar) sidebar.classList.remove('active');
-            if (mobileOverlay) mobileOverlay.classList.remove('active');
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -2388,8 +2361,8 @@
                 const existing = Chart.getChart(canvas);
                 if (existing) existing.destroy();
                 // Fix height: set CSS explicitly so maintainAspectRatio:false respects it
-                canvas.style.height = '56px';
-                canvas.style.maxHeight = '56px';
+                canvas.style.height = '44px';
+                canvas.style.maxHeight = '44px';
                 const color = up ? '#16a34a' : '#b53333';
                 new Chart(canvas, {
                     type: 'line',
@@ -2491,6 +2464,68 @@
                 }
             } catch (e) {
                 console.warn('[market-movement] vnindex failed:', e);
+            }
+
+            // Bạc (Phú Quý) — static 1m data
+            try {
+                const r = await fetch('./data/silver_1m.json').catch(() => null);
+                if (r && r.ok) {
+                    const sj = await r.json();
+                    const prices = sj && sj.data ? sj.data.sell_prices : null;
+                    const dates = sj && sj.data ? sj.data.dates : null;
+                    const silver = lastChange(prices);
+                    if (silver) {
+                        const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
+                        setTicker('tk-silver-price', 'tk-silver-change', 'tk-silver-ts', silver.last, silver.delta, silver.pct, 0, lastDate);
+                        drawSpark('tk-silver-spark', prices, silver.delta >= 0);
+                    }
+                }
+            } catch (e) {
+                console.warn('[market-movement] silver failed:', e);
+            }
+
+            // Lãi suất gửi tiết kiệm 12 tháng (ACB) — static 1m data
+            try {
+                const r = await fetch('./data/termdepo_ACB_1m.json').catch(() => null);
+                if (r && r.ok) {
+                    const sj = await r.json();
+                    const rates = sj && sj.data ? sj.data.term_12m : null;
+                    const dates = sj && sj.data ? sj.data.dates : null;
+                    const savings = lastChange(rates);
+                    if (savings) {
+                        const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
+                        setTicker('tk-savings-price', 'tk-savings-change', 'tk-savings-ts', savings.last, savings.delta, savings.pct, 2, lastDate);
+                        drawSpark('tk-savings-spark', rates, savings.delta >= 0);
+                    }
+                }
+            } catch (e) {
+                console.warn('[market-movement] savings rate failed:', e);
+            }
+
+            // Lãi suất liên ngân hàng (SBV) — qua đêm & 3 tháng, static 1m data
+            try {
+                const r = await fetch('./data/sbv_1m.json').catch(() => null);
+                if (r && r.ok) {
+                    const sj = await r.json();
+                    const dates = sj && sj.data ? sj.data.dates : null;
+                    const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
+
+                    const overnight = sj && sj.data ? sj.data.overnight : null;
+                    const ibon = lastChange(overnight);
+                    if (ibon) {
+                        setTicker('tk-ibon-price', 'tk-ibon-change', 'tk-ibon-ts', ibon.last, ibon.delta, ibon.pct, 2, lastDate);
+                        drawSpark('tk-ibon-spark', overnight, ibon.delta >= 0);
+                    }
+
+                    const month3 = sj && sj.data ? sj.data.month_3 : null;
+                    const ib3m = lastChange(month3);
+                    if (ib3m) {
+                        setTicker('tk-ib3m-price', 'tk-ib3m-change', 'tk-ib3m-ts', ib3m.last, ib3m.delta, ib3m.pct, 2, lastDate);
+                        drawSpark('tk-ib3m-spark', month3, ib3m.delta >= 0);
+                    }
+                }
+            } catch (e) {
+                console.warn('[market-movement] interbank rate failed:', e);
             }
         }
 

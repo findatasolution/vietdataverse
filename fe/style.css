@@ -116,45 +116,6 @@ html {
     grid-template-columns: 1fr;
 }
 
-.mobile-menu-btn {
-    display: none;
-    background: transparent;
-    border: 1px solid var(--border-warm);
-    color: var(--olive-gray);
-    padding: 0.625rem;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: all 0.2s var(--ease-out);
-}
-
-.mobile-menu-btn:hover {
-    border-color: var(--terracotta);
-    color: var(--terracotta);
-    box-shadow: var(--ring-sand);
-}
-
-.mobile-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(20, 20, 19, 0.35);
-    backdrop-filter: blur(2px);
-    z-index: 199;
-    opacity: 0;
-    transition: opacity 0.3s var(--ease-out);
-    pointer-events: none;
-}
-
-.mobile-overlay.active {
-    display: block;
-    opacity: 1;
-    pointer-events: auto;
-}
-
 /* ── Unified Top Bar ── */
 .app-topbar {
     grid-column: 1 / -1;
@@ -1460,17 +1421,26 @@ html {
 
 /* ── Market Ticker Strip ── */
 .ticker-strip {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
     gap: 0.75rem;
     margin-bottom: 0.875rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+
+.ticker-strip::-webkit-scrollbar {
+    display: none;
 }
 
 .ticker-card-sm {
+    flex: 0 0 172px;
+    width: 172px;
     background: var(--pure-white);
     border: 1px solid var(--border-cream);
     border-radius: var(--radius-xl);
-    padding: 0.875rem 1.125rem 0.75rem;
+    padding: 0.75rem 1rem 0.625rem;
     box-shadow: var(--whisper);
     display: flex;
     flex-direction: column;
@@ -1538,9 +1508,9 @@ html {
 
 .ticker-spark {
     width: 100%;
-    height: 56px;
+    height: 44px;
     display: block;
-    max-height: 56px;
+    max-height: 44px;
 }
 
 .ticker-ts {
@@ -1550,14 +1520,9 @@ html {
 }
 
 @media (max-width: 768px) {
-    .ticker-strip {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-}
-@media (min-width: 769px) and (max-width: 1024px) {
-    .ticker-strip {
-        grid-template-columns: repeat(2, 1fr);
+    .ticker-card-sm {
+        flex: 0 0 148px;
+        width: 148px;
     }
 }
 
@@ -1988,10 +1953,6 @@ html {
         grid-template-rows: 56px 1fr;
     }
 
-    .mobile-menu-btn {
-        display: block;
-    }
-
     .chart-tabs {
         padding: 3px;
         gap: 3px;
@@ -2032,26 +1993,6 @@ html {
 
     .skeleton-bars {
         gap: 6px;
-    }
-
-    .sidebar {
-        position: fixed;
-        top: 56px;
-        left: -100%;
-        width: 280px;
-        height: calc(100vh - 56px);
-        background-color: var(--ivory);
-        border-right: 1px solid var(--border-cream);
-        padding: 1.25rem;
-        transition: left 0.3s var(--ease-out);
-        z-index: 200;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .sidebar.active {
-        left: 0;
     }
 
     .app-topbar {
@@ -2180,7 +2121,7 @@ html {
 }
 
 @media (max-width: 640px) {
-    .header-btn:not(.mobile-menu-btn) {
+    .header-btn {
         display: none;
     }
 
