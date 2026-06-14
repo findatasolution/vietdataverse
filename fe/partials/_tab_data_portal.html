@@ -1,6 +1,48 @@
             <div class="tab-content active" id="data-portal">
                 <div class="charts-scroll-page">
 
+                    <!-- ── Market Ticker Strip ── -->
+                    <div class="ticker-strip">
+                        <div class="ticker-card-sm">
+                            <div class="ticker-top">
+                                <span class="ticker-name">Giá vàng thế giới</span>
+                                <span class="ticker-badge">XAU/USD</span>
+                            </div>
+                            <div class="ticker-price-row">
+                                <span class="ticker-price" id="tk-xau-price">—</span>
+                                <span class="ticker-unit">USD/oz</span>
+                            </div>
+                            <div class="ticker-change neutral" id="tk-xau-change">—</div>
+                            <canvas class="ticker-spark" id="tk-xau-spark"></canvas>
+                            <div class="ticker-ts" id="tk-xau-ts"></div>
+                        </div>
+                        <div class="ticker-card-sm">
+                            <div class="ticker-top">
+                                <span class="ticker-name">Tỷ giá USD/VND</span>
+                                <span class="ticker-badge">USD/VND</span>
+                            </div>
+                            <div class="ticker-price-row">
+                                <span class="ticker-price" id="tk-fx-price">—</span>
+                                <span class="ticker-unit">VND</span>
+                            </div>
+                            <div class="ticker-change neutral" id="tk-fx-change">—</div>
+                            <canvas class="ticker-spark" id="tk-fx-spark"></canvas>
+                            <div class="ticker-ts" id="tk-fx-ts"></div>
+                        </div>
+                        <div class="ticker-card-sm">
+                            <div class="ticker-top">
+                                <span class="ticker-name">Chỉ số chứng khoán</span>
+                                <span class="ticker-badge">VN-INDEX</span>
+                            </div>
+                            <div class="ticker-price-row">
+                                <span class="ticker-price" id="tk-vni-price">—</span>
+                            </div>
+                            <div class="ticker-change neutral" id="tk-vni-change">—</div>
+                            <canvas class="ticker-spark" id="tk-vni-spark"></canvas>
+                            <div class="ticker-ts" id="tk-vni-ts"></div>
+                        </div>
+                    </div>
+
                     <!-- ── Section: Vàng & Bạc ── -->
                     <div class="chart-section-group" data-lazy-section="gold-silver">
                         <h2 class="chart-section-heading">
@@ -8,8 +50,8 @@
                             <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
                         </h2>
 
-                        <!-- Gold Price Chart + Market Movement -->
-                        <div class="gold-section-grid">
+                        <!-- Gold Price Chart -->
+                        <div class="gold-section-grid gold-full-width">
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
@@ -45,38 +87,6 @@
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
                         </div>
 
-                        <!-- Market Movement -->
-                        <div class="chart-card market-movement-card">
-                            <div class="chart-header">
-                                <h3 class="chart-title">
-                                    <span data-i18n="marketMovement">Biến động thị trường</span>
-                                </h3>
-                            </div>
-                            <div class="market-movement-list">
-                                <div class="market-movement-row">
-                                    <div class="mm-label" data-i18n="mmUsdVnd">Tỷ giá USD/VND</div>
-                                    <div class="mm-data">
-                                        <div class="mm-value" id="mmFxValue">—</div>
-                                        <div class="indicator-change" id="mmFxChange">—</div>
-                                    </div>
-                                </div>
-                                <div class="market-movement-row">
-                                    <div class="mm-label" data-i18n="mmXauUsd">Vàng thế giới (XAU/USD)</div>
-                                    <div class="mm-data">
-                                        <div class="mm-value" id="mmGoldValue">—</div>
-                                        <div class="indicator-change" id="mmGoldChange">—</div>
-                                    </div>
-                                </div>
-                                <div class="market-movement-row">
-                                    <div class="mm-label" data-i18n="mmVnindex">VN-Index</div>
-                                    <div class="mm-data">
-                                        <div class="mm-value" id="mmVnindexValue">—</div>
-                                        <div class="indicator-change" id="mmVnindexChange">—</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> SBV, Yahoo Finance, VietstockFinance</small>
-                        </div>
                         </div>
 
                         <!-- Silver Price Chart -->

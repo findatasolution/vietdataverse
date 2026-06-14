@@ -1409,7 +1409,7 @@ html {
 
 /* ── Chart Cards ── */
 .charts-scroll-page {
-    padding: 1.5rem;
+    padding: 0;
 }
 
 .chart-section-group {
@@ -1449,6 +1449,112 @@ html {
 @media (max-width: 1024px) {
     .gold-section-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+.gold-section-grid.gold-full-width {
+    grid-template-columns: 1fr;
+}
+
+/* ── Market Ticker Strip ── */
+.ticker-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.ticker-card-sm {
+    background: var(--pure-white);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem 1.5rem 1rem;
+    box-shadow: var(--whisper);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ticker-card-sm:hover {
+    border-color: rgba(201,100,66,0.25);
+    box-shadow: var(--shadow-md);
+}
+
+.ticker-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.ticker-name {
+    font-size: 0.8125rem;
+    color: var(--olive-gray);
+    font-weight: 400;
+}
+
+.ticker-badge {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--stone-gray);
+    background: var(--warm-sand);
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: 0.04em;
+}
+
+.ticker-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.ticker-price {
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: var(--near-black);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.ticker-unit {
+    font-size: 0.75rem;
+    color: var(--stone-gray);
+}
+
+.ticker-change {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    min-height: 18px;
+}
+.ticker-change.positive { color: #16a34a; }
+.ticker-change.negative { color: var(--error-red, #b53333); }
+.ticker-change.neutral  { color: var(--stone-gray); }
+
+.ticker-spark {
+    width: 100%;
+    height: 52px;
+    display: block;
+}
+
+.ticker-ts {
+    font-size: 0.6875rem;
+    color: var(--stone-gray);
+    margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+    .ticker-strip {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+    .ticker-strip {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 

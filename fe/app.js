@@ -2353,17 +2353,9 @@
                 const valueEl = document.getElementById(valueId);
                 const changeEl = document.getElementById(changeId);
                 if (!valueEl || !changeEl) return;
-
-                valueEl.textContent = value.toLocaleString('vi-VN', {
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals
-                });
-
+                valueEl.textContent = value.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 const sign = delta >= 0 ? '+' : '';
-                changeEl.textContent = `${sign}${delta.toLocaleString('vi-VN', {
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals
-                })} (${sign}${pct.toFixed(2)}%)`;
+                changeEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${pct.toFixed(2)}%)`;
                 changeEl.classList.remove('positive', 'negative');
                 changeEl.classList.add(delta >= 0 ? 'positive' : 'negative');
             }
@@ -2376,7 +2368,52 @@
                 return { last, delta: last - prev, pct: (last - prev) / prev * 100 };
             }
 
-            // USD/VND — SBV central rate
+            function setTicker(priceId, changeId, tsId, value, delta, pct, decimals, lastDate) {
+                const pEl = document.getElementById(priceId);
+                const cEl = document.getElementById(changeId);
+                const tEl = document.getElementById(tsId);
+                if (pEl) pEl.textContent = value.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                if (cEl) {
+                    const sign = delta >= 0 ? '+' : '';
+                    cEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${pct.toFixed(2)}%)`;
+                    cEl.className = 'ticker-change ' + (delta >= 0 ? 'positive' : 'negative');
+                }
+                if (tEl && lastDate) tEl.textContent = 'Cập nhật: ' + lastDate;
+            }
+
+            function drawSpark(canvasId, values, up) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas || !values || values.length < 2) return;
+                if (typeof Chart === 'undefined') return;
+                const existing = Chart.getChart(canvas);
+                if (existing) existing.destroy();
+                const color = up ? '#16a34a' : '#b53333';
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: values.map((_, i) => i),
+                        datasets: [{
+                            data: values,
+                            borderColor: color,
+                            borderWidth: 1.5,
+                            fill: true,
+                            backgroundColor: up ? 'rgba(22,163,74,0.07)' : 'rgba(181,51,51,0.07)',
+                            tension: 0.3,
+                            pointRadius: 0,
+                            pointHoverRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        animation: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: { x: { display: false }, y: { display: false } },
+                        elements: { line: { borderCapStyle: 'round' } }
+                    }
+                });
+            }
+
+            // USD/VND — SBV central rate (from static prefetch)
             try {
                 let fxData = window._prefetchPromises && window._prefetchPromises['fxrate-1m']
                     ? await window._prefetchPromises['fxrate-1m']
@@ -2385,20 +2422,49 @@
                     const r = await fetchWithTimeout(`${base}/sbv-centralrate?period=7d&bank=SBV&currency=USD`, { headers: await _authHeaders() }, 15000);
                     if (r.ok) fxData = await r.json();
                 }
-                const rates = fxData && fxData.data ? fxData.data.usd_vnd_rate : fxData ? fxData.usd_vnd_rate : null;
+                const fxInner = fxData && fxData.data ? fxData.data : fxData;
+                const rates = fxInner ? fxInner.usd_vnd_rate : null;
+                const fxDates = fxInner ? fxInner.dates : null;
                 const fx = lastChange(rates);
-                if (fx) setRow('mmFxValue', 'mmFxChange', fx.last, fx.delta, fx.pct, 0);
+                if (fx) {
+                    setRow('mmFxValue', 'mmFxChange', fx.last, fx.delta, fx.pct, 0);
+                    const lastDate = fxDates && fxDates.length ? fxDates[fxDates.length - 1] : null;
+                    setTicker('tk-fx-price', 'tk-fx-change', 'tk-fx-ts', fx.last, fx.delta, fx.pct, 0, lastDate);
+                    drawSpark('tk-fx-spark', rates, fx.delta >= 0);
+                }
             } catch (e) {
                 console.warn('[market-movement] fxrate failed:', e);
             }
 
-            // Vàng thế giới — XAU/USD (gold future)
+            // Vàng thế giới — XAU/USD: sparkline from static 1y data, price from live API if authed
             try {
+                const staticR = await fetch('./data/global_1y.json').catch(() => null);
+                if (staticR && staticR.ok) {
+                    const sj = await staticR.json();
+                    const gPrices = sj && sj.data && sj.data.gold_prices ? sj.data.gold_prices : null;
+                    const gDates = sj && sj.data && sj.data.dates ? sj.data.dates : null;
+                    if (gPrices && gPrices.length > 5) {
+                        const slice = gPrices.slice(-30);
+                        const lc = lastChange(slice);
+                        if (lc) {
+                            const lastDate = gDates ? gDates[gDates.length - 1] : null;
+                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
+                            drawSpark('tk-xau-spark', slice, lc.delta >= 0);
+                        }
+                    }
+                }
                 const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, { headers: await _authHeaders() }, 15000);
                 if (r.ok) {
                     const json = await r.json();
-                    const gold = lastChange(json && json.data ? json.data.gold_prices : null);
-                    if (gold) setRow('mmGoldValue', 'mmGoldChange', gold.last, gold.delta, gold.pct, 2);
+                    const goldPrices = json && json.data ? json.data.gold_prices : null;
+                    const goldDates = json && json.data ? json.data.dates : null;
+                    const gold = lastChange(goldPrices);
+                    if (gold) {
+                        setRow('mmGoldValue', 'mmGoldChange', gold.last, gold.delta, gold.pct, 2);
+                        const lastDate = goldDates && goldDates.length ? goldDates[goldDates.length - 1] : null;
+                        setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', gold.last, gold.delta, gold.pct, 2, lastDate);
+                        drawSpark('tk-xau-spark', goldPrices, gold.delta >= 0);
+                    }
                 }
             } catch (e) {
                 console.warn('[market-movement] global-macro failed:', e);
@@ -2410,8 +2476,14 @@
                 if (r.ok) {
                     const json = await r.json();
                     const closes = (json.data || []).map(d => d.close);
+                    const jsonDates = (json.data || []).map(d => d.date);
                     const vnindex = lastChange(closes);
-                    if (vnindex) setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
+                    if (vnindex) {
+                        setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
+                        const lastDate = jsonDates.length ? jsonDates[jsonDates.length - 1] : null;
+                        setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', vnindex.last, vnindex.delta, vnindex.pct, 2, lastDate);
+                        drawSpark('tk-vni-spark', closes, vnindex.delta >= 0);
+                    }
                 }
             } catch (e) {
                 console.warn('[market-movement] vnindex failed:', e);
