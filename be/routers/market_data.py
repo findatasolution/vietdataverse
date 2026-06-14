@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import Response
@@ -23,6 +25,17 @@ def _json_response(data: dict) -> Response:
                     headers={"Content-Length": str(len(raw))})
 
 
+def _csv_response(header: list, rows: list) -> Response:
+    """Plain CSV response — usable directly with Google Sheets IMPORTDATA() (no auth needed)."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(header)
+    writer.writerows(rows)
+    raw = output.getvalue().encode("utf-8")
+    return Response(content=raw, media_type="text/csv",
+                    headers={"Content-Length": str(len(raw))})
+
+
 @router.get("/api/v1/gold")
 async def get_gold_data(
     request: Request,
@@ -30,6 +43,7 @@ async def get_gold_data(
     type: str = Query("DOJI HN", description="Gold type"),
     page: int = Query(None, ge=1, description="Page number (enables row-based response)"),
     limit: int = Query(30, ge=1, le=500, description="Rows per page"),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -46,6 +60,15 @@ async def get_gold_data(
             rows = conn.execute(query, {"date_filter": date_filter, "gold_type": type}).fetchall()
 
         rows = list(reversed(rows))  # chronological order
+
+        if format == "csv":
+            csv_rows = [
+                [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]),
+                 float(r[1]) if r[1] else 0,
+                 float(r[2]) if r[2] else 0]
+                for r in rows
+            ]
+            return _csv_response(["date", "buy_price", "sell_price"], csv_rows)
 
         if page is not None:
             page_rows, total = _paginate(rows, page, limit)

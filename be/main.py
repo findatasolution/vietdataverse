@@ -64,7 +64,10 @@ async def meter_open_data(request, call_next):
 
     path = request.url.path
     if request.method == "GET" and _is_metered(path):
-        api_key = request.headers.get("X-API-Key")
+        # Cho phép truyền API key qua query param (?api_key=...) để hỗ trợ
+        # Google Sheets IMPORTDATA/IMPORTXML — các hàm built-in này không
+        # set được custom header như X-API-Key.
+        api_key = request.headers.get("X-API-Key") or request.query_params.get("api_key")
         auth_header = request.headers.get("Authorization", "")
         try:
             if api_key:

@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Communication
+
+Trao đổi với người dùng (chat, giải thích, tóm tắt) bằng tiếng Việt. Code, comment, commit message vẫn giữ tiếng Anh như chuẩn hiện tại của repo.
+
 ## Project Overview
 
 Viet Dataverse — financial data platform for Vietnam macro & corporate data, with a knowledge/skill marketplace for AI agents.
