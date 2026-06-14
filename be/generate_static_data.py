@@ -154,6 +154,35 @@ def generate_silver_data():
 
 
 # ============================================================
+# VNINDEX DATA
+# ============================================================
+def generate_vnindex_data():
+    """Generate static JSON for VNIndex daily close."""
+    print("\n--- Generating VNIndex Data ---")
+
+    for period in ['7d', '1m', '1y']:
+        date_filter = get_date_filter(period)
+
+        with engine_crawl.connect() as conn:
+            result = conn.execute(text(f"""
+                SELECT date, close
+                FROM vn_macro_vnindex_daily
+                WHERE date >= '{date_filter}'
+                ORDER BY date ASC
+            """))
+            rows = result.fetchall()
+
+        data = {
+            'period': period,
+            'count': len(rows),
+            'dates': [row[0].strftime('%Y-%m-%d') for row in rows],
+            'close': [float(row[1]) if row[1] else 0 for row in rows]
+        }
+
+        save_json(f'vnindex_{period}.json', data)
+
+
+# ============================================================
 # SBV INTERBANK DATA
 # ============================================================
 def generate_sbv_data():
@@ -476,6 +505,7 @@ def main():
     try:
         generate_gold_data()
         generate_silver_data()
+        generate_vnindex_data()
         generate_sbv_data()
         generate_fxrate_data()
         generate_termdepo_data()

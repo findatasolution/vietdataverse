@@ -665,6 +665,19 @@
             window._prefetchPromises['fxrate-1m'] = fetch('./data/fxrate_SBV_USD_1m.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .catch(e => { console.warn('[prefetch] fxrate static failed:', e); return null; });
+            // Prefetch term deposit & SBV interbank from static files — these
+            // endpoints require auth, so anonymous visitors would otherwise see
+            // a null/error chart for "Lịch sử lãi suất gửi tiết kiệm".
+            window._prefetchPromises['td-1y'] = fetch('./data/termdepo_ACB_1y.json')
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .catch(e => { console.warn('[prefetch] termdepo static failed:', e); return null; });
+            window._prefetchPromises['sbv-1m'] = fetch('./data/sbv_1m.json')
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .catch(e => { console.warn('[prefetch] sbv static failed:', e); return null; });
+            // Prefetch VN-Index for the billboard ticker
+            window._prefetchPromises['vnindex-7d'] = fetch('./data/vnindex_7d.json')
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .catch(e => { console.warn('[prefetch] vnindex static failed:', e); return null; });
         })();
 
         /* =========================================================
@@ -2030,6 +2043,7 @@
             const rate3m = apiData.data.term_3m;
             const rate6m = apiData.data.term_6m;
             const rate12m = apiData.data.term_12m;
+            const rate24m = apiData.data.term_24m;
 
             return {
                 type: 'line',
@@ -2037,7 +2051,7 @@
                     labels: dates,
                     datasets: [
                         {
-                            label: '1 Month',
+                            label: 'Kỳ hạn 1 tháng',
                             data: rate1m,
                             borderColor: '#42A5F5',
                             backgroundColor: 'transparent',
@@ -2045,7 +2059,7 @@
                             tension: 0.4
                         },
                         {
-                            label: '3 Months',
+                            label: 'Kỳ hạn 3 tháng',
                             data: rate3m,
                             borderColor: '#66BB6A',
                             backgroundColor: 'transparent',
@@ -2053,7 +2067,7 @@
                             tension: 0.4
                         },
                         {
-                            label: '6 Months',
+                            label: 'Kỳ hạn 6 tháng',
                             data: rate6m,
                             borderColor: '#FFA726',
                             backgroundColor: 'transparent',
@@ -2061,9 +2075,17 @@
                             tension: 0.4
                         },
                         {
-                            label: '12 Months',
+                            label: 'Kỳ hạn 12 tháng',
                             data: rate12m,
                             borderColor: '#EF5350',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Kỳ hạn 24 tháng',
+                            data: rate24m,
+                            borderColor: '#AB47BC',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4
@@ -2419,45 +2441,43 @@
                 }
             })());
 
-            // Vàng thế giới — XAU/USD: sparkline from static 1y data, price from live API if authed
+            // Giá vàng trong nước — DOJI HN sell price (static daily data)
             tasks.push((async () => {
                 try {
-                    const staticR = await fetch('./data/global_1y.json').catch(() => null);
+                    const staticR = await fetch('./data/gold_DOJI_HN_1m.json').catch(() => null);
                     if (staticR && staticR.ok) {
                         const sj = await staticR.json();
-                        const gPrices = sj && sj.data && sj.data.gold_prices ? sj.data.gold_prices : null;
+                        const gPrices = sj && sj.data && sj.data.sell_prices ? sj.data.sell_prices : null;
                         const gDates = sj && sj.data && sj.data.dates ? sj.data.dates : null;
-                        if (gPrices && gPrices.length > 5) {
-                            const slice = gPrices.slice(-30);
-                            const lc = lastChange(slice);
-                            if (lc) {
-                                const lastDate = gDates ? gDates[gDates.length - 1] : null;
-                                setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
-                                drawSpark('tk-xau-spark', slice, lc.delta >= 0);
-                            }
-                        }
-                    }
-                    const r = await fetchWithTimeout(`${base}/global-macro?period=7d`, { headers: await _authHeaders() }, 15000);
-                    if (r.ok) {
-                        const json = await r.json();
-                        const goldPrices = json && json.data ? json.data.gold_prices : null;
-                        const goldDates = json && json.data ? json.data.dates : null;
-                        const gold = lastChange(goldPrices);
-                        if (gold) {
-                            setRow('mmGoldValue', 'mmGoldChange', gold.last, gold.delta, gold.pct, 2);
-                            const lastDate = goldDates && goldDates.length ? goldDates[goldDates.length - 1] : null;
-                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', gold.last, gold.delta, gold.pct, 2, lastDate);
-                            drawSpark('tk-xau-spark', goldPrices, gold.delta >= 0);
+                        const lc = lastChange(gPrices);
+                        if (lc) {
+                            const lastDate = gDates ? gDates[gDates.length - 1] : null;
+                            setRow('mmGoldValue', 'mmGoldChange', lc.last, lc.delta, lc.pct, 0);
+                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last, lc.delta, lc.pct, 0, lastDate);
+                            drawSpark('tk-xau-spark', gPrices, lc.delta >= 0);
                         }
                     }
                 } catch (e) {
-                    console.warn('[market-movement] global-macro failed:', e);
+                    console.warn('[market-movement] gold (domestic) failed:', e);
                 }
             })());
 
             // VN-Index
             tasks.push((async () => {
                 try {
+                    const staticR = await fetch('./data/vnindex_7d.json').catch(() => null);
+                    if (staticR && staticR.ok) {
+                        const sj = await staticR.json();
+                        const closes = sj && sj.data && sj.data.close ? sj.data.close : null;
+                        const dates = sj && sj.data && sj.data.dates ? sj.data.dates : null;
+                        const lc = lastChange(closes);
+                        if (lc) {
+                            const lastDate = dates ? dates[dates.length - 1] : null;
+                            setRow('mmVnindexValue', 'mmVnindexChange', lc.last, lc.delta, lc.pct, 2);
+                            setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
+                            drawSpark('tk-vni-spark', closes, lc.delta >= 0);
+                        }
+                    }
                     const r = await fetchWithTimeout(`${base}/market/vnindex?period=7d`, {}, 15000);
                     if (r.ok) {
                         const json = await r.json();
