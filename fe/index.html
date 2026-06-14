@@ -872,8 +872,8 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)</span>
-                                    <span class="chart-info-icon" data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz), Chỉ số NASDAQ Composite (^IXIC).">ⓘ</span>
+                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc)</span>
+                                    <span class="chart-info-icon" data-tooltip="Dữ liệu thị trường quốc tế từ Yahoo Finance: Vàng tương lai (GC=F, USD/oz), Bạc (SI=F, USD/oz).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
@@ -1005,6 +1005,31 @@
                                 </div>
                             </div>
                             <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày</small>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Chỉ số Chứng khoán Quốc tế (% thay đổi)
+                                    <span class="chart-info-icon" data-tooltip="So sánh biến động (% thay đổi từ đầu kỳ) của các chỉ số chứng khoán lớn trên thế giới: NASDAQ Composite (^IXIC), S&amp;P 500 (^GSPC), Dow Jones Industrial Average (^DJI). Nguồn: Yahoo Finance.">ⓘ</span>
+                                </h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="globalStocksChart"></canvas>
+                                <div class="chart-loading" id="globalStocksLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://finance.yahoo.com/quote/%5EIXIC" target="_blank" rel="noopener">Yahoo Finance</a></small>
                         </div>
                     </div>
 
@@ -1855,7 +1880,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2026061404" defer></script>
+    <script src="app.js?v=2026061405" defer></script>
     <script src="app.knowledge.js?v=2026061401" defer></script>
 
     <!-- Chart info tooltip popup (position:fixed — escapes overflow:hidden on .chart-card) -->

@@ -410,9 +410,9 @@ def generate_global_data():
 
             with engine_global.connect() as conn:
                 result = conn.execute(text(f"""
-                    SELECT date, gold_price, silver_price, nasdaq_price
+                    SELECT date, gold_price, silver_price, nasdaq_price, sp500_price, dowjones_price
                     FROM (
-                        SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, crawl_time
+                        SELECT DISTINCT ON (date) date, gold_price, silver_price, nasdaq_price, sp500_price, dowjones_price, crawl_time
                         FROM global_macro
                         WHERE date >= '{date_filter}'
                         ORDER BY date, crawl_time DESC
@@ -427,7 +427,9 @@ def generate_global_data():
                 'dates': [row[0].strftime('%Y-%m-%d') if hasattr(row[0], 'strftime') else str(row[0]) for row in rows],
                 'gold_prices': [float(row[1]) if row[1] else 0 for row in rows],
                 'silver_prices': [float(row[2]) if row[2] else 0 for row in rows],
-                'nasdaq_prices': [float(row[3]) if row[3] else 0 for row in rows]
+                'nasdaq_prices': [float(row[3]) if row[3] else 0 for row in rows],
+                'sp500_prices': [float(row[4]) if row[4] else 0 for row in rows],
+                'dowjones_prices': [float(row[5]) if row[5] else 0 for row in rows]
             }
 
             save_json(f'global_{period}.json', data)

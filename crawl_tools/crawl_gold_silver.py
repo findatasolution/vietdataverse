@@ -274,6 +274,8 @@ try:
     gold_price = None
     silver_price = None
     nasdaq_price = None
+    sp500_price = None
+    dowjones_price = None
 
     for attempt in range(max_retries):
         try:
@@ -302,6 +304,24 @@ try:
                 nasdaq_price = float(nasdaq_hist['Close'].iloc[-1])
                 print(f"  NASDAQ (^IXIC): {nasdaq_price:.2f}")
 
+            time.sleep(2)
+
+            # S&P 500
+            sp500 = yf.Ticker("^GSPC")
+            sp500_hist = sp500.history(period="5d")
+            if not sp500_hist.empty:
+                sp500_price = float(sp500_hist['Close'].iloc[-1])
+                print(f"  S&P 500 (^GSPC): {sp500_price:.2f}")
+
+            time.sleep(2)
+
+            # Dow Jones Industrial Average
+            dowjones = yf.Ticker("^DJI")
+            dowjones_hist = dowjones.history(period="5d")
+            if not dowjones_hist.empty:
+                dowjones_price = float(dowjones_hist['Close'].iloc[-1])
+                print(f"  Dow Jones (^DJI): {dowjones_price:.2f}")
+
             break
 
         except Exception as e:
@@ -311,13 +331,15 @@ try:
             else:
                 raise
 
-    if gold_price or silver_price or nasdaq_price:
+    if gold_price or silver_price or nasdaq_price or sp500_price or dowjones_price:
         macro_data = {
             'date': date_str,
             'crawl_time': datetime.now(),
             'gold_price': gold_price,
             'silver_price': silver_price,
             'nasdaq_price': nasdaq_price,
+            'sp500_price': sp500_price,
+            'dowjones_price': dowjones_price,
             'source': 'Yahoo Finance',
             'group_name': 'commodity',
         }

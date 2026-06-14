@@ -66,7 +66,7 @@
                 sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng',
                 tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm (NHTM)',
                 fxrateChart: 'Tỷ Giá Trung Tâm USD/VND (NHNN)',
-                globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc, NASDAQ)',
+                globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc)',
                 downloadTitle: 'Tải Dữ liệu Lịch Sử',
                 downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng trong nước, giá bạc, và dữ liệu vĩ mô tại đây',
                 goldDatasetTitle: 'Tải Lịch Sử Giá Vàng',
@@ -282,7 +282,7 @@
                 sbvChart: 'SBV Interbank Rates History',
                 tdChart: 'Commercial Banks Term Deposit History',
                 fxrateChart: 'SBV Central Rate (USD/VND)',
-                globalChart: 'Global Market Trends (Gold, Silver, NASDAQ)',
+                globalChart: 'Global Market Trends (Gold, Silver)',
                 downloadTitle: 'Download Vietnam Historical Index',
                 downloadSubtitle: 'Download historical gold price data (SJC, DOJI, PNJ), silver prices, bank interest rates for free. Access Vietnam gold price data from 2015 onwards via RESTful API.',
                 goldDatasetTitle: 'Vietnam Historical Gold Price',
@@ -1377,6 +1377,7 @@
                 loadMacroCharts(20);
             } else if (sectionKey === 'stock') {
                 loadVnindexChart('1y');
+                loadChartData('global', '1y');
             }
         }
 
@@ -1838,7 +1839,8 @@
             td: null,
             sbv: null,
             fxrate: null,
-            global: null
+            global: null,
+            globalStocks: null
         };
 
         // Cache for loaded data (avoid redundant API calls)
@@ -1963,6 +1965,15 @@
                 chartData = parseFxRateData(apiData);
             } else if (chartType === 'global') {
                 chartData = parseGlobalData(apiData);
+                // Also render the international stock indices chart (Stock section)
+                const stocksCanvas = document.getElementById('globalStocksChart');
+                if (stocksCanvas) {
+                    if (chartInstances['globalStocks']) chartInstances['globalStocks'].destroy();
+                    const stocksData = parseGlobalStocksData(apiData);
+                    if (stocksData) chartInstances['globalStocks'] = new Chart(stocksCanvas.getContext('2d'), stocksData);
+                    const stocksLoading = document.getElementById('globalStocksLoading');
+                    if (stocksLoading) stocksLoading.style.display = 'none';
+                }
             }
 
             if (!chartData) {
@@ -2266,7 +2277,6 @@
             const dates = apiData.data.dates;
             const goldFuture = apiData.data.gold_prices;
             const silverSpot = apiData.data.silver_prices;
-            const nasdaq = apiData.data.nasdaq_prices;
 
             return {
                 type: 'line',
@@ -2290,15 +2300,6 @@
                             borderWidth: 2,
                             tension: 0.4,
                             yAxisID: 'y1'
-                        },
-                        {
-                            label: 'NASDAQ',
-                            data: nasdaq,
-                            borderColor: '#42A5F5',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            yAxisID: 'y2'
                         }
                     ]
                 },
@@ -2337,11 +2338,74 @@
                             position: 'right',
                             ticks: { color: '#87867f' },
                             grid: { display: false }
+                        }
+                    }
+                }
+            };
+        }
+
+        function parseGlobalStocksData(apiData) {
+            // Reuses the global-macro feed (Yahoo Finance) — plots major international
+            // stock indices rebased to % change from the start of the period, since
+            // their absolute point values differ by orders of magnitude.
+            if (!apiData || !apiData.data || !apiData.data.dates) {
+                return null;
+            }
+
+            const dates = apiData.data.dates;
+            const series = [
+                { label: 'NASDAQ Composite (^IXIC)', data: apiData.data.nasdaq_prices, color: '#42A5F5' },
+                { label: 'S&P 500 (^GSPC)', data: apiData.data.sp500_prices, color: '#c96442' },
+                { label: 'Dow Jones (^DJI)', data: apiData.data.dowjones_prices, color: '#66BB6A' }
+            ];
+
+            const rebase = (arr) => {
+                if (!arr || !arr.length) return null;
+                const base = arr.find(v => v);
+                if (!base) return null;
+                return arr.map(v => v ? Number(((v / base - 1) * 100).toFixed(2)) : null);
+            };
+
+            const datasets = series
+                .map(s => ({
+                    label: s.label,
+                    data: rebase(s.data),
+                    borderColor: s.color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    spanGaps: true
+                }))
+                .filter(ds => ds.data);
+
+            if (!datasets.length) return null;
+
+            return {
+                type: 'line',
+                data: { labels: dates, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, labels: { color: '#87867f' } },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#87867f', maxRotation: 45 },
+                            grid: { display: false }
                         },
-                        y2: {
-                            type: 'linear',
-                            display: false,
-                            position: 'right'
+                        y: {
+                            ticks: { color: '#87867f', callback: v => `${v}%` },
+                            grid: { display: false },
+                            title: { display: true, text: '% thay đổi từ đầu kỳ', color: '#87867f', font: { size: 10 } }
                         }
                     }
                 }
