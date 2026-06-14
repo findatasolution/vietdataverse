@@ -1546,6 +1546,83 @@ html {
     }
 }
 
+/* ── Global Markets Ticker Band ── */
+.global-ticker-band {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: var(--ivory);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-lg);
+    padding: 0.625rem 1rem;
+    margin-bottom: 0.875rem;
+    box-shadow: var(--whisper);
+}
+
+.global-ticker-band::-webkit-scrollbar {
+    display: none;
+}
+
+.global-ticker-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+}
+
+.global-ticker-label {
+    color: var(--olive-gray);
+    font-weight: 500;
+}
+
+.global-ticker-value {
+    color: var(--near-black);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.global-ticker-change {
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-variant-numeric: tabular-nums;
+}
+.global-ticker-change.positive { color: #16a34a; }
+.global-ticker-change.negative { color: var(--error-red, #b53333); }
+.global-ticker-change.neutral  { color: var(--stone-gray); }
+
+.global-ticker-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--border-cream);
+    flex: 0 0 auto;
+}
+
+.global-ticker-ts {
+    margin-left: auto;
+    padding-left: 1rem;
+    font-size: 0.6875rem;
+    color: var(--stone-gray);
+    flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+    .global-ticker-band {
+        gap: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    .global-ticker-ts {
+        display: none;
+    }
+}
+
 .market-movement-card {
     display: flex;
     flex-direction: column;

@@ -1377,7 +1377,6 @@
                 loadMacroCharts(20);
             } else if (sectionKey === 'stock') {
                 loadVnindexChart('1y');
-                loadChartData('global', '1y');
             }
         }
 
@@ -1839,8 +1838,7 @@
             td: null,
             sbv: null,
             fxrate: null,
-            global: null,
-            globalStocks: null
+            global: null
         };
 
         // Cache for loaded data (avoid redundant API calls)
@@ -1965,15 +1963,6 @@
                 chartData = parseFxRateData(apiData);
             } else if (chartType === 'global') {
                 chartData = parseGlobalData(apiData);
-                // Also render the international stock indices chart (Stock section)
-                const stocksCanvas = document.getElementById('globalStocksChart');
-                if (stocksCanvas) {
-                    if (chartInstances['globalStocks']) chartInstances['globalStocks'].destroy();
-                    const stocksData = parseGlobalStocksData(apiData);
-                    if (stocksData) chartInstances['globalStocks'] = new Chart(stocksCanvas.getContext('2d'), stocksData);
-                    const stocksLoading = document.getElementById('globalStocksLoading');
-                    if (stocksLoading) stocksLoading.style.display = 'none';
-                }
             }
 
             if (!chartData) {
@@ -2344,74 +2333,6 @@
             };
         }
 
-        function parseGlobalStocksData(apiData) {
-            // Reuses the global-macro feed (Yahoo Finance) — plots major international
-            // stock indices rebased to % change from the start of the period, since
-            // their absolute point values differ by orders of magnitude.
-            if (!apiData || !apiData.data || !apiData.data.dates) {
-                return null;
-            }
-
-            const dates = apiData.data.dates;
-            const series = [
-                { label: 'NASDAQ Composite (^IXIC)', data: apiData.data.nasdaq_prices, color: '#42A5F5' },
-                { label: 'S&P 500 (^GSPC)', data: apiData.data.sp500_prices, color: '#c96442' },
-                { label: 'Dow Jones (^DJI)', data: apiData.data.dowjones_prices, color: '#66BB6A' }
-            ];
-
-            const rebase = (arr) => {
-                if (!arr || !arr.length) return null;
-                const base = arr.find(v => v);
-                if (!base) return null;
-                return arr.map(v => v ? Number(((v / base - 1) * 100).toFixed(2)) : null);
-            };
-
-            const datasets = series
-                .map(s => ({
-                    label: s.label,
-                    data: rebase(s.data),
-                    borderColor: s.color,
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    spanGaps: true
-                }))
-                .filter(ds => ds.data);
-
-            if (!datasets.length) return null;
-
-            return {
-                type: 'line',
-                data: { labels: dates, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { display: true, labels: { color: '#87867f' } },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}%`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#87867f', maxRotation: 45 },
-                            grid: { display: false }
-                        },
-                        y: {
-                            ticks: { color: '#87867f', callback: v => `${v}%` },
-                            grid: { display: false },
-                            title: { display: true, text: '% thay đổi từ đầu kỳ', color: '#87867f', font: { size: 10 } }
-                        }
-                    }
-                }
-            };
-        }
-
         /* =========================================================
            MARKET MOVEMENT CARD (gold-silver section sidebar)
         ========================================================= */
@@ -2636,6 +2557,47 @@
                     }
                 } catch (e) {
                     console.warn('[market-movement] interbank rate failed:', e);
+                }
+            })());
+
+            // Global markets ticker band — NASDAQ, S&P 500, Dow Jones, Vàng/Bạc quốc tế (Yahoo Finance)
+            tasks.push((async () => {
+                try {
+                    let sj = window._prefetchPromises && window._prefetchPromises['global-1y']
+                        ? await window._prefetchPromises['global-1y']
+                        : null;
+                    if (!sj) {
+                        const r = await fetch('./data/global_1y.json').catch(() => null);
+                        if (r && r.ok) sj = await r.json();
+                    }
+                    const d = sj && sj.data ? sj.data : null;
+                    if (!d || !d.dates) return;
+                    const dates = d.dates;
+                    const lastDate = dates.length ? dates[dates.length - 1] : null;
+
+                    function setGlobalTicker(valueId, changeId, series, decimals) {
+                        const lc = lastChange(series);
+                        const vEl = document.getElementById(valueId);
+                        const cEl = document.getElementById(changeId);
+                        if (!lc || !vEl || !cEl) return;
+                        vEl.textContent = lc.last.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                        const up = lc.delta >= 0;
+                        const arrow = up ? '▲' : '▼';
+                        const sign = up ? '+' : '';
+                        cEl.textContent = `${arrow} ${sign}${lc.pct.toFixed(2)}%`;
+                        cEl.className = 'global-ticker-change ' + (up ? 'positive' : 'negative');
+                    }
+
+                    setGlobalTicker('gtk-nasdaq-price', 'gtk-nasdaq-change', d.nasdaq_prices, 0);
+                    setGlobalTicker('gtk-sp500-price', 'gtk-sp500-change', d.sp500_prices, 0);
+                    setGlobalTicker('gtk-dowjones-price', 'gtk-dowjones-change', d.dowjones_prices, 0);
+                    setGlobalTicker('gtk-gold-price', 'gtk-gold-change', d.gold_prices, 1);
+                    setGlobalTicker('gtk-silver-price', 'gtk-silver-change', d.silver_prices, 2);
+
+                    const tsEl = document.getElementById('gtk-ts');
+                    if (tsEl && lastDate) tsEl.textContent = 'Cập nhật: ' + lastDate;
+                } catch (e) {
+                    console.warn('[market-movement] global ticker band failed:', e);
                 }
             })());
 
