@@ -1445,8 +1445,8 @@ html {
 }
 
 .ticker-card-sm {
-    flex: 0 0 180px;
-    width: 180px;
+    flex: 0 0 200px;
+    width: 200px;
     background: var(--pure-white);
     border: 1px solid var(--border-cream);
     border-radius: var(--radius-xl);
@@ -1497,8 +1497,10 @@ html {
 .ticker-price-row {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
     gap: 5px;
     margin-bottom: 1px;
+    overflow: hidden;
 }
 
 .ticker-price {
@@ -1539,8 +1541,8 @@ html {
 
 @media (max-width: 768px) {
     .ticker-card-sm {
-        flex: 0 0 156px;
-        width: 156px;
+        flex: 0 0 168px;
+        width: 168px;
     }
 }
 

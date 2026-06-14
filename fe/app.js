@@ -2453,7 +2453,8 @@
                         if (lc) {
                             const lastDate = gDates ? gDates[gDates.length - 1] : null;
                             setRow('mmGoldValue', 'mmGoldChange', lc.last, lc.delta, lc.pct, 0);
-                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last, lc.delta, lc.pct, 0, lastDate);
+                            // Ticker card is narrow — show in "triệu" (millions) to avoid overflow
+                            setTicker('tk-xau-price', 'tk-xau-change', 'tk-xau-ts', lc.last / 1e6, lc.delta / 1e6, lc.pct, 1, lastDate);
                             drawSpark('tk-xau-spark', gPrices, lc.delta >= 0);
                         }
                     }
