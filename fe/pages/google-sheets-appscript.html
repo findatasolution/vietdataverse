@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kết nối Google Sheets bằng Apps Script — Viet Dataverse</title>
+  <meta name="description" content="Tạo hàm tùy chỉnh =VDV_GOLD() trong Google Sheets bằng Apps Script — token nhập 1 lần, công thức cực gọn. Hướng dẫn từng bước kèm phần xử lý cảnh báo Google.">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+
+    .code-wrap { position: relative; margin: 12px 0; }
+    .code-script {
+      background: var(--deep-dark); border-radius: 10px;
+      padding: 16px 18px; margin: 0;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 12px; color: #c9c7be; line-height: 1.6;
+      overflow-x: auto; white-space: pre; max-height: 420px;
+    }
+    .btn-copy-script {
+      position: absolute; top: 10px; right: 10px;
+      background: var(--warm-sand); color: var(--charcoal-warm, #4d4c48);
+      border: 1px solid var(--ring-warm, #d1cfc5); border-radius: 8px;
+      padding: 4px 12px; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-copy-script:hover { background: var(--ring-warm, #d1cfc5); }
+
+    .formula-box {
+      background: var(--deep-dark); border-radius: 10px;
+      padding: 12px 16px; margin: 10px 0;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 12.5px; color: #b0b0a8;
+      overflow-x: auto; white-space: pre; line-height: 1.6;
+    }
+    .formula-box .hl { color: #e0a37e; }
+
+    .gs-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    .gs-table th, .gs-table td {
+      text-align: left; padding: 8px 12px;
+      border-bottom: 1px solid var(--border-cream); color: var(--olive-gray); vertical-align: top;
+    }
+    .gs-table th { font-weight: 600; color: var(--stone-gray); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .gs-table td code { font-family: 'Courier New', monospace; color: var(--near-black); }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="google-sheets.html">← Google Sheets</a>
+  <span class="doc-topbar-title">Apps Script</span>
+</header>
+
+<div class="doc-shell">
+
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#why">Khi nào nên dùng</a>
+      <a class="doc-toc-item" href="#warning">Lưu ý cảnh báo Google</a>
+      <a class="doc-toc-item" href="#install">Bước 1 — Dán script</a>
+      <a class="doc-toc-item" href="#authorize">Bước 2 — Nhập key &amp; cấp quyền</a>
+      <a class="doc-toc-item" href="#use">Bước 3 — Dùng hàm</a>
+      <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
+    </div>
+  </nav>
+
+  <main class="doc-content">
+
+    <h1>Kết nối nhanh bằng Apps Script</h1>
+    <p class="doc-lead">
+      Tạo hàm tùy chỉnh <code>=VDV_GOLD("SJC","1m")</code> trong Google Sheets — token nhập <strong>đúng 1 lần</strong> qua menu,
+      công thức cực gọn, không lặp lại token. Đánh đổi: phải chấp nhận một cảnh báo "ứng dụng chưa xác minh" của Google (1 lần).
+    </p>
+
+    <section id="why" class="doc-section">
+      <h2>Khi nào nên dùng cách này?</h2>
+      <table class="gs-table">
+        <thead><tr><th></th><th>IMPORTDATA + ô token</th><th>Apps Script (trang này)</th></tr></thead>
+        <tbody>
+          <tr><td>Công thức</td><td>URL dài (token tham chiếu 1 ô)</td><td><code>=VDV_GOLD("SJC","1m")</code></td></tr>
+          <tr><td>Cảnh báo Google</td><td>Không</td><td><strong>Có</strong> (1 lần, tự bấm qua)</td></tr>
+          <tr><td>Tự refresh ~1h</td><td>Có</td><td>Không (cache theo tham số)</td></tr>
+          <tr><td>Hợp với</td><td>Phát cho người dùng cuối</td><td>Bạn tự dùng / team nội bộ</td></tr>
+        </tbody>
+      </table>
+      <div class="doc-info">
+        <strong>Phát sản phẩm cho nhiều người?</strong> Nên dùng <a href="google-sheets.html" style="color:var(--terracotta);">cách IMPORTDATA</a> để user khỏi gặp cảnh báo. Cách Apps Script hợp khi bạn (hoặc team) tự dùng và không ngại bấm qua cảnh báo.
+      </div>
+    </section>
+
+    <section id="warning" class="doc-section">
+      <h2>Lưu ý về cảnh báo "ứng dụng chưa xác minh"</h2>
+      <p>
+        Khi cấp quyền lần đầu, Google hiện màn hình <em>"Google hasn't verified this app"</em>. Đây là cảnh báo
+        <strong>mặc định cho mọi Apps Script cá nhân chưa qua quy trình thẩm định của Google</strong> — không phải dấu hiệu script độc hại.
+      </p>
+      <div class="doc-warn">
+        Script này là của <strong>chính bạn</strong>, mã nguồn bạn nhìn thấy toàn bộ. Nó chỉ làm 2 việc:
+        (1) lưu API key vào bộ nhớ của script, (2) gọi <code>api.vietdataverse.online</code> để lấy dữ liệu. Không đọc/ghi gì khác.
+      </div>
+    </section>
+
+    <section id="install" class="doc-section">
+      <h2>Bước 1 — Dán script vào Apps Script</h2>
+
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">Trong Google Sheets: menu <strong>Extensions → Apps Script</strong>.</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">Xoá hết code mẫu, bấm <strong>"Copy script"</strong> bên dưới rồi dán vào, bấm <strong>Save</strong> (💾).</div>
+      </div>
+
+      <div class="code-wrap">
+        <button class="btn-copy-script" onclick="copyScript()">Copy script</button>
+        <pre class="code-script" id="vdv-script">/**
+ * Viet Dataverse — Google Sheets connector
+ * Dùng: =VDV_GOLD("SJC","1m")   (token nhập 1 lần qua menu, không gõ lại)
+ */
+const VDV_BASE = 'https://api.vietdataverse.online/api/v1';
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Viet Dataverse')
+    .addItem('Nhập / cập nhật API key', 'VDV_promptKey_')
+    .addItem('Xoá API key', 'VDV_clearKey_')
+    .addToUi();
+}
+
+function VDV_promptKey_() {
+  const ui = SpreadsheetApp.getUi();
+  const res = ui.prompt('Viet Dataverse', 'Dán API key (lấy ở trang Developer):', ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+  const key = res.getResponseText().trim();
+  if (!key) { ui.alert('Key rỗng.'); return; }
+  PropertiesService.getScriptProperties().setProperty('VDV_API_KEY', key);
+  ui.alert('Đã lưu API key. Giờ gõ:  =VDV_GOLD("SJC","1m")');
+}
+
+function VDV_clearKey_() {
+  PropertiesService.getScriptProperties().deleteProperty('VDV_API_KEY');
+  SpreadsheetApp.getUi().alert('Đã xoá API key.');
+}
+
+function VDV_key_() {
+  const k = PropertiesService.getScriptProperties().getProperty('VDV_API_KEY');
+  if (!k) throw new Error('Chưa có API key — menu "Viet Dataverse" -&gt; "Nhập API key".');
+  return k;
+}
+
+function VDV_fetch_(path, params) {
+  params = params || {};
+  params.format = 'csv';
+  params.api_key = VDV_key_();
+  const qs = Object.keys(params)
+    .map(function (k) { return k + '=' + encodeURIComponent(params[k]); })
+    .join('&amp;');
+  const resp = UrlFetchApp.fetch(VDV_BASE + path + '?' + qs, { muteHttpExceptions: true });
+  const code = resp.getResponseCode();
+  if (code !== 200) {
+    throw new Error('Viet Dataverse lỗi ' + code + ': ' + resp.getContentText().slice(0, 150));
+  }
+  // CSV -&gt; mảng 2 chiều; đổi ô số sang kiểu number để vẽ chart được
+  return Utilities.parseCsv(resp.getContentText()).map(function (row) {
+    return row.map(function (cell) {
+      return (cell !== '' &amp;&amp; !isNaN(cell)) ? Number(cell) : cell;
+    });
+  });
+}
+
+/**
+ * Giá vàng Việt Nam.
+ * @param {string} type Loại vàng: "SJC", "DOJI HN", "PNJ", "BTMC". Mặc định "SJC".
+ * @param {string} period "7d", "1m", "1y", "all". Mặc định "1m".
+ * @return Bảng: ngày | giá mua | giá bán
+ * @customfunction
+ */
+function VDV_GOLD(type, period) {
+  return VDV_fetch_('/gold', { type: type || 'SJC', period: period || '1m' });
+}</pre>
+      </div>
+
+      <div class="doc-warn">
+        <strong>Token KHÔNG dán vào code.</strong> Đừng sửa bất kỳ dòng nào để chèn token — token nhập riêng ở Bước 2 qua menu.
+        Nếu dán token vào <code>addItem(...)</code> thì menu sẽ sai và hàm báo "Chưa có API key".
+      </div>
+    </section>
+
+    <section id="authorize" class="doc-section">
+      <h2>Bước 2 — Nhập key &amp; cấp quyền (qua cảnh báo Google)</h2>
+
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">Quay lại tab Google Sheets, <strong>reload trang</strong>. Trên thanh menu xuất hiện mục <strong>"Viet Dataverse"</strong> (cạnh Help).</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">Bấm <strong>Viet Dataverse → Nhập / cập nhật API key</strong>.</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">
+          Lần đầu Google mở hộp cấp quyền. Bấm qua như sau:
+          <ul>
+            <li>Chọn tài khoản Google của bạn.</li>
+            <li>Màn hình <em>"Google hasn't verified this app"</em> → bấm <strong>Advanced</strong> (góc dưới trái).</li>
+            <li>Bấm <strong>"Go to … (unsafe)"</strong> — tên project của bạn.</li>
+            <li>Bấm <strong>Allow</strong>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">4</div>
+        <div class="doc-step-body">Hộp nhập hiện lại → <strong>dán API key</strong> (lấy bằng nút "Sao chép" ở <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a>) → <strong>OK</strong>.</div>
+      </div>
+
+      <div class="doc-info">
+        Bạn chỉ phải bấm qua cảnh báo <strong>một lần duy nhất</strong>. Sau đó hàm chạy bình thường ở mọi ô.
+      </div>
+    </section>
+
+    <section id="use" class="doc-section">
+      <h2>Bước 3 — Dùng hàm</h2>
+      <p>Gõ ở ô bất kỳ — hàm tự tràn ra bảng (ngày · giá mua · giá bán), số đã đúng kiểu để vẽ chart:</p>
+      <table class="gs-table">
+        <thead><tr><th>Bạn gõ</th><th>Kết quả</th></tr></thead>
+        <tbody>
+          <tr><td><code>=VDV_GOLD()</code></td><td>SJC 1 tháng (mặc định)</td></tr>
+          <tr><td><code>=VDV_GOLD("SJC","1y")</code></td><td>SJC 1 năm</td></tr>
+          <tr><td><code>=VDV_GOLD("DOJI HN","7d")</code></td><td>DOJI Hà Nội 7 ngày</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Tham số:</strong> <code>type</code> = SJC · DOJI HN · PNJ · BTMC; <code>period</code> = 7d · 1m · 1y · all.</p>
+      <div class="doc-info">
+        Hiện chỉ <strong>giá vàng</strong> có sẵn CSV nên có <code>VDV_GOLD</code>. Khi mở CSV cho bạc/tỷ giá/lãi suất, sẽ bổ sung <code>VDV_SILVER</code>, <code>VDV_FX</code>… vào cùng script.
+      </div>
+    </section>
+
+    <section id="troubleshoot" class="doc-section">
+      <h2>Lỗi thường gặp</h2>
+
+      <h3><code>#ERROR! Chưa có API key</code></h3>
+      <p>Bạn chưa nhập key qua menu (Bước 2), hoặc đã lỡ dán token vào code. Mở menu <strong>Viet Dataverse → Nhập API key</strong> để nhập đúng cách.</p>
+
+      <h3><code>Viet Dataverse lỗi 401</code></h3>
+      <p>Key sai hoặc đã bị thu hồi. Mỗi lần "Generate New Key" ở trang Developer sẽ thu hồi key cũ — lấy lại key mới nhất bằng nút "Sao chép" rồi cập nhật qua menu.</p>
+
+      <h3>Ô vẫn <code>#ERROR</code> sau khi nhập key</h3>
+      <p>Hàm có thể đang cache lỗi cũ. Sửa nhẹ công thức (vd thêm/bớt dấu cách) rồi Enter để buộc tính lại.</p>
+
+      <h3>Dữ liệu không tự cập nhật</h3>
+      <p>Custom function cache theo tham số, không tự refresh như IMPORTDATA. Sửa lại công thức rồi Enter để lấy dữ liệu mới.</p>
+
+      <p style="margin-top:24px;">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> · Quay lại <a href="google-sheets.html" style="color:var(--terracotta);">hướng dẫn Google Sheets cơ bản</a>.</p>
+    </section>
+
+  </main>
+</div>
+
+<script src="docs-sidebar.js"></script>
+<script>
+  function copyScript() {
+    var text = document.getElementById('vdv-script').textContent;
+    navigator.clipboard.writeText(text).then(function () {
+      var btn = document.querySelector('.btn-copy-script');
+      var old = btn.textContent; btn.textContent = 'Đã copy ✓';
+      setTimeout(function () { btn.textContent = old; }, 1500);
+    });
+  }
+  (function () {
+    var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+    if (!items.length) return;
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          items.forEach(function (i) { i.classList.toggle('active', i.getAttribute('href') === '#' + e.target.id); });
+        }
+      });
+    }, { rootMargin: '-5% 0px -80% 0px', threshold: 0 });
+    document.querySelectorAll('.doc-section').forEach(function (s) { obs.observe(s); });
+  })();
+</script>
+
+</body>
+</html>

@@ -136,15 +136,27 @@
       <div class="doc-step">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">
-          Click vào ô <strong>A1</strong> (góc trên bên trái), rồi dán công thức bên dưới.
-          Nhớ <strong>thay <code>YOUR_API_KEY</code></strong> bằng token bạn đã copy ở Bước 1:
+          <strong>Dán token vào ô <code>B1</code> một lần duy nhất.</strong> Cách này giúp bạn <strong>không phải gõ lại token</strong>
+          ở mỗi công thức — mọi công thức sẽ tham chiếu tới ô B1. (Ô A1 ghi nhãn "api_key" cho dễ nhớ.)
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">
+          Click ô <strong>A4</strong> (hoặc ô trống bất kỳ) rồi dán công thức bên dưới. Token được lấy từ ô B1 qua <code>&amp;$B$1</code>, không cần gõ token:
         </div>
       </div>
 
-      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key=<span class="hl">YOUR_API_KEY</span>")</div>
+      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key="&amp;<span class="hl">$B$1</span>)</div>
+
+      <div class="callout" style="display:flex;gap:10px;align-items:flex-start;background:rgba(201,100,66,.06);border:1px solid rgba(201,100,66,.16);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--olive-gray);line-height:1.6;margin:12px 0;">
+        <span>⚡</span>
+        <span>Muốn công thức cực gọn kiểu <code>=VDV_GOLD("SJC","1m")</code> (token nhập 1 lần qua menu)? Xem
+        <a href="google-sheets-appscript.html" style="color:var(--terracotta);font-weight:500;">Kết nối nhanh bằng Apps Script</a> — đánh đổi là phải bấm qua một cảnh báo của Google 1 lần.</span>
+      </div>
 
       <div class="doc-step">
-        <div class="doc-step-num">3</div>
+        <div class="doc-step-num">4</div>
         <div class="doc-step-body">
           Nhấn <strong>Enter</strong>. Sau 1–2 giây, bảng giá vàng SJC 1 tháng gần nhất sẽ tự điền xuống các ô bên dưới:
           <pre><code>date         buy_price    sell_price
@@ -179,12 +191,12 @@
         </tbody>
       </table>
 
-      <p style="margin-top:16px;">Ví dụ — lấy giá vàng <strong>DOJI Hà Nội trong 1 năm</strong>:</p>
-      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=<span class="hl">DOJI HN</span>&amp;period=<span class="hl">1y</span>&amp;format=csv&amp;api_key=YOUR_API_KEY")</div>
+      <p style="margin-top:16px;">Ví dụ — lấy giá vàng <strong>DOJI Hà Nội trong 1 năm</strong> (token vẫn lấy từ ô B1, không gõ lại):</p>
+      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=<span class="hl">DOJI HN</span>&amp;period=<span class="hl">1y</span>&amp;format=csv&amp;api_key="&amp;$B$1)</div>
 
       <div class="doc-info">
-        <strong>Mẹo:</strong> Để khỏi sửa link mỗi lần, hãy để token vào một ô riêng (ví dụ ô <code>B1</code>) rồi ghép bằng dấu <code>&amp;</code>:
-        <pre><code>=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key=" &amp; B1)</code></pre>
+        <strong>Gọi 20 giá trị?</strong> Copy công thức, chỉ đổi <code>type</code>/<code>period</code> — phần <code>&amp;$B$1</code> giữ nguyên ở mọi ô.
+        Đổi key sau này chỉ cần sửa <strong>ô B1</strong>, tất cả công thức tự cập nhật.
       </div>
     </section>
 
