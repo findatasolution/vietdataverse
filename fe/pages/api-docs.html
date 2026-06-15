@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="../auth.js" defer></script>
     <style>
         :root {
             --parchment:    #f5f4ed;
@@ -268,7 +270,7 @@
                 Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
             </p>
             <div class="hero-actions">
-                <a class="btn-primary" href="/pages/developer.html">Lấy API key miễn phí →</a>
+                <a class="btn-primary" id="cta-getkey" href="/pages/developer.html">Lấy API key miễn phí →</a>
             </div>
         </div>
 
@@ -626,8 +628,32 @@ async function loadEndpoints() {
     container.innerHTML = html;
 }
 
+// Hero CTA: chưa đăng nhập → mở Auth0 login (KHÔNG đẩy vào developer.html);
+// đã đăng nhập → vào thẳng trang Developer để lấy/copy key.
+async function setupGetKeyCta() {
+    const cta = document.getElementById('cta-getkey');
+    if (!cta) return;
+    let authed = false;
+    try { authed = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
+    if (!authed) cta.textContent = 'Đăng nhập để lấy API key →';
+    cta.addEventListener('click', async (e) => {
+        e.preventDefault();
+        let ok = false;
+        try { ok = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
+        if (ok) {
+            window.location.href = '/pages/developer.html';
+        } else if (typeof login === 'function') {
+            // Sau khi đăng nhập, quay lại trang Developer để lấy key.
+            await login('/pages/developer.html');
+        } else {
+            window.location.href = '/pages/developer.html';
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadEndpoints();
+    setupGetKeyCta();
 });
 </script>
 

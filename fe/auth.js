@@ -62,9 +62,18 @@ async function initAuth0() {
         const query = window.location.search;
         if (query.includes('code=') && query.includes('state=')) {
             try {
-                await _auth0Client.handleRedirectCallback();
+                const result = await _auth0Client.handleRedirectCallback();
                 // Clean URL parameters
                 window.history.replaceState({}, document.title, window.location.pathname);
+                // Bounce back to the page the user started login from (appState.returnTo).
+                // Callback always lands on the whitelisted /index.html; this returns
+                // the user to e.g. /pages/developer.html so login feels seamless.
+                const dest = result && result.appState && result.appState.returnTo;
+                const destPath = dest && dest.split(/[?#]/)[0];
+                if (dest && destPath !== window.location.pathname) {
+                    window.location.replace(dest);
+                    return _auth0Client;
+                }
             } catch (err) {
                 console.error('Auth0 callback error:', err);
             }
@@ -86,16 +95,24 @@ function _getRedirectUri() {
     return window.location.origin + (window.location.pathname.startsWith('/fe') ? '/fe/index.html' : '/index.html');
 }
 
-async function login() {
-    const client = await initAuth0();
-    if (!client) { console.warn('Auth0 not available'); return; }
-    await client.loginWithRedirect({ authorizationParams: { redirect_uri: _getRedirectUri() } });
+function _currentLocation() {
+    return window.location.pathname + window.location.search + window.location.hash;
 }
 
-async function signup() {
+async function login(returnTo) {
     const client = await initAuth0();
     if (!client) { console.warn('Auth0 not available'); return; }
     await client.loginWithRedirect({
+        appState: { returnTo: returnTo || _currentLocation() },
+        authorizationParams: { redirect_uri: _getRedirectUri() },
+    });
+}
+
+async function signup(returnTo) {
+    const client = await initAuth0();
+    if (!client) { console.warn('Auth0 not available'); return; }
+    await client.loginWithRedirect({
+        appState: { returnTo: returnTo || _currentLocation() },
         authorizationParams: {
             screen_hint: 'signup',
             redirect_uri: _getRedirectUri(),
