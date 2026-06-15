@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lấy dữ liệu vào Google Sheets — Viet Dataverse</title>
+  <meta name="description" content="Hướng dẫn từng bước lấy API token và kéo dữ liệu Viet Dataverse vào Google Sheets bằng hàm IMPORTDATA — không cần code.">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+
+    /* Formula highlight box */
+    .formula-box {
+      background: var(--deep-dark); border-radius: 10px;
+      padding: 14px 16px; margin: 12px 0;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 12.5px; color: #b0b0a8;
+      overflow-x: auto; white-space: pre; line-height: 1.6;
+    }
+    .formula-box .hl { color: #e0a37e; }
+
+    /* Param table */
+    .gs-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0 4px; }
+    .gs-table th, .gs-table td {
+      text-align: left; padding: 8px 12px;
+      border-bottom: 1px solid var(--border-cream); color: var(--olive-gray);
+      vertical-align: top;
+    }
+    .gs-table th { font-weight: 600; color: var(--stone-gray); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .gs-table td code { font-family: 'Courier New', monospace; color: var(--near-black); }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="docs.html">← Tài liệu</a>
+  <span class="doc-topbar-title">Google Sheets</span>
+</header>
+
+<div class="doc-shell">
+
+  <!-- TOC sidebar -->
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview">Bạn sẽ làm được gì</a>
+      <a class="doc-toc-item" href="#token">Bước 1 — Lấy API token</a>
+      <a class="doc-toc-item" href="#formula">Bước 2 — Viết công thức</a>
+      <a class="doc-toc-item" href="#customize">Bước 3 — Đổi loại &amp; thời gian</a>
+      <a class="doc-toc-item" href="#refresh">Bước 4 — Cập nhật dữ liệu</a>
+      <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="doc-content">
+
+    <h1>Lấy dữ liệu vào Google Sheets</h1>
+    <p class="doc-lead">
+      Kéo giá vàng Việt Nam thẳng vào bảng tính Google Sheets bằng <strong>một công thức duy nhất</strong> —
+      không cần biết lập trình. Dữ liệu tự cập nhật mỗi khi bạn mở lại file.
+    </p>
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="doc-section">
+      <h2>Bạn sẽ làm được gì</h2>
+      <p>
+        Sau hướng dẫn này, ô bảng tính của bạn sẽ tự động hiển thị bảng giá vàng theo ngày
+        (ngày · giá mua · giá bán), kéo trực tiếp từ máy chủ Viet Dataverse.
+      </p>
+      <div class="doc-info">
+        <strong>Cần chuẩn bị:</strong> 1 tài khoản Google (để dùng Google Sheets) và 1 <strong>API token</strong> của Viet Dataverse — lấy ở Bước 1 ngay bên dưới.
+      </div>
+      <div class="doc-warn">
+        <strong>Lưu ý:</strong> hiện công thức IMPORTDATA hỗ trợ sẵn <strong>dữ liệu giá vàng</strong>.
+        Các bộ dữ liệu khác (bạc, tỷ giá, lãi suất…) đang được bổ sung — trong lúc chờ, bạn có thể dùng chúng qua
+        <a href="api-docs.html" style="color:var(--terracotta);">API thông thường</a>.
+      </div>
+    </section>
+
+    <!-- STEP 1: TOKEN -->
+    <section id="token" class="doc-section">
+      <h2>Bước 1 — Lấy API token</h2>
+      <p>API token (còn gọi là API key) là chuỗi ký tự dùng để xác nhận bạn có quyền lấy dữ liệu.</p>
+
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">
+          Mở <a href="/pages/developer.html" style="color:var(--terracotta);"><strong>trang Developer</strong></a> rồi đăng nhập (hoặc đăng ký miễn phí nếu chưa có tài khoản).
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">
+          Nếu chưa có gói, chọn một gói ở <a href="/pages/pricing.html" style="color:var(--terracotta);">trang Pricing</a> (rẻ nhất từ <strong>33.000 ₫/tháng</strong>).
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">
+          Nhấn nút <strong>"Tạo API key"</strong>. Bạn sẽ nhận được một chuỗi bắt đầu bằng <code>vdv_</code>, ví dụ:
+          <pre><code>vdv_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</code></pre>
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">4</div>
+        <div class="doc-step-body">
+          Nhấn biểu tượng <strong>Copy</strong> để sao chép token. Dán tạm vào một nơi an toàn — bạn sẽ dùng nó ở Bước 2.
+        </div>
+      </div>
+
+      <div class="doc-warn">
+        <strong>Giữ token bí mật.</strong> Bất kỳ ai có token đều có thể gọi dữ liệu bằng quota của bạn.
+        Không chia sẻ file Google Sheets chứa token cho người lạ, không đăng token lên mạng.
+      </div>
+    </section>
+
+    <!-- STEP 2: FORMULA -->
+    <section id="formula" class="doc-section">
+      <h2>Bước 2 — Viết công thức trong Google Sheets</h2>
+
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">
+          Mở <a href="https://sheets.google.com" target="_blank" rel="noopener" style="color:var(--terracotta);">Google Sheets</a> và tạo một bảng tính trống.
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">
+          Click vào ô <strong>A1</strong> (góc trên bên trái), rồi dán công thức bên dưới.
+          Nhớ <strong>thay <code>YOUR_API_KEY</code></strong> bằng token bạn đã copy ở Bước 1:
+        </div>
+      </div>
+
+      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key=<span class="hl">YOUR_API_KEY</span>")</div>
+
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">
+          Nhấn <strong>Enter</strong>. Sau 1–2 giây, bảng giá vàng SJC 1 tháng gần nhất sẽ tự điền xuống các ô bên dưới:
+          <pre><code>date         buy_price    sell_price
+2026-05-16   11850000     12050000
+2026-05-17   11870000     12070000
+...</code></pre>
+        </div>
+      </div>
+
+      <div class="doc-info">
+        <strong>Vì sao token nằm trên đường link?</strong> Hàm <code>IMPORTDATA</code> của Google không gửi được
+        "header" như khi lập trình, nên Viet Dataverse cho phép truyền token qua tham số <code>api_key=</code> ngay trên URL.
+      </div>
+    </section>
+
+    <!-- STEP 3: CUSTOMIZE -->
+    <section id="customize" class="doc-section">
+      <h2>Bước 3 — Đổi loại vàng &amp; khoảng thời gian</h2>
+      <p>Bạn chỉ cần sửa 2 phần trong đường link: <code>type</code> (loại vàng) và <code>period</code> (khoảng thời gian).</p>
+
+      <table class="gs-table">
+        <thead><tr><th>Tham số</th><th>Giá trị</th><th>Ý nghĩa</th></tr></thead>
+        <tbody>
+          <tr><td><code>type</code></td><td><code>SJC</code></td><td>Vàng miếng SJC</td></tr>
+          <tr><td></td><td><code>DOJI HN</code></td><td>DOJI Hà Nội</td></tr>
+          <tr><td></td><td><code>PNJ</code></td><td>Vàng PNJ</td></tr>
+          <tr><td></td><td><code>BTMC</code></td><td>Bảo Tín Minh Châu</td></tr>
+          <tr><td><code>period</code></td><td><code>7d</code></td><td>7 ngày gần nhất</td></tr>
+          <tr><td></td><td><code>1m</code></td><td>1 tháng gần nhất</td></tr>
+          <tr><td></td><td><code>1y</code></td><td>1 năm gần nhất</td></tr>
+          <tr><td></td><td><code>all</code></td><td>Toàn bộ lịch sử</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:16px;">Ví dụ — lấy giá vàng <strong>DOJI Hà Nội trong 1 năm</strong>:</p>
+      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=<span class="hl">DOJI HN</span>&amp;period=<span class="hl">1y</span>&amp;format=csv&amp;api_key=YOUR_API_KEY")</div>
+
+      <div class="doc-info">
+        <strong>Mẹo:</strong> Để khỏi sửa link mỗi lần, hãy để token vào một ô riêng (ví dụ ô <code>B1</code>) rồi ghép bằng dấu <code>&amp;</code>:
+        <pre><code>=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key=" &amp; B1)</code></pre>
+      </div>
+    </section>
+
+    <!-- STEP 4: REFRESH -->
+    <section id="refresh" class="doc-section">
+      <h2>Bước 4 — Cập nhật dữ liệu</h2>
+      <p>Google Sheets tự động làm mới dữ liệu IMPORTDATA <strong>khoảng mỗi giờ</strong>, và mỗi khi bạn mở lại file.</p>
+      <p>Muốn làm mới ngay lập tức:</p>
+      <ol>
+        <li>Xoá ô chứa công thức rồi dán lại công thức (cách nhanh nhất), hoặc</li>
+        <li>Vào <strong>File → Cài đặt bảng tính (Settings) → Tính toán (Calculation)</strong> → đặt "Tính lại khi" thành <em>"Khi thay đổi và mỗi phút"</em>.</li>
+      </ol>
+      <div class="doc-warn">
+        <strong>Đừng đặt làm mới quá dày.</strong> Mỗi lần làm mới = 1 request tính vào quota tháng của bạn. Làm mới mỗi phút trên nhiều ô có thể nhanh chóng dùng hết lượt gọi.
+      </div>
+    </section>
+
+    <!-- TROUBLESHOOT -->
+    <section id="troubleshoot" class="doc-section">
+      <h2>Lỗi thường gặp</h2>
+
+      <h3>Ô hiện <code>#ERROR!</code> hoặc "Could not fetch url"</h3>
+      <p>Thường do thiếu <code>format=csv</code> trong link, hoặc token sai. Kiểm tra: đường link phải có đủ <code>&amp;format=csv&amp;api_key=...</code> và token còn hiệu lực.</p>
+
+      <h3>Ô hiện một dòng chữ <code>{"success": false ... 401}</code></h3>
+      <p>Token không hợp lệ hoặc đã bị thu hồi. Vào <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a> để kiểm tra/tạo lại token.</p>
+
+      <h3>Ô hiện lỗi liên quan đến <code>429</code> / hết quota</h3>
+      <p>Bạn đã dùng hết lượt gọi trong tháng. Chờ sang đầu tháng (quota reset ngày 1) hoặc nâng cấp gói ở <a href="/pages/pricing.html" style="color:var(--terracotta);">trang Pricing</a>.</p>
+
+      <h3>Dữ liệu không tự cập nhật</h3>
+      <p>Đây là cơ chế của Google (làm mới mỗi ~1 giờ). Xem lại Bước 4 để làm mới thủ công.</p>
+
+      <p style="margin-top:24px;">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> hoặc xem thêm <a href="api-docs.html" style="color:var(--terracotta);">API Reference</a>.</p>
+    </section>
+
+  </main>
+</div>
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(!items.length) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+      }
+    });
+  }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+  document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+
+</body>
+</html>

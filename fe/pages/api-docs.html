@@ -177,6 +177,45 @@
         .error-402 { color: #c47a1c; }
         .error-429 { color: var(--terracotta); }
 
+        /* Setup steps (step-by-step install guide) */
+        .setup-steps { display: grid; gap: 16px; margin-bottom: 8px; counter-reset: step; }
+        .setup-step {
+            position: relative;
+            background: var(--pure-white); border: 1px solid var(--border-cream);
+            border-radius: var(--radius-md); padding: 20px 24px 20px 64px;
+            box-shadow: var(--whisper);
+        }
+        .setup-step::before {
+            counter-increment: step; content: counter(step);
+            position: absolute; left: 20px; top: 20px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--terracotta); color: var(--ivory);
+            font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .setup-step h3 {
+            font-family: 'Lora', Georgia, serif; font-size: 16px; font-weight: 500;
+            color: var(--text-primary); margin: 0 0 8px;
+        }
+        .setup-step p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.7; margin: 0 0 10px; }
+        .setup-step p:last-child { margin-bottom: 0; }
+        .setup-step ul { font-size: 13.5px; color: var(--text-secondary); line-height: 1.8; margin: 6px 0 10px; padding-left: 18px; }
+        .setup-step .code-block { margin-bottom: 8px; margin-top: 4px; }
+        .inline-link { color: var(--terracotta); font-weight: 500; text-decoration: none; }
+        .inline-link:hover { text-decoration: underline; }
+        .callout {
+            display: flex; gap: 10px; align-items: flex-start;
+            background: rgba(201,100,66,.06); border: 1px solid rgba(201,100,66,.16);
+            border-radius: var(--radius-sm); padding: 12px 16px;
+            font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+        }
+        .callout strong { color: var(--terracotta); }
+        code.kbd {
+            background: var(--warm-sand); color: var(--text-primary);
+            padding: 1px 6px; border-radius: 4px; font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
         /* Section helpers */
         .docs-section { margin-bottom: 56px; }
         .section-title {
@@ -201,10 +240,11 @@
     <!-- Sticky TOC sidebar -->
     <nav class="doc-toc">
         <div class="doc-toc-inner">
-            <div class="doc-toc-label">Tổng quan</div>
-            <a class="doc-toc-item" href="#usecases">Use Cases</a>
-            <a class="doc-toc-item" href="#quickstart">Quick Start</a>
-            <a class="doc-toc-item" href="#auth">Authentication</a>
+            <div class="doc-toc-label">Bắt đầu</div>
+            <a class="doc-toc-item" href="#setup">Cài đặt API (4 bước)</a>
+            <a class="doc-toc-item" href="#samples">Ví dụ thực tế</a>
+            <a class="doc-toc-item" href="#sheets">Dùng với Google Sheets</a>
+            <a class="doc-toc-item" href="#auth">Xác thực (API key)</a>
             <a class="doc-toc-item" href="#quota">Quota &amp; Giới hạn</a>
             <a class="doc-toc-item" href="#errors">Mã lỗi</a>
             <div class="doc-toc-label" style="margin-top:16px;">Endpoints</div>
@@ -233,9 +273,86 @@
             </div>
         </div>
 
-        <!-- Use Cases -->
-        <section class="docs-section doc-section" id="usecases">
-            <h2 class="section-title">Bạn muốn làm gì?</h2>
+        <!-- SETUP — step by step install guide -->
+        <section class="docs-section doc-section" id="setup">
+            <h2 class="section-title">Cài đặt API trong 4 bước</h2>
+            <p class="section-sub">Làm theo thứ tự từ trên xuống — sau bước 4 bạn đã pull được dữ liệu thật vào code của mình.</p>
+
+            <div class="setup-steps">
+
+                <!-- Step 1 -->
+                <div class="setup-step">
+                    <h3>Đăng ký tài khoản &amp; lấy API key</h3>
+                    <p>API key là "chìa khoá" để gọi dữ liệu. Mỗi request đều cần key này.</p>
+                    <ul>
+                        <li>Mở <a class="inline-link" href="/pages/developer.html">trang Developer</a> và đăng nhập (hoặc đăng ký miễn phí).</li>
+                        <li>Chọn một gói ở <a class="inline-link" href="/pages/pricing.html">trang Pricing</a> — gói rẻ nhất từ <strong>33.000 ₫/tháng</strong>.</li>
+                        <li>Nhấn <strong>"Tạo API key"</strong> → bạn nhận được chuỗi dạng <code class="kbd">vdv_xxxxxxxx…</code></li>
+                    </ul>
+                    <div class="callout">
+                        <span>🔒</span>
+                        <span><strong>Giữ key bí mật.</strong> Không đăng key lên GitHub, không chia sẻ — mọi request bằng key của bạn đều bị tính vào quota tháng.</span>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="setup-step">
+                    <h3>Gọi thử ngay trên trình duyệt (không cần code)</h3>
+                    <p>Cách nhanh nhất để kiểm tra key hoạt động: dán URL sau vào thanh địa chỉ trình duyệt, thay <code class="kbd">YOUR_API_KEY</code> bằng key của bạn:</p>
+                    <div class="code-block">https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;api_key=YOUR_API_KEY</div>
+                    <p>Nếu thấy dữ liệu JSON trả về (có <code class="kbd">"success": true</code>) là key đã chạy. Nếu thấy lỗi <code class="kbd">401</code> → kiểm tra lại key ở <a class="inline-link" href="/pages/developer.html">trang Developer</a>.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="setup-step">
+                    <h3>Tích hợp vào code của bạn</h3>
+                    <p>Khi gọi từ code, nên đặt key trong header <code class="kbd">X-API-Key</code> thay vì trên URL (an toàn hơn). Chọn ngôn ngữ:</p>
+                    <div class="code-tabs">
+                        <button class="code-tab active" onclick="switchTab(this, 'curl')">cURL</button>
+                        <button class="code-tab" onclick="switchTab(this, 'python')">Python</button>
+                        <button class="code-tab" onclick="switchTab(this, 'js')">JavaScript</button>
+                    </div>
+                    <div class="code-block" id="tab-curl">curl "https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m" \
+  -H "X-API-Key: YOUR_API_KEY"</div>
+                    <div class="code-block" id="tab-python" style="display:none;"># pip install requests
+import requests
+
+headers = {"X-API-Key": "YOUR_API_KEY"}
+resp = requests.get(
+    "https://api.vietdataverse.online/api/v1/gold",
+    params={"type": "SJC", "period": "1m"},
+    headers=headers,
+)
+data = resp.json()        # {"success": true, "count": 30, "data": {...}}
+print(data["count"], "ngày dữ liệu")</div>
+                    <div class="code-block" id="tab-js" style="display:none;">const res = await fetch(
+  "https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m",
+  { headers: { "X-API-Key": "YOUR_API_KEY" } }
+);
+const { data } = await res.json();
+console.log(data);</div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="setup-step">
+                    <h3>Đọc kết quả &amp; kiểm tra quota</h3>
+                    <p>Mọi response thành công đều có dạng:</p>
+                    <div class="code-block">{
+  "success": true,
+  "type": "SJC",
+  "period": "1m",
+  "count": 30,
+  "data": { "dates": [...], "buy_prices": [...], "sell_prices": [...] }
+}</div>
+                    <p>Mỗi response kèm header cho biết còn bao nhiêu lượt gọi trong tháng: <code class="kbd">X-RateLimit-Remaining</code>. Xem chi tiết ở mục <a class="inline-link" href="#quota">Quota &amp; Giới hạn</a> và <a class="inline-link" href="#errors">Mã lỗi</a> bên dưới.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Samples / use cases -->
+        <section class="docs-section doc-section" id="samples">
+            <h2 class="section-title">Ví dụ thực tế</h2>
             <p class="section-sub">Chọn use-case phù hợp — code sẵn sàng copy &amp; chạy.</p>
 
             <div style="display:grid;gap:10px;margin-bottom:8px;">
@@ -346,32 +463,16 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
             </div>
         </section>
 
-        <!-- Quick Start -->
-        <section class="docs-section doc-section" id="quickstart">
-            <h2 class="section-title">Quick Start</h2>
-            <p class="section-sub">Gọi API trong 60 giây với X-API-Key header.</p>
-
-            <div class="code-tabs">
-                <button class="code-tab active" onclick="switchTab(this, 'curl')">cURL</button>
-                <button class="code-tab" onclick="switchTab(this, 'python')">Python</button>
-                <button class="code-tab" onclick="switchTab(this, 'js')">JavaScript</button>
-            </div>
-            <div class="code-block" id="tab-curl">curl https://api.vietdataverse.online/api/v1/gold?period=1m \
-  -H "X-API-Key: YOUR_API_KEY"</div>
-            <div class="code-block" id="tab-python" style="display:none;">import requests
-
-headers = {"X-API-Key": "YOUR_API_KEY"}
-resp = requests.get(
-    "https://api.vietdataverse.online/api/v1/gold",
-    params={"period": "1m"},
-    headers=headers,
-)
-data = resp.json()   # {"success": true, "count": 30, "data": [...]}</div>
-            <div class="code-block" id="tab-js" style="display:none;">const res = await fetch(
-  "https://api.vietdataverse.online/api/v1/gold?period=1m",
-  { headers: { "X-API-Key": "YOUR_API_KEY" } }
-);
-const { data } = await res.json();</div>
+        <!-- Google Sheets teaser -->
+        <section class="docs-section doc-section" id="sheets">
+            <h2 class="section-title">Dùng dữ liệu trong Google Sheets</h2>
+            <p class="section-sub">Không cần code — kéo giá vàng thẳng vào bảng tính bằng một công thức (các bộ dữ liệu khác đang được bổ sung).</p>
+            <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin:0 0 14px;">
+                Google Sheets có hàm <code class="kbd">IMPORTDATA()</code> đọc trực tiếp dữ liệu CSV từ API.
+                Vì hàm này không gửi được header, Viet Dataverse cho phép truyền API key ngay trên đường link qua tham số <code class="kbd">api_key</code>:
+            </p>
+            <div class="code-block">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key=YOUR_API_KEY")</div>
+            <a class="btn-primary" href="/pages/google-sheets.html">Xem hướng dẫn từng bước cho Google Sheets →</a>
         </section>
 
         <!-- Authentication -->
