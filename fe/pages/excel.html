@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lấy dữ liệu vào Excel (Power Query) — Viet Dataverse</title>
+  <meta name="description" content="Hướng dẫn từng bước kéo dữ liệu tài chính Việt Nam (vàng, bạc, tỷ giá, lãi suất, CPI, dữ liệu toàn cầu) vào Microsoft Excel bằng Power Query — không cần code.">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+    .url-box {
+      background: var(--deep-dark); border-radius: 10px;
+      padding: 12px 16px; margin: 10px 0;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 12.5px; color: #b0b0a8;
+      overflow-x: auto; white-space: pre; line-height: 1.6;
+    }
+    .url-box .hl { color: #e0a37e; }
+    .gs-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    .gs-table th, .gs-table td {
+      text-align: left; padding: 8px 12px;
+      border-bottom: 1px solid var(--border-cream); color: var(--olive-gray); vertical-align: top;
+    }
+    .gs-table th { font-weight: 600; color: var(--stone-gray); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .gs-table td code { font-family: 'Courier New', monospace; color: var(--near-black); font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="docs.html">← Tài liệu</a>
+  <span class="doc-topbar-title">Excel</span>
+</header>
+
+<div class="doc-shell">
+
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview">Bạn sẽ làm được gì</a>
+      <a class="doc-toc-item" href="#token">Bước 1 — Lấy API token</a>
+      <a class="doc-toc-item" href="#connect">Bước 2 — Kết nối Power Query</a>
+      <a class="doc-toc-item" href="#refresh">Bước 3 — Làm mới dữ liệu</a>
+      <a class="doc-toc-item" href="#datasets">Danh sách bộ dữ liệu</a>
+      <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
+    </div>
+  </nav>
+
+  <main class="doc-content">
+
+    <h1>Lấy dữ liệu vào Excel (Power Query)</h1>
+    <p class="doc-lead">
+      Kéo dữ liệu tài chính Việt Nam — vàng, bạc, tỷ giá, lãi suất, CPI, dữ liệu toàn cầu — thẳng vào <strong>Microsoft Excel</strong>
+      bằng <strong>Power Query</strong>, không cần code. Dữ liệu nạp thành Table và làm mới được bằng một nút bấm.
+    </p>
+
+    <section id="overview" class="doc-section">
+      <h2>Bạn sẽ làm được gì</h2>
+      <p>Excel có sẵn <strong>Power Query</strong> (Get &amp; Transform Data) — tương đương <code>IMPORTDATA</code> của Google Sheets nhưng mạnh hơn: đọc được cả CSV lẫn JSON, nạp vào Table, và làm mới tự động.</p>
+      <div class="doc-info">
+        <strong>Không cần cài thêm gì.</strong> Power Query có sẵn trong Excel 2016 trở lên (Windows &amp; Mac) và Microsoft 365. Khác với Google Sheets, Excel <strong>không hiện cảnh báo "ứng dụng chưa xác minh"</strong>.
+      </div>
+    </section>
+
+    <!-- STEP 1 -->
+    <section id="token" class="doc-section">
+      <h2>Bước 1 — Lấy API token</h2>
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">Mở <a href="/pages/developer.html" style="color:var(--terracotta);"><strong>trang Developer</strong></a> rồi đăng nhập (đăng ký miễn phí nếu chưa có).</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">Tài khoản miễn phí được cấp ngay API key với hạn mức <strong>1.000 request/tháng</strong>.</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">Nhấn <strong>"Sao chép"</strong> để lấy key đầy đủ (~43 ký tự). Giữ key bí mật.</div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="connect" class="doc-section">
+      <h2>Bước 2 — Kết nối bằng Power Query</h2>
+
+      <div class="doc-step">
+        <div class="doc-step-num">1</div>
+        <div class="doc-step-body">Trong Excel: thẻ <strong>Data → Get Data → From Other Sources → From Web</strong> (hoặc <strong>Data → From Web</strong>).</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">2</div>
+        <div class="doc-step-body">
+          Dán URL của bộ dữ liệu (thay <code>YOUR_API_KEY</code> bằng token). Ví dụ giá vàng SJC 1 năm:
+        </div>
+      </div>
+
+      <div class="url-box">https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1y&amp;page=1&amp;limit=500&amp;api_key=<span class="hl">YOUR_API_KEY</span></div>
+
+      <div class="doc-step">
+        <div class="doc-step-num">3</div>
+        <div class="doc-step-body">Nếu Excel hỏi cách xác thực → chọn <strong>Anonymous</strong> → <strong>Connect</strong> (token đã nằm trên URL).</div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">4</div>
+        <div class="doc-step-body">
+          Cửa sổ Power Query mở ra:
+          <ul>
+            <li><strong>Dữ liệu JSON</strong> (bạc, lãi suất, CPI…): click vào trường <code>data</code> → <strong>To Table</strong> → nhấn nút mở rộng (↔) ở header cột để tách thành các cột (date, giá trị…).</li>
+            <li><strong>Giá vàng dạng CSV</strong>: nếu bạn bỏ <code>page</code> và thêm <code>&amp;format=csv</code>, Excel nhận luôn dạng bảng, không cần expand.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="doc-step">
+        <div class="doc-step-num">5</div>
+        <div class="doc-step-body">Nhấn <strong>Close &amp; Load</strong> → dữ liệu đổ vào sheet thành một Table.</div>
+      </div>
+
+      <div class="doc-info">
+        <strong>Mẹo:</strong> Tham số <code>&amp;page=1&amp;limit=500</code> giúp API trả về dạng <em>danh sách dòng</em> — Power Query expand thẳng thành bảng sạch.
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="refresh" class="doc-section">
+      <h2>Bước 3 — Làm mới dữ liệu</h2>
+      <p>Cập nhật bất cứ lúc nào: <strong>Data → Refresh All</strong>. Tự động:</p>
+      <ol>
+        <li>Chuột phải vào Table → <strong>Table → External Data Properties</strong> (hoặc Data → Queries &amp; Connections → Properties).</li>
+        <li>Tick <strong>"Refresh data when opening the file"</strong> và/hoặc <strong>"Refresh every N minutes"</strong>.</li>
+      </ol>
+      <div class="doc-warn">
+        Mỗi lần refresh = 1 request tính vào quota tháng. Đừng đặt refresh quá dày trên nhiều query cùng lúc.
+      </div>
+    </section>
+
+    <!-- DATASETS -->
+    <section id="datasets" class="doc-section">
+      <h2>Danh sách bộ dữ liệu</h2>
+      <p>Tất cả các bộ dữ liệu có trên trang chủ Viet Dataverse đều dùng được trong Excel. Ghép tham số vào URL: <code>?period=...&amp;page=1&amp;limit=500&amp;api_key=YOUR_API_KEY</code></p>
+
+      <table class="gs-table">
+        <thead><tr><th>Bộ dữ liệu</th><th>Endpoint</th><th>Tham số chính</th><th>Cột trả về</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Giá vàng</td>
+            <td><code>/api/v1/gold</code></td>
+            <td><code>type</code> = SJC · DOJI HN · PNJ · BTMC; <code>period</code></td>
+            <td>date · buy_price · sell_price</td>
+          </tr>
+          <tr>
+            <td>Giá bạc</td>
+            <td><code>/api/v1/silver</code></td>
+            <td><code>period</code></td>
+            <td>date · buy_price · sell_price</td>
+          </tr>
+          <tr>
+            <td>Tỷ giá ngoại tệ (VCB)</td>
+            <td><code>/api/v1/sbv-rate</code></td>
+            <td><code>bank</code> = VCB; <code>currency</code> = USD · EUR · JPY…; <code>period</code></td>
+            <td>date · buy · buy_cash · sell</td>
+          </tr>
+          <tr>
+            <td>Lãi suất liên ngân hàng (SBV)</td>
+            <td><code>/api/v1/sbv-interbank</code></td>
+            <td><code>period</code></td>
+            <td>dates · overnight · month_1 · month_3 · month_6…</td>
+          </tr>
+          <tr>
+            <td>Lãi suất tiết kiệm</td>
+            <td><code>/api/v1/termdepo</code></td>
+            <td><code>period</code></td>
+            <td>date · term_1m · term_3m · term_6m · term_12m · term_24m</td>
+          </tr>
+          <tr>
+            <td>CPI / Lạm phát</td>
+            <td><code>/api/v1/macro/cpi</code></td>
+            <td><code>period</code></td>
+            <td>period · yoy_pct · months</td>
+          </tr>
+          <tr>
+            <td>Dữ liệu toàn cầu</td>
+            <td><code>/api/v1/global-macro</code></td>
+            <td><code>period</code></td>
+            <td>date · gold_price · silver_price · nasdaq_price</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:14px;"><code>period</code> nhận: <code>7d</code> · <code>1m</code> · <code>1y</code> · <code>all</code>. Ví dụ lấy <strong>lãi suất tiết kiệm 1 năm</strong>:</p>
+      <div class="url-box">https://api.vietdataverse.online/api/v1/termdepo?period=1y&amp;page=1&amp;limit=500&amp;api_key=YOUR_API_KEY</div>
+
+      <div class="doc-info">
+        Danh sách endpoint đầy đủ (kèm VN30, news…) xem ở <a href="api-docs.html" style="color:var(--terracotta);">API Reference</a>.
+      </div>
+    </section>
+
+    <!-- TROUBLESHOOT -->
+    <section id="troubleshoot" class="doc-section">
+      <h2>Lỗi thường gặp</h2>
+
+      <h3>Báo lỗi 401 / "Access to the resource is forbidden"</h3>
+      <p>Token sai hoặc đã bị thu hồi. Lấy lại key mới nhất ở <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a> (mỗi lần "Generate New Key" sẽ thu hồi key cũ).</p>
+
+      <h3>Power Query hỏi đăng nhập (Organizational / Windows…)</h3>
+      <p>Chọn <strong>Anonymous</strong>. Token đã đi trên URL nên không cần xác thực kiểu khác.</p>
+
+      <h3>Dữ liệu JSON nằm trong 1 cột <code>data</code></h3>
+      <p>Đúng quy trình — click <strong>To Table</strong> rồi nhấn nút mở rộng (↔) ở header để tách cột. Hoặc thêm <code>&amp;page=1&amp;limit=500</code> để API trả dạng danh sách dòng cho dễ expand.</p>
+
+      <p style="margin-top:24px;">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> · Xem thêm <a href="google-sheets.html" style="color:var(--terracotta);">hướng dẫn Google Sheets</a>.</p>
+    </section>
+
+  </main>
+</div>
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(!items.length) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+      }
+    });
+  }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+  document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+
+</body>
+</html>

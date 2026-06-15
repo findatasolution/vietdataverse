@@ -60,6 +60,7 @@
     + '<a href="api-docs.html">API Reference</a>'
     + '<a href="google-sheets.html">Google Sheets</a>'
     + '<a href="google-sheets-appscript.html">Sheets — hàm VDV</a>'
+    + '<a href="excel.html">Excel</a>'
     + '<a href="guide-seller.html">Seller Guide</a>'
     + '<a href="guide-buyer.html">Buyer Guide</a>'
     + '<a href="knowledge-pack-spec.html">Knowledge Pack</a>'
@@ -81,7 +82,8 @@
       items: [
         { href: 'api-docs.html', label: 'API Reference', icon: '<svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' },
         { href: 'google-sheets.html', label: 'Google Sheets', icon: '<svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 17v-6m3 6V7m3 10v-4M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>' },
-        { href: 'google-sheets-appscript.html', label: 'Sheets — hàm VDV', icon: '<svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>' }
+        { href: 'google-sheets-appscript.html', label: 'Sheets — hàm VDV', icon: '<svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>' },
+        { href: 'excel.html', label: 'Excel (Power Query)', icon: '<svg class="docs-nav-item-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 3v18M3 9h18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>' }
       ]
     },
     {

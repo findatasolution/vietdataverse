@@ -50,6 +50,7 @@
       <a class="doc-toc-item" href="#token">Bước 1 — Lấy API token</a>
       <a class="doc-toc-item" href="#formula">Bước 2 — Viết công thức</a>
       <a class="doc-toc-item" href="#customize">Bước 3 — Đổi loại &amp; thời gian</a>
+      <a class="doc-toc-item" href="#datasets">Các bộ dữ liệu khác</a>
       <a class="doc-toc-item" href="#refresh">Bước 4 — Cập nhật dữ liệu</a>
       <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
     </div>
@@ -197,6 +198,32 @@
       <div class="doc-info">
         <strong>Gọi 20 giá trị?</strong> Copy công thức, chỉ đổi <code>type</code>/<code>period</code> — phần <code>&amp;$B$1</code> giữ nguyên ở mọi ô.
         Đổi key sau này chỉ cần sửa <strong>ô B1</strong>, tất cả công thức tự cập nhật.
+      </div>
+    </section>
+
+    <!-- DATASETS -->
+    <section id="datasets" class="doc-section">
+      <h2>Không chỉ có vàng — các bộ dữ liệu khác</h2>
+      <p>Viet Dataverse cung cấp toàn bộ dữ liệu có trên trang chủ. Đầy đủ các bộ dữ liệu &amp; endpoint:</p>
+
+      <table class="gs-table">
+        <thead><tr><th>Bộ dữ liệu</th><th>Endpoint</th><th>Tham số chính</th></tr></thead>
+        <tbody>
+          <tr><td>Giá vàng</td><td><code>/api/v1/gold</code></td><td><code>type</code> (SJC·DOJI HN·PNJ·BTMC), <code>period</code></td></tr>
+          <tr><td>Giá bạc</td><td><code>/api/v1/silver</code></td><td><code>period</code></td></tr>
+          <tr><td>Tỷ giá ngoại tệ (VCB)</td><td><code>/api/v1/sbv-rate</code></td><td><code>bank</code>=VCB, <code>currency</code> (USD·EUR·JPY…), <code>period</code></td></tr>
+          <tr><td>Lãi suất liên ngân hàng (SBV)</td><td><code>/api/v1/sbv-interbank</code></td><td><code>period</code></td></tr>
+          <tr><td>Lãi suất tiết kiệm</td><td><code>/api/v1/termdepo</code></td><td><code>period</code></td></tr>
+          <tr><td>CPI / Lạm phát</td><td><code>/api/v1/macro/cpi</code></td><td><code>period</code></td></tr>
+          <tr><td>Dữ liệu toàn cầu (vàng·bạc·Nasdaq)</td><td><code>/api/v1/global-macro</code></td><td><code>period</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-warn">
+        <strong>Lưu ý cho Google Sheets:</strong> hàm <code>IMPORTDATA</code> chỉ đọc được <strong>CSV</strong>, hiện có sẵn cho <strong>giá vàng</strong>.
+        Các bộ còn lại (bạc, tỷ giá, lãi suất, CPI…) dùng được <strong>ngay trong Excel qua Power Query</strong>
+        (xem <a href="excel.html" style="color:var(--terracotta);">hướng dẫn Excel</a>) hoặc qua <a href="api-docs.html" style="color:var(--terracotta);">API</a>.
+        Chúng tôi đang bổ sung CSV để IMPORTDATA dùng được cho mọi bộ dữ liệu.
       </div>
     </section>
 
