@@ -3007,12 +3007,6 @@
               onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
         ${isVi ? 'Đăng nhập miễn phí' : 'Sign in for free'}
       </button>
-      <a href="/fe/pages/pricing.html"
-         style="background:none;border:1px solid var(--border-cream,#e8e6dc);color:var(--text-secondary,#87867f);
-                border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;
-                cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;">
-        ${isVi ? 'Xem gói cao cấp' : 'View Pro plan'}
-      </a>
     </div>
   </div>
 </div>`;

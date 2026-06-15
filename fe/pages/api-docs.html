@@ -268,8 +268,7 @@
                 Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
             </p>
             <div class="hero-actions">
-                <a class="btn-primary" href="/pages/pricing.html">Bắt đầu — từ 33,000 ₫/tháng</a>
-                <a class="btn-secondary" href="/pages/developer.html">Quản lý API Key →</a>
+                <a class="btn-primary" href="/pages/developer.html">Lấy API key miễn phí →</a>
             </div>
         </div>
 
@@ -286,7 +285,7 @@
                     <p>API key là "chìa khoá" để gọi dữ liệu. Mỗi request đều cần key này.</p>
                     <ul>
                         <li>Mở <a class="inline-link" href="/pages/developer.html">trang Developer</a> và đăng nhập (hoặc đăng ký miễn phí).</li>
-                        <li>Chọn một gói ở <a class="inline-link" href="/pages/pricing.html">trang Pricing</a> — gói rẻ nhất từ <strong>33.000 ₫/tháng</strong>.</li>
+                        <li>Tài khoản miễn phí được cấp ngay API key với hạn mức <strong>1.000 request/tháng</strong>.</li>
                         <li>Nhấn <strong>"Tạo API key"</strong> → key đầy đủ (~43 ký tự) hiện ngay sau khi tạo. Bấm <strong>"Sao chép"</strong> để lấy key đầy đủ.</li>
                     </ul>
                     <div class="callout">
@@ -478,10 +477,10 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
         <!-- Authentication -->
         <section class="docs-section doc-section" id="auth">
             <h2 class="section-title">Authentication</h2>
-            <p class="section-sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key nhận được sau khi mua gói Developer.</p>
+            <p class="section-sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key miễn phí tạo ở trang Developer.</p>
             <div class="code-block">X-API-Key: Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</div>
             <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
-                Lấy API key tại <a href="/pages/developer.html" style="color:var(--terracotta)">trang Developer</a> sau khi đăng ký gói.
+                Lấy API key miễn phí tại <a href="/pages/developer.html" style="color:var(--terracotta)">trang Developer</a> sau khi đăng nhập.
                 Key được liên kết với tài khoản — không chia sẻ key để tránh bị tính quota.
             </p>
         </section>
@@ -492,14 +491,9 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
             <p class="section-sub">Quota reset vào ngày 1 hàng tháng (múi giờ Asia/Ho_Chi_Minh). Burst limit bảo vệ hệ thống.</p>
             <div class="quota-grid">
                 <div class="quota-card">
-                    <div class="quota-plan">API Super Lite — 33,000 ₫/tháng</div>
+                    <div class="quota-plan">Tài khoản miễn phí</div>
                     <div class="quota-num">1,000</div>
                     <div class="quota-desc">requests/tháng · reset ngày 1 hàng tháng</div>
-                </div>
-                <div class="quota-card">
-                    <div class="quota-plan">API Super Lite — Yearly</div>
-                    <div class="quota-num">10,000</div>
-                    <div class="quota-desc">requests/tháng · tiết kiệm hơn gói tháng</div>
                 </div>
             </div>
             <p style="font-size:13px;color:var(--text-secondary);">
@@ -516,8 +510,6 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
                 <thead><tr><th>HTTP</th><th>Ý nghĩa</th><th>Cách xử lý</th></tr></thead>
                 <tbody>
                     <tr><td class="error-code error-401">401</td><td>API key không hợp lệ hoặc đã bị thu hồi</td><td>Kiểm tra key tại trang Developer</td></tr>
-                    <tr><td class="error-code error-402">402</td><td>Subscription hết hạn — key tạm ngưng</td><td>Gia hạn tại trang Pricing, key tự kích hoạt lại</td></tr>
-                    <tr><td class="error-code" style="color:var(--error-red)">403</td><td>Endpoint yêu cầu tier cao hơn</td><td>Nâng cấp gói hoặc chọn endpoint phù hợp</td></tr>
                     <tr><td class="error-code error-429">429</td><td>Vượt burst hoặc quota tháng</td><td>Xem header <code>Retry-After</code> / <code>X-RateLimit-Reset</code></td></tr>
                     <tr><td class="error-code" style="color:var(--text-tertiary)">500</td><td>Lỗi server</td><td>Thử lại sau — liên hệ support nếu kéo dài</td></tr>
                 </tbody>
@@ -533,7 +525,6 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
 <footer style="text-align:center;padding:32px 24px;border-top:1px solid var(--border-subtle);font-size:12px;color:var(--text-tertiary);">
     © 2024–2026 Viet Dataverse ·
     <a href="/index.html" style="color:var(--text-tertiary)">Trang chủ</a> ·
-    <a href="/pages/pricing.html" style="color:var(--text-tertiary)">Pricing</a> ·
     <a href="mailto:findatasolution@gmail.com" style="color:var(--text-tertiary)">findatasolution@gmail.com</a>
 </footer>
 

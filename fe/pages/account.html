@@ -959,12 +959,7 @@
             status.textContent = 'Đang hoạt động';
             status.className = 'sub-status free';
             expiryEl.textContent = 'Không giới hạn thời gian';
-            ctaEl.innerHTML = `<a href="/pages/pricing.html" class="btn-upgrade" style="text-decoration:none">
-                Nâng cấp lên API Supper Lite
-                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 8h10M9 4l4 4-4 4"/>
-                </svg>
-            </a>`;
+            ctaEl.innerHTML = '';
         } else {
             planName.textContent = PLAN_LABELS[plan] || 'API Supper Lite';
             const days = daysLeft(expiry);
@@ -985,9 +980,7 @@
                 expiryEl.innerHTML = `Hết hạn: <strong>${fmtDate(expiry)}</strong>${daysStr}`;
             }
 
-            ctaEl.innerHTML = `<a href="/pages/pricing.html" class="btn-outline" style="text-decoration:none">
-                ${expired ? 'Gia hạn ngay' : 'Gia hạn gói'}
-            </a>`;
+            ctaEl.innerHTML = '';
         }
     }
 
