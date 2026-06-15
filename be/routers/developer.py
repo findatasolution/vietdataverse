@@ -122,6 +122,10 @@ async def key_info(request: Request):
         return {
             "has_key":      True,
             "key_preview":  masked,
+            # Full key trả về cho chính chủ (endpoint đã auth bằng Bearer) để nút
+            # "Sao chép" copy được key dùng thật — key_value lưu plaintext nên đây
+            # không lộ thêm gì so với hiện trạng.
+            "key_full":     key_val,
             "created_at":   created_at.isoformat() if created_at else None,
             "last_used_at": last_used_at.isoformat() if last_used_at else None,
             "is_active":    bool(is_active),

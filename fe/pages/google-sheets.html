@@ -101,8 +101,8 @@
       <div class="doc-step">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">
-          Nhấn nút <strong>"Tạo API key"</strong>. Bạn sẽ nhận được một chuỗi bắt đầu bằng <code>vdv_</code>, ví dụ:
-          <pre><code>vdv_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</code></pre>
+          Nhấn nút <strong>"Tạo API key"</strong>. Key đầy đủ sẽ hiện <strong>ngay sau khi tạo</strong> — đây là chuỗi ~43 ký tự (chữ, số, <code>-</code> và <code>_</code>), ví dụ:
+          <pre><code>Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</code></pre>
         </div>
       </div>
       <div class="doc-step">
@@ -115,6 +115,11 @@
       <div class="doc-warn">
         <strong>Giữ token bí mật.</strong> Bất kỳ ai có token đều có thể gọi dữ liệu bằng quota của bạn.
         Không chia sẻ file Google Sheets chứa token cho người lạ, không đăng token lên mạng.
+      </div>
+      <div class="doc-warn">
+        <strong>Đừng bấm "Generate New Key" sau khi đã dán token vào Sheets.</strong> Mỗi lần tạo key mới sẽ
+        <strong>thu hồi key cũ ngay lập tức</strong> — token trong Sheets sẽ ngừng hoạt động (lỗi "Could not fetch url").
+        Nếu cần copy lại key đang dùng, bấm nút <strong>"Sao chép"</strong> trên thẻ key (nó copy key đầy đủ, không phải bản rút gọn).
       </div>
     </section>
 
