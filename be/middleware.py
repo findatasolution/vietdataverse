@@ -59,20 +59,13 @@ async def _auth_via_api_key(request: Request, api_key: str) -> bool:
         (key_id, user_id, email, auth0_id, user_level, is_admin,
          premium_expiry, current_plan) = row
 
-        # 2. Subscription expiry check — commit deactivation in its own txn
-        #    then raise (raise cannot rollback a committed txn).
+        # 2. Subscription hết hạn → KHÔNG khoá cứng. Hạ về free tier
+        #    (1.000 req/tháng) thay vì 402, để user từng trả phí không bị
+        #    thiệt hơn user free thuần. Key vẫn giữ active; user nâng cấp
+        #    lại để lấy quota cao hơn (dev_monthly/dev_yearly).
         if not is_admin and premium_expiry is not None and premium_expiry < datetime.now():
-            with engine.begin() as conn:
-                conn.execute(text(
-                    "UPDATE api_keys SET is_active = FALSE WHERE user_id = :uid"
-                ), {"uid": user_id})
-            raise HTTPException(
-                status_code=402,
-                detail=(
-                    "Subscription đã hết hạn. Vui lòng gia hạn tại "
-                    "/pages/pricing.html — API key sẽ tự động active lại."
-                ),
-            )
+            user_level   = "free"
+            current_plan = None
 
         # 3. Quota + burst check + atomic increment — new txn
         with engine.begin() as conn:
