@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chính sách bảo mật — Viet Dataverse</title>
+  <meta name="description" content="Chính sách bảo mật Viet Dataverse: thông tin thu thập, sử dụng cookie, bảo mật dữ liệu, và quyền riêng tư của người dùng.">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: var(--parchment); color: var(--near-black); margin: 0; }
+  </style>
+</head>
+<body>
+
+<header class="doc-topbar">
+  <a class="doc-back" href="docs.html">← Tài liệu</a>
+  <span class="doc-topbar-title">Chính sách bảo mật</span>
+</header>
+
+<div class="doc-shell">
+
+  <!-- TOC sidebar -->
+  <nav class="doc-toc">
+    <div class="doc-toc-inner">
+      <div class="doc-toc-label">Nội dung</div>
+      <a class="doc-toc-item" href="#collect">Thông tin thu thập</a>
+      <a class="doc-toc-item" href="#cookie">Sử dụng Cookie</a>
+      <a class="doc-toc-item" href="#security">Bảo mật dữ liệu</a>
+      <a class="doc-toc-item" href="#contact">Liên hệ</a>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="doc-content">
+
+    <h1>Chính sách bảo mật</h1>
+    <p class="doc-lead">Chào mừng bạn đến với <strong>Viet Dataverse</strong>. Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn khi sử dụng nền tảng dữ liệu kinh tế của chúng tôi.</p>
+
+    <!-- COLLECT -->
+    <section id="collect" class="doc-section">
+      <h2>1. Thông tin chúng tôi thu thập</h2>
+      <p>Để cải thiện chất lượng website, chúng tôi có thể thu thập một số thông tin người dùng như sau:</p>
+      <ul>
+        <li><strong>Thông tin đăng nhập:</strong> Email thông qua hệ thống <strong>Google Integration Auth0</strong>.</li>
+        <li><strong>Dữ liệu sử dụng:</strong> Thông tin về cách bạn tương tác với web thông qua <strong>Google Analytics</strong> (địa chỉ IP, loại trình duyệt, thời gian truy cập).</li>
+      </ul>
+    </section>
+
+    <!-- COOKIE -->
+    <section id="cookie" class="doc-section">
+      <h2>2. Sử dụng Cookie</h2>
+      <p>Chúng tôi sử dụng cookie để lưu trữ tùy chọn ngôn ngữ và trạng thái đăng nhập của bạn nhằm cải thiện trải nghiệm sử dụng. Cookie này không được chia sẻ với bên thứ ba vì mục đích quảng cáo.</p>
+      <p style="font-size:0.9rem;">Xem chi tiết tại <a href="cookie-policy.html" style="color:var(--terracotta);">Chính sách Cookie</a>.</p>
+    </section>
+
+    <!-- SECURITY -->
+    <section id="security" class="doc-section">
+      <h2>3. Bảo mật dữ liệu</h2>
+      <p>Chúng tôi <strong>không bán hoặc chia sẻ</strong> email cá nhân của bạn cho bên thứ ba. Dữ liệu chỉ được sử dụng để cung cấp báo cáo giá vàng và cải thiện trải nghiệm người dùng trên hệ thống Viet Dataverse.</p>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="doc-section">
+      <h2>4. Liên hệ về quyền riêng tư</h2>
+      <p>Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ:
+        <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);font-weight:600;">findatasolution@gmail.com</a>
+      </p>
+      <p style="color:var(--stone-gray);font-size:0.85rem;font-style:italic;margin-top:1rem;">© 2026 Viet Dataverse. Nền tảng dữ liệu kinh tế Việt Nam.</p>
+    </section>
+
+  </main>
+</div>
+
+<script src="docs-sidebar.js"></script>
+<script>
+(function(){
+  var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
+  if(!items.length) return;
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        items.forEach(function(i){ i.classList.toggle('active', i.getAttribute('href')==='#'+e.target.id); });
+      }
+    });
+  }, {rootMargin:'-5% 0px -80% 0px', threshold:0});
+  document.querySelectorAll('.doc-section').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+
+</body>
+</html>
