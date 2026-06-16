@@ -369,7 +369,7 @@
                     <h3>Đăng ký tài khoản &amp; lấy API key</h3>
                     <p>API key là "chìa khoá" để gọi dữ liệu. Mỗi request đều cần key này.</p>
                     <ul>
-                        <li>Mở <a class="inline-link dev-link" href="/pages/developer.html">trang Developer</a> — chưa đăng nhập sẽ được đưa qua màn đăng nhập (hoặc đăng ký miễn phí) trước.</li>
+                        <li><a class="inline-link login-link" href="#">Đăng nhập</a> và mở <a class="inline-link" href="/pages/developer.html" target="_blank" rel="noopener">trang Developer</a> để lấy key.</li>
                         <li>Tài khoản miễn phí được cấp ngay API key với hạn mức <strong>1.000 request/tháng</strong>.</li>
                         <li>Nhấn <strong>"Tạo API key"</strong> → key đầy đủ (~43 ký tự) hiện ngay sau khi tạo. Bấm <strong>"Sao chép"</strong> để lấy key đầy đủ.</li>
                     </ul>
@@ -731,9 +731,21 @@ function setupDevLinks() {
     });
 }
 
+// Link "Đăng nhập" (mục đích ĐĂNG NHẬP): gọi Auth0 login() trực tiếp,
+// đăng nhập xong quay lại trang hiện tại (KHÔNG dẫn về developer.html).
+function setupLoginLinks() {
+    document.querySelectorAll('a.login-link').forEach((a) => {
+        a.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (typeof login === 'function') await login();
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadEndpoints();
     setupDevLinks();
+    setupLoginLinks();
 });
 </script>
 

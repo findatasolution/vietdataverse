@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="../auth.js" defer></script>
   <style>
     body { background: var(--parchment); color: var(--near-black); margin: 0; }
 
@@ -90,7 +92,7 @@
       <div class="doc-step">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">
-          Mở <a href="/pages/developer.html" style="color:var(--terracotta);"><strong>trang Developer</strong></a> rồi đăng nhập (hoặc đăng ký miễn phí nếu chưa có tài khoản).
+          <a class="login-link" href="#" style="color:var(--terracotta);">Đăng nhập</a> và mở <a href="/pages/developer.html" target="_blank" rel="noopener" style="color:var(--terracotta);"><strong>trang Developer</strong></a> để lấy key.
         </div>
       </div>
       <div class="doc-step">
@@ -265,6 +267,13 @@
 
 <script src="docs-sidebar.js"></script>
 <script>
+// Link "Đăng nhập" → gọi Auth0 login() trực tiếp (quay lại trang này sau khi đăng nhập).
+document.querySelectorAll('a.login-link').forEach(function(a){
+  a.addEventListener('click', async function(e){
+    e.preventDefault();
+    if (typeof login === 'function') await login();
+  });
+});
 (function(){
   var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
   if(!items.length) return;
