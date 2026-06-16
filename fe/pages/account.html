@@ -58,6 +58,26 @@
             background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); font-weight: 600;
             box-shadow: 0 0 0 1px var(--ring-warm, #d1cfc5);
         }
+        .nav-burger {
+            display: none; flex-shrink: 0;
+            background: none; border: 1px solid var(--border-warm); border-radius: 8px;
+            padding: 6px 8px; cursor: pointer; color: var(--near-black);
+            align-items: center; justify-content: center;
+        }
+        .nav-burger svg { display: block; }
+        @media (max-width: 640px) {
+            .page-nav { position: relative; flex-wrap: nowrap; }
+            .nav-burger { display: inline-flex; }
+            .settings-tabs {
+                display: none;
+                position: absolute; top: 100%; left: 4px; right: 4px; z-index: 60;
+                flex-direction: column; align-items: stretch; gap: 2px;
+                background: var(--ivory); border: 1px solid var(--border-cream);
+                border-radius: 12px; padding: 8px; margin-top: 6px; box-shadow: var(--whisper);
+            }
+            .settings-tabs.open { display: flex; }
+            .settings-tab { padding: 10px 12px; }
+        }
 
         /* ── Page Header ─────────────────────────────────────── */
         .account-header {
@@ -537,8 +557,12 @@
             </svg>
             Viet Dataverse
         </a>
+        <button class="nav-burger" type="button" aria-label="Menu"
+                onclick="event.stopPropagation();document.getElementById('settings-tabs').classList.toggle('open');">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+        </button>
         <!-- Settings sub-tabs -->
-        <div class="settings-tabs">
+        <div class="settings-tabs" id="settings-tabs">
             <a class="settings-tab active" href="/pages/account.html">Tài khoản</a>
             <a class="settings-tab" href="/fe/#km/library" id="tab-library">My Library</a>
             <a class="settings-tab" href="/fe/#km/wallet" id="tab-wallet">Wallet</a>
@@ -1371,6 +1395,12 @@
     }
 
     /* ── Boot ────────────────────────────────────────────── */
+    // Đóng dropdown settings-tabs khi bấm ra ngoài (mobile)
+    document.addEventListener('click', function () {
+        var t = document.getElementById('settings-tabs');
+        if (t) t.classList.remove('open');
+    });
+
     document.addEventListener('DOMContentLoaded', async () => {
         await initAuth0();
 

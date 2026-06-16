@@ -23,7 +23,10 @@
   var newTopbar = document.createElement('header');
   newTopbar.className = 'docs-topbar';
   newTopbar.innerHTML =
-    '<a class="docs-topbar-brand" href="/index.html">'
+    '<button class="docs-burger" type="button" aria-label="Menu">'
+    +  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>'
+    + '</button>'
+    + '<a class="docs-topbar-brand" href="/index.html">'
     +  '<div class="docs-topbar-logo">V</div>'
     +  '<span class="docs-topbar-name">Viet Dataverse</span>'
     + '</a>'
@@ -54,20 +57,6 @@
   // 2. Hide existing page-section .doc-toc (site sidebar replaces it)
   var pageToc = shell.querySelector('.doc-toc');
   if (pageToc) pageToc.style.display = 'none';
-
-  // 3. Inject mobile quick nav (between topbar and shell)
-  var mobileNavHTML = '<nav class="docs-mobile-nav">'
-    + '<a href="api-docs.html">API Reference</a>'
-    + '<a href="google-sheets.html">Google Sheets</a>'
-    + '<a href="google-sheets-appscript.html">Sheets — hàm VDV</a>'
-    + '<a href="excel.html">Excel</a>'
-    + '<a href="guide-seller.html">Seller Guide</a>'
-    + '<a href="guide-buyer.html">Buyer Guide</a>'
-    + '<a href="knowledge-pack-spec.html">Knowledge Pack</a>'
-    + '<a href="terms.html">Điều khoản</a>'
-    + '<a href="privacy.html">Chính sách</a>'
-    + '</nav>';
-  newTopbar.insertAdjacentHTML('afterend', mobileNavHTML);
 
   // 4. Inject docs sidebar (data-driven, mirrors docs.html)
   var NAV = [
@@ -127,4 +116,26 @@
   navHTML += '</div></nav>';
 
   shell.insertAdjacentHTML('afterbegin', navHTML);
+
+  // 5. Mobile dropdown menu (toggled by hamburger) — gom toàn bộ nav vào đây
+  var menuHTML = '<nav class="docs-mobile-menu" id="docs-mobile-menu">';
+  NAV.forEach(function(group){
+    group.items.forEach(function(item){
+      var isExternal = item.href.indexOf('/index.html#') === 0;
+      var active = !isExternal && currentFile === item.href;
+      menuHTML += '<a class="docs-mobile-menu-item' + (active ? ' active' : '') + '" href="' + item.href + '">' + item.label + '</a>';
+    });
+  });
+  menuHTML += '</nav>';
+  newTopbar.insertAdjacentHTML('afterend', menuHTML);
+
+  var burger = newTopbar.querySelector('.docs-burger');
+  var menu = document.getElementById('docs-mobile-menu');
+  if (burger && menu) {
+    burger.addEventListener('click', function(e){
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', function(){ menu.classList.remove('open'); });
+  }
 })();

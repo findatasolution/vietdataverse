@@ -82,7 +82,12 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* clip (không phải hidden) → chặn left-right scroll mà KHÔNG phá position:sticky */
+    overflow-x: clip;
 }
+html { max-width: 100%; overflow-x: clip; }
+/* Ảnh/media không bao giờ tràn ngang viewport */
+img, svg, video, canvas, table { max-width: 100%; }
 
 ::selection {
     background: rgba(201, 100, 66, 0.15);
@@ -4825,12 +4830,38 @@ html {
 }
 .docs-mobile-nav a:hover { background: var(--warm-sand); color: var(--near-black); }
 
-@media (max-width: 768px) {
-  .docs-sidebar { display: none; }
-  .docs-mobile-nav { display: flex; }
-}
 @media (min-width: 769px) and (max-width: 1024px) {
   .docs-sidebar { width: 220px; }
+}
+
+/* ── Docs Hamburger + Mobile Dropdown (injected by docs-sidebar.js) ── */
+.docs-burger {
+  display: none; flex-shrink: 0;
+  background: none; border: 1px solid var(--border-warm); border-radius: 8px;
+  padding: 6px 8px; cursor: pointer; color: var(--near-black);
+  align-items: center; justify-content: center;
+}
+.docs-burger svg { display: block; }
+.docs-mobile-menu {
+  display: none; flex-direction: column;
+  background: var(--ivory); border-bottom: 1px solid var(--border-cream);
+  padding: 8px; gap: 2px;
+}
+.docs-mobile-menu.open { display: flex; }
+.docs-mobile-menu-item {
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 0.875rem; color: var(--olive-gray); text-decoration: none;
+}
+.docs-mobile-menu-item:hover { background: var(--warm-sand); color: var(--near-black); }
+.docs-mobile-menu-item.active { background: var(--warm-sand); color: var(--near-black); font-weight: 600; }
+
+@media (max-width: 768px) {
+  .docs-sidebar { display: none; }
+  .docs-topbar { gap: 10px; padding: 0 14px; }
+  .docs-burger { display: inline-flex; }
+  /* Mobile: chỉ giữ brand + hamburger, ẩn breadcrumb + ô tìm kiếm cho đỡ tràn */
+  .docs-topbar-sep, .docs-topbar-section, .docs-topbar-search { display: none; }
+  .docs-topbar-actions { margin-left: auto; }
 }
 
 /*
