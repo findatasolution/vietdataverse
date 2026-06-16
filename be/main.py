@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
 
 from datetime import datetime
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -157,9 +157,12 @@ async def root():
     return RedirectResponse(url="/fe/")
 
 @app.get("/index.html")
-async def index_html():
+async def index_html(request: Request):
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/fe/")
+    # Preserve query string so the Auth0 callback (?code=&state=) survives the
+    # redirect — otherwise login on local /pages/* breaks (callback dropped).
+    qs = request.url.query
+    return RedirectResponse(url="/fe/" + (f"?{qs}" if qs else ""))
 
 @app.get("/api/health")
 @app.get("/health")
