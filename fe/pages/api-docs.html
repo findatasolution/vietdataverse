@@ -396,7 +396,7 @@
                     <h3>Đăng ký tài khoản &amp; lấy API key</h3>
                     <p>API key là "chìa khoá" để gọi dữ liệu. Mỗi request đều cần key này.</p>
                     <ul>
-                        <li>Mở <a class="inline-link" href="/pages/developer.html">trang Developer</a> và đăng nhập (hoặc đăng ký miễn phí).</li>
+                        <li>Mở <a class="inline-link dev-link" href="/pages/developer.html">trang Developer</a> — chưa đăng nhập sẽ được đưa qua màn đăng nhập (hoặc đăng ký miễn phí) trước.</li>
                         <li>Tài khoản miễn phí được cấp ngay API key với hạn mức <strong>1.000 request/tháng</strong>.</li>
                         <li>Nhấn <strong>"Tạo API key"</strong> → key đầy đủ (~43 ký tự) hiện ngay sau khi tạo. Bấm <strong>"Sao chép"</strong> để lấy key đầy đủ.</li>
                     </ul>
@@ -411,7 +411,7 @@
                     <h3>Gọi thử ngay trên trình duyệt (không cần code)</h3>
                     <p>Cách nhanh nhất để kiểm tra key hoạt động: dán URL sau vào thanh địa chỉ trình duyệt, thay <code class="kbd">YOUR_API_KEY</code> bằng key của bạn:</p>
                     <div class="code-block">https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;api_key=YOUR_API_KEY</div>
-                    <p>Nếu thấy dữ liệu JSON trả về (có <code class="kbd">"success": true</code>) là key đã chạy. Nếu thấy lỗi <code class="kbd">401</code> → kiểm tra lại key ở <a class="inline-link" href="/pages/developer.html">trang Developer</a>.</p>
+                    <p>Nếu thấy dữ liệu JSON trả về (có <code class="kbd">"success": true</code>) là key đã chạy. Nếu thấy lỗi <code class="kbd">401</code> → kiểm tra lại key ở <a class="inline-link dev-link" href="/pages/developer.html">trang Developer</a>.</p>
                 </div>
 
                 <!-- Step 3 -->
@@ -592,7 +592,7 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
             <p class="section-sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key miễn phí tạo ở trang Developer.</p>
             <div class="code-block">X-API-Key: Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</div>
             <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
-                Lấy API key miễn phí tại <a href="/pages/developer.html" style="color:var(--terracotta)">trang Developer</a> sau khi đăng nhập.
+                Lấy API key miễn phí tại <a class="dev-link" href="/pages/developer.html" style="color:var(--terracotta)">trang Developer</a> sau khi đăng nhập.
                 Key được liên kết với tài khoản — không chia sẻ key để tránh bị tính quota.
             </p>
         </section>
@@ -765,9 +765,30 @@ async function setupGetKeyCta() {
     });
 }
 
+// Mọi link "trang Developer" (mục đích LẤY API): chưa đăng nhập → login()
+// trước rồi quay lại developer.html (không để user thấy màn wall); đã đăng
+// nhập → vào thẳng developer.html.
+function setupDevLinks() {
+    document.querySelectorAll('a.dev-link').forEach((a) => {
+        a.addEventListener('click', async (e) => {
+            e.preventDefault();
+            let ok = false;
+            try { ok = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
+            if (ok) {
+                window.location.href = '/pages/developer.html';
+            } else if (typeof login === 'function') {
+                await login('/pages/developer.html');
+            } else {
+                window.location.href = '/pages/developer.html';
+            }
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadEndpoints();
     setupGetKeyCta();
+    setupDevLinks();
 });
 </script>
 
