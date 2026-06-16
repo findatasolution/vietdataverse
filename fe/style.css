@@ -106,7 +106,10 @@ html {
 /* ── App Layout ── */
 .app-container {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    /* minmax(0,1fr) (not 1fr=minmax(auto,1fr)) → track can shrink below content
+       min-content; without this the main column blows past the viewport on mobile
+       and charts get clipped by overflow-x:clip instead of resizing. */
+    grid-template-columns: 280px minmax(0, 1fr);
     grid-template-rows: 64px 1fr;
     min-height: 100vh;
     max-width: 2000px;
@@ -118,7 +121,7 @@ html {
 }
 
 .app-container.no-sidebar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
 }
 
 /* ── Unified Top Bar ── */
@@ -757,6 +760,7 @@ html {
 .main-content {
     padding: 1.25rem 1.5rem;
     overflow-y: auto;
+    min-width: 0; /* allow grid item to shrink so charts resize instead of overflowing */
     position: relative;
     z-index: 1;
     background: var(--parchment);
@@ -1405,7 +1409,7 @@ html {
 /* ── Gold chart + Market Movement side card ── */
 .gold-section-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 1.5rem;
     align-items: start;
 }
@@ -1416,12 +1420,12 @@ html {
 
 @media (max-width: 1024px) {
     .gold-section-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
 .gold-section-grid.gold-full-width {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
 }
 
 /* ── Market Ticker Strip ── */
@@ -1470,32 +1474,33 @@ html {
 
 .ticker-top {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 5px;
 }
 
 .ticker-name {
     font-size: 0.75rem;
     color: var(--olive-gray);
     font-weight: 400;
-    flex: 1 1 auto;
-    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .ticker-badge {
-    flex: 0 0 auto;
-    font-size: 0.625rem;
+    order: -1; /* source tag sits as overline above the name */
+    align-self: flex-start;
+    font-size: 0.5625rem;
     font-weight: 600;
     color: var(--stone-gray);
     background: var(--warm-sand);
-    padding: 2px 7px;
+    padding: 1px 6px;
     border-radius: 99px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
@@ -1546,8 +1551,25 @@ html {
 
 @media (max-width: 768px) {
     .ticker-card-sm {
-        flex: 0 0 168px;
-        width: 168px;
+        flex: 0 0 158px;
+        width: 158px;
+        padding: 0.625rem 0.75rem 0.5rem;
+        border-radius: var(--radius-lg);
+    }
+    .ticker-price {
+        font-size: 1.25rem;
+    }
+    .ticker-spark {
+        height: 34px;
+        max-height: 34px;
+    }
+    .ticker-change {
+        margin-bottom: 4px;
+        min-height: 14px;
+    }
+    /* per-card timestamp is repeated 7× — drop on mobile to keep cards short */
+    .ticker-ts {
+        display: none;
     }
 }
 
@@ -2110,8 +2132,17 @@ html {
         display: none;
     }
 
+    /* Left cluster must shrink so the right cluster (settings/account) stays on-screen */
+    .app-topbar-left {
+        flex: 1 1 auto;
+        min-width: 0;
+        gap: 0.625rem;
+    }
+
     /* Mobile workspace nav: pill style, scroll-x */
     .workspace-nav {
+        flex: 1 1 auto;
+        min-width: 0; /* allow internal scroll instead of pushing right cluster off-screen */
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
@@ -2149,7 +2180,13 @@ html {
     }
 
     .app-topbar-right {
-        gap: 0.375rem;
+        flex: 0 0 auto; /* never shrink — always visible/tappable */
+        gap: 0.125rem;
+    }
+
+    .topbar-icon-btn {
+        flex-shrink: 0;
+        padding: 0.4rem 0.45rem;
     }
 
     .header-btn {
