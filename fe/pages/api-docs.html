@@ -37,84 +37,122 @@
         }
         body { margin: 0; background: var(--parchment); color: var(--near-black); }
 
-        /* Hero */
+        /* ── Hero ─────────────────────────────────── */
         .docs-hero {
-            text-align: center;
-            padding: 56px 24px 40px;
-            background: var(--parchment);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: center;
+            padding: 52px 0 48px;
+        }
+        .hero-left {
+            display: flex;
+            flex-direction: column;
+        }
+        .hero-right {
+            background: #1b1a19;
+            border-radius: var(--radius-md);
+            padding: 24px 26px 22px;
+            border: 1px solid rgba(255,255,255,0.06);
+            overflow: hidden;
         }
         .hero-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(201, 100, 66, .08); border: 1px solid rgba(201, 100, 66, .18);
+            display: inline-flex; align-items: center;
+            background: rgba(201,100,66,.08); border: 1px solid rgba(201,100,66,.18);
             border-radius: 99px; padding: 4px 14px;
             font-size: 11px; font-weight: 600; color: var(--terracotta);
             letter-spacing: .06em; text-transform: uppercase; margin-bottom: 18px;
+            align-self: flex-start;
         }
         .hero-title {
             font-family: 'Lora', Georgia, serif;
-            font-size: clamp(24px, 5vw, 40px); font-weight: 500;
-            color: var(--near-black); margin: 0 0 12px;
-            line-height: 1.2;
+            font-size: clamp(26px, 3.2vw, 40px); font-weight: 500;
+            color: var(--near-black); margin: 0 0 14px;
+            line-height: 1.2; letter-spacing: -.015em;
         }
         .hero-sub {
             font-size: 15px; color: var(--text-secondary);
-            max-width: 480px; margin: 0 auto 28px; line-height: 1.7;
+            max-width: 400px; margin: 0 0 28px; line-height: 1.72;
         }
-        .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        /* Hero code panel */
+        .hero-code-label {
+            font-size: 10px; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; color: #4a4a45;
+            margin-bottom: 14px; font-family: 'Courier New', monospace;
+        }
+        .hero-code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 11.5px; line-height: 1.82; color: #9d9d97;
+            margin: 0; white-space: pre-wrap; word-break: break-all;
+        }
+        .hero-code .hl-c  { color: #454540; }
+        .hero-code .hl-m  { color: #6baadc; }
+        .hero-code .hl-s  { color: #88c77a; }
+        .hero-code .hl-k  { color: #c9986a; }
+        .hero-code .hl-b  { color: #c096e8; }
+        .hero-code .hl-n  { color: #f0a06a; }
+
+        /* ── Buttons ───────────────────────────────── */
         .btn-primary {
-            padding: 10px 24px;
-            background: var(--terracotta);
-            border: none; border-radius: 10px;
+            padding: 11px 24px;
+            background: var(--terracotta); border: none; border-radius: 10px;
             color: var(--ivory); font-size: 14px; font-weight: 600;
             cursor: pointer; font-family: inherit; text-decoration: none;
-            transition: filter .2s;
+            transition: filter .2s; display: inline-block;
         }
         .btn-primary:hover { filter: brightness(1.08); }
         .btn-secondary {
-            padding: 10px 24px;
+            padding: 11px 24px;
             background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: 10px; color: var(--text-secondary);
             font-size: 14px; font-weight: 500; font-family: inherit;
-            cursor: pointer; text-decoration: none; transition: border-color .2s, color .2s;
-            box-shadow: var(--whisper);
+            cursor: pointer; text-decoration: none;
+            transition: border-color .2s, color .2s;
+            box-shadow: var(--whisper); display: inline-block;
         }
-        .btn-secondary:hover { border-color: rgba(201, 100, 66, .30); color: var(--terracotta); }
+        .btn-secondary:hover { border-color: rgba(201,100,66,.30); color: var(--terracotta); }
 
-        /* Quota grid */
+        /* ── Quota grid ────────────────────────────── */
         .quota-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px; margin-bottom: 24px;
         }
         .quota-card {
             background: var(--pure-white); border: 1px solid var(--border-cream);
-            border-radius: var(--radius-xl); padding: 20px 24px;
+            border-radius: var(--radius-xl); padding: 24px 28px;
             box-shadow: var(--whisper);
         }
-        .quota-plan { font-size: 12px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: .06em; color: var(--text-tertiary); margin-bottom: 8px; }
-        .quota-num { font-size: 24px; font-weight: 700; color: var(--text-primary); }
-        .quota-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .quota-plan { font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .07em; color: var(--text-tertiary); margin-bottom: 10px; }
+        .quota-num  { font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+        .quota-desc { font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
 
-        /* Endpoint list */
+        /* ── Endpoint list ─────────────────────────── */
         .endpoint-group-title {
             font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-            color: var(--text-tertiary); margin: 32px 0 12px; padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-cream);
+            color: var(--text-tertiary); margin: 40px 0 14px; padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-cream);
         }
         .endpoint-row {
             background: var(--pure-white); border: 1px solid var(--border-cream);
-            border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden;
-            box-shadow: var(--whisper);
+            border-radius: var(--radius-md); margin-bottom: 8px; overflow: hidden;
+            box-shadow: var(--whisper); transition: border-color .2s, box-shadow .2s;
+        }
+        .endpoint-row:hover {
+            border-color: rgba(201,100,66,.22);
+            box-shadow: 0 4px 16px rgba(201,100,66,.07);
         }
         .endpoint-header {
             display: flex; align-items: center; gap: 12px;
-            padding: 14px 18px; cursor: pointer; user-select: none;
+            padding: 13px 20px; cursor: pointer; user-select: none;
         }
-        .endpoint-header:hover { background: rgba(201, 100, 66, .03); }
+        .endpoint-header:hover { background: rgba(201,100,66,.025); }
         .method-badge {
             font-size: 10px; font-weight: 800; letter-spacing: .06em;
-            padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
-            background: rgba(56, 152, 236, .12); color: #3898ec;
+            padding: 3px 9px; border-radius: 5px; flex-shrink: 0;
+            background: rgba(56,152,236,.12); color: #3898ec;
         }
         .endpoint-path {
             font-family: 'Courier New', monospace; font-size: 13px;
@@ -122,111 +160,161 @@
             text-overflow: ellipsis; white-space: nowrap;
         }
         .access-chip {
-            font-size: 10px; font-weight: 600; padding: 2px 8px;
+            font-size: 10px; font-weight: 600; padding: 3px 10px;
             border-radius: 99px; flex-shrink: 0;
         }
-        .access-free     { background: rgba(45, 122, 79, .10); color: #2d7a4f; }
-        .access-dev      { background: rgba(201, 100, 66, .10); color: var(--terracotta); }
+        .access-free { background: rgba(45,122,79,.10); color: #2d7a4f; }
+        .access-dev  { background: rgba(201,100,66,.10); color: var(--terracotta); }
         .endpoint-body {
-            display: none; padding: 0 18px 18px; font-size: 12px;
+            display: none; padding: 0 20px 20px; font-size: 12.5px;
             border-top: 1px solid var(--border-cream);
         }
         .endpoint-body.open { display: block; }
-        .endpoint-desc { color: var(--text-secondary); margin: 12px 0 12px; line-height: 1.6; }
-        .params-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
-        .param-row {
-            display: flex; gap: 8px; align-items: baseline;
-            margin-bottom: 4px; font-size: 11.5px; color: var(--text-tertiary);
+        .endpoint-desc { color: var(--text-secondary); margin: 12px 0 14px; line-height: 1.65; }
+        .params-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .07em; color: var(--text-tertiary); margin-bottom: 8px;
         }
-        .param-name { font-family: monospace; color: var(--text-primary); min-width: 100px; }
-        .param-type { color: var(--terracotta); min-width: 50px; }
+        .param-row {
+            display: flex; gap: 10px; align-items: baseline;
+            padding: 6px 0; font-size: 12px; color: var(--text-tertiary);
+            border-bottom: 1px solid var(--border-cream);
+        }
+        .param-row:last-child { border-bottom: none; }
+        .param-name { font-family: monospace; color: var(--text-primary); min-width: 110px; font-size: 12.5px; }
+        .param-type { color: var(--terracotta); min-width: 55px; }
 
-        /* Code tabs */
-        .code-tabs { display: flex; gap: 4px; margin-bottom: 0; }
+        /* ── Code tabs ─────────────────────────────── */
+        .code-tabs { display: flex; gap: 4px; margin-top: 16px; margin-bottom: 0; }
         .code-tab {
-            padding: 4px 12px; font-size: 11px; font-weight: 600;
+            padding: 5px 14px; font-size: 11px; font-weight: 600;
             border-radius: 6px 6px 0 0; cursor: pointer;
             background: var(--warm-sand); border: 1px solid var(--border-warm);
             border-bottom: none; color: var(--text-secondary); font-family: inherit;
+            transition: background .15s;
         }
         .code-tab.active { background: var(--deep-dark); color: #d4d3cf; border-color: var(--deep-dark); }
         .code-block {
             background: var(--deep-dark); border: 1px solid rgba(20,20,19,.15);
-            border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
-            padding: 16px 18px;
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
             font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px;
-            color: #b0b0a8; overflow-x: auto; white-space: pre; line-height: 1.65;
-            margin-bottom: 12px;
+            color: #b0b0a8; overflow-x: auto; white-space: pre; line-height: 1.72;
+            margin-bottom: 14px;
+        }
+        /* code block that sits directly below tabs loses its top-left corner */
+        .code-tabs ~ .code-block {
+            border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
         }
 
-        /* Use-case accordions */
+        /* ── Use-case accordions ───────────────────── */
         details summary::-webkit-details-marker { display: none; }
-        details summary::after { content: '▾'; font-size: 12px; color: var(--text-tertiary); }
+        details summary::after { content: '▾'; font-size: 11px; color: var(--text-tertiary); }
         details[open] summary::after { content: '▴'; }
-        details[open] { border-color: rgba(201,100,66,.25) !important; }
+        details[open] { border-color: rgba(201,100,66,.22) !important; }
         details[open] > summary { color: var(--terracotta); }
 
-        /* Error table */
-        .error-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        /* ── Error table ───────────────────────────── */
+        .error-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .error-table th, .error-table td {
-            text-align: left; padding: 8px 12px;
+            text-align: left; padding: 10px 16px;
             border-bottom: 1px solid var(--border-cream);
             color: var(--text-secondary);
         }
-        .error-table th { font-weight: 600; color: var(--text-tertiary); font-size: 11px; text-transform: uppercase; }
-        .error-code { font-family: monospace; color: var(--text-primary); font-size: 13px; }
-        .error-401 { color: var(--error-red); }
-        .error-402 { color: #c47a1c; }
-        .error-429 { color: var(--terracotta); }
+        .error-table th {
+            font-weight: 700; color: var(--text-tertiary); font-size: 11px;
+            text-transform: uppercase; letter-spacing: .06em;
+            background: rgba(20,20,19,.015); padding: 9px 16px;
+        }
+        .error-table tr:last-child td { border-bottom: none; }
+        .error-code { font-family: monospace; font-size: 15px; font-weight: 700; }
+        .error-401  { color: var(--error-red); }
+        .error-402  { color: #c47a1c; }
+        .error-429  { color: var(--terracotta); }
 
-        /* Setup steps (step-by-step install guide) */
-        .setup-steps { display: grid; gap: 16px; margin-bottom: 8px; counter-reset: step; }
+        /* ── Setup steps ───────────────────────────── */
+        .setup-steps {
+            display: grid; gap: 0; margin-bottom: 8px; counter-reset: step;
+        }
         .setup-step {
             position: relative;
-            background: var(--pure-white); border: 1px solid var(--border-cream);
-            border-radius: var(--radius-md); padding: 20px 24px 20px 64px;
-            box-shadow: var(--whisper);
+            background: var(--pure-white);
+            border: 1px solid var(--border-cream);
+            border-bottom: none;
+            padding: 26px 28px 26px 74px;
         }
+        .setup-step:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+        .setup-step:last-child  {
+            border-bottom: 1px solid var(--border-cream);
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+        .setup-step + .setup-step { border-top: 1px dashed rgba(20,20,19,.08); }
         .setup-step::before {
             counter-increment: step; content: counter(step);
-            position: absolute; left: 20px; top: 20px;
-            width: 28px; height: 28px; border-radius: 50%;
+            position: absolute; left: 22px; top: 26px;
+            width: 32px; height: 32px; border-radius: 50%;
             background: var(--terracotta); color: var(--ivory);
             font-size: 14px; font-weight: 700;
             display: flex; align-items: center; justify-content: center;
         }
         .setup-step h3 {
-            font-family: 'Lora', Georgia, serif; font-size: 16px; font-weight: 500;
-            color: var(--text-primary); margin: 0 0 8px;
+            font-family: 'Lora', Georgia, serif; font-size: 17px; font-weight: 500;
+            color: var(--text-primary); margin: 2px 0 10px;
         }
-        .setup-step p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.7; margin: 0 0 10px; }
+        .setup-step p {
+            font-size: 14px; color: var(--text-secondary);
+            line-height: 1.72; margin: 0 0 12px;
+        }
         .setup-step p:last-child { margin-bottom: 0; }
-        .setup-step ul { font-size: 13.5px; color: var(--text-secondary); line-height: 1.8; margin: 6px 0 10px; padding-left: 18px; }
-        .setup-step .code-block { margin-bottom: 8px; margin-top: 4px; }
+        .setup-step ul {
+            font-size: 14px; color: var(--text-secondary);
+            line-height: 1.85; margin: 6px 0 12px; padding-left: 20px;
+        }
+        .setup-step .code-block { margin-bottom: 10px; margin-top: 8px; }
         .inline-link { color: var(--terracotta); font-weight: 500; text-decoration: none; }
         .inline-link:hover { text-decoration: underline; }
         .callout {
-            display: flex; gap: 10px; align-items: flex-start;
+            display: flex; gap: 12px; align-items: flex-start;
             background: rgba(201,100,66,.06); border: 1px solid rgba(201,100,66,.16);
-            border-radius: var(--radius-sm); padding: 12px 16px;
-            font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+            border-radius: var(--radius-sm); padding: 13px 18px;
+            font-size: 13.5px; color: var(--text-secondary); line-height: 1.65;
         }
         .callout strong { color: var(--terracotta); }
         code.kbd {
             background: var(--warm-sand); color: var(--text-primary);
-            padding: 1px 6px; border-radius: 4px; font-size: 12px;
+            padding: 2px 7px; border-radius: 4px; font-size: 12px;
             font-family: 'Courier New', monospace;
         }
 
-        /* Section helpers */
-        .docs-section { margin-bottom: 56px; }
+        /* ── Section helpers ───────────────────────── */
+        .docs-section { margin-bottom: 64px; }
         .section-title {
-            font-family: 'Lora', Georgia, serif; font-size: 1.375rem; font-weight: 500;
-            color: var(--text-primary); margin: 0 0 6px; padding-top: 8px;
+            font-family: 'Lora', Georgia, serif;
+            font-size: 1.5rem; font-weight: 500;
+            color: var(--text-primary); margin: 0 0 8px; padding-top: 4px;
+            letter-spacing: -.01em;
         }
         .section-sub {
-            font-size: 13px; color: var(--text-secondary);
-            margin: 0 0 24px; line-height: 1.6;
+            font-size: 14px; color: var(--text-secondary);
+            margin: 0 0 24px; line-height: 1.65; max-width: 600px;
+        }
+
+        /* ── Responsive ────────────────────────────── */
+        @media (max-width: 780px) {
+            .docs-hero {
+                grid-template-columns: 1fr;
+                padding: 44px 0 36px;
+                gap: 0;
+            }
+            .hero-left { align-items: center; text-align: center; }
+            .hero-badge { align-self: center; }
+            .hero-sub { max-width: 100%; }
+            .hero-actions { justify-content: center; }
+            .hero-right { display: none; }
+            .setup-step { padding: 20px 20px 20px 64px; }
+            .setup-step::before { left: 18px; top: 20px; }
+            .section-title { font-size: 1.25rem; }
+            .quota-num { font-size: 28px; }
         }
     </style>
 </head>
@@ -263,14 +351,36 @@
 
         <!-- Hero — inside doc-content so it flows below the sidebar topbar -->
         <div class="docs-hero">
-            <div class="hero-badge">API Reference</div>
-            <h1 class="hero-title">Dữ liệu tài chính Việt Nam<br>qua một API đơn giản</h1>
-            <p class="hero-sub">
-                Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
-                Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
-            </p>
-            <div class="hero-actions">
-                <a class="btn-primary" id="cta-getkey" href="/pages/developer.html">Lấy API key miễn phí →</a>
+            <!-- Left: text -->
+            <div class="hero-left">
+                <div class="hero-badge">API Reference</div>
+                <h1 class="hero-title">Dữ liệu tài chính Việt Nam<br>qua một API đơn giản</h1>
+                <p class="hero-sub">
+                    Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
+                    Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn-primary" id="cta-getkey" href="/pages/developer.html">Lấy API key miễn phí →</a>
+                </div>
+            </div>
+            <!-- Right: quick-start code snippet -->
+            <div class="hero-right" aria-hidden="true">
+                <div class="hero-code-label">quick start</div>
+<pre class="hero-code"><span class="hl-c"># 1. Gọi thử trong terminal</span>
+<span class="hl-m">curl</span> <span class="hl-s">"https://api.vietdataverse.online/api/v1/gold \
+     ?type=SJC&amp;period=1m"</span> \
+  -H <span class="hl-s">"X-API-Key: YOUR_API_KEY"</span>
+
+<span class="hl-c"># 2. Response trả về</span>
+{
+  <span class="hl-k">"success"</span>: <span class="hl-b">true</span>,
+  <span class="hl-k">"count"</span>:   <span class="hl-n">30</span>,
+  <span class="hl-k">"data"</span>: {
+    <span class="hl-k">"dates"</span>:      [<span class="hl-s">"2025-06-15"</span>, …],
+    <span class="hl-k">"buy_prices"</span>: [<span class="hl-n">8420000</span>, …],
+    <span class="hl-k">"sell_prices"</span>:[<span class="hl-n">8450000</span>, …]
+  }
+}</pre>
             </div>
         </div>
 
@@ -527,10 +637,10 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
 <footer style="text-align:center;padding:32px 24px;border-top:1px solid var(--border-subtle);font-size:12px;color:var(--text-tertiary);">
     © 2024–2026 Viet Dataverse ·
     <a href="/index.html" style="color:var(--text-tertiary)">Trang chủ</a> ·
-    <a href="mailto:findatasolution@gmail.com" style="color:var(--text-tertiary)">findatasolution@gmail.com</a>
+    <a href="/cdn-cgi/l/email-protection#27414e494346534654484b52534e484967404a464e4b0944484a" style="color:var(--text-tertiary)"><span class="__cf_email__" data-cfemail="96f0fff8f2f7e2f7e5f9fae3e2fff9f8d6f1fbf7fffab8f5f9fb">[email&#160;protected]</span></a>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://127.0.0.1:8000'
     : 'https://api.vietdataverse.online';
@@ -628,23 +738,27 @@ async function loadEndpoints() {
     container.innerHTML = html;
 }
 
-// Hero CTA: chưa đăng nhập → mở Auth0 login (KHÔNG đẩy vào developer.html);
-// đã đăng nhập → vào thẳng trang Developer để lấy/copy key.
+// Hero CTA — tách rõ 2 mục đích:
+//   • CHƯA đăng nhập  → đây là LINK ĐĂNG NHẬP: gọi Auth0 login() trực tiếp,
+//                       KHÔNG dẫn về developer.html (đăng nhập xong quay lại api-docs).
+//   • ĐÃ đăng nhập    → đây là link LẤY API: dẫn về developer.html.
 async function setupGetKeyCta() {
     const cta = document.getElementById('cta-getkey');
     if (!cta) return;
     let authed = false;
     try { authed = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
-    if (!authed) cta.textContent = 'Đăng nhập để lấy API key →';
+    cta.textContent = authed ? 'Lấy API key miễn phí →' : 'Đăng nhập →';
+    cta.setAttribute('href', authed ? '/pages/developer.html' : '#');
     cta.addEventListener('click', async (e) => {
         e.preventDefault();
         let ok = false;
         try { ok = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
         if (ok) {
+            // Lấy API → trang Developer
             window.location.href = '/pages/developer.html';
         } else if (typeof login === 'function') {
-            // Sau khi đăng nhập, quay lại trang Developer để lấy key.
-            await login('/pages/developer.html');
+            // Đăng nhập → Auth0 trực tiếp, KHÔNG đẩy về developer.html
+            await login();
         } else {
             window.location.href = '/pages/developer.html';
         }
