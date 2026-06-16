@@ -349,40 +349,11 @@
 
     <main class="doc-content">
 
-        <!-- Hero — inside doc-content so it flows below the sidebar topbar -->
-        <div class="docs-hero">
-            <!-- Left: text -->
-            <div class="hero-left">
-                <div class="hero-badge">API Reference</div>
-                <h1 class="hero-title">Dữ liệu tài chính Việt Nam<br>qua một API đơn giản</h1>
-                <p class="hero-sub">
-                    Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
-                    Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
-                </p>
-                <div class="hero-actions">
-                    <a class="btn-primary" id="cta-getkey" href="/pages/developer.html">Lấy API key miễn phí →</a>
-                </div>
-            </div>
-            <!-- Right: quick-start code snippet -->
-            <div class="hero-right" aria-hidden="true">
-                <div class="hero-code-label">quick start</div>
-<pre class="hero-code"><span class="hl-c"># 1. Gọi thử trong terminal</span>
-<span class="hl-m">curl</span> <span class="hl-s">"https://api.vietdataverse.online/api/v1/gold \
-     ?type=SJC&amp;period=1m"</span> \
-  -H <span class="hl-s">"X-API-Key: YOUR_API_KEY"</span>
-
-<span class="hl-c"># 2. Response trả về</span>
-{
-  <span class="hl-k">"success"</span>: <span class="hl-b">true</span>,
-  <span class="hl-k">"count"</span>:   <span class="hl-n">30</span>,
-  <span class="hl-k">"data"</span>: {
-    <span class="hl-k">"dates"</span>:      [<span class="hl-s">"2025-06-15"</span>, …],
-    <span class="hl-k">"buy_prices"</span>: [<span class="hl-n">8420000</span>, …],
-    <span class="hl-k">"sell_prices"</span>:[<span class="hl-n">8450000</span>, …]
-  }
-}</pre>
-            </div>
-        </div>
+        <h1>Dữ liệu tài chính Việt Nam qua một API đơn giản</h1>
+        <p class="doc-lead">
+            Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
+            Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
+        </p>
 
         <!-- SETUP — step by step install guide -->
         <section class="docs-section doc-section" id="setup">
@@ -738,33 +709,6 @@ async function loadEndpoints() {
     container.innerHTML = html;
 }
 
-// Hero CTA — tách rõ 2 mục đích:
-//   • CHƯA đăng nhập  → đây là LINK ĐĂNG NHẬP: gọi Auth0 login() trực tiếp,
-//                       KHÔNG dẫn về developer.html (đăng nhập xong quay lại api-docs).
-//   • ĐÃ đăng nhập    → đây là link LẤY API: dẫn về developer.html.
-async function setupGetKeyCta() {
-    const cta = document.getElementById('cta-getkey');
-    if (!cta) return;
-    let authed = false;
-    try { authed = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
-    cta.textContent = authed ? 'Lấy API key miễn phí →' : 'Đăng nhập →';
-    cta.setAttribute('href', authed ? '/pages/developer.html' : '#');
-    cta.addEventListener('click', async (e) => {
-        e.preventDefault();
-        let ok = false;
-        try { ok = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
-        if (ok) {
-            // Lấy API → trang Developer
-            window.location.href = '/pages/developer.html';
-        } else if (typeof login === 'function') {
-            // Đăng nhập → Auth0 trực tiếp, KHÔNG đẩy về developer.html
-            await login();
-        } else {
-            window.location.href = '/pages/developer.html';
-        }
-    });
-}
-
 // Mọi link "trang Developer" (mục đích LẤY API): chưa đăng nhập → login()
 // trước rồi quay lại developer.html (không để user thấy màn wall); đã đăng
 // nhập → vào thẳng developer.html.
@@ -787,7 +731,6 @@ function setupDevLinks() {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadEndpoints();
-    setupGetKeyCta();
     setupDevLinks();
 });
 </script>
