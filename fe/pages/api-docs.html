@@ -293,10 +293,12 @@
             font-size: 1.5rem; font-weight: 500;
             color: var(--text-primary); margin: 0 0 8px; padding-top: 4px;
             letter-spacing: -.01em;
+            /* Override global .section-title (style.css) which is flex-centered */
+            display: block; text-align: left; justify-content: flex-start;
         }
         .section-sub {
             font-size: 14px; color: var(--text-secondary);
-            margin: 0 0 24px; line-height: 1.65; max-width: 600px;
+            margin: 0 0 24px; line-height: 1.65; text-align: left;
         }
 
         /* ── Responsive ────────────────────────────── */
