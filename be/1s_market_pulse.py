@@ -12,6 +12,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 import json
 import re
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
@@ -310,17 +311,21 @@ Return ONLY valid JSON (no markdown code blocks):
         thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
 
+    # Catch both malformed JSON and transient API errors (503 high-demand, 429
+    # rate-limit) — both are common and both clear on a retry with backoff.
     data, last_err, raw = None, None, ''
-    for attempt in range(3):
+    for attempt in range(4):
         try:
             response = client.models.generate_content(
                 model='gemini-2.5-flash', contents=prompt, config=config)
             raw = (response.text or '').strip()
             data = _parse_json_loose(raw)
             break
-        except json.JSONDecodeError as e:
+        except Exception as e:
             last_err = e
-            print(f"   JSON parse attempt {attempt + 1}/3 failed: {e}")
+            print(f"   Gemini attempt {attempt + 1}/4 failed: {type(e).__name__}: {str(e)[:140]}")
+            if attempt < 3:
+                time.sleep(5 * (attempt + 1))  # 5s, 10s, 15s backoff
     if data is None:
         print(f"   Raw response (first 500 chars): {raw[:500]}")
         raise last_err
