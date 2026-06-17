@@ -78,6 +78,66 @@ RSS_FEEDS = [
         "name": "VnExpress Business",
         "url": "https://vnexpress.net/rss/kinh-doanh.rss"
     },
+    # ── Added 2026-06-17 (RSS liveness verified) ──
+    # Global tier-1 finance
+    {
+        "name": "WSJ Markets",
+        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+    },
+    {
+        "name": "The Economist Finance",
+        "url": "https://www.economist.com/finance-and-economics/rss.xml"
+    },
+    {
+        "name": "Financial Times",
+        "url": "https://www.ft.com/rss/home"
+    },
+    {
+        "name": "Yahoo Finance",
+        "url": "https://finance.yahoo.com/news/rssindex"
+    },
+    {
+        "name": "Investing.com",
+        "url": "https://www.investing.com/rss/news.rss"
+    },
+    {
+        "name": "Guardian Business",
+        "url": "https://www.theguardian.com/uk/business/rss"
+    },
+    {
+        "name": "Fortune Finance",
+        "url": "https://fortune.com/feed/fortune-feeds/?id=3230629"
+    },
+    {
+        "name": "Seeking Alpha",
+        "url": "https://seekingalpha.com/market_currents.xml"
+    },
+    # Central bank (complements Federal Reserve)
+    {
+        "name": "ECB Press",
+        "url": "https://www.ecb.europa.eu/rss/press.html"
+    },
+    # Vietnam financial / markets
+    {
+        "name": "CafeF",
+        "url": "https://cafef.vn/thi-truong-chung-khoan.rss"
+    },
+    {
+        "name": "Tin nhanh Chứng khoán (ĐTCK)",
+        "url": "https://www.tinnhanhchungkhoan.vn/rss/home.rss"
+    },
+    {
+        "name": "Vietstock",
+        "url": "https://vietstock.vn/145/chung-khoan.rss"
+    },
+    {
+        "name": "VietnamNet Business",
+        "url": "https://vietnamnet.vn/rss/kinh-doanh.rss"
+    },
+    {
+        "name": "Tuổi Trẻ Business",
+        "url": "https://tuoitre.vn/rss/kinh-doanh.rss"
+    },
 ]
 
 
