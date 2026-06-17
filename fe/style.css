@@ -1640,14 +1640,45 @@ html {
     flex: 0 0 auto;
 }
 
+/* Holds the scrolling items; carries the inter-item gap the band used to own,
+   so desktop layout is unchanged (band now flexes [track][ts]). */
+.global-ticker-track {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
 @media (max-width: 768px) {
     .global-ticker-band {
         gap: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
+    .global-ticker-track {
+        gap: 0.875rem;
+    }
     .global-ticker-ts {
         display: none;
     }
+    /* Auto-scrolling marquee — only enabled by JS (.is-marquee) when the row
+       overflows on a narrow screen. Desktop never gets this class. */
+    .global-ticker-band.is-marquee {
+        overflow: hidden;
+    }
+    .global-ticker-band.is-marquee .global-ticker-track {
+        width: max-content;
+        animation: vdv-ticker-scroll var(--ticker-dur, 22s) linear infinite;
+    }
+    .global-ticker-band.is-marquee .global-ticker-track:active {
+        animation-play-state: paused;
+    }
+}
+
+@keyframes vdv-ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .global-ticker-band.is-marquee .global-ticker-track { animation: none; }
 }
 
 .market-movement-card {
@@ -2196,6 +2227,33 @@ html {
 
     .header-btn span {
         display: none;
+    }
+
+    /* ── Mobile topbar tidy-up (desktop untouched — all scoped ≤768px) ── */
+    /* Docs lives in the settings menu / footer on mobile; drop the loose icon. */
+    .app-topbar-right a.topbar-icon-btn {
+        display: none;
+    }
+    /* "Đăng nhập" is the primary mobile action — keep it visible WITH its label.
+       ID specificity overrides the .header-btn/.header-link display:none rules
+       further down (which were hiding login entirely on phones). */
+    #login-link {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    #login-link .header-btn.primary {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.8125rem;
+        color: var(--ivory);
+        text-decoration: none;
+    }
+    #login-link .header-btn.primary span {
+        display: inline;
+        color: var(--ivory);
+        text-decoration: none;
     }
 
     .main-content {

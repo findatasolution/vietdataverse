@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=2026061701">
+    <link rel="stylesheet" href="style.css?v=2026061702">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#c96442">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -79,7 +79,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=2026061701" as="style">
+    <link rel="preload" href="style.css?v=2026061702" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -668,35 +668,37 @@
                     </div>
 
                     <!-- ── Global Markets Ticker Band ── -->
-                    <div class="global-ticker-band">
-                        <div class="global-ticker-item">
-                            <span class="global-ticker-label">NASDAQ</span>
-                            <span class="global-ticker-value" id="gtk-nasdaq-price">—</span>
-                            <span class="global-ticker-change neutral" id="gtk-nasdaq-change">—</span>
-                        </div>
-                        <div class="global-ticker-sep"></div>
-                        <div class="global-ticker-item">
-                            <span class="global-ticker-label">S&amp;P 500</span>
-                            <span class="global-ticker-value" id="gtk-sp500-price">—</span>
-                            <span class="global-ticker-change neutral" id="gtk-sp500-change">—</span>
-                        </div>
-                        <div class="global-ticker-sep"></div>
-                        <div class="global-ticker-item">
-                            <span class="global-ticker-label">Dow Jones</span>
-                            <span class="global-ticker-value" id="gtk-dowjones-price">—</span>
-                            <span class="global-ticker-change neutral" id="gtk-dowjones-change">—</span>
-                        </div>
-                        <div class="global-ticker-sep"></div>
-                        <div class="global-ticker-item">
-                            <span class="global-ticker-label">Vàng Quốc tế</span>
-                            <span class="global-ticker-value" id="gtk-gold-price">—</span>
-                            <span class="global-ticker-change neutral" id="gtk-gold-change">—</span>
-                        </div>
-                        <div class="global-ticker-sep"></div>
-                        <div class="global-ticker-item">
-                            <span class="global-ticker-label">Bạc Quốc tế</span>
-                            <span class="global-ticker-value" id="gtk-silver-price">—</span>
-                            <span class="global-ticker-change neutral" id="gtk-silver-change">—</span>
+                    <div class="global-ticker-band" id="global-ticker-band">
+                        <div class="global-ticker-track" id="global-ticker-track">
+                            <div class="global-ticker-item">
+                                <span class="global-ticker-label">NASDAQ</span>
+                                <span class="global-ticker-value" id="gtk-nasdaq-price">—</span>
+                                <span class="global-ticker-change neutral" id="gtk-nasdaq-change">—</span>
+                            </div>
+                            <div class="global-ticker-sep"></div>
+                            <div class="global-ticker-item">
+                                <span class="global-ticker-label">S&amp;P 500</span>
+                                <span class="global-ticker-value" id="gtk-sp500-price">—</span>
+                                <span class="global-ticker-change neutral" id="gtk-sp500-change">—</span>
+                            </div>
+                            <div class="global-ticker-sep"></div>
+                            <div class="global-ticker-item">
+                                <span class="global-ticker-label">Dow Jones</span>
+                                <span class="global-ticker-value" id="gtk-dowjones-price">—</span>
+                                <span class="global-ticker-change neutral" id="gtk-dowjones-change">—</span>
+                            </div>
+                            <div class="global-ticker-sep"></div>
+                            <div class="global-ticker-item">
+                                <span class="global-ticker-label">Vàng Quốc tế</span>
+                                <span class="global-ticker-value" id="gtk-gold-price">—</span>
+                                <span class="global-ticker-change neutral" id="gtk-gold-change">—</span>
+                            </div>
+                            <div class="global-ticker-sep"></div>
+                            <div class="global-ticker-item">
+                                <span class="global-ticker-label">Bạc Quốc tế</span>
+                                <span class="global-ticker-value" id="gtk-silver-price">—</span>
+                                <span class="global-ticker-change neutral" id="gtk-silver-change">—</span>
+                            </div>
                         </div>
                         <span class="global-ticker-ts" id="gtk-ts"></span>
                     </div>
@@ -1889,7 +1891,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2026061406" defer></script>
+    <script src="app.js?v=2026061702" defer></script>
     <script src="app.knowledge.js?v=2026061401" defer></script>
 
     <!-- Chart info tooltip popup (position:fixed — escapes overflow:hidden on .chart-card) -->

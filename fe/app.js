@@ -2596,12 +2596,57 @@
 
                     const tsEl = document.getElementById('gtk-ts');
                     if (tsEl && lastDate) tsEl.textContent = 'Cập nhật: ' + lastDate;
+
+                    setupGlobalTickerMarquee();
                 } catch (e) {
                     console.warn('[market-movement] global ticker band failed:', e);
                 }
             })());
 
             await Promise.all(tasks);
+        }
+
+        /**
+         * Auto-scrolling marquee for the global ticker band — mobile only.
+         * Clones the populated track so translateX(-50%) loops seamlessly, and
+         * only activates when the row actually overflows the viewport. Re-runs on
+         * resize so rotating a phone or crossing the 768px breakpoint stays correct.
+         */
+        function setupGlobalTickerMarquee() {
+            const band = document.getElementById('global-ticker-band');
+            const track = document.getElementById('global-ticker-track');
+            if (!band || !track) return;
+
+            // Tear down any previous marquee (handles resize / re-entry).
+            band.classList.remove('is-marquee');
+            track.querySelectorAll('[data-ticker-clone]').forEach(n => n.remove());
+
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            if (!isMobile) return;
+            if (track.scrollWidth <= band.clientWidth + 4) return; // fits → no scroll needed
+
+            Array.from(track.children).forEach(node => {
+                const clone = node.cloneNode(true);
+                clone.setAttribute('data-ticker-clone', '');
+                clone.setAttribute('aria-hidden', 'true');
+                if (clone.id) clone.removeAttribute('id');
+                clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                track.appendChild(clone);
+            });
+
+            // ~55px/sec keeps the read speed comfortable regardless of content width.
+            const dur = Math.max(12, Math.round((track.scrollWidth / 2) / 55));
+            track.style.setProperty('--ticker-dur', dur + 's');
+            band.classList.add('is-marquee');
+        }
+
+        if (!window._tickerMarqueeResizeBound) {
+            window._tickerMarqueeResizeBound = true;
+            let _mqT;
+            window.addEventListener('resize', () => {
+                clearTimeout(_mqT);
+                _mqT = setTimeout(setupGlobalTickerMarquee, 200);
+            });
         }
 
         /* =========================================================
