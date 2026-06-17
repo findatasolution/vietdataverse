@@ -44,9 +44,6 @@
                 navDataPortal: 'Dữ Liệu Kinh Tế Mở',
                 nav1sMarketPortal: 'Thời báo 1 giây',
                 nav1smarketsub: 'Tờ báo quan trọng theo MRI',
-                futureOutlookSubtitle: 'Phân tích chuyên sâu & Dự báo xu hướng các loại tài sản',
-                navfinagent: 'Fintel AI Agent',
-                navfinagentsub: 'AI Agents cho thuê',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Tải dữ liệu & API access',
                 navAboutTerms: 'Giới thiệu & Điều khoản',
@@ -59,6 +56,8 @@
                 logoutBtn: 'Đăng xuất',
                 mainTitle: 'Tải Dữ Liệu Kinh Tế Mở',
                 mainSubtitle: '<strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí',
+                dataHeroCTAExplore: 'Xem & tải dữ liệu',
+                dataHeroCTAApi: 'API cho lập trình viên',
                 sectionTitle: 'Tải Dữ Liệu Kinh Tế Mở',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch Sử Giá Vàng Trong Nước',
@@ -77,19 +76,6 @@
                 sbvDatasetDesc: 'Lãi suất liên ngân hàng VND (qua đêm, 1 tuần, 2 tuần, 1-9 tháng) công bố bởi Ngân hàng Nhà nước Việt Nam.',
                 tdDatasetTitle: 'Lãi Suất Gửi Tiết Kiệm',
                 apiBtn: 'Đăng nhập',
-                // Fintel Agent Tab
-                fintelHeroBadge: 'Được hỗ trợ bởi AI tiên tiến',
-                fintelHeroSubtitle: 'AI Agents chuyên biệt cho phân tích tài chính, dự báo thị trường, và tự động hóa giao dịch. Tích hợp dễ dàng qua API, nhận cảnh báo real-time qua webhook.',
-                agentMarketTitle: 'Market Analysis Agent',
-                agentMarketDesc: 'Phân tích thị trường tự động - Theo dõi VN-Index, phân tích kỹ thuật, nhận diện xu hướng và cảnh báo biến động bất thường 24/7.',
-                agentGoldTitle: 'Gold Trading Agent',
-                agentGoldDesc: 'Theo dõi giá vàng - So sánh giá vàng SJC, DOJI, PNJ với giá quốc tế, cảnh báo chênh lệch và thời điểm mua/bán tối ưu.',
-                agentNewsTitle: 'News Sentiment Agent',
-                agentNewsDesc: 'Phân tích tin tức - Quét tin tức tài chính 24/7, đánh giá sentiment và dự báo tác động đến thị trường VN bằng AI.',
-                agentCustomTitle: 'Custom Agent',
-                agentCustomDesc: 'Agent tùy chỉnh - Xây dựng AI agent theo yêu cầu riêng của doanh nghiệp: tích hợp dữ liệu nội bộ, workflow tự động, báo cáo định kỳ.',
-                agentStatusComingSoon: 'Sắp ra mắt',
-                agentStatusOnRequest: 'Theo yêu cầu',
                 pricingTitle: 'Bảng Giá',
                 pricingSubtitle: 'Chọn gói phù hợp với nhu cầu của bạn',
                 pricingStarter: 'Khởi đầu',
@@ -162,21 +148,6 @@
                 pulseOverviewTitle: 'Tổng quan 24h',
                 pulseHotTopicsTitle: 'Chủ đề nóng',
                 pulseSidebarLoading: 'Đang tải...',
-                // 1s Future Outlook cards
-                foFeatured: 'Báo cáo nổi bật',
-                foGoldTitle: 'Dự báo Giá Vàng 2026',
-                foGoldDesc: 'Phân tích chuyên sâu từ Goldman Sachs, J.P. Morgan, UBS — Mục tiêu $6,300/oz. Biểu đồ tương tác & Trình mô phỏng biến động.',
-                foViewReport: 'Xem báo cáo đầy đủ',
-                foRealEstateTitle: 'Bất động sản Việt Nam 2026',
-                foRealEstateDesc: 'Phân tích xu hướng giá, vùng tiềm năng và dự báo thị trường.',
-                foStockTitle: 'VN-Index & Cổ phiếu 2026',
-                foStockDesc: 'Dự báo chỉ số, ngành tiềm năng và chiến lược phân bổ danh mục.',
-                foComingSoon: 'Sắp ra mắt',
-                // VN30 Score
-                vn30Intro: 'Bảng xếp hạng 30 cổ phiếu VN30 theo xác suất tăng giá dự báo bởi mô hình Machine Learning. <strong style="color:var(--gold-primary);">Premium</strong> — xem đầy đủ 30 mã & lịch sử điểm từng mã.',
-                vn30GateTitle: 'Xem đầy đủ 30 cổ phiếu VN30',
-                vn30GateBody: 'Nâng cấp <strong style="color:var(--gold-primary);">Premium</strong> để xem toàn bộ bảng xếp hạng, lịch sử điểm số từng mã và tín hiệu mua/bán.',
-                vn30GateCTA: 'Đăng nhập / Nâng cấp Premium',
                 // Download tab
                 dlHeading: 'Tải Dữ Liệu (CSV)',
                 dlSubtitle: 'Chọn bảng dữ liệu và tải về định dạng CSV. Toàn bộ lịch sử (<code>period=all</code>).',
@@ -247,11 +218,6 @@
                 notifApiTitle: 'API đang phát triển',
                 notifApiMessage: 'Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính năng sẵn sàng.',
                 notifApiMessageLoggedIn: 'Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính năng sẵn sàng.',
-                // Premium gate
-                premiumGateTitle: 'Nội dung Premium',
-                premiumGateBody: 'Báo cáo <strong style="color:#d4af37;">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.',
-                premiumGateCTA: 'Xem gói Premium',
-                premiumGateLater: 'Để sau',
             },
             en: {
                 langBtn: 'Vie',
@@ -259,9 +225,6 @@
                 navDataPortal: 'Open Economic Data',
                 nav1sMarketPortal: '1s Market Pulse',
                 nav1smarketsub: 'Important updates with Market Response Index',
-                futureOutlookSubtitle: 'In-depth analysis & Asset trend forecasts',
-                navfinagent: 'Fintel AI Agent',
-                navfinagentsub: 'AI Agents for Hire',
                 navDownloadApi: 'Download & API',
                 navDownloadApiMeta: 'Free Download & API',
                 navAboutTerms: 'About & Terms',
@@ -274,6 +237,8 @@
                 logoutBtn: 'Log out',
                 mainTitle: 'Download Open Economic Data',
                 mainSubtitle: '<strong>Download for free</strong> Vietnam gold, silver prices, SBV interest rates and more economic research and analysis.',
+                dataHeroCTAExplore: 'Explore & download data',
+                dataHeroCTAApi: 'API for developers',
                 sectionTitle: 'Download Open Economic Data',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
@@ -292,19 +257,6 @@
                 sbvDatasetDesc: 'VND interbank interest rates (overnight, 1 week, 2 weeks, 1-9 months) published by State Bank of Vietnam.',
                 tdDatasetTitle: 'Term Deposit Rates',
                 apiBtn: 'Login',
-                // Fintel Agent Tab
-                fintelHeroBadge: 'Powered by Advanced AI',
-                fintelHeroSubtitle: 'Specialized AI Agents for financial analysis, market forecasting, and trade automation. Easy API integration, real-time alerts via webhook.',
-                agentMarketTitle: 'Market Analysis Agent',
-                agentMarketDesc: 'Automated market analysis - Track VN-Index, technical analysis, trend detection and abnormal volatility alerts 24/7.',
-                agentGoldTitle: 'Gold Trading Agent',
-                agentGoldDesc: 'Gold price tracking - Compare SJC, DOJI, PNJ prices with international rates, spread alerts and optimal buy/sell timing.',
-                agentNewsTitle: 'News Sentiment Agent',
-                agentNewsDesc: 'News analysis - Scan financial news 24/7, evaluate sentiment and predict market impact on Vietnam markets using AI.',
-                agentCustomTitle: 'Custom Agent',
-                agentCustomDesc: 'Custom agent - Build AI agents tailored to your business: private data integration, automated workflows, scheduled reports.',
-                agentStatusComingSoon: 'Coming Soon',
-                agentStatusOnRequest: 'On Request',
                 pricingTitle: 'Pricing Plans',
                 pricingSubtitle: 'Choose the plan that fits your needs',
                 pricingStarter: 'Starter',
@@ -377,21 +329,6 @@
                 pulseOverviewTitle: '24h Overview',
                 pulseHotTopicsTitle: 'Hot Topics',
                 pulseSidebarLoading: 'Loading...',
-                // 1s Future Outlook cards
-                foFeatured: 'Featured Report',
-                foGoldTitle: 'Gold Price Forecast 2026',
-                foGoldDesc: 'In-depth analysis from Goldman Sachs, J.P. Morgan, UBS — Target $6,300/oz. Interactive charts & volatility simulator.',
-                foViewReport: 'View full report',
-                foRealEstateTitle: 'Vietnam Real Estate 2026',
-                foRealEstateDesc: 'Price trend analysis, potential regions and market forecast.',
-                foStockTitle: 'VN-Index & Stocks 2026',
-                foStockDesc: 'Index forecast, promising sectors and portfolio allocation strategy.',
-                foComingSoon: 'Coming Soon',
-                // VN30 Score
-                vn30Intro: 'Ranking of the 30 VN30 stocks by price-rise probability predicted by a Machine Learning model. <strong style="color:var(--gold-primary);">Premium</strong> — see all 30 tickers & per-ticker score history.',
-                vn30GateTitle: 'See all 30 VN30 stocks',
-                vn30GateBody: 'Upgrade to <strong style="color:var(--gold-primary);">Premium</strong> to see the full ranking, per-ticker score history, and buy/sell signals.',
-                vn30GateCTA: 'Log in / Upgrade to Premium',
                 // Download tab
                 dlHeading: 'Download Data (CSV)',
                 dlSubtitle: 'Pick a dataset and download it as CSV. Full history (<code>period=all</code>).',
@@ -462,11 +399,6 @@
                 notifApiTitle: 'API in development',
                 notifApiMessage: 'API access is currently in development. Create an account to be notified when it is ready.',
                 notifApiMessageLoggedIn: 'API access is currently in development. You will be notified by email when it is ready.',
-                // Premium gate
-                premiumGateTitle: 'Premium content',
-                premiumGateBody: 'The <strong style="color:#d4af37;">1s Future Outlook</strong> report is for Premium members only. Upgrade to read in-depth analysis, gold price forecasts and all exclusive content.',
-                premiumGateCTA: 'View Premium plans',
-                premiumGateLater: 'Later',
             }
         };
 
@@ -2946,27 +2878,6 @@
                 }
             }
         }
-
-        // ============================================================
-        // FUTURE OUTLOOK — Premium gate
-        // ============================================================
-        function openPremiumReport(event, url) {
-            const level = window._vdvUserLevel || 'free';
-            if (level === 'premium' || level === 'premium_developer' || level === 'admin') {
-                return true; // allow navigation
-            }
-            event.preventDefault();
-            document.getElementById('premium-gate-modal').style.display = 'flex';
-            return false;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('premium-gate-modal');
-            if (!modal) return;
-            modal.addEventListener('click', e => {
-                if (e.target === modal) modal.style.display = 'none';
-            });
-        });
 
         // Market Pulse data cache for filtering
         let pulseDataCache = [];

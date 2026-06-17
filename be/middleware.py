@@ -234,7 +234,6 @@ async def authenticate_user(request: Request):
         "/api/v1/gold", "/api/v1/silver", "/api/v1/sbv-interbank",
         "/api/v1/termdepo", "/api/v1/global-macro", "/api/v1/gold/types",
         "/api/v1/termdepo/banks", "/api/v1/gold-analysis",
-        "/api/v1/vn30-scores/meta",
     ]
 
     if request.url.path in public_endpoints:

@@ -379,30 +379,6 @@ async def list_endpoints():
             },
             # ── AI & Phân tích ───────────────────────────────────────────
             {
-                "path": "/api/v1/vn30-scores",
-                "method": "GET",
-                "access": "premium_developer",
-                "description": "Xếp hạng VN30 theo xác suất tăng giá (AI model). Dev: 30 mã đầy đủ",
-                "params": [],
-            },
-            {
-                "path": "/api/v1/vn30-scores/meta",
-                "method": "GET",
-                "access": "free",
-                "description": "Metadata của batch dự đoán VN30 mới nhất",
-                "params": [],
-            },
-            {
-                "path": "/api/v1/vn30-scores/ticker/{ticker}",
-                "method": "GET",
-                "access": "premium_developer",
-                "description": "Lịch sử điểm dự đoán hàng tuần cho một mã cổ phiếu",
-                "params": [
-                    {"name": "ticker", "type": "path", "example": "VNM"},
-                    {"name": "limit",  "type": "int", "default": 8, "max": 52},
-                ],
-            },
-            {
                 "path": "/api/v1/gold-analysis",
                 "method": "GET",
                 "access": "free",
@@ -413,7 +389,7 @@ async def list_endpoints():
                 "path": "/api/v1/market-pulse",
                 "method": "GET",
                 "access": "premium_developer",
-                "description": "Tin tức thị trường có điểm MRI (Market Risk Index). Dev: 50 bài",
+                "description": "Tin tức thị trường có điểm MRI (Market Reaction Index). Dev: 50 bài",
                 "params": [
                     {"name": "lang",  "type": "string", "options": ["vi", "en"], "default": "vi"},
                     {"name": "limit", "type": "int", "default": 10, "max": 50},

@@ -1,6 +1,16 @@
             <div class="tab-content active" id="data-portal">
                 <div class="charts-scroll-page">
 
+                    <!-- ── Value-Prop Hero ── -->
+                    <section class="data-hero">
+                        <h1 class="data-hero-title" data-i18n="mainTitle">Tải Dữ Liệu Kinh Tế Mở</h1>
+                        <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí</p>
+                        <div class="data-hero-cta">
+                            <a href="#data-charts" class="btn-data-primary"><i class="fas fa-chart-line"></i> <span data-i18n="dataHeroCTAExplore">Xem & tải dữ liệu</span></a>
+                            <a href="/fe/pages/api-docs.html" class="btn-data-secondary"><i class="fas fa-code"></i> <span data-i18n="dataHeroCTAApi">API cho lập trình viên</span></a>
+                        </div>
+                    </section>
+
                     <!-- ── Market Ticker Strip ── -->
                     <div class="ticker-strip">
                         <div class="ticker-card-sm">
@@ -132,7 +142,7 @@
                     </div>
 
                     <!-- ── Section: Vàng & Bạc ── -->
-                    <div class="chart-section-group" data-lazy-section="gold-silver">
+                    <div class="chart-section-group" id="data-charts" data-lazy-section="gold-silver">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-coins"></i>
                             <span data-i18n="tabGoldSilver">Vàng & Bạc</span>

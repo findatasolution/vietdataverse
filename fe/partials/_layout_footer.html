@@ -53,19 +53,6 @@
     <!-- Chart info tooltip popup (position:fixed — escapes overflow:hidden on .chart-card) -->
     <div id="chart-tooltip-popup"></div>
 
-    <!-- Premium Gate Modal -->
-    <div id="premium-gate-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,20,19,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
-        <div style="background:var(--pure-white); border:1px solid var(--border-cream); border-radius:var(--radius-xl); padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; position:relative; box-shadow:var(--shadow-lg);">
-            <button onclick="document.getElementById('premium-gate-modal').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--stone-gray);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
-            <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
-            <h3 data-i18n="premiumGateTitle" style="font-family:'Lora',Georgia,serif;font-size:1.3rem;font-weight:500;color:var(--near-black);margin-bottom:0.5rem;">Nội dung Premium</h3>
-            <p data-i18n-html="premiumGateBody" style="color:var(--olive-gray);font-size:0.9rem;line-height:1.65;margin-bottom:1.5rem;">Báo cáo <strong style="color:var(--terracotta);">1s Future Outlook</strong> chỉ dành cho thành viên Premium. Nâng cấp để đọc phân tích chuyên sâu, dự báo giá vàng và toàn bộ nội dung độc quyền.</p>
-            <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
-                <button data-i18n="premiumGateLater" onclick="document.getElementById('premium-gate-modal').style.display='none'" style="background:var(--warm-sand);color:var(--charcoal);border:1px solid var(--border-warm);font-weight:500;padding:0.6rem 1.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.9rem;">Đóng</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Report Listing Modal (DMCA inline — Phase 4 stub) -->
     <div id="report-listing-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(20,20,19,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
         <div style="background:var(--pure-white); border:1px solid var(--border-cream); border-radius:var(--radius-xl); padding:2.5rem 2rem; max-width:480px; width:90%; position:relative; box-shadow:var(--shadow-lg);">
