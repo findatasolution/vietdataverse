@@ -79,12 +79,11 @@ RSS_FEEDS = [
         "name": "VnExpress Business",
         "url": "https://vnexpress.net/rss/kinh-doanh.rss"
     },
-    # ── Added 2026-06-17 (RSS liveness verified) ──
+    # ── Added 2026-06-17 (RSS liveness verified on the GitHub Actions runner) ──
+    # NOTE: WSJ Markets (feeds.a.dj.com) and Yahoo Finance (finance.yahoo.com)
+    # were dropped — they return 0 entries from cloud/datacenter IPs (Akamai
+    # block), so they only work locally and can't be crawled in the prod flow.
     # Global tier-1 finance
-    {
-        "name": "WSJ Markets",
-        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
-    },
     {
         "name": "The Economist Finance",
         "url": "https://www.economist.com/finance-and-economics/rss.xml"
@@ -92,10 +91,6 @@ RSS_FEEDS = [
     {
         "name": "Financial Times",
         "url": "https://www.ft.com/rss/home"
-    },
-    {
-        "name": "Yahoo Finance",
-        "url": "https://finance.yahoo.com/news/rssindex"
     },
     {
         "name": "Investing.com",
