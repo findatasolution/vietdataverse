@@ -7,6 +7,7 @@ sqlalchemy==2.0.36
 alembic==1.14.0
 uvicorn==0.32.1
 google-generativeai==0.8.3
+google-genai==1.47.0
 email-validator==2.2.0
 pandas==2.2.3
 openpyxl==3.1.5
