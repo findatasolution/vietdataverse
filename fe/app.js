@@ -3112,14 +3112,28 @@
         // Initialize Market Pulse with filter listeners
         document.addEventListener('DOMContentLoaded', () => {
             loadMarketPulse();
-            ['filter-source', 'filter-label', 'filter-mri', 'filter-time'].forEach(id => {
-                document.getElementById(id)?.addEventListener('change', renderFilteredPulse);
+
+            // Guests get a gated 1-article preview (pulseGatedPreview !== null), so
+            // their cache is too small to filter — selecting any filter would return
+            // "no results". Let them open the dropdown, but prompt login the moment
+            // they pick an option (revert the selection first so nothing half-applies).
+            const filterIds = ['filter-source', 'filter-label', 'filter-mri', 'filter-time'];
+            const guestGated = () => pulseGatedPreview !== null;
+            const promptLogin = () => { if (typeof login === 'function') login(); };
+
+            filterIds.forEach(id => {
+                document.getElementById(id)?.addEventListener('change', (e) => {
+                    if (guestGated()) {
+                        e.target.value = '';
+                        promptLogin();
+                        return;
+                    }
+                    renderFilteredPulse();
+                });
             });
             document.getElementById('filter-reset')?.addEventListener('click', () => {
-                document.getElementById('filter-source').value = '';
-                document.getElementById('filter-label').value = '';
-                document.getElementById('filter-mri').value = '';
-                document.getElementById('filter-time').value = '';
+                if (guestGated()) { promptLogin(); return; }
+                filterIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
                 renderFilteredPulse();
             });
         });
