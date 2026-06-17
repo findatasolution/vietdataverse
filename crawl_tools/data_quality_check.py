@@ -78,7 +78,7 @@ TABLES = [
 
     ('vn_gso_cpi_monthly',        'CRAWLING_BOT_DB',
      'period', 'month',
-     ['cpi_mom', 'cpi_yoy'],
+     ['cpi_mom_pct', 'cpi_yoy_pct'],
      (-5.0, 30.0)),
 
     ('vn_gso_gdp_quarterly',      'CRAWLING_BOT_DB',
@@ -111,6 +111,16 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
     if engine is None:
         return
 
+    # Probe the connection first so a single bad credential (e.g. a rotated Neon
+    # password not synced to GitHub secrets) flags one DB instead of crashing the
+    # whole run and blinding every other freshness check.
+    try:
+        engine.connect().close()
+    except Exception as e:
+        flag(table, db_key, 'db_connection',
+             f'Cannot connect to {db_key}: {str(e).splitlines()[0][:160]}', 'CRITICAL')
+        return
+
     row_count = null_counts = dup_count = range_issues = 0
     freshness_ok = True
 
@@ -127,7 +137,7 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
         if row_count == 0:
             flag(table, db_key, 'empty_table', 'Table has 0 rows', 'CRITICAL')
 
-        # 2. Freshness — skip monthly/quarterly when today isn't EOM
+        # 2. Freshness
         if period_type == 'date':
             cutoff = CUTOFF.isoformat()
             recent = conn.execute(
@@ -137,6 +147,23 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
             if recent == 0:
                 flag(table, db_key, 'freshness',
                      f'No row for {CUTOFF} or today', 'ERROR')
+                freshness_ok = False
+        elif period_type == 'month':
+            # Monthly reports for month M publish early in M+1, so by mid-month the
+            # previous month must exist. Allow a 2-month lag before flagging (tolerates
+            # source delay) — period stored as 'YYYY-MM', lexicographic compare is safe.
+            fy, fm = TODAY.year, TODAY.month - 2
+            while fm <= 0:
+                fm += 12
+                fy -= 1
+            floor_ym = f"{fy:04d}-{fm:02d}"
+            try:
+                latest = conn.execute(text(f"SELECT MAX({period_col}) FROM {table}")).scalar()
+            except Exception:
+                latest = None
+            if not latest or str(latest) < floor_ym:
+                flag(table, db_key, 'freshness',
+                     f'Latest {period_col}={latest}, expected ≥ {floor_ym}', 'ERROR')
                 freshness_ok = False
 
         # 3. Nulls in required columns
@@ -208,6 +235,12 @@ def fetch_user_stats() -> dict:
     }
     engine = ENGINES.get('USER_DB')
     if engine is None:
+        return stats
+    try:
+        engine.connect().close()
+    except Exception as e:
+        flag('—', 'USER_DB', 'db_connection',
+             f'Cannot connect to USER_DB: {str(e).splitlines()[0][:160]}', 'CRITICAL')
         return stats
     with engine.connect() as conn:
         cutoff = CUTOFF.isoformat()

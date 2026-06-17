@@ -114,45 +114,58 @@ def ensure_table():
 # ─────────────────────────────────────────────────────────────
 # URL DISCOVERY — find latest CPI article on nso.gov.vn
 # ─────────────────────────────────────────────────────────────
-def discover_article_url(period_year: int, period_month: int) -> str:
+def _period_from_pubdate(pub_iso: str) -> str:
+    """An article published in early month M reports data for month M-1."""
+    y, m = int(pub_iso[:4]), int(pub_iso[5:7])
+    pm = m - 1 if m > 1 else 12
+    py = y if m > 1 else y - 1
+    return f"{py:04d}-{pm:02d}"
+
+
+def discover_articles_by_period() -> dict:
     """
-    Find latest NSO article about CPI for the given period.
-    Tries WP REST API search, then constructs likely publication-month URL.
-    Publication month = period_month + 1 (article published next month)
+    Map {'YYYY-MM': article_url} for every CPI article the WP API exposes.
+    NSO alternates the URL section between /tin-tuc-thong-ke/ and
+    /du-lieu-va-so-lieu-thong-ke/, so we never construct URLs blindly — we read
+    the published list and key each article by its data period (pub_month - 1).
     """
-    # WP REST API search (nso.gov.vn is WordPress)
+    found = {}
     search_terms = [
+        "chi so gia tieu dung",
         "chỉ số giá tiêu dùng chỉ số giá vàng",
-        "chi so gia tieu dung chi so gia vang",
     ]
     for term in search_terms:
         try:
-            api_url = f"https://www.nso.gov.vn/wp-json/wp/v2/posts?search={requests.utils.quote(term)}&per_page=5&_fields=link,title,date"
-            resp = requests.get(api_url, headers=HEADERS, timeout=12)
+            api_url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
+                       f"?search={requests.utils.quote(term)}&per_page=30&_fields=link,date")
+            resp = requests.get(api_url, headers=HEADERS, timeout=15)
             if resp.status_code == 200:
-                posts = resp.json()
-                for post in posts:
+                for post in resp.json():
                     link = post.get('link', '')
-                    # Must contain "chi-so-gia-tieu-dung" in slug (not general economy articles)
-                    if 'chi-so-gia-tieu-dung' in link.lower():
-                        print(f"  Found via WP API: {link}")
-                        return link
+                    date = post.get('date', '')
+                    if 'chi-so-gia-tieu-dung' in link.lower() and len(date) >= 7:
+                        found.setdefault(_period_from_pubdate(date), link)
         except Exception as e:
             print(f"  WP API search error: {e}")
+    print(f"  Discovered {len(found)} CPI article(s): {sorted(found)}")
+    return found
 
-    # Fallback: construct URL based on publication date
-    # Publication month = period_month + 1
+
+def construct_article_urls(period_year: int, period_month: int) -> list:
+    """Best-effort fallback URLs when the WP API does not list a period."""
     pub_month = period_month + 1 if period_month < 12 else 1
     pub_year  = period_year if period_month < 12 else period_year + 1
+    # Vietnamese ordinal month names as used in NSO slugs (tháng Tư = 'tu', not 'bon')
     month_names = {
-        1:'mot', 2:'hai', 3:'ba', 4:'bon', 5:'nam', 6:'sau',
+        1:'mot', 2:'hai', 3:'ba', 4:'tu', 5:'nam', 6:'sau',
         7:'bay', 8:'tam', 9:'chin', 10:'muoi', 11:'muoi-mot', 12:'muoi-hai'
     }
     slug = (f"chi-so-gia-tieu-dung-chi-so-gia-vang-va-chi-so-gia-do-la-my"
-            f"-thang-{month_names[period_month]}-va-{period_month:02d}-thang-dau-nam-{period_year}")
-    url = f"https://www.nso.gov.vn/tin-tuc-thong-ke/{pub_year}/{pub_month:02d}/{slug}/"
-    print(f"  Constructed URL: {url}")
-    return url
+            f"-thang-{month_names[period_month]}-va-{period_month}-thang-dau-nam-{period_year}")
+    return [
+        f"https://www.nso.gov.vn/{base}/{pub_year}/{pub_month:02d}/{slug}/"
+        for base in ('tin-tuc-thong-ke', 'du-lieu-va-so-lieu-thong-ke')
+    ]
 
 
 # ─────────────────────────────────────────────────────────────
@@ -343,56 +356,98 @@ def upsert_record(data: dict, period: str, source: str, crawl_time: datetime):
 # ─────────────────────────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────────────────────────
-def main():
-    ensure_table()
-    crawl_time = datetime.now()
+def crawl_period(period_year: int, period_month: int, articles: dict) -> bool:
+    """Fetch + extract + upsert one month. Returns True on success."""
+    global PERIOD, PERIOD_YEAR, PERIOD_MONTH
+    PERIOD_YEAR, PERIOD_MONTH = period_year, period_month
+    PERIOD = f"{period_year:04d}-{period_month:02d}"
+    print(f"\n--- Period {PERIOD} ---")
 
-    # Step 1: Discover article URL
-    print(f"\n--- Step 1: Discover article URL ---")
-    source_url = discover_article_url(PERIOD_YEAR, PERIOD_MONTH)
+    candidates = []
+    if articles.get(PERIOD):
+        candidates.append(articles[PERIOD])
+    candidates += construct_article_urls(period_year, period_month)
 
-    # Step 2: Fetch HTML
-    print(f"\n--- Step 2: Fetch article ---")
-    html = fetch_article_html(source_url)
+    html, used_url = None, None
+    for url in candidates:
+        html = fetch_article_html(url)
+        if html:
+            used_url = url
+            break
     if not html:
-        print("  ERROR: Could not fetch NSO CPI article")
-        return
+        print(f"  ERROR: could not fetch article for {PERIOD}")
+        return False
 
-    # Extract readable text (strip HTML tags)
     soup = BeautifulSoup(html, 'html.parser')
-    # Focus on article body
     article = soup.find('article') or soup.find('div', class_=re.compile(r'post|content|entry'))
     text_content = (article or soup).get_text(separator='\n', strip=True)
 
-    # Step 3: Layer 1 — regex structured parse
-    print(f"\n--- Step 3a: Regex parse ---")
     data = layer1_structured(text_content, PERIOD)
-    print(f"  Regex found: {len([v for v in data.values() if v is not None])} fields")
-
-    # Step 4: Layer 2 — Gemini (always run to fill gaps)
-    print(f"\n--- Step 3b: Gemini parse ---")
     gemini_data = layer2_gemini(text_content)
-
-    # Merge: prefer Gemini (more complete), fill gaps with regex
     merged = {**data, **{k: v for k, v in gemini_data.items() if v is not None}}
-
     if not merged:
-        print(f"\n  ERROR: No data extracted for {PERIOD}")
-        return
+        print(f"  ERROR: no data extracted for {PERIOD}")
+        return False
 
-    # Print summary
-    print(f"\n--- Extracted Data for {PERIOD} ---")
-    print(f"  CPI:  mom={merged.get('cpi_mom_pct')}%, yoy={merged.get('cpi_yoy_pct')}%, ytd={merged.get('cpi_ytd_pct')}%")
-    print(f"  Gold: mom={merged.get('gold_mom_pct')}%, yoy={merged.get('gold_yoy_pct')}%, ytd={merged.get('gold_ytd_pct')}%")
-    print(f"  USD:  mom={merged.get('usd_mom_pct')}%, yoy={merged.get('usd_yoy_pct')}%, ytd={merged.get('usd_ytd_pct')}%")
+    print(f"  CPI mom={merged.get('cpi_mom_pct')}% yoy={merged.get('cpi_yoy_pct')}% | "
+          f"Gold mom={merged.get('gold_mom_pct')}% | USD mom={merged.get('usd_mom_pct')}%")
+    upsert_record(merged, PERIOD, used_url, datetime.now())
+    return True
 
-    # Step 5: Upsert
-    upsert_record(merged, PERIOD, source_url, crawl_time)
 
+def _latest_period_in_db():
+    """Return 'YYYY-MM' of the newest row already stored, or None."""
+    try:
+        with engine.connect() as conn:
+            return conn.execute(text("SELECT MAX(period) FROM vn_gso_cpi_monthly")).scalar()
+    except Exception as e:
+        print(f"  DB read error (treating as empty): {e}")
+        return None
+
+
+def _missing_periods(last_period: str, target_year: int, target_month: int, cap: int = 18):
+    """Months strictly after last_period, up to and including the target."""
+    target = f"{target_year:04d}-{target_month:02d}"
+    if not last_period or last_period >= target:
+        return [(target_year, target_month)]  # nothing missing → just refresh target
+    y, m = int(last_period[:4]), int(last_period[5:7])
+    out = []
+    while len(out) < cap:
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+        out.append((y, m))
+        if f"{y:04d}-{m:02d}" == target:
+            break
+    return out
+
+
+def main():
+    ensure_table()
+    # Target = latest published month = previous calendar month (computed at top).
+    target_year, target_month = PERIOD_YEAR, PERIOD_MONTH
+    articles = discover_articles_by_period()
+
+    last = _latest_period_in_db()
+    plan = _missing_periods(last, target_year, target_month)
+    print(f"\nLatest in DB: {last} | Target: {target_year:04d}-{target_month:02d} | "
+          f"Backfill plan: {[f'{y}-{m:02d}' for y, m in plan]}")
+
+    results = {}
+    for y, m in plan:
+        results[(y, m)] = crawl_period(y, m, articles)
+
+    ok = [f"{y}-{m:02d}" for (y, m), r in results.items() if r]
+    failed = [f"{y}-{m:02d}" for (y, m), r in results.items() if not r]
     print(f"\n{'='*60}")
-    print(f"NSO CPI Crawler done. Period: {PERIOD}")
+    print(f"NSO CPI Crawler done. OK: {ok or '—'} | Failed: {failed or '—'}")
     print(f"Completed at {datetime.now().strftime('%H:%M:%S')}")
     print(f"{'='*60}")
+
+    # Fail loudly if the newest expected month did not land, so staleness is visible.
+    if not results.get((target_year, target_month), False):
+        print(f"❌ Target {target_year:04d}-{target_month:02d} not stored — exiting non-zero")
+        sys.exit(1)
 
 
 if __name__ == '__main__':

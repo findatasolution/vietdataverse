@@ -34,7 +34,10 @@ jobs:
         python crawl_gold_silver.py
 
     - name: Trigger webhooks (gold + silver)
-      if: success()
+      # always(): gold/silver are persisted before the global section can fail the
+      # job, and the payload is just a refresh trigger (data: []), so decouple these
+      # notifications from a Yahoo Finance/global outage.
+      if: always()
       env:
         WEBHOOK_INTERNAL_SECRET: ${{ secrets.WEBHOOK_INTERNAL_SECRET }}
         API_BASE: https://api.vietdataverse.online

@@ -265,105 +265,93 @@ except Exception as e:
 ############## 3. Global Macro Data from Yahoo Finance
 print(f"\n--- Crawling Global Macro (Yahoo Finance) ---")
 
+# global_failed stays True until we successfully retrieve & persist data.
+# It drives a non-zero exit at the end of the script so a silent yfinance
+# outage (Yahoo rate-limits GitHub Actions IPs) turns the workflow RED instead
+# of green-but-stale. See freshness guard in data-quality-check.yml.
+global_failed = True
 try:
     import yfinance as yf
 
+    TICKERS = {
+        'gold_price': 'GC=F',
+        'silver_price': 'SI=F',
+        'nasdaq_price': '^IXIC',
+        'sp500_price': '^GSPC',
+        'dowjones_price': '^DJI',
+    }
     max_retries = 3
     retry_delay = 5
 
-    gold_price = None
-    silver_price = None
-    nasdaq_price = None
-    sp500_price = None
-    dowjones_price = None
+    # col -> { 'YYYY-MM-DD': close } across the whole returned window, so a run
+    # that recovers after a gap backfills every missing trading day (not only today).
+    series = {}
+    for col, sym in TICKERS.items():
+        for attempt in range(max_retries):
+            try:
+                hist = yf.Ticker(sym).history(period="1mo")
+                if not hist.empty:
+                    series[col] = {
+                        idx.date().isoformat(): float(close)
+                        for idx, close in hist['Close'].items()
+                        if pd.notna(close)
+                    }
+                    print(f"  {sym}: {len(series[col])} days, latest {hist['Close'].iloc[-1]:.2f}")
+                else:
+                    print(f"  {sym}: empty response")
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"  Retry {attempt + 1}/{max_retries} for {sym}: {e}")
+                    time.sleep(retry_delay * (attempt + 1))
+                else:
+                    raise
+            finally:
+                time.sleep(2)
 
-    for attempt in range(max_retries):
-        try:
-            # Gold Futures
-            gold = yf.Ticker("GC=F")
-            gold_hist = gold.history(period="5d")
-            if not gold_hist.empty:
-                gold_price = float(gold_hist['Close'].iloc[-1])
-                print(f"  Gold (GC=F): ${gold_price:.2f}")
+    all_dates = sorted({d for s in series.values() for d in s})
+    if not all_dates:
+        raise RuntimeError("yfinance returned no data for any ticker (likely rate-limited)")
 
-            time.sleep(2)
+    inserted = 0
+    with global_indicator_engine.connect() as conn:
+        for d in all_dates:
+            exists = conn.execute(
+                text("SELECT COUNT(*) FROM global_macro WHERE date = :d"), {'d': d}
+            ).scalar() > 0
+            if exists:
+                continue
+            row = {
+                'date': pd.to_datetime(d),
+                'crawl_time': datetime.now(),
+                'gold_price': series.get('gold_price', {}).get(d),
+                'silver_price': series.get('silver_price', {}).get(d),
+                'nasdaq_price': series.get('nasdaq_price', {}).get(d),
+                'sp500_price': series.get('sp500_price', {}).get(d),
+                'dowjones_price': series.get('dowjones_price', {}).get(d),
+                'source': 'Yahoo Finance',
+                'group_name': 'commodity',
+            }
+            pd.DataFrame([row]).to_sql('global_macro', global_indicator_engine,
+                                       if_exists='append', index=False)
+            inserted += 1
+            print(f"  Inserted global macro for {d}")
 
-            # Silver Futures
-            silver = yf.Ticker("SI=F")
-            silver_hist = silver.history(period="5d")
-            if not silver_hist.empty:
-                silver_price = float(silver_hist['Close'].iloc[-1])
-                print(f"  Silver (SI=F): ${silver_price:.2f}")
-
-            time.sleep(2)
-
-            # NASDAQ
-            nasdaq = yf.Ticker("^IXIC")
-            nasdaq_hist = nasdaq.history(period="5d")
-            if not nasdaq_hist.empty:
-                nasdaq_price = float(nasdaq_hist['Close'].iloc[-1])
-                print(f"  NASDAQ (^IXIC): {nasdaq_price:.2f}")
-
-            time.sleep(2)
-
-            # S&P 500
-            sp500 = yf.Ticker("^GSPC")
-            sp500_hist = sp500.history(period="5d")
-            if not sp500_hist.empty:
-                sp500_price = float(sp500_hist['Close'].iloc[-1])
-                print(f"  S&P 500 (^GSPC): {sp500_price:.2f}")
-
-            time.sleep(2)
-
-            # Dow Jones Industrial Average
-            dowjones = yf.Ticker("^DJI")
-            dowjones_hist = dowjones.history(period="5d")
-            if not dowjones_hist.empty:
-                dowjones_price = float(dowjones_hist['Close'].iloc[-1])
-                print(f"  Dow Jones (^DJI): {dowjones_price:.2f}")
-
-            break
-
-        except Exception as e:
-            if attempt < max_retries - 1:
-                print(f"  Retry {attempt + 1}/{max_retries} after error: {e}")
-                time.sleep(retry_delay * (attempt + 1))
-            else:
-                raise
-
-    if gold_price or silver_price or nasdaq_price or sp500_price or dowjones_price:
-        macro_data = {
-            'date': date_str,
-            'crawl_time': datetime.now(),
-            'gold_price': gold_price,
-            'silver_price': silver_price,
-            'nasdaq_price': nasdaq_price,
-            'sp500_price': sp500_price,
-            'dowjones_price': dowjones_price,
-            'source': 'Yahoo Finance',
-            'group_name': 'commodity',
-        }
-
-        with global_indicator_engine.connect() as conn:
-            result = conn.execute(text(f"SELECT COUNT(*) FROM global_macro WHERE date = '{date_str}'"))
-            exists = result.scalar() > 0
-
-        if exists:
-            print(f"  Global macro data for {date_str} already exists, skipping")
-        else:
-            macro_df = pd.DataFrame([macro_data])
-            macro_df['date'] = pd.to_datetime(macro_df['date'])
-            macro_df.to_sql('global_macro', global_indicator_engine, if_exists='append', index=False)
-            print(f"  Pushed global macro data for {date_str}")
-    else:
-        print(f"  No global macro data retrieved")
+    print(f"  Global macro: {inserted} new row(s), latest available {all_dates[-1]}")
+    global_failed = False  # got real data and persisted it
 
 except ImportError:
-    print(f"  yfinance not installed, skipping global macro")
+    print(f"  yfinance not installed — cannot crawl global macro")
 except Exception as e:
-    print(f"  Error crawling global macro: {e}")
+    print(f"  ERROR crawling global macro: {e}")
 
 
 print(f"\n{'='*60}")
 print(f"Gold & Silver Crawler completed at {datetime.now().strftime('%H:%M:%S')}")
 print(f"{'='*60}")
+
+# Gold/silver are already persisted above; fail loudly only on the global section
+# so a stale Yahoo Finance feed surfaces as a red workflow instead of passing silently.
+if global_failed:
+    print("\n❌ Global macro (Yahoo Finance) crawl failed — exiting non-zero to flag staleness")
+    sys.exit(1)
