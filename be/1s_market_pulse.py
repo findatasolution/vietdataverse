@@ -241,8 +241,18 @@ Return ONLY valid JSON (no markdown code blocks):
     )
     raw = response.text.strip()
 
+    def _parse_json_loose(text):
+        # Even with response_mime_type=json, Gemini occasionally wraps output in
+        # ```json fences or leaves a trailing comma — sanitise before giving up.
+        t = re.sub(r'^```(?:json)?\s*|\s*```$', '', text.strip())
+        try:
+            return json.loads(t)
+        except json.JSONDecodeError:
+            t = re.sub(r',(\s*[}\]])', r'\1', t)  # drop trailing commas
+            return json.loads(t)
+
     try:
-        data = json.loads(raw)
+        data = _parse_json_loose(raw)
     except json.JSONDecodeError as e:
         print(f"   JSON parsing error: {e}")
         print(f"   Raw response (first 500 chars): {raw[:500]}")
