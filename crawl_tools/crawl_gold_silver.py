@@ -76,22 +76,18 @@ try:
     if buy_price and sell_price:
         crawl_time = datetime.now()
 
-        # Check if exists in same hour from same source
+        # Day-scoped dedup: 1 row per source per day (crawl runs once/day, hourly only on
+        # retry). Prevents duplicates when a failed run is retried later the same day.
         with engine.connect() as conn:
             result = conn.execute(
                 text("""SELECT COUNT(*) FROM vn_macro_silver_daily
-                        WHERE date = :date AND source = 'giabac.vn'
-                        AND crawl_time >= :start_time AND crawl_time < :end_time"""),
-                {
-                    'date': date_str,
-                    'start_time': crawl_time.replace(minute=0, second=0, microsecond=0),
-                    'end_time': crawl_time.replace(minute=59, second=59, microsecond=999999)
-                }
+                        WHERE date = :date AND source = 'giabac.vn'"""),
+                {'date': date_str}
             )
             exists = result.scalar() > 0
 
         if exists:
-            print(f"  Silver (giabac.vn) for {date_str} {crawl_time.strftime('%H:%M')} already exists")
+            print(f"  Silver (giabac.vn) for {date_str} already exists today — skip")
         else:
             with engine.connect() as conn:
                 conn.execute(
@@ -142,19 +138,14 @@ try:
         crawl_time = datetime.now()
 
         with engine.connect() as conn:
-            # Check duplicate for this source
+            # Day-scoped dedup: 1 row per source per day.
             result = conn.execute(
                 text("""SELECT COUNT(*) FROM vn_macro_silver_daily
-                        WHERE date = :date AND source = 'phuquygroup.vn'
-                        AND crawl_time >= :s AND crawl_time < :e"""),
-                {
-                    'date': date_str,
-                    's': crawl_time.replace(minute=0, second=0, microsecond=0),
-                    'e': crawl_time.replace(minute=59, second=59, microsecond=999999)
-                }
+                        WHERE date = :date AND source = 'phuquygroup.vn'"""),
+                {'date': date_str}
             )
             if result.scalar() > 0:
-                print(f"  Silver (phuquygroup.vn) for {date_str} this hour already exists")
+                print(f"  Silver (phuquygroup.vn) for {date_str} already exists today — skip")
             else:
                 conn.execute(
                     text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
@@ -224,19 +215,16 @@ try:
 
         for record in gold_records:
             with engine.connect() as conn:
+                # Day-scoped dedup: 1 row per gold type per day.
                 result = conn.execute(
                     text("""
                         SELECT COUNT(*) FROM vn_macro_gold_daily
                         WHERE date = :date
                         AND type = :type
-                        AND crawl_time >= :start_time
-                        AND crawl_time < :end_time
                     """),
                     {
                         'date': record['date'],
                         'type': record['type'],
-                        'start_time': crawl_time.replace(minute=0, second=0, microsecond=0),
-                        'end_time': crawl_time.replace(minute=59, second=59, microsecond=999999)
                     }
                 )
 
