@@ -2553,6 +2553,10 @@
 
             const isMobile = window.matchMedia('(max-width: 768px)').matches;
             if (!isMobile) return;
+            // Band not laid out yet (hidden tab / pre-layout) → clientWidth is 0, which
+            // would otherwise look like "fits, no scroll". Retry until it has a real width
+            // instead of bailing permanently (only resize re-runs this otherwise).
+            if (band.clientWidth === 0) { setTimeout(setupGlobalTickerMarquee, 400); return; }
             if (track.scrollWidth <= band.clientWidth + 4) return; // fits → no scroll needed
 
             Array.from(track.children).forEach(node => {
