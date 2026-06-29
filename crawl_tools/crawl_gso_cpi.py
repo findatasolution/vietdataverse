@@ -52,6 +52,15 @@ HEADERS = {
     'Accept-Language': 'vi-VN,vi;q=0.9',
 }
 
+# nso.gov.vn serves an incomplete TLS chain (missing intermediate CA). macOS clients
+# do AIA fetching so verification succeeds locally, but the GitHub Ubuntu/OpenSSL
+# runner cannot and fails with CERTIFICATE_VERIFY_FAILED — which silently blocked CPI
+# crawling since 2026-03. This is a public, read-only gov stats source (no credentials
+# sent), so we disable TLS verification for nso.gov.vn requests only (NOT the Gemini API).
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+NSO_VERIFY = False
+
 
 # ─────────────────────────────────────────────────────────────
 # DB SETUP — 1 row per month
@@ -138,7 +147,7 @@ def discover_articles_by_period() -> dict:
         try:
             api_url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
                        f"?search={requests.utils.quote(term)}&per_page=30&_fields=link,date")
-            resp = requests.get(api_url, headers=HEADERS, timeout=15)
+            resp = requests.get(api_url, headers=HEADERS, timeout=15, verify=NSO_VERIFY)
             if resp.status_code == 200:
                 for post in resp.json():
                     link = post.get('link', '')
@@ -174,7 +183,7 @@ def construct_article_urls(period_year: int, period_month: int) -> list:
 def fetch_article_html(url: str) -> str:
     """Fetch article HTML from nso.gov.vn."""
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=20)
+        resp = requests.get(url, headers=HEADERS, timeout=20, verify=NSO_VERIFY)
         if resp.status_code == 200:
             print(f"  Fetched {len(resp.text):,} bytes from {url}")
             return resp.text
@@ -186,14 +195,14 @@ def fetch_article_html(url: str) -> str:
     # Try listing page as fallback
     try:
         listing = f"https://www.nso.gov.vn/tin-tuc-thong-ke/{PERIOD_YEAR}/"
-        resp = requests.get(listing, headers=HEADERS, timeout=15)
+        resp = requests.get(listing, headers=HEADERS, timeout=15, verify=NSO_VERIFY)
         if resp.status_code == 200:
             soup = BeautifulSoup(resp.text, 'html.parser')
             for a in soup.find_all('a', href=True):
                 href = a['href']
                 if 'chi-so-gia-tieu-dung' in href and str(PERIOD_YEAR) in href:
                     print(f"  Found via listing: {href}")
-                    r2 = requests.get(href, headers=HEADERS, timeout=20)
+                    r2 = requests.get(href, headers=HEADERS, timeout=20, verify=NSO_VERIFY)
                     if r2.status_code == 200:
                         return r2.text
     except Exception as e:
@@ -301,7 +310,10 @@ Bài viết:
             print(f"  [Gemini] Extracted: CPI mom={data.get('cpi_mom_pct')}, Gold={data.get('gold_mom_pct')}, USD={data.get('usd_mom_pct')}")
             return data
         except Exception as e:
-            print(f"  [Gemini] Attempt {attempt+1} error: {e}")
+            # raise_for_status() embeds the full request URL (incl. ?key=API_KEY) in the
+            # message — mask it so the Gemini key never leaks into CI logs.
+            msg = str(e).replace(GEMINI_API_KEY, '***') if GEMINI_API_KEY else str(e)
+            print(f"  [Gemini] Attempt {attempt+1} error: {msg}")
     return {}
 
 
