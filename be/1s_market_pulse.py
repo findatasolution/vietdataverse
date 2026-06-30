@@ -219,8 +219,27 @@ def filter_with_gemini(articles, existing_urls):
         print("   No new articles to process (all duplicates)")
         return []
 
-    # Limit to 30 most recent for Gemini context window
-    new_articles = new_articles[:30]
+    # Build the Gemini candidate pool with source diversity. Previously this was a
+    # plain new_articles[:30] in crawl order, so high-volume feeds listed first
+    # (CNBC ×3, BBC) filled all 30 slots and later feeds (FT, Investing, Guardian,
+    # Fortune, Seeking Alpha, ECB…) never reached Gemini. Instead: sort each source
+    # by recency, then round-robin across sources up to POOL_CAP so every feed is
+    # represented before truncation.
+    POOL_CAP = 45
+    by_source = {}
+    for a in new_articles:
+        by_source.setdefault(a["source"], []).append(a)
+    for s in by_source:
+        by_source[s].sort(key=lambda a: a.get("published") or "", reverse=True)
+    pooled, queues = [], list(by_source.values())
+    while len(pooled) < POOL_CAP and any(queues):
+        for q in queues:
+            if q:
+                pooled.append(q.pop(0))
+                if len(pooled) >= POOL_CAP:
+                    break
+    new_articles = pooled
+    print(f"   Gemini pool: {len(new_articles)} articles from {len(by_source)} sources")
 
     articles_text = ""
     for i, a in enumerate(new_articles):
@@ -243,6 +262,9 @@ Vietnam market scope:
 - Real estate
 - FX / interest rates / commodities
 - Trade & geopolitics affecting ASEAN/Vietnam
+
+When several articles have comparable impact, prefer spreading the selection
+across DIFFERENT news sources rather than picking multiple from the same source.
 
 ARTICLES:
 {articles_text}
