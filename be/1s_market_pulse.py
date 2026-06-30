@@ -75,10 +75,6 @@ RSS_FEEDS = [
         "name": "Mining.com",
         "url": "https://www.mining.com/feed/"
     },
-    {
-        "name": "VnExpress Business",
-        "url": "https://vnexpress.net/rss/kinh-doanh.rss"
-    },
     # ── Added 2026-06-17 (RSS liveness verified on the GitHub Actions runner) ──
     # NOTE: WSJ Markets (feeds.a.dj.com) and Yahoo Finance (finance.yahoo.com)
     # were dropped — they return 0 entries from cloud/datacenter IPs (Akamai
@@ -113,27 +109,9 @@ RSS_FEEDS = [
         "name": "ECB Press",
         "url": "https://www.ecb.europa.eu/rss/press.html"
     },
-    # Vietnam financial / markets
-    {
-        "name": "CafeF",
-        "url": "https://cafef.vn/thi-truong-chung-khoan.rss"
-    },
-    {
-        "name": "Tin nhanh Chứng khoán (ĐTCK)",
-        "url": "https://www.tinnhanhchungkhoan.vn/rss/home.rss"
-    },
-    {
-        "name": "Vietstock",
-        "url": "https://vietstock.vn/145/chung-khoan.rss"
-    },
-    {
-        "name": "VietnamNet Business",
-        "url": "https://vietnamnet.vn/rss/kinh-doanh.rss"
-    },
-    {
-        "name": "Tuổi Trẻ Business",
-        "url": "https://tuoitre.vn/rss/kinh-doanh.rss"
-    },
+    # NOTE: Vietnamese news sources (CafeF, Tin nhanh Chứng khoán, Vietstock,
+    # VietnamNet, Tuổi Trẻ, VnExpress) were removed 2026-06-30 — 1s Pulse tracks
+    # international market sentiment only.
 ]
 
 
