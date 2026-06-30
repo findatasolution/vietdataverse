@@ -974,7 +974,7 @@
         };
 
         // Workspaces that have no useful sidebar — hide it and go full-width
-        const NO_SIDEBAR_WORKSPACES = ['data', 'pulse', 'km'];
+        const NO_SIDEBAR_WORKSPACES = ['data', 'pulse'];
 
         function setWorkspace(ws) {
             // Update workspace tab buttons

@@ -505,6 +505,41 @@
                 <div class="km-nav-group">
                     <div class="km-nav-group-title">DISCOVER</div>
                     <a class="km-nav-item active" data-km-view="marketplace" href="#">Marketplace</a>
+                    <a class="km-nav-item" data-km-view="categories" href="#">Categories</a>
+                    <a class="km-nav-item" data-km-view="trending" href="#">New &amp; Trending</a>
+                </div>
+
+                <!-- MY STUFF (logged-in only) -->
+                <div class="km-nav-group km-nav-gated" data-gate="logged-in" style="display:none;">
+                    <div class="km-nav-group-title">MY STUFF</div>
+                    <a class="km-nav-item" data-km-view="library" href="#">
+                        My Library
+                        <span class="km-nav-badge" id="km-sidebar-library-count" style="display:none;"></span>
+                    </a>
+                    <a class="km-nav-item" data-km-view="wallet" href="#">
+                        Wallet
+                        <span class="km-nav-badge km-nav-balance" id="km-sidebar-balance">0 credits</span>
+                    </a>
+                </div>
+
+                <!-- SELL (seller-approved only) -->
+                <div class="km-nav-group km-nav-gated" data-gate="seller" id="km-sidebar-sell-group" style="display:none;">
+                    <div class="km-nav-group-title">SELL</div>
+                    <a class="km-nav-item" data-km-view="seller-dashboard" href="#">Seller Dashboard</a>
+                    <a class="km-nav-item" data-km-view="upload" href="#">Upload Product</a>
+                    <a class="km-nav-item" data-km-view="earnings" href="#">Earnings</a>
+                </div>
+
+                <!-- SELL — not yet registered (replaces SELL group when not-seller) -->
+                <div class="km-nav-group km-nav-gated" data-gate="become-seller" id="km-sidebar-become-seller-group" style="display:none;">
+                    <div class="km-nav-group-title">SELL</div>
+                    <a class="km-nav-item km-nav-item--cta" data-km-view="become-seller" href="#">+ Become a Seller</a>
+                </div>
+
+                <!-- SELL — email not verified (registered but pending) -->
+                <div class="km-nav-group km-nav-gated" data-gate="unverified" id="km-sidebar-unverified-group" style="display:none;">
+                    <div class="km-nav-group-title">SELL</div>
+                    <a class="km-nav-item km-nav-item--warning" data-km-view="verify-email" href="#">Verify Email</a>
                 </div>
 
                 <!-- ADMIN (admin role only) -->
