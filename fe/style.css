@@ -4754,7 +4754,8 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 }
 .vdv-fb-toggle:hover { filter: brightness(1.06); }
 .vdv-fb-panel {
-    position: absolute; right: 0; bottom: 52px; width: 300px; max-width: calc(100vw - 32px);
+    position: absolute; right: 0; bottom: 52px; width: 332px; max-width: calc(100vw - 28px);
+    max-height: calc(100vh - 96px); overflow-y: auto;
     background: var(--ivory); border: 1px solid var(--border-cream);
     border-radius: 14px; padding: 18px 18px 16px;
     box-shadow: 0 8px 32px rgba(20, 20, 19, 0.16);
@@ -4773,13 +4774,22 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
     color: var(--border-warm); cursor: pointer; padding: 0 2px; transition: color 0.1s ease;
 }
 .vdv-fb-star.on { color: var(--coral); }
-.vdv-fb-label { display: block; font-size: 12.5px; color: var(--olive-gray); margin: 12px 0 5px; }
+.vdv-fb-label { display: block; font-size: 12.5px; color: var(--olive-gray); margin: 13px 0 6px; }
+.vdv-fb-groups { display: flex; flex-wrap: wrap; gap: 6px; }
+.vdv-fb-chip {
+    border: 1px solid var(--border-warm); background: var(--warm-sand); color: var(--charcoal);
+    border-radius: 24px; padding: 6px 12px; font-size: 12.5px; font-family: inherit;
+    cursor: pointer; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.vdv-fb-chip:hover { border-color: var(--ring-warm); }
+.vdv-fb-chip.on { background: var(--near-black); color: var(--ivory); border-color: var(--near-black); }
 .vdv-fb-textarea {
     width: 100%; box-sizing: border-box; border: 1px solid var(--border-warm);
-    border-radius: 8px; padding: 7px 9px; font-size: 13px; font-family: inherit;
-    resize: vertical; background: var(--pure-white); color: var(--near-black);
+    border-radius: 8px; padding: 9px 11px; font-size: 13.5px; line-height: 1.5; font-family: inherit;
+    min-height: 58px; resize: vertical; background: var(--pure-white); color: var(--near-black);
 }
 .vdv-fb-textarea:focus { outline: none; border-color: var(--terracotta); }
+.vdv-fb-hint { font-size: 11.5px; color: var(--stone-gray); text-align: center; margin-top: 13px; }
 .vdv-fb-submit {
     margin-top: 12px; width: 100%; background: var(--terracotta); color: var(--ivory);
     border: none; border-radius: 8px; padding: 9px; font-size: 13.5px; font-weight: 500; cursor: pointer;
@@ -4790,5 +4800,5 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 .vdv-fb-thanks { font-size: 14px; color: var(--near-black); text-align: center; padding: 14px 4px; line-height: 1.5; }
 @media (max-width: 640px) {
     .vdv-fb { right: 14px; bottom: 14px; }
-    .vdv-fb-panel { width: 270px; }
+    .vdv-fb-panel { width: 300px; }
 }
