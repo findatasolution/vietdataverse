@@ -2883,6 +2883,23 @@
             }
         }
 
+        // Rebuild the source filter from the sources actually present in the data
+        // (was hardcoded to CNBC/BBC/MarketWatch, so newer feeds like Nikkei never showed).
+        // Group by brand = first token of source_name, matching the substring filter below.
+        function populatePulseSourceFilter() {
+            const sel = document.getElementById('filter-source');
+            if (!sel || !pulseDataCache.length) return;
+            const isVi = (localStorage.getItem('lang') || 'vi') === 'vi';
+            const prev = sel.value;
+            const brands = [...new Set(
+                pulseDataCache.map(i => (i.source_name || '').trim().split(/\s+/)[0]).filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b));
+            const allLabel = isVi ? 'Tất cả' : 'All';
+            sel.innerHTML = `<option value="" data-i18n="pulseFilterAll">${allLabel}</option>` +
+                brands.map(b => `<option value="${b}">${b}</option>`).join('');
+            if (prev && brands.includes(prev)) sel.value = prev;
+        }
+
         // Market Pulse data cache for filtering
         let pulseDataCache = [];
         let pulseGatedPreview = 1; // articles visible before gate (set from API response)
@@ -2905,6 +2922,7 @@
                 }
                 pulseDataCache = data;
                 pulseGatedPreview = json.free_preview_count ?? null;
+                populatePulseSourceFilter();
                 renderPulseHero();
                 renderPulseSidebar();
                 renderFilteredPulse();

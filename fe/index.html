@@ -1103,11 +1103,10 @@
                     <span class="pulse-filters-label" data-i18n="pulseFiltersLabel">Bộ lọc nhanh:</span>
                     <div class="pulse-filter-group">
                         <label data-i18n="pulseFilterSource">Nguồn:</label>
+                        <!-- Options populated dynamically from real article sources by
+                             populatePulseSourceFilter() in app.js — do not hardcode. -->
                         <select id="filter-source" class="filter-select">
                             <option value="" data-i18n="pulseFilterAll">Tất cả</option>
-                            <option value="CNBC">CNBC</option>
-                            <option value="BBC">BBC</option>
-                            <option value="MarketWatch">MarketWatch</option>
                         </select>
                     </div>
                     <div class="pulse-filter-group">
