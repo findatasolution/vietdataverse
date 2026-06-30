@@ -6,15 +6,15 @@
   <!-- Homepage: Open Data — Tải dữ liệu vĩ mô & giá vàng Việt Nam miễn phí -->
   <url>
     <loc>https://vietdataverse.online/</loc>
-    <lastmod>2026-06-17</lastmod>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="vi" href="https://vietdataverse.online/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://vietdataverse.online/" />
     <image:image>
       <image:loc>https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png</image:loc>
-      <image:title>Viet Dataverse — Tải Dữ Liệu Vĩ Mô & Giá Vàng Việt Nam Miễn Phí</image:title>
-      <image:caption>Free Vietnam macroeconomic data: gold, silver, interest rates, USD/VND — CSV & API</image:caption>
+      <image:title>Viet Dataverse — Tải Dữ Liệu Vĩ Mô &amp; Giá Vàng Việt Nam Miễn Phí</image:title>
+      <image:caption>Free Vietnam macroeconomic data: gold, silver, interest rates, USD/VND — CSV &amp; API</image:caption>
     </image:image>
   </url>
 
@@ -61,23 +61,23 @@
   <!-- Agent Market — Buyer guide -->
   <url>
     <loc>https://vietdataverse.online/pages/guide-buyer.html</loc>
-    <lastmod>2026-06-17</lastmod>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
 
   <!-- Agent Market — Seller guide -->
   <url>
     <loc>https://vietdataverse.online/pages/guide-seller.html</loc>
-    <lastmod>2026-06-17</lastmod>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
   </url>
 
   <!-- Knowledge Pack specification -->
   <url>
     <loc>https://vietdataverse.online/pages/knowledge-pack-spec.html</loc>
-    <lastmod>2026-06-17</lastmod>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

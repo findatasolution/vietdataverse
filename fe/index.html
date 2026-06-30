@@ -18,9 +18,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tải Dữ Liệu Vĩ Mô & Giá Vàng Việt Nam Miễn Phí | Viet Dataverse</title>
     <meta name="description"
-        content="Tải miễn phí lịch sử giá vàng SJC/DOJI/BTMC, giá bạc, lãi suất ngân hàng và tỷ giá USD/VND của Việt Nam từ 2015. Free API & CSV export cho nghiên cứu kinh tế — không cần đăng ký.">
+        content="Viet Dataverse — nền tảng dữ liệu tài chính Việt Nam. Tải miễn phí giá vàng SJC/DOJI/BTMC, lãi suất, tỷ giá USD/VND (API & CSV); chợ knowledge pack cho AI agent — chuyên gia tài chính kiếm tiền từ kiến thức, dev/AI builder mua dùng ngay; tin tức tâm lý thị trường 1 giây.">
     <meta name="keywords"
-        content="tải giá vàng, lịch sử giá vàng SJC, giá vàng DOJI BTMC, dữ liệu vĩ mô Việt Nam, lãi suất ngân hàng Việt Nam, tỷ giá USD VND lịch sử, Vietnam economic data API, download gold price Vietnam, Viet Dataverse">
+        content="tải giá vàng, lịch sử giá vàng SJC, giá vàng DOJI BTMC, dữ liệu vĩ mô Việt Nam, lãi suất ngân hàng Việt Nam, tỷ giá USD VND lịch sử, Vietnam economic data API, download gold price Vietnam, chợ knowledge pack AI, bán knowledge pack AI agent, mua skill kiến thức cho AI, knowledge market Việt Nam, tin tức tâm lý thị trường, market sentiment Vietnam, Viet Dataverse">
     <meta name="author" content="Viet Dataverse">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="language" content="Vietnamese">
@@ -54,7 +54,7 @@
     <meta property="og:site_name" content="Viet Dataverse">
     <meta property="og:title" content="Tải Dữ Liệu Vĩ Mô & Giá Vàng Việt Nam Miễn Phí | Viet Dataverse">
     <meta property="og:description"
-        content="Tải miễn phí lịch sử giá vàng SJC/DOJI/BTMC, giá bạc, lãi suất ngân hàng và tỷ giá USD/VND của Việt Nam từ 2015. Free API & CSV export cho nghiên cứu kinh tế — không cần đăng ký.">
+        content="Nền tảng dữ liệu tài chính Việt Nam: tải miễn phí giá vàng, lãi suất, tỷ giá (API & CSV); chợ knowledge pack cho AI agent (mua & bán); tin tức tâm lý thị trường 1 giây.">
     <meta property="og:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -70,7 +70,7 @@
     <meta name="twitter:creator" content="@VietDataverse">
     <meta name="twitter:title" content="Tải Dữ Liệu Vĩ Mô & Giá Vàng Việt Nam Miễn Phí | Viet Dataverse">
     <meta name="twitter:description"
-        content="Tải miễn phí lịch sử giá vàng SJC/DOJI/BTMC, giá bạc, lãi suất ngân hàng & tỷ giá USD/VND Việt Nam từ 2015. Free API & CSV — không cần đăng ký.">
+        content="Dữ liệu tài chính VN miễn phí (giá vàng, lãi suất, tỷ giá — API & CSV) · chợ knowledge pack cho AI agent · tin tức tâm lý thị trường 1 giây.">
     <meta name="twitter:image" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/V2.png">
     <meta name="twitter:image:alt" content="Viet Dataverse Logo">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,6 +135,39 @@
         "target": "https://vietdataverse.online/?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
+    }
+    </script>
+
+    <!-- Structured Data: Agent Market — AI Agent Knowledge & Skill Marketplace -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Agent Market — Chợ Knowledge & Skill cho AI Agent",
+      "serviceType": "AI knowledge & skill marketplace",
+      "description": "Sàn mua bán knowledge pack & skill tài chính cho AI agent tại Việt Nam. Người bán (chuyên gia tài chính, nhà nghiên cứu) đăng và kiếm tiền từ kiến thức; người mua (developer, AI builder, fintech) tải knowledge pack dùng ngay cho agent.",
+      "url": "https://vietdataverse.online/#km/marketplace",
+      "areaServed": {"@type": "Country", "name": "Vietnam"},
+      "provider": {"@type": "Organization", "name": "Viet Dataverse"},
+      "audience": [
+        {"@type": "Audience", "audienceType": "AI developers and builders"},
+        {"@type": "Audience", "audienceType": "Financial analysts and researchers (sellers)"},
+        {"@type": "Audience", "audienceType": "Fintech teams"}
+      ]
+    }
+    </script>
+
+    <!-- Structured Data: 1s Pulse — Market Sentiment News -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "1s Pulse — Tin Tức Tâm Lý Thị Trường",
+      "serviceType": "Market sentiment news",
+      "description": "Tin tức tài chính quốc tế được AI gắn nhãn tâm lý (tích cực/tiêu cực) và chỉ số MRI theo từng kênh đầu tư — VN-Index, vàng, ngân hàng, ngoại hối. Đọc miễn phí, không cần đăng nhập.",
+      "url": "https://vietdataverse.online/#pulse/live",
+      "areaServed": {"@type": "Country", "name": "Vietnam"},
+      "provider": {"@type": "Organization", "name": "Viet Dataverse"}
     }
     </script>
 
