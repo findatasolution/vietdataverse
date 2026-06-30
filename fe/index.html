@@ -2056,6 +2056,90 @@
         </div>
     </footer>
 
+    <!-- ── Experience feedback widget (anonymous, no login) ── -->
+    <div id="vdv-fb" class="vdv-fb">
+        <button type="button" id="vdv-fb-toggle" class="vdv-fb-toggle" aria-haspopup="dialog" aria-expanded="false">
+            <i class="fas fa-comment-dots" aria-hidden="true"></i><span id="vdv-fb-toggle-txt">Góp ý</span>
+        </button>
+        <div id="vdv-fb-panel" class="vdv-fb-panel" role="dialog" aria-label="Góp ý trải nghiệm" hidden>
+            <button type="button" id="vdv-fb-close" class="vdv-fb-close" aria-label="Đóng">&times;</button>
+            <div id="vdv-fb-rate">
+                <div class="vdv-fb-title" id="vdv-fb-title">Trải nghiệm Viet Dataverse thế nào?</div>
+                <div class="vdv-fb-stars" id="vdv-fb-stars" role="radiogroup" aria-label="Đánh giá">
+                    <button type="button" class="vdv-fb-star" data-v="1" aria-label="1 sao">★</button>
+                    <button type="button" class="vdv-fb-star" data-v="2" aria-label="2 sao">★</button>
+                    <button type="button" class="vdv-fb-star" data-v="3" aria-label="3 sao">★</button>
+                    <button type="button" class="vdv-fb-star" data-v="4" aria-label="4 sao">★</button>
+                    <button type="button" class="vdv-fb-star" data-v="5" aria-label="5 sao">★</button>
+                </div>
+            </div>
+            <div id="vdv-fb-detail" hidden>
+                <label class="vdv-fb-label" id="vdv-fb-lbl-looking" for="vdv-fb-looking">Bạn đang tìm kiếm điều gì ở VDV?</label>
+                <textarea id="vdv-fb-looking" class="vdv-fb-textarea" rows="2"></textarea>
+                <label class="vdv-fb-label" id="vdv-fb-lbl-improve" for="vdv-fb-improve">VDV có thể làm gì tốt hơn?</label>
+                <textarea id="vdv-fb-improve" class="vdv-fb-textarea" rows="2"></textarea>
+                <button type="button" id="vdv-fb-submit" class="vdv-fb-submit">Gửi góp ý</button>
+                <div id="vdv-fb-err" class="vdv-fb-err" hidden></div>
+            </div>
+            <div id="vdv-fb-thanks" class="vdv-fb-thanks" hidden>Cảm ơn bạn đã góp ý! 🙏</div>
+        </div>
+    </div>
+    <script>
+    (function () {
+        document.addEventListener('DOMContentLoaded', function () {
+            var root = document.getElementById('vdv-fb');
+            if (!root) return;
+            if (sessionStorage.getItem('vdv_fb_done')) { root.style.display = 'none'; return; }
+            var lang = (localStorage.getItem('lang') || 'vi') === 'en' ? 'en' : 'vi';
+            var T = {
+                vi: { toggle: 'Góp ý', title: 'Trải nghiệm Viet Dataverse thế nào?', looking: 'Bạn đang tìm kiếm điều gì ở VDV?', improve: 'VDV có thể làm gì tốt hơn?', submit: 'Gửi góp ý', sending: 'Đang gửi…', thanks: 'Cảm ơn bạn đã góp ý! 🙏', err: 'Gửi không thành công, thử lại sau.', phL: 'Ví dụ: dữ liệu CPI, API vàng…', phI: 'Chia sẻ thẳng thắn nhé' },
+                en: { toggle: 'Feedback', title: 'How is your Viet Dataverse experience?', looking: 'What are you looking for on VDV?', improve: 'What could VDV do better?', submit: 'Send feedback', sending: 'Sending…', thanks: 'Thanks for your feedback! 🙏', err: 'Could not send, try again later.', phL: 'e.g. CPI data, gold API…', phI: 'Be candid' }
+            }[lang];
+            var $ = function (id) { return document.getElementById(id); };
+            $('vdv-fb-toggle-txt').textContent = T.toggle;
+            $('vdv-fb-title').textContent = T.title;
+            $('vdv-fb-lbl-looking').textContent = T.looking;
+            $('vdv-fb-lbl-improve').textContent = T.improve;
+            $('vdv-fb-submit').textContent = T.submit;
+            $('vdv-fb-thanks').textContent = T.thanks;
+            $('vdv-fb-looking').placeholder = T.phL;
+            $('vdv-fb-improve').placeholder = T.phI;
+
+            var panel = $('vdv-fb-panel'), toggle = $('vdv-fb-toggle'), rating = 0;
+            function openP() { panel.hidden = false; toggle.setAttribute('aria-expanded', 'true'); }
+            function closeP() { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
+            toggle.addEventListener('click', function () { panel.hidden ? openP() : closeP(); });
+            $('vdv-fb-close').addEventListener('click', closeP);
+
+            var stars = root.querySelectorAll('.vdv-fb-star');
+            function paint(n) { stars.forEach(function (s) { s.classList.toggle('on', (+s.dataset.v) <= n); }); }
+            stars.forEach(function (s) {
+                s.addEventListener('mouseenter', function () { paint(+s.dataset.v); });
+                s.addEventListener('click', function () { rating = +s.dataset.v; paint(rating); $('vdv-fb-detail').hidden = false; $('vdv-fb-looking').focus(); });
+            });
+            $('vdv-fb-stars').addEventListener('mouseleave', function () { paint(rating); });
+
+            $('vdv-fb-submit').addEventListener('click', function () {
+                if (!rating) return;
+                var btn = this; btn.disabled = true; btn.textContent = T.sending;
+                var err = $('vdv-fb-err'); err.hidden = true;
+                var API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'https://api.vietdataverse.online/api/v1';
+                fetch(API + '/feedback', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating: rating, looking_for: $('vdv-fb-looking').value || null, improvement: $('vdv-fb-improve').value || null, page_url: location.href, user_agent: navigator.userAgent, language: lang })
+                }).then(function (r) {
+                    if (!r.ok) throw new Error();
+                    $('vdv-fb-rate').hidden = true; $('vdv-fb-detail').hidden = true; $('vdv-fb-thanks').hidden = false;
+                    sessionStorage.setItem('vdv_fb_done', '1');
+                    setTimeout(closeP, 2200);
+                }).catch(function () {
+                    btn.disabled = false; btn.textContent = T.submit; err.textContent = T.err; err.hidden = false;
+                });
+            });
+        });
+    })();
+    </script>
+
 </body>
 
 </html>
