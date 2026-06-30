@@ -112,11 +112,27 @@ async def get_market_pulse(
                         "lang": "vi",
                     })
 
+        # Distinct source "brands" (first token of source_name) over the last 30 days,
+        # ungated, so the FE source filter lists every real source even when the article
+        # payload is a gated 4-item preview. Best-effort: never fail the main response.
+        sources = []
+        try:
+            with get_engine_argus().connect() as conn:
+                srows = conn.execute(text("""
+                    SELECT DISTINCT source_name FROM mri_analysis
+                    WHERE source_name IS NOT NULL AND source_name <> ''
+                      AND generated_at > now() - interval '30 days'
+                """)).fetchall()
+            sources = sorted({(r[0].strip().split() or [""])[0] for r in srows if r[0] and r[0].strip()})
+        except Exception:
+            sources = []
+
         return _json_response({
             "success": True,
             "data": articles,
             "count": len(articles),
             "free_preview_count": free_preview_count,
+            "sources": sources,
         })
     except HTTPException:
         raise

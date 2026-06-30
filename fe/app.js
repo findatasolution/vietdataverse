@@ -2883,17 +2883,24 @@
             }
         }
 
-        // Rebuild the source filter from the sources actually present in the data
-        // (was hardcoded to CNBC/BBC/MarketWatch, so newer feeds like Nikkei never showed).
-        // Group by brand = first token of source_name, matching the substring filter below.
+        // Rebuild the source filter from the real sources (was hardcoded to
+        // CNBC/BBC/MarketWatch, so feeds like Nikkei never showed). Prefer the API's
+        // ungated `sources` list so guests on the 4-item preview still see every source;
+        // fall back to deriving brands from the loaded articles. Brand = first token of
+        // source_name, matching the substring filter (i.source_name.includes(value)).
         function populatePulseSourceFilter() {
             const sel = document.getElementById('filter-source');
-            if (!sel || !pulseDataCache.length) return;
+            if (!sel) return;
             const isVi = (localStorage.getItem('lang') || 'vi') === 'vi';
             const prev = sel.value;
-            const brands = [...new Set(
-                pulseDataCache.map(i => (i.source_name || '').trim().split(/\s+/)[0]).filter(Boolean)
-            )].sort((a, b) => a.localeCompare(b));
+            let brands = Array.isArray(pulseSourcesList) ? pulseSourcesList.slice() : [];
+            if (!brands.length) {
+                brands = [...new Set(
+                    pulseDataCache.map(i => (i.source_name || '').trim().split(/\s+/)[0]).filter(Boolean)
+                )];
+            }
+            brands = brands.filter(Boolean).sort((a, b) => a.localeCompare(b));
+            if (!brands.length) return;
             const allLabel = isVi ? 'Tất cả' : 'All';
             sel.innerHTML = `<option value="" data-i18n="pulseFilterAll">${allLabel}</option>` +
                 brands.map(b => `<option value="${b}">${b}</option>`).join('');
@@ -2902,6 +2909,7 @@
 
         // Market Pulse data cache for filtering
         let pulseDataCache = [];
+        let pulseSourcesList = null; // ungated distinct source brands from the API
         let pulseGatedPreview = 1; // articles visible before gate (set from API response)
 
         async function _doPulseFetch(base, lang, token) {
@@ -2922,6 +2930,7 @@
                 }
                 pulseDataCache = data;
                 pulseGatedPreview = json.free_preview_count ?? null;
+                if (Array.isArray(json.sources) && json.sources.length) pulseSourcesList = json.sources;
                 populatePulseSourceFilter();
                 renderPulseHero();
                 renderPulseSidebar();
