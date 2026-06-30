@@ -130,6 +130,9 @@
                 pulseMRIPositive: 'Tích cực (+)',
                 pulseMRINegative: 'Tiêu cực (-)',
                 pulseFilterSentiment: 'Tâm lý:',
+                pulseFilterSort: 'Sắp xếp:',
+                pulseSortLatest: 'Mới nhất',
+                pulseSortMri: 'MRI cao → thấp',
                 pulseFilterTime: 'Thời gian:',
                 pulseFilterTimeAll: 'Tất cả',
                 pulseFilterTime1h: '1 giờ qua',
@@ -311,6 +314,9 @@
                 pulseMRIPositive: 'Positive (+)',
                 pulseMRINegative: 'Negative (-)',
                 pulseFilterSentiment: 'Sentiment:',
+                pulseFilterSort: 'Sort:',
+                pulseSortLatest: 'Latest',
+                pulseSortMri: 'MRI high → low',
                 pulseFilterTime: 'Time:',
                 pulseFilterTimeAll: 'All',
                 pulseFilterTime1h: 'Last 1h',
@@ -2958,45 +2964,6 @@
             }).catch(() => {});
         }
 
-        function _renderPulseGate(hiddenCount) {
-            const lang = localStorage.getItem('lang') || 'vi';
-            const isVi = lang === 'vi';
-            return `
-<div style="position:relative;margin:-0.5rem 0 1.5rem;z-index:10;">
-  <div style="background:var(--surface-primary,#fff);border:1px solid var(--border-cream,#e8e6dc);
-              border-radius:16px;padding:28px 32px;text-align:center;
-              box-shadow:0 4px 24px rgba(20,20,19,.07);">
-    <div style="width:40px;height:40px;background:rgba(201,100,66,.1);border-radius:50%;
-                display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-      <svg viewBox="0 0 20 20" width="20" height="20" fill="none"
-           stroke="var(--gold-primary,#c96442)" stroke-width="1.7"
-           stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="9" width="12" height="9" rx="2"/>
-        <path d="M7 9V6a3 3 0 016 0v3"/>
-      </svg>
-    </div>
-    <div style="font-family:'Lora',Georgia,serif;font-size:17px;font-weight:600;
-                color:var(--text-primary,#141413);margin-bottom:6px;">
-      ${isVi ? 'Đăng nhập để đọc tiếp' : 'Sign in to read more'}
-    </div>
-    <div style="font-size:13px;color:var(--text-secondary,#87867f);margin-bottom:20px;line-height:1.6;">
-      ${isVi
-        ? `Còn <strong style="color:var(--text-primary,#141413)">${hiddenCount} tờ báo</strong> mới nhất được phân tích bởi AI — đăng nhập miễn phí để xem đầy đủ.`
-        : `<strong style="color:var(--text-primary,#141413)">${hiddenCount} more AI-analyzed articles</strong> — sign in for free to read them all.`}
-    </div>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button onclick="login()"
-              style="background:var(--gold-primary,#c96442);color:#fff;border:none;
-                     border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;
-                     cursor:pointer;font-family:inherit;transition:opacity .2s;"
-              onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-        ${isVi ? 'Đăng nhập miễn phí' : 'Sign in for free'}
-      </button>
-    </div>
-  </div>
-</div>`;
-        }
-
         function renderFilteredPulse() {
             const container = document.getElementById('market-pulse-articles');
             if (!container) return;
@@ -3022,59 +2989,26 @@
                 return;
             }
 
-            // Wider time ranges allow more articles through (24h/7d views are meant to show
-            // everything in that window, not just the latest 10).
-            const displayMax = timeFilter === '7d' ? 50 : timeFilter === '24h' ? 20 : 10;
-            const items = filtered.slice(0, displayMax);
+            // Sort: latest (newest first, default) or by MRI (highest → lowest).
+            const sortBy = document.getElementById('filter-sort')?.value || 'latest';
+            filtered = filtered.slice().sort(sortBy === 'mri'
+                ? (a, b) => (b.mri ?? 0) - (a.mri ?? 0)
+                : (a, b) => new Date(b.generated_at || 0) - new Date(a.generated_at || 0));
 
-            // No gate → render all normally
-            if (pulseGatedPreview === null || pulseGatedPreview >= items.length) {
-                container.innerHTML = items.map((item, i) => renderPulseArticle(item, i)).join('');
-                return;
-            }
-
-            // Gate: first N articles clearly, then gate card, then blurred teasers
-            const clearItems  = items.slice(0, pulseGatedPreview);
-            const gatedItems  = items.slice(pulseGatedPreview);
-            const hiddenCount = gatedItems.length;
-
-            const clearHtml  = clearItems.map((item, i) => renderPulseArticle(item, i)).join('');
-            const gateHtml   = _renderPulseGate(hiddenCount);
-            const gatedHtml  = `
-<div style="position:relative;pointer-events:none;user-select:none;">
-  <div style="filter:blur(4px);opacity:.55;">
-    ${gatedItems.map((item, i) => renderPulseArticle(item, clearItems.length + i)).join('')}
-  </div>
-  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0%,var(--bg-primary,#f5f4ed) 85%);"></div>
-</div>`;
-
-            container.innerHTML = clearHtml + gateHtml + gatedHtml;
+            // Public feed — show every article, no login gate.
+            container.innerHTML = filtered.map((item, i) => renderPulseArticle(item, i)).join('');
         }
 
         // Initialize Market Pulse with filter listeners
         document.addEventListener('DOMContentLoaded', () => {
             loadMarketPulse();
 
-            // Guests get a gated 1-article preview (pulseGatedPreview !== null), so
-            // their cache is too small to filter — selecting any filter would return
-            // "no results". Let them open the dropdown, but prompt login the moment
-            // they pick an option (revert the selection first so nothing half-applies).
+            // 1s Pulse is fully public — filters + sort work for everyone, no login prompt.
             const filterIds = ['filter-source', 'filter-label', 'filter-mri', 'filter-time'];
-            const guestGated = () => pulseGatedPreview !== null;
-            const promptLogin = () => { if (typeof login === 'function') login(); };
-
-            filterIds.forEach(id => {
-                document.getElementById(id)?.addEventListener('change', (e) => {
-                    if (guestGated()) {
-                        e.target.value = '';
-                        promptLogin();
-                        return;
-                    }
-                    renderFilteredPulse();
-                });
+            ['filter-source', 'filter-label', 'filter-mri', 'filter-time', 'filter-sort'].forEach(id => {
+                document.getElementById(id)?.addEventListener('change', () => renderFilteredPulse());
             });
             document.getElementById('filter-reset')?.addEventListener('click', () => {
-                if (guestGated()) { promptLogin(); return; }
                 filterIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
                 renderFilteredPulse();
             });
