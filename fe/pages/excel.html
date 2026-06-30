@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lấy dữ liệu vào Excel (Power Query) — Viet Dataverse</title>
   <meta name="description" content="Hướng dẫn từng bước kéo dữ liệu tài chính Việt Nam (vàng, bạc, tỷ giá, lãi suất, CPI, dữ liệu toàn cầu) vào Microsoft Excel bằng Power Query — không cần code.">
+  <link rel="canonical" href="https://vietdataverse.online/pages/excel.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Lấy dữ liệu Viet Dataverse vào Excel bằng Power Query",
+    "description": "Hướng dẫn từng bước kéo dữ liệu tài chính Việt Nam (vàng, bạc, tỷ giá, lãi suất, CPI) vào Microsoft Excel bằng Power Query — không cần code.",
+    "inLanguage": "vi-VN",
+    "totalTime": "PT5M",
+    "tool": [
+      {"@type": "HowToTool", "name": "Microsoft Excel 2016+ / Microsoft 365 (Power Query)"},
+      {"@type": "HowToTool", "name": "Viet Dataverse API key (miễn phí 1.000 request/tháng)"}
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Lấy API token",
+        "text": "Đăng nhập Viet Dataverse, mở trang Developer, tạo và sao chép API key (miễn phí 1.000 request/tháng).",
+        "url": "https://vietdataverse.online/pages/developer.html"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Kết nối bằng Power Query",
+        "text": "Trong Excel: Data → Get Data → From Other Sources → From Web. Dán URL https://api.vietdataverse.online/api/v1/gold?type=SJC&period=1y&page=1&limit=500&api_key=YOUR_API_KEY rồi To Table và mở rộng cột."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Làm mới dữ liệu",
+        "text": "Nhấn Refresh trong Excel để cập nhật dữ liệu mới nhất từ API."
+      }
+    ]
+  }
+  </script>
   <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
   <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">

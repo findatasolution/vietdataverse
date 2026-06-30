@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lấy dữ liệu vào Google Sheets — Viet Dataverse</title>
   <meta name="description" content="Hướng dẫn từng bước lấy API token và kéo dữ liệu Viet Dataverse vào Google Sheets bằng hàm IMPORTDATA — không cần code.">
+  <link rel="canonical" href="https://vietdataverse.online/pages/google-sheets.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Lấy dữ liệu Viet Dataverse vào Google Sheets",
+    "description": "Hướng dẫn từng bước lấy API token và kéo dữ liệu tài chính Việt Nam (giá vàng SJC/DOJI…) vào Google Sheets bằng hàm IMPORTDATA — không cần code.",
+    "inLanguage": "vi-VN",
+    "totalTime": "PT5M",
+    "tool": [
+      {"@type": "HowToTool", "name": "Google Sheets"},
+      {"@type": "HowToTool", "name": "Viet Dataverse API key (miễn phí 1.000 request/tháng)"}
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Lấy API token",
+        "text": "Đăng nhập Viet Dataverse và mở trang Developer để tạo API key (tài khoản miễn phí được cấp ngay 1.000 request/tháng). Nhấn 'Tạo API key' rồi Copy token.",
+        "url": "https://vietdataverse.online/pages/developer.html"
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Viết công thức IMPORTDATA trong Google Sheets",
+        "text": "Dán token vào ô B1. Tại ô khác nhập: =IMPORTDATA(\"https://api.vietdataverse.online/api/v1/gold?type=SJC&period=1m&format=csv&api_key=\"&$B$1). Google Sheets sẽ kéo dữ liệu giá vàng về dạng bảng."
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Đổi loại vàng & khoảng thời gian",
+        "text": "Thay tham số type (SJC, DOJI HN…) và period (1m, 1y…) trong URL để lấy bộ dữ liệu mong muốn."
+      }
+    ]
+  }
+  </script>
   <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
   <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
