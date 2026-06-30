@@ -998,14 +998,6 @@
         }
     }
 
-    // ── Referral ref capture ──────────────────────────────────
-    (function captureRef() {
-        const ref = new URLSearchParams(location.search).get('ref');
-        if (ref) sessionStorage.setItem('vdv_ref', ref.trim().toLowerCase());
-    })();
-
-    function _getRef() { return sessionStorage.getItem('vdv_ref') || null; }
-
     // ── Page state ────────────────────────────────────────────
     let _studentVerified = false;
     let _coIsAuth        = false;
@@ -1326,8 +1318,6 @@
             const token = await getToken();
             if (!token) throw new Error('Không lấy được token. Vui lòng đăng nhập lại.');
             const body = { plan: _currentPlan().key };
-            const ref = _getRef();
-            if (ref) body.ref_code = ref;
             const res = await fetch(`${API}/api/v1/payment/create-order`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -1335,7 +1325,6 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
-            sessionStorage.removeItem('vdv_ref');
             window.location.href = data.checkout_url;
         } catch (e) {
             if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
@@ -1364,8 +1353,6 @@
         btn.disabled = true; btn.classList.add('loading');
         try {
             const body = { email, plan: _currentPlan().key };
-            const ref = _getRef();
-            if (ref) body.ref_code = ref;
             const res = await fetch(`${API}/api/v1/payment/create-order-guest`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

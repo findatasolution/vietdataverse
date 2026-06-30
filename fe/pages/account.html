@@ -803,41 +803,6 @@
             </div>
         </div>
 
-        <!-- ── Referral Card (pro only) ──────────────────────── -->
-        <div class="card" id="referral-card" style="display:none">
-            <div class="card-title">Giới thiệu bạn bè</div>
-            <p style="font-size:13px;color:var(--stone-gray);margin:0 0 16px;line-height:1.6;">
-                Mỗi người thanh toán qua link của bạn → bạn nhận
-                <strong style="color:var(--near-black);">10% giá trị giao dịch</strong> vào VDV Wallet.
-            </p>
-            <div style="display:flex;align-items:center;gap:8px;
-                        background:var(--warm-sand);border:1px solid var(--border-warm);
-                        border-radius:8px;padding:12px 14px;margin-bottom:12px;">
-                <span id="ref-url-display" style="flex:1;font-size:12px;color:var(--charcoal);
-                                                   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-                                                   font-family:'JetBrains Mono','Courier New',monospace;">
-                    Đang tải…
-                </span>
-                <button onclick="copyRefUrl()" id="ref-copy-btn"
-                        style="background:none;border:1px solid var(--border-warm);color:var(--olive-gray);
-                               font-size:11px;font-weight:500;padding:5px 11px;border-radius:4px;
-                               cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s;"
-                        onmouseover="this.style.color='var(--terracotta)'"
-                        onmouseout="this.style.color='var(--olive-gray)'">
-                    Copy link
-                </button>
-            </div>
-            <div style="display:flex;gap:24px;flex-wrap:wrap;">
-                <div>
-                    <div style="font-size:11px;color:var(--stone-gray);margin-bottom:2px;">Lượt tham gia</div>
-                    <div style="font-size:18px;font-weight:700;color:var(--near-black);" id="ref-count">—</div>
-                </div>
-                <div>
-                    <div style="font-size:11px;color:var(--stone-gray);margin-bottom:2px;">Tổng đã kiếm</div>
-                    <div style="font-size:18px;font-weight:700;color:var(--terracotta);" id="ref-earned">—</div>
-                </div>
-            </div>
-        </div>
 
     </div><!-- /account-content -->
 </div><!-- /account-page -->
@@ -1367,32 +1332,6 @@
         document.getElementById('stu-err-otp').textContent = '';
     }
 
-    /* ── Referral card ───────────────────────────────────── */
-    let _refUrl = '';
-
-    async function loadReferral(headers) {
-        try {
-            const res = await fetch(`${API_BASE}/api/v1/referral/my-code`, { headers });
-            if (!res.ok) return;
-            const data = await res.json();
-
-            _refUrl = data.referral_url;
-            document.getElementById('ref-url-display').textContent = data.referral_url;
-            document.getElementById('ref-count').textContent = data.referral_count;
-            document.getElementById('ref-earned').textContent =
-                (data.total_earned_vnd || 0).toLocaleString('vi-VN') + ' ₫';
-            document.getElementById('referral-card').style.display = 'block';
-        } catch (_) { /* non-critical */ }
-    }
-
-    function copyRefUrl() {
-        if (!_refUrl) return;
-        navigator.clipboard.writeText(_refUrl).then(() => {
-            const btn = document.getElementById('ref-copy-btn');
-            btn.textContent = 'Đã copy!';
-            setTimeout(() => btn.textContent = 'Copy link', 1500);
-        });
-    }
 
     /* ── Boot ────────────────────────────────────────────── */
     // Đóng dropdown settings-tabs khi bấm ra ngoài (mobile)
@@ -1415,7 +1354,7 @@
             const token = await getToken();
             const headers = { Authorization: `Bearer ${token}` };
 
-            // Fetch in parallel: /me, student/status, referral/my-code (if pro)
+            // Fetch in parallel: /me, student/status
             const meRes = await fetch(`${API_BASE}/me`, { headers });
             if (!meRes.ok) throw new Error('Không tải được thông tin tài khoản');
             const me = await meRes.json();
@@ -1437,7 +1376,7 @@
             if (keyInfo !== null) renderTokenCard(keyInfo);
             renderWallet(me.wallet_balance || 0);
             renderStudentCard(stuData);
-            if (isPro) { await loadReferral(headers); loadWebhooks(); }
+            if (isPro) { loadWebhooks(); }
 
             document.getElementById('state-loading').style.display = 'none';
             document.getElementById('account-content').style.display = 'block';

@@ -200,56 +200,6 @@ def _ensure_tables(conn):
     conn.commit()
 
 
-def _credit_referral(session, order_code: int, amount: int) -> None:
-    """
-    Kiểm tra xem order có ref_code không. Nếu có và chưa credited:
-      - Tìm referrer theo referral_code
-      - Cộng 10% amount vào wallet_balance
-      - Ghi wallet_transactions
-      - Đánh dấu referral_credited = TRUE để idempotency
-    """
-    order_row = session.execute(text("""
-        SELECT ref_code, referral_credited
-        FROM payment_orders WHERE order_code = :oc
-    """), {"oc": order_code}).fetchone()
-
-    if not order_row:
-        return
-    ref_code, already_credited = order_row
-    if not ref_code or already_credited:
-        return
-
-    referrer = session.execute(text("""
-        SELECT user_id FROM users WHERE referral_code = :code
-    """), {"code": ref_code}).fetchone()
-
-    if not referrer:
-        return
-
-    referrer_id  = referrer[0]
-    reward_vnd   = int(amount * 0.10)
-
-    session.execute(text("""
-        UPDATE users
-        SET wallet_balance = wallet_balance + :reward
-        WHERE user_id = :uid
-    """), {"reward": reward_vnd, "uid": referrer_id})
-
-    session.execute(text("""
-        INSERT INTO wallet_transactions (user_id, amount, type, reference_id, note)
-        VALUES (:uid, :amt, 'referral_reward', :ref, :note)
-    """), {
-        "uid":  referrer_id,
-        "amt":  reward_vnd,
-        "ref":  str(order_code),
-        "note": f"10% hoa hồng giới thiệu từ đơn hàng {order_code}",
-    })
-
-    session.execute(text("""
-        UPDATE payment_orders SET referral_credited = TRUE WHERE order_code = :oc
-    """), {"oc": order_code})
-
-
 def _activate_premium(session, user_id: int, plan: str):
     """Extend premium_expiry for a user. Stacks on top of existing subscription.
 
@@ -671,12 +621,6 @@ async def verify_order(order_code: int):
                 UPDATE payment_orders SET status = 'paid', updated_at = NOW()
                 WHERE order_code = :oc
             """), {"oc": order_code})
-            # Credit referral reward if applicable
-            paid_amount = session.execute(
-                text("SELECT amount FROM payment_orders WHERE order_code = :oc"),
-                {"oc": order_code},
-            ).scalar() or 0
-            _credit_referral(session, order_code, paid_amount)
             session.commit()
             print(f"[verify-order] ✅ Premium activated user_id={user_id} đến {new_expiry}")
             return {
@@ -771,8 +715,6 @@ async def payos_webhook(request: Request):
         else:
             # subscription (default) flow — same as before
             new_expiry = _activate_premium(session, user_id, plan)
-            paid_amount = data.get("amount") or 0
-            _credit_referral(session, order_code, paid_amount)
             print(f"[payos-webhook] subscription user_id={user_id} đến {new_expiry}")
 
         session.commit()
