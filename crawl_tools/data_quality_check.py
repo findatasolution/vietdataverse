@@ -95,7 +95,7 @@ TABLES = [
     # ── Global DB ────────────────────────────────────────────────────────────
     ('global_macro',              'GLOBAL_INDICATOR_DB',
      'date', 'date',
-     ['gold_price', 'silver_price', 'nasdaq_price'],
+     ['gold_price', 'silver_price', 'nasdaq_price', 'sp500_price', 'dowjones_price'],
      (0, 1_000_000)),
 ]
 

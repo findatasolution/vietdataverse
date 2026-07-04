@@ -28,12 +28,26 @@ jobs:
             local name="$1"
             local url="$2"
             local response
-            response=$(curl -sf --max-time 15 "$url" 2>&1)
-            local exit_code=$?
+            local http_code
+            local exit_code
+
+            set +e
+            response=$(curl -sS --max-time 15 --write-out $'\n%{http_code}' "$url" 2>&1)
+            exit_code=$?
+            set -e
 
             if [ $exit_code -ne 0 ]; then
-              echo "❌ $name — curl failed (exit $exit_code)"
-              ERRORS="$ERRORS\n  ❌ $name: curl error $exit_code"
+              echo "❌ $name — transport failed (curl exit $exit_code)"
+              ERRORS="$ERRORS\n  ❌ $name: transport error $exit_code"
+              FAIL=$((FAIL + 1))
+              return
+            fi
+
+            http_code=$(printf '%s\n' "$response" | tail -n 1)
+            response=$(printf '%s\n' "$response" | sed '$d')
+            if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+              echo "❌ $name — HTTP $http_code"
+              ERRORS="$ERRORS\n  ❌ $name: HTTP $http_code"
               FAIL=$((FAIL + 1))
               return
             fi

@@ -9,6 +9,12 @@ on:
     # they effectively retry hourly ONLY while today's gold/silver is still missing.
     - cron: '30 2-9 * * *'
   workflow_dispatch:
+    inputs:
+      force_global:
+        description: "Run crawler even when today's domestic and global data are fresh"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   crawl-gold-silver:
@@ -23,10 +29,12 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Skip if today's gold & silver already crawled
+    - name: Skip if domestic and global data are already fresh
       id: guard
       env:
         CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+        GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
+        FORCE_GLOBAL: ${{ inputs.force_global || false }}
       run: |
         pip install -q psycopg2-binary
         python - <<'PY'
@@ -40,8 +48,35 @@ jobs:
             (today, today),
         )
         gold_rows, silver_rows = cur.fetchone()
-        done = "true" if (gold_rows > 0 and silver_rows > 0) else "false"
-        print(f"today={today} gold_rows={gold_rows} silver_rows={silver_rows} -> done={done}")
+        conn.close()
+
+        global_conn = psycopg2.connect(os.environ['GLOBAL_INDICATOR_DB'])
+        global_cur = global_conn.cursor()
+        global_cur.execute(
+            "SELECT MAX(date) FILTER (WHERE gold_price IS NOT NULL), "
+            "MAX(date) FILTER (WHERE silver_price IS NOT NULL), "
+            "MAX(date) FILTER (WHERE nasdaq_price IS NOT NULL), "
+            "MAX(date) FILTER (WHERE sp500_price IS NOT NULL), "
+            "MAX(date) FILTER (WHERE dowjones_price IS NOT NULL) "
+            "FROM global_macro"
+        )
+        latest_global_dates = global_cur.fetchone()
+        global_conn.close()
+
+        domestic_done = gold_rows > 0 and silver_rows > 0
+        # Four calendar days covers weekends and US market holidays while still
+        # forcing retries for a genuinely stale weekday feed.
+        freshness_floor = datetime.date.fromisoformat(today) - datetime.timedelta(days=4)
+        global_done = all(d is not None and d >= freshness_floor for d in latest_global_dates)
+        done = "true" if (domestic_done and global_done) else "false"
+        if os.environ.get('FORCE_GLOBAL', '').lower() == 'true':
+            done = "false"
+            print("force_global=true -> bypass freshness guard")
+        print(
+            f"today={today} gold_rows={gold_rows} silver_rows={silver_rows} "
+            f"global_latest={latest_global_dates} floor={freshness_floor} "
+            f"-> done={done}"
+        )
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f"done={done}\n")
         PY

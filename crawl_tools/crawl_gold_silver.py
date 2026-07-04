@@ -1,9 +1,9 @@
 """
 Gold & Silver Price Crawler
-Runs 2x daily: Morning (8:30 AM VN) and Afternoon (2:30 PM VN)
+Runs daily, with hourly retries until all feeds are fresh
 - Domestic silver prices from giabac.vn
 - Domestic gold prices from 24h.com.vn
-- Global gold/silver/NASDAQ from Yahoo Finance
+- Global gold/silver/indices from Yahoo Finance, with FRED index fallback
 """
 
 import sys
@@ -19,6 +19,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from global_market_sources import fill_missing_indices
 
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
@@ -293,9 +294,24 @@ try:
                     print(f"  Retry {attempt + 1}/{max_retries} for {sym}: {e}")
                     time.sleep(retry_delay * (attempt + 1))
                 else:
-                    raise
+                    # Keep processing other symbols. Missing index series can be
+                    # recovered by FRED below; missing futures will fail validation.
+                    print(f"  Yahoo exhausted retries for {sym}: {e}")
+                    break
             finally:
                 time.sleep(2)
+
+    # Yahoo commonly serves futures but blocks index symbols on datacenter IPs.
+    # FRED's CSV endpoint works from datacenter IPs and requires no API key.
+    # Merge only dates absent from Yahoo; never overwrite valid Yahoo data.
+    fallback_dates = fill_missing_indices(series)
+    if fallback_dates:
+        summary = ', '.join(f"{col} ({len(days)} days)" for col, days in sorted(fallback_dates.items()))
+        print(f"  FRED fallback supplied: {summary}")
+
+    still_missing = sorted(col for col in TICKERS if not series.get(col))
+    if still_missing:
+        raise RuntimeError(f"No usable Yahoo or FRED data for: {', '.join(still_missing)}")
 
     all_dates = sorted({d for s in series.values() for d in s})
     if not all_dates:
@@ -311,6 +327,8 @@ try:
                 'sp500_price':    series.get('sp500_price', {}).get(d),
                 'dowjones_price': series.get('dowjones_price', {}).get(d),
             }
+            used_fred = any(d in dates for dates in fallback_dates.values())
+            row_source = 'Yahoo Finance / FRED fallback' if used_fred else 'Yahoo Finance'
             exists = conn.execute(
                 text("SELECT COUNT(*) FROM global_macro WHERE date = :d"), {'d': d}
             ).scalar() > 0
@@ -323,9 +341,14 @@ try:
                         silver_price   = COALESCE(silver_price, :silver_price),
                         nasdaq_price   = COALESCE(nasdaq_price, :nasdaq_price),
                         sp500_price    = COALESCE(sp500_price, :sp500_price),
-                        dowjones_price = COALESCE(dowjones_price, :dowjones_price)
+                        dowjones_price = COALESCE(dowjones_price, :dowjones_price),
+                        source = CASE
+                            WHEN :used_fred AND source NOT LIKE '%FRED%'
+                            THEN source || ' / FRED fallback'
+                            ELSE source
+                        END
                     WHERE date = :d
-                """), {**vals, 'd': d})
+                """), {**vals, 'd': d, 'used_fred': used_fred})
                 updated += 1
             else:
                 conn.execute(text("""
@@ -333,8 +356,8 @@ try:
                         (date, crawl_time, gold_price, silver_price, nasdaq_price,
                          sp500_price, dowjones_price, source, group_name)
                     VALUES (:date, :crawl_time, :gold_price, :silver_price, :nasdaq_price,
-                            :sp500_price, :dowjones_price, 'Yahoo Finance', 'commodity')
-                """), {'date': d, 'crawl_time': datetime.now(), **vals})
+                            :sp500_price, :dowjones_price, :source, 'commodity')
+                """), {'date': d, 'crawl_time': datetime.now(), 'source': row_source, **vals})
                 inserted += 1
 
     print(f"  Global macro: {inserted} new, {updated} backfilled, latest {all_dates[-1]}")
