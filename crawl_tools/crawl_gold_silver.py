@@ -301,31 +301,43 @@ try:
     if not all_dates:
         raise RuntimeError("yfinance returned no data for any ticker (likely rate-limited)")
 
-    inserted = 0
-    with global_indicator_engine.connect() as conn:
+    inserted, updated = 0, 0
+    with global_indicator_engine.begin() as conn:
         for d in all_dates:
+            vals = {
+                'gold_price':     series.get('gold_price', {}).get(d),
+                'silver_price':   series.get('silver_price', {}).get(d),
+                'nasdaq_price':   series.get('nasdaq_price', {}).get(d),
+                'sp500_price':    series.get('sp500_price', {}).get(d),
+                'dowjones_price': series.get('dowjones_price', {}).get(d),
+            }
             exists = conn.execute(
                 text("SELECT COUNT(*) FROM global_macro WHERE date = :d"), {'d': d}
             ).scalar() > 0
             if exists:
-                continue
-            row = {
-                'date': pd.to_datetime(d),
-                'crawl_time': datetime.now(),
-                'gold_price': series.get('gold_price', {}).get(d),
-                'silver_price': series.get('silver_price', {}).get(d),
-                'nasdaq_price': series.get('nasdaq_price', {}).get(d),
-                'sp500_price': series.get('sp500_price', {}).get(d),
-                'dowjones_price': series.get('dowjones_price', {}).get(d),
-                'source': 'Yahoo Finance',
-                'group_name': 'commodity',
-            }
-            pd.DataFrame([row]).to_sql('global_macro', global_indicator_engine,
-                                       if_exists='append', index=False)
-            inserted += 1
-            print(f"  Inserted global macro for {d}")
+                # Backfill only columns still NULL (e.g. index prices that were blocked
+                # on an earlier run) — COALESCE never overwrites an existing value.
+                conn.execute(text("""
+                    UPDATE global_macro SET
+                        gold_price     = COALESCE(gold_price, :gold_price),
+                        silver_price   = COALESCE(silver_price, :silver_price),
+                        nasdaq_price   = COALESCE(nasdaq_price, :nasdaq_price),
+                        sp500_price    = COALESCE(sp500_price, :sp500_price),
+                        dowjones_price = COALESCE(dowjones_price, :dowjones_price)
+                    WHERE date = :d
+                """), {**vals, 'd': d})
+                updated += 1
+            else:
+                conn.execute(text("""
+                    INSERT INTO global_macro
+                        (date, crawl_time, gold_price, silver_price, nasdaq_price,
+                         sp500_price, dowjones_price, source, group_name)
+                    VALUES (:date, :crawl_time, :gold_price, :silver_price, :nasdaq_price,
+                            :sp500_price, :dowjones_price, 'Yahoo Finance', 'commodity')
+                """), {'date': d, 'crawl_time': datetime.now(), **vals})
+                inserted += 1
 
-    print(f"  Global macro: {inserted} new row(s), latest available {all_dates[-1]}")
+    print(f"  Global macro: {inserted} new, {updated} backfilled, latest {all_dates[-1]}")
     global_failed = False  # got real data and persisted it
 
 except ImportError:

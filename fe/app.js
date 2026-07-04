@@ -2512,7 +2512,11 @@
                     const lastDate = dates.length ? dates[dates.length - 1] : null;
 
                     function setGlobalTicker(valueId, changeId, series, decimals) {
-                        const lc = lastChange(series);
+                        // Trim trailing missing points (null/0) so today's not-yet-closed
+                        // index value doesn't blank the ticker — use the last real close.
+                        const s = Array.isArray(series) ? series.slice() : [];
+                        while (s.length && (s[s.length - 1] == null || s[s.length - 1] === 0)) s.pop();
+                        const lc = lastChange(s);
                         const vEl = document.getElementById(valueId);
                         const cEl = document.getElementById(changeId);
                         if (!lc || !vEl || !cEl) return;
