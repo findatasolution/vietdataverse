@@ -103,6 +103,10 @@ jobs:
         WEBHOOK_INTERNAL_SECRET: ${{ secrets.WEBHOOK_INTERNAL_SECRET }}
         API_BASE: https://api.vietdataverse.online
       run: |
+        if [ -z "$WEBHOOK_INTERNAL_SECRET" ]; then
+          echo "Webhook delivery disabled: WEBHOOK_INTERNAL_SECRET is not configured"
+          exit 0
+        fi
         for event in gold silver; do
           curl -sf -X POST "${API_BASE}/api/v1/internal/webhooks/trigger" \
             -H "Content-Type: application/json" \
