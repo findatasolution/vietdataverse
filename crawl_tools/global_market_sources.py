@@ -64,10 +64,27 @@ def fill_missing_indices(series, fetcher=fetch_fred_history):
     for column, series_id in FRED_INDEX_SERIES.items():
         current = series.setdefault(column, {})
         latest_current = max(current) if current else None
-        if latest_current and (not latest_reference or latest_current >= latest_reference):
+        if latest_current and latest_reference:
+            lag_days = (date.fromisoformat(latest_reference) - date.fromisoformat(latest_current)).days
+            # Futures and stock indices have different holiday calendars. A short
+            # lag is normal (for example US Independence Day) and must not force a
+            # fallback request or mark otherwise valid Yahoo data as stale.
+            if lag_days <= 3:
+                continue
+        elif latest_current:
             continue
+
+        try:
+            fallback_series = fetcher(series_id)
+        except Exception:
+            # A fallback outage must not invalidate an existing Yahoo series. If
+            # Yahoo is wholly absent, propagate so the workflow fails loudly.
+            if current:
+                continue
+            raise
+
         added = set()
-        for day, close in fetcher(series_id).items():
+        for day, close in fallback_series.items():
             if day not in current:
                 current[day] = close
                 added.add(day)

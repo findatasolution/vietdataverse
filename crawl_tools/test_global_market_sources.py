@@ -46,18 +46,31 @@ class GlobalMarketSourcesTest(unittest.TestCase):
 
     def test_fills_trailing_gap_in_nonempty_series(self):
         series = {
-            "gold_price": {"2026-07-03": 2500.0},
+            "gold_price": {"2026-07-06": 2500.0},
             "nasdaq_price": {"2026-07-02": 25832.67},
-            "sp500_price": {"2026-07-03": 7000.0},
-            "dowjones_price": {"2026-07-03": 50000.0},
+            "sp500_price": {"2026-07-06": 7000.0},
+            "dowjones_price": {"2026-07-06": 50000.0},
         }
 
         fallback = fill_missing_indices(
             series,
-            fetcher=lambda symbol: {"2026-07-02": 100.0, "2026-07-03": 101.0},
+            fetcher=lambda symbol: {"2026-07-02": 100.0, "2026-07-06": 101.0},
         )
-        self.assertEqual(fallback, {"nasdaq_price": {"2026-07-03"}})
-        self.assertEqual(series["nasdaq_price"]["2026-07-03"], 101.0)
+        self.assertEqual(fallback, {"nasdaq_price": {"2026-07-06"}})
+        self.assertEqual(series["nasdaq_price"]["2026-07-06"], 101.0)
+
+    def test_does_not_treat_short_market_holiday_lag_as_stale(self):
+        series = {
+            "gold_price": {"2026-07-03": 2500.0},
+            "nasdaq_price": {"2026-07-02": 25832.67},
+            "sp500_price": {"2026-07-02": 7483.24},
+            "dowjones_price": {"2026-07-02": 52900.07},
+        }
+
+        def should_not_run(_):
+            self.fail("fallback called for a normal one-day market-calendar gap")
+
+        self.assertEqual(fill_missing_indices(series, fetcher=should_not_run), {})
 
 
 if __name__ == "__main__":
