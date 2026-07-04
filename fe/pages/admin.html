@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel | Viet Dataverse</title>
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/fe/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="../auth.js" defer></script>
+    <script src="/fe/auth.js" defer></script>
     <style>
         body { margin: 0; background: var(--parchment); }
         .admin-nav {
@@ -156,6 +156,14 @@
         }
         .period-btn.active { background:rgba(201,100,66,.10); border-color:rgba(201,100,66,.3); color:var(--terracotta); }
 
+        .feedback-table-wrap {
+            overflow-x: auto; background: var(--pure-white); border: 1px solid var(--border-cream);
+            border-radius: var(--radius-xl); margin-bottom: 24px;
+        }
+        .feedback-copy { min-width: 190px; max-width: 320px; white-space: pre-wrap; }
+        .feedback-page { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .feedback-stars { color: var(--terracotta); white-space: nowrap; letter-spacing: 1px; }
+
         #loading { text-align:center; padding:80px; color:var(--text-tertiary); font-size:14px; }
         #access-denied { display:none; text-align:center; padding:80px; }
         .toast {
@@ -205,6 +213,21 @@
         <div class="kpi-card"><div class="kpi-label">DAU (hôm nay)</div><div class="kpi-value" id="dau">—</div></div>
         <div class="kpi-card"><div class="kpi-label">WAU (tuần này)</div><div class="kpi-value" id="wau">—</div></div>
         <div class="kpi-card"><div class="kpi-label">MAU (tháng này)</div><div class="kpi-value" id="mau">—</div></div>
+    </div>
+
+    <!-- Experience feedback -->
+    <div class="section-h" style="margin-top:0;">Góp ý trải nghiệm</div>
+    <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Tổng góp ý</div><div class="kpi-value" id="feedback-total">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Điểm trung bình</div><div class="kpi-value" id="feedback-avg">—</div><div class="kpi-sub">trên 5 sao</div></div>
+        <div class="kpi-card"><div class="kpi-label">Có nội dung chi tiết</div><div class="kpi-value" id="feedback-with-text">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Phân bố sao</div><div class="kpi-sub" id="feedback-ratings">—</div></div>
+    </div>
+    <div class="feedback-table-wrap">
+        <table class="admin-table">
+            <thead><tr><th>Thời gian</th><th>Đánh giá</th><th>Nhóm</th><th>Đang tìm kiếm</th><th>Cần cải thiện</th><th>Trang</th></tr></thead>
+            <tbody id="feedback-body"></tbody>
+        </table>
     </div>
 
     <!-- Signup trend chart -->
@@ -327,6 +350,51 @@ function showToast(msg, ok = true) {
 
 function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n) + ' ₫'; }
 
+function appendTextCell(row, value, className = '') {
+    const cell = document.createElement('td');
+    cell.textContent = value == null || value === '' ? '—' : String(value);
+    if (className) cell.className = className;
+    row.appendChild(cell);
+    return cell;
+}
+
+function renderFeedback(feedback) {
+    const data = feedback || {};
+    document.getElementById('feedback-total').textContent = (data.total || 0).toLocaleString('vi-VN');
+    document.getElementById('feedback-avg').textContent = data.avg_rating == null ? '—' : data.avg_rating.toLocaleString('vi-VN');
+    document.getElementById('feedback-with-text').textContent = (data.with_text || 0).toLocaleString('vi-VN');
+    document.getElementById('feedback-ratings').textContent = (data.ratings || [])
+        .map(item => `${item.rating}★: ${item.count}`)
+        .join(' · ') || 'Chưa có đánh giá';
+
+    const groupLabels = {
+        dev: 'Dev / Fintech / AI',
+        business: 'Đại diện công ty',
+        researcher: 'Nghiên cứu / Sinh viên',
+    };
+    const body = document.getElementById('feedback-body');
+    body.replaceChildren();
+    const recent = data.recent || [];
+    if (!recent.length) {
+        const row = document.createElement('tr');
+        const cell = appendTextCell(row, 'Chưa có dữ liệu góp ý');
+        cell.colSpan = 6;
+        cell.style.cssText = 'color:var(--text-tertiary);text-align:center;padding:24px;';
+        body.appendChild(row);
+        return;
+    }
+    recent.forEach(item => {
+        const row = document.createElement('tr');
+        appendTextCell(row, item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : null);
+        appendTextCell(row, item.rating ? '★'.repeat(item.rating) : null, 'feedback-stars');
+        appendTextCell(row, groupLabels[item.user_group] || item.user_group);
+        appendTextCell(row, item.looking_for, 'feedback-copy');
+        appendTextCell(row, item.improvement, 'feedback-copy');
+        appendTextCell(row, item.page_url, 'feedback-page').title = item.page_url || '';
+        body.appendChild(row);
+    });
+}
+
 function levelBadge(level) {
     const cls = level === 'premium_developer' ? 'level-dev'
               : level === 'premium' ? 'level-premium'
@@ -372,6 +440,7 @@ async function loadDashboard() {
     document.getElementById('dau').textContent = (logins.dau || 0).toLocaleString('vi-VN');
     document.getElementById('wau').textContent = (logins.wau || 0).toLocaleString('vi-VN');
     document.getElementById('mau').textContent = (logins.mau || 0).toLocaleString('vi-VN');
+    renderFeedback(d.feedback);
 }
 
 // ── Signup trend chart ──────────────────────────────────────────────────────
@@ -663,8 +732,13 @@ async function initAdmin() {
     try {
         const authed = await isAuthenticated();
         if (!authed) {
-            loadEl.style.display = 'none';
-            document.getElementById('access-denied').style.display = 'block';
+            // Auth0 uses localStorage, which is origin-scoped. A session on
+            // vietdataverse.online is not visible on api.vietdataverse.online,
+            // where this page is served. Start login on this origin and return
+            // here so refreshing does not leave the user at a misleading
+            // "Admin only" screen.
+            loadEl.textContent = 'Đang chuyển đến trang đăng nhập…';
+            await login('/pages/admin.html');
             return;
         }
         const user = await getUser();
@@ -678,7 +752,10 @@ async function initAdmin() {
         const info = await res.json();
         if (info.user_level !== 'admin') {
             loadEl.style.display = 'none';
-            document.getElementById('access-denied').style.display = 'block';
+            const denied = document.getElementById('access-denied');
+            denied.querySelector('p:last-child').textContent =
+                `Tài khoản ${user?.email || ''} chưa có quyền admin (level: ${info.user_level || 'unknown'}).`;
+            denied.style.display = 'block';
             return;
         }
 

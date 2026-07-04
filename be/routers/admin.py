@@ -391,6 +391,79 @@ async def admin_dashboard(request: Request):
                 WHERE at >= DATE_TRUNC('month', NOW())
             """)).fetchone()[0]
 
+            # Anonymous experience feedback. Keep the dashboard usable on a
+            # fresh database where the feedback table has not been created yet.
+            feedback = {
+                "total": 0,
+                "avg_rating": None,
+                "with_text": 0,
+                "ratings": [],
+                "groups": [],
+                "recent": [],
+            }
+            feedback_exists = conn.execute(text(
+                "SELECT to_regclass('public.experience_feedback') IS NOT NULL"
+            )).fetchone()[0]
+            if feedback_exists:
+                feedback_summary = conn.execute(text("""
+                    SELECT
+                        COUNT(*) AS total,
+                        ROUND(AVG(rating)::numeric, 2) AS avg_rating,
+                        COUNT(*) FILTER (
+                            WHERE NULLIF(TRIM(looking_for), '') IS NOT NULL
+                               OR NULLIF(TRIM(improvement), '') IS NOT NULL
+                        ) AS with_text
+                    FROM experience_feedback
+                """)).fetchone()
+                rating_rows = conn.execute(text("""
+                    SELECT rating, COUNT(*) AS count
+                    FROM experience_feedback
+                    WHERE rating IS NOT NULL
+                    GROUP BY rating
+                    ORDER BY rating DESC
+                """)).fetchall()
+                group_rows = conn.execute(text("""
+                    SELECT COALESCE(user_group, '(không chọn)') AS user_group,
+                           COUNT(*) AS count
+                    FROM experience_feedback
+                    GROUP BY user_group
+                    ORDER BY count DESC
+                """)).fetchall()
+                recent_rows = conn.execute(text("""
+                    SELECT created_at, rating, user_group, looking_for,
+                           improvement, page_url
+                    FROM experience_feedback
+                    ORDER BY created_at DESC
+                    LIMIT 40
+                """)).fetchall()
+                feedback = {
+                    "total": int(feedback_summary[0]),
+                    "avg_rating": (
+                        float(feedback_summary[1])
+                        if feedback_summary[1] is not None else None
+                    ),
+                    "with_text": int(feedback_summary[2]),
+                    "ratings": [
+                        {"rating": int(r[0]), "count": int(r[1])}
+                        for r in rating_rows
+                    ],
+                    "groups": [
+                        {"user_group": r[0], "count": int(r[1])}
+                        for r in group_rows
+                    ],
+                    "recent": [
+                        {
+                            "created_at": r[0],
+                            "rating": r[1],
+                            "user_group": r[2],
+                            "looking_for": r[3],
+                            "improvement": r[4],
+                            "page_url": r[5],
+                        }
+                        for r in recent_rows
+                    ],
+                }
+
         return _json_response({
             "success": True,
             "revenue": {
@@ -411,6 +484,7 @@ async def admin_dashboard(request: Request):
                 "wau":            int(wau),
                 "mau":            int(mau),
             },
+            "feedback": feedback,
             "top_endpoints": [
                 {"endpoint": r[0], "calls": r[1], "unique_users": r[2]}
                 for r in top_endpoints

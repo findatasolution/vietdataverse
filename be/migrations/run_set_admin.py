@@ -1,6 +1,6 @@
 """
 One-shot script: set a user as admin by email.
-Usage: python be/migrations/run_set_admin.py findatasolution@gmail.com.vn
+Usage: python be/migrations/run_set_admin.py findatasolution@gmail.com
 """
 import sys
 from pathlib import Path
@@ -11,7 +11,7 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
 import os
 from sqlalchemy import create_engine, text
 
-EMAIL = sys.argv[1] if len(sys.argv) > 1 else "findatasolution@gmail.com.vn"
+EMAIL = sys.argv[1] if len(sys.argv) > 1 else "findatasolution@gmail.com"
 
 engine = create_engine(os.environ["USER_DB"])
 with engine.begin() as conn:

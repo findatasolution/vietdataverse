@@ -2056,32 +2056,33 @@
         </div>
     </footer>
 
-    <!-- ── Experience feedback widget (anonymous, no login, auto-save on dismiss) ── -->
+    <!-- ── Experience feedback widget (anonymous, user-opened, progressive questions) ── -->
     <div id="vdv-fb" class="vdv-fb">
-        <button type="button" id="vdv-fb-toggle" class="vdv-fb-toggle" aria-haspopup="dialog" aria-expanded="true">
+        <button type="button" id="vdv-fb-toggle" class="vdv-fb-toggle" aria-haspopup="dialog" aria-expanded="false">
             <i class="fas fa-comment-dots" aria-hidden="true"></i><span id="vdv-fb-toggle-txt">Góp ý</span>
         </button>
-        <div id="vdv-fb-panel" class="vdv-fb-panel" role="dialog" aria-label="Góp ý trải nghiệm">
+        <div id="vdv-fb-panel" class="vdv-fb-panel" role="dialog" aria-label="Góp ý trải nghiệm" hidden>
             <button type="button" id="vdv-fb-close" class="vdv-fb-close" aria-label="Đóng">&times;</button>
             <div class="vdv-fb-title" id="vdv-fb-title">Trải nghiệm Viet Dataverse thế nào?</div>
             <div class="vdv-fb-stars" id="vdv-fb-stars" role="radiogroup" aria-label="Đánh giá">
-                <button type="button" class="vdv-fb-star" data-v="1" aria-label="1 sao">★</button>
-                <button type="button" class="vdv-fb-star" data-v="2" aria-label="2 sao">★</button>
-                <button type="button" class="vdv-fb-star" data-v="3" aria-label="3 sao">★</button>
-                <button type="button" class="vdv-fb-star" data-v="4" aria-label="4 sao">★</button>
-                <button type="button" class="vdv-fb-star" data-v="5" aria-label="5 sao">★</button>
+                <button type="button" class="vdv-fb-star" data-v="1" role="radio" aria-checked="false" aria-label="1 sao">★</button>
+                <button type="button" class="vdv-fb-star" data-v="2" role="radio" aria-checked="false" aria-label="2 sao">★</button>
+                <button type="button" class="vdv-fb-star" data-v="3" role="radio" aria-checked="false" aria-label="3 sao">★</button>
+                <button type="button" class="vdv-fb-star" data-v="4" role="radio" aria-checked="false" aria-label="4 sao">★</button>
+                <button type="button" class="vdv-fb-star" data-v="5" role="radio" aria-checked="false" aria-label="5 sao">★</button>
             </div>
-            <div class="vdv-fb-label" id="vdv-fb-lbl-group">Bạn thuộc nhóm nào?</div>
-            <div class="vdv-fb-groups" id="vdv-fb-groups">
-                <button type="button" class="vdv-fb-chip" data-g="dev">Dev / Fintech / AI</button>
-                <button type="button" class="vdv-fb-chip" data-g="business">Đại diện công ty</button>
-                <button type="button" class="vdv-fb-chip" data-g="researcher">Nghiên cứu / Sinh viên</button>
+            <div id="vdv-fb-details" class="vdv-fb-details" hidden>
+                <div class="vdv-fb-label" id="vdv-fb-lbl-group">Bạn thuộc nhóm nào?</div>
+                <div class="vdv-fb-groups" id="vdv-fb-groups">
+                    <button type="button" class="vdv-fb-chip" data-g="dev">Dev / Fintech / AI</button>
+                    <button type="button" class="vdv-fb-chip" data-g="business">Đại diện công ty</button>
+                    <button type="button" class="vdv-fb-chip" data-g="researcher">Nghiên cứu / Sinh viên</button>
+                </div>
+                <label class="vdv-fb-label" id="vdv-fb-lbl-looking" for="vdv-fb-looking">Bạn đang tìm kiếm điều gì ở VDV?</label>
+                <textarea id="vdv-fb-looking" class="vdv-fb-textarea" rows="3"></textarea>
+                <label class="vdv-fb-label" id="vdv-fb-lbl-improve" for="vdv-fb-improve">VDV có thể làm gì tốt hơn?</label>
+                <textarea id="vdv-fb-improve" class="vdv-fb-textarea" rows="3"></textarea>
             </div>
-            <label class="vdv-fb-label" id="vdv-fb-lbl-looking" for="vdv-fb-looking">Bạn đang tìm kiếm điều gì ở VDV?</label>
-            <textarea id="vdv-fb-looking" class="vdv-fb-textarea" rows="3"></textarea>
-            <label class="vdv-fb-label" id="vdv-fb-lbl-improve" for="vdv-fb-improve">VDV có thể làm gì tốt hơn?</label>
-            <textarea id="vdv-fb-improve" class="vdv-fb-textarea" rows="3"></textarea>
-            <div class="vdv-fb-hint" id="vdv-fb-hint">Đóng cửa sổ là tự động lưu — cảm ơn bạn!</div>
         </div>
     </div>
     <script>
@@ -2092,8 +2093,8 @@
             if (sessionStorage.getItem('vdv_fb_done')) { root.style.display = 'none'; return; }
             var lang = (localStorage.getItem('lang') || 'vi') === 'en' ? 'en' : 'vi';
             var T = {
-                vi: { toggle: 'Góp ý', title: 'Trải nghiệm Viet Dataverse thế nào?', group: 'Bạn thuộc nhóm nào?', gDev: 'Dev / Fintech / AI', gBiz: 'Đại diện công ty', gRes: 'Nghiên cứu / Sinh viên', looking: 'Bạn đang tìm kiếm điều gì ở VDV?', improve: 'VDV có thể làm gì tốt hơn?', hint: 'Đóng cửa sổ là tự động lưu — cảm ơn bạn!', phL: 'Ví dụ: dữ liệu CPI, API vàng…', phI: 'Chia sẻ thẳng thắn nhé' },
-                en: { toggle: 'Feedback', title: 'How is your Viet Dataverse experience?', group: 'Which group are you in?', gDev: 'Dev / Fintech / AI', gBiz: 'Company rep', gRes: 'Researcher / Student', looking: 'What are you looking for on VDV?', improve: 'What could VDV do better?', hint: 'Closing auto-saves — thank you!', phL: 'e.g. CPI data, gold API…', phI: 'Be candid' }
+                vi: { toggle: 'Góp ý', title: 'Trải nghiệm Viet Dataverse thế nào?', group: 'Bạn thuộc nhóm nào?', gDev: 'Dev / Fintech / AI', gBiz: 'Đại diện công ty', gRes: 'Nghiên cứu / Sinh viên', looking: 'Bạn đang tìm kiếm điều gì ở VDV?', improve: 'VDV có thể làm gì tốt hơn?', phL: 'Ví dụ: dữ liệu CPI, API vàng…', phI: 'Chia sẻ thẳng thắn nhé' },
+                en: { toggle: 'Feedback', title: 'How is your Viet Dataverse experience?', group: 'Which group are you in?', gDev: 'Dev / Fintech / AI', gBiz: 'Company rep', gRes: 'Researcher / Student', looking: 'What are you looking for on VDV?', improve: 'What could VDV do better?', phL: 'e.g. CPI data, gold API…', phI: 'Be candid' }
             }[lang];
             var $ = function (id) { return document.getElementById(id); };
             $('vdv-fb-toggle-txt').textContent = T.toggle;
@@ -2101,14 +2102,13 @@
             $('vdv-fb-lbl-group').textContent = T.group;
             $('vdv-fb-lbl-looking').textContent = T.looking;
             $('vdv-fb-lbl-improve').textContent = T.improve;
-            $('vdv-fb-hint').textContent = T.hint;
             $('vdv-fb-looking').placeholder = T.phL;
             $('vdv-fb-improve').placeholder = T.phI;
             var chipEls = root.querySelectorAll('.vdv-fb-chip');
             var chipTxt = { dev: T.gDev, business: T.gBiz, researcher: T.gRes };
             chipEls.forEach(function (c) { c.textContent = chipTxt[c.dataset.g]; });
 
-            var panel = $('vdv-fb-panel'), toggle = $('vdv-fb-toggle');
+            var panel = $('vdv-fb-panel'), toggle = $('vdv-fb-toggle'), details = $('vdv-fb-details');
             var rating = 0, group = '', sent = false;
             var API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || 'https://api.vietdataverse.online/api/v1';
 
@@ -2151,7 +2151,12 @@
             function paint(n) { stars.forEach(function (s) { s.classList.toggle('on', (+s.dataset.v) <= n); }); }
             stars.forEach(function (s) {
                 s.addEventListener('mouseenter', function () { paint(+s.dataset.v); });
-                s.addEventListener('click', function () { rating = +s.dataset.v; paint(rating); });
+                s.addEventListener('click', function () {
+                    rating = +s.dataset.v;
+                    paint(rating);
+                    stars.forEach(function (x) { x.setAttribute('aria-checked', x === s ? 'true' : 'false'); });
+                    details.hidden = false;
+                });
             });
             $('vdv-fb-stars').addEventListener('mouseleave', function () { paint(rating); });
 
