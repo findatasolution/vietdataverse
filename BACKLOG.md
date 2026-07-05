@@ -52,6 +52,16 @@
 - Chốt public preview vs API-key full response; review quyền redistribution theo từng RSS source trước khi thương mại hoá nội dung tóm tắt
 - **Tại sao:** DB đủ nhanh để phục vụ API nhưng schema, access policy, dedup và licensing chưa production-grade
 
+### [PULSE-01] Mở rộng 1s Pulse thành multi-source signal pipeline
+- Pipeline hiện đã dùng `feedparser`; nguồn Việt bị bỏ ngày 2026-06-30 để giới hạn scope ở sentiment quốc tế, không phải do lỗi parser
+- Audit 2026-07-05: RSS CafeF chứng khoán trả 50 entries (XML hợp lệ nhưng sai Content-Type), VnExpress Kinh doanh trả 60 entries và parse sạch
+- Khôi phục CafeF/VnExpress/Vietstock trong lane `vietnam_news` riêng, có quota nguồn và ranking riêng; không trộn trực tiếp vào pool quốc tế 45 bài
+- Thêm lane `official_statements`: IMF/central banks/government/corporate IR feeds, filings and press rooms; ưu tiên nguồn chính thức trước social repost
+- Social lane chỉ dùng API/authorized access: X API (pay-per-use), Truth Social authenticated compatible API nếu được phép, LinkedIn Posts API với scope/app review; không scrape HTML/profile
+- Lưu provenance/trust metadata (`source_type`, `author_id`, `verified`, `published_at`, `retrieved_at`, `content_hash`, `canonical_url`) và chỉ coi social post là signal chưa xác minh
+- Rà license/redistribution từng nguồn; public API ưu tiên metadata + derived MRI + canonical link, không phát lại full article text
+- **Tại sao:** feedparser giúp RSS nhanh/ổn định nhưng không thay thế social APIs, licensing, source trust hay dedup
+
 ### [CHAT-01] MVP "Chat với dữ liệu VN" — prototype
 - Interface chat đơn giản, pre-loaded với context VN
 - Mỗi câu hỏi → tự gọi API lấy data realtime → trả lời
