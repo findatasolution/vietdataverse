@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from dotenv import load_dotenv
@@ -49,6 +50,11 @@ METERED_PREFIXES = (
                                # đọc data/cpi_*.json nên gate live endpoint an toàn.
 )
 
+TRACKED_PUBLIC_PREFIXES = (
+    "/api/v1/gold-analysis",
+    "/api/v1/market-pulse",
+)
+
 
 def _is_metered(path: str) -> bool:
     if path.startswith("/api/v1/gold-analysis"):
@@ -56,11 +62,25 @@ def _is_metered(path: str) -> bool:
     return any(path.startswith(p) for p in METERED_PREFIXES)
 
 
+def _is_tracked_public(path: str) -> bool:
+    return any(path.startswith(p) for p in TRACKED_PUBLIC_PREFIXES)
+
+
 @app.middleware("http")
 async def meter_open_data(request, call_next):
     from fastapi import HTTPException
     from fastapi.responses import JSONResponse
-    from middleware import _auth_via_api_key, _auth_via_bearer
+    from middleware import _auth_via_api_key, _auth_via_bearer, _log_api_call
+
+    def log_rejected(status_code: int) -> None:
+        """Best-effort audit without storing IP, token, API key, or user agent."""
+        user = getattr(request.state, "user", None) or {}
+        asyncio.create_task(_log_api_call(
+            user.get("user_id"),
+            user.get("api_key_id"),
+            path,
+            status_code,
+        ))
 
     path = request.url.path
     if request.method == "GET" and _is_metered(path):
@@ -77,6 +97,7 @@ async def meter_open_data(request, call_next):
                 # FE đã đăng nhập (download CSV, chart cần dữ liệu live)
                 ok = await _auth_via_bearer(request, auth_header[7:])
             else:
+                log_rejected(401)
                 return JSONResponse(
                     status_code=401,
                     content={
@@ -86,18 +107,29 @@ async def meter_open_data(request, call_next):
                     },
                 )
         except HTTPException as exc:
+            log_rejected(exc.status_code)
             return JSONResponse(
                 status_code=exc.status_code,
                 content={"success": False, "detail": exc.detail},
                 headers=getattr(exc, "headers", None),
             )
         if not ok:
+            log_rejected(401)
             return JSONResponse(
                 status_code=401,
                 content={"success": False, "detail": "Thông tin xác thực không hợp lệ hoặc đã bị thu hồi."},
             )
 
-    return await call_next(request)
+    response = await call_next(request)
+    if request.method == "GET" and _is_tracked_public(path):
+        user = getattr(request.state, "user", None) or {}
+        asyncio.create_task(_log_api_call(
+            user.get("user_id"),
+            user.get("api_key_id"),
+            path,
+            response.status_code,
+        ))
+    return response
 
 
 # CORS + GZip added AFTER meter → wrap nó (last-added = outermost trong Starlette).

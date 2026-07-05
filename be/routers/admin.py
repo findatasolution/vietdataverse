@@ -285,20 +285,38 @@ async def reverify_order(order_code: int, request: Request):
 # Revenue & usage dashboard
 # ---------------------------------------------------------------------------
 
+_REPORT_PERIODS = {
+    "24h": {
+        "label": "24 giờ qua",
+        "since_sql": "NOW() - INTERVAL '24 hours'",
+        "bucket_sql": "DATE_TRUNC('hour', created_at)",
+        "granularity": "hour",
+    },
+    "7d": {
+        "label": "7 ngày qua",
+        "since_sql": "NOW() - INTERVAL '7 days'",
+        "bucket_sql": "DATE(created_at)",
+        "granularity": "day",
+    },
+    "ytd": {
+        "label": "Từ đầu năm",
+        "since_sql": "DATE_TRUNC('year', NOW())",
+        "bucket_sql": "DATE_TRUNC('month', created_at)",
+        "granularity": "month",
+    },
+}
+
 @router.get("/api/v1/admin/dashboard")
-async def admin_dashboard(request: Request):
-    """
-    KPI dashboard:
-    - Revenue tháng hiện tại, tháng trước, YTD
-    - Active subscribers by tier
-    - Top 10 endpoints by call count this month
-    - Top 10 API keys by usage this month
-    """
+async def admin_dashboard(
+    request: Request,
+    period: str = Query("24h", pattern="^(24h|7d|ytd)$"),
+):
+    """Revenue, engagement, API activity, and feedback for one report period."""
     await authenticate_user(request)
     _require_admin(request)
     try:
-        from quota import current_quota_month
-        qmonth = current_quota_month()
+        period_config = _REPORT_PERIODS[period]
+        since_sql = period_config["since_sql"]
 
         with get_engine_user().connect() as conn:
             # Revenue this month
@@ -338,26 +356,6 @@ async def admin_dashboard(request: Request):
             # Total users
             total_users = conn.execute(text("SELECT COUNT(*) FROM users")).fetchone()[0]
 
-            # Top endpoints this month
-            top_endpoints = conn.execute(text("""
-                SELECT endpoint, COUNT(*) as calls, COUNT(DISTINCT user_id) as users
-                FROM api_call_log
-                WHERE at >= DATE_TRUNC('month', NOW())
-                GROUP BY endpoint
-                ORDER BY calls DESC
-                LIMIT 10
-            """)).fetchall()
-
-            # Top API keys this month
-            top_keys = conn.execute(text("""
-                SELECT u.email, aum.request_count
-                FROM api_usage_monthly aum
-                JOIN users u ON aum.user_id = u.user_id
-                WHERE aum.quota_month = :qm
-                ORDER BY aum.request_count DESC
-                LIMIT 10
-            """), {"qm": qmonth}).fetchall()
-
             # New users today / this week / this month
             new_today = conn.execute(text("""
                 SELECT COUNT(*) FROM users
@@ -391,6 +389,66 @@ async def admin_dashboard(request: Request):
                 WHERE at >= DATE_TRUNC('month', NOW())
             """)).fetchone()[0]
 
+            # Period-specific performance report. since_sql comes exclusively
+            # from the allowlisted _REPORT_PERIODS mapping above.
+            period_revenue = conn.execute(text(f"""
+                SELECT COALESCE(SUM(amount), 0)
+                FROM payment_orders
+                WHERE status = 'paid' AND created_at >= {since_sql}
+            """)).fetchone()[0]
+            period_new_users = conn.execute(text(f"""
+                SELECT COUNT(*) FROM users WHERE created_at >= {since_sql}
+            """)).fetchone()[0]
+            period_unique_logins = conn.execute(text(f"""
+                SELECT COUNT(DISTINCT user_id)
+                FROM login_events WHERE at >= {since_sql}
+            """)).fetchone()[0]
+            api_row = conn.execute(text(f"""
+                SELECT
+                    COUNT(*) AS total,
+                    COUNT(*) FILTER (WHERE status_code >= 200 AND status_code < 400) AS successful,
+                    COUNT(*) FILTER (WHERE status_code >= 400) AS rejected,
+                    COUNT(*) FILTER (WHERE user_id IS NOT NULL) AS recognized,
+                    COUNT(*) FILTER (
+                        WHERE user_id IS NULL AND status_code >= 200 AND status_code < 400
+                    ) AS public_anonymous,
+                    COUNT(*) FILTER (
+                        WHERE user_id IS NULL AND status_code >= 400
+                    ) AS anonymous_or_invalid,
+                    COUNT(*) FILTER (WHERE user_id IS NOT NULL AND api_key_id IS NOT NULL) AS api_key_calls,
+                    COUNT(*) FILTER (WHERE user_id IS NOT NULL AND api_key_id IS NULL) AS bearer_calls,
+                    COUNT(DISTINCT user_id) AS unique_users
+                FROM api_call_log
+                WHERE at >= {since_sql}
+            """)).fetchone()
+            period_top_endpoints = conn.execute(text(f"""
+                SELECT endpoint,
+                       COUNT(*) AS calls,
+                       COUNT(*) FILTER (WHERE status_code >= 200 AND status_code < 400) AS successful,
+                       COUNT(*) FILTER (WHERE status_code >= 400) AS rejected,
+                       COUNT(*) FILTER (
+                           WHERE user_id IS NULL AND status_code >= 200 AND status_code < 400
+                       ) AS public_anonymous,
+                       COUNT(*) FILTER (
+                           WHERE user_id IS NULL AND status_code >= 400
+                       ) AS anonymous_or_invalid,
+                       COUNT(DISTINCT user_id) AS users
+                FROM api_call_log
+                WHERE at >= {since_sql}
+                GROUP BY endpoint
+                ORDER BY calls DESC
+                LIMIT 10
+            """)).fetchall()
+            period_top_keys = conn.execute(text(f"""
+                SELECT u.email, COUNT(*) AS calls
+                FROM api_call_log acl
+                JOIN users u ON u.user_id = acl.user_id
+                WHERE acl.at >= {since_sql} AND acl.api_key_id IS NOT NULL
+                GROUP BY u.user_id, u.email
+                ORDER BY calls DESC
+                LIMIT 10
+            """)).fetchall()
+
             # Anonymous experience feedback. Keep the dashboard usable on a
             # fresh database where the feedback table has not been created yet.
             feedback = {
@@ -405,7 +463,7 @@ async def admin_dashboard(request: Request):
                 "SELECT to_regclass('public.experience_feedback') IS NOT NULL"
             )).fetchone()[0]
             if feedback_exists:
-                feedback_summary = conn.execute(text("""
+                feedback_summary = conn.execute(text(f"""
                     SELECT
                         COUNT(*) AS total,
                         ROUND(AVG(rating)::numeric, 2) AS avg_rating,
@@ -414,25 +472,28 @@ async def admin_dashboard(request: Request):
                                OR NULLIF(TRIM(improvement), '') IS NOT NULL
                         ) AS with_text
                     FROM experience_feedback
+                    WHERE created_at >= {since_sql}
                 """)).fetchone()
-                rating_rows = conn.execute(text("""
+                rating_rows = conn.execute(text(f"""
                     SELECT rating, COUNT(*) AS count
                     FROM experience_feedback
-                    WHERE rating IS NOT NULL
+                    WHERE rating IS NOT NULL AND created_at >= {since_sql}
                     GROUP BY rating
                     ORDER BY rating DESC
                 """)).fetchall()
-                group_rows = conn.execute(text("""
+                group_rows = conn.execute(text(f"""
                     SELECT COALESCE(user_group, '(không chọn)') AS user_group,
                            COUNT(*) AS count
                     FROM experience_feedback
+                    WHERE created_at >= {since_sql}
                     GROUP BY user_group
                     ORDER BY count DESC
                 """)).fetchall()
-                recent_rows = conn.execute(text("""
+                recent_rows = conn.execute(text(f"""
                     SELECT created_at, rating, user_group, looking_for,
                            improvement, page_url
                     FROM experience_feedback
+                    WHERE created_at >= {since_sql}
                     ORDER BY created_at DESC
                     LIMIT 40
                 """)).fetchall()
@@ -466,10 +527,15 @@ async def admin_dashboard(request: Request):
 
         return _json_response({
             "success": True,
+            "period": {
+                "key": period,
+                "label": period_config["label"],
+            },
             "revenue": {
                 "this_month": int(rev_this),
                 "last_month": int(rev_last),
                 "ytd":        int(rev_ytd),
+                "period_total": int(period_revenue),
             },
             "subscribers": {
                 "active_by_tier": active_by_tier,
@@ -477,21 +543,43 @@ async def admin_dashboard(request: Request):
                 "new_today":      int(new_today),
                 "new_week":       int(new_week),
                 "new_month":      int(new_month),
+                "new_in_period":  int(period_new_users),
             },
             "logins": {
                 "ever_logged_in": int(ever_logged_in),
                 "dau":            int(dau),
                 "wau":            int(wau),
                 "mau":            int(mau),
+                "unique_in_period": int(period_unique_logins),
+            },
+            "api_activity": {
+                "total": int(api_row[0]),
+                "successful": int(api_row[1]),
+                "rejected": int(api_row[2]),
+                "recognized": int(api_row[3]),
+                "public_anonymous": int(api_row[4]),
+                "anonymous_or_invalid": int(api_row[5]),
+                "api_key_calls": int(api_row[6]),
+                "bearer_calls": int(api_row[7]),
+                "unique_users": int(api_row[8]),
+                "anonymous_tracking_started_at": "2026-07-05",
             },
             "feedback": feedback,
             "top_endpoints": [
-                {"endpoint": r[0], "calls": r[1], "unique_users": r[2]}
-                for r in top_endpoints
+                {
+                    "endpoint": r[0],
+                    "calls": int(r[1]),
+                    "successful": int(r[2]),
+                    "rejected": int(r[3]),
+                    "public_anonymous": int(r[4]),
+                    "anonymous_or_invalid": int(r[5]),
+                    "unique_users": int(r[6]),
+                }
+                for r in period_top_endpoints
             ],
             "top_api_keys": [
-                {"email": r[0], "requests_this_month": r[1]}
-                for r in top_keys
+                {"email": r[0], "requests": int(r[1])}
+                for r in period_top_keys
             ],
         })
     except HTTPException:
@@ -503,27 +591,30 @@ async def admin_dashboard(request: Request):
 @router.get("/api/v1/admin/signup-trend")
 async def signup_trend(
     request: Request,
-    days: int = Query(30, ge=7, le=90, description="Number of days to look back"),
+    period: str = Query("24h", pattern="^(24h|7d|ytd)$"),
 ):
-    """Daily new user signups for the last N days."""
+    """New-user trend bucketed by hour, day, or month for the report period."""
     await authenticate_user(request)
     _require_admin(request)
     try:
+        config = _REPORT_PERIODS[period]
+        bucket_sql = config["bucket_sql"]
+        since_sql = config["since_sql"]
         with get_engine_user().connect() as conn:
-            rows = conn.execute(text("""
-                SELECT
-                    DATE(created_at AT TIME ZONE 'Asia/Ho_Chi_Minh') AS day,
-                    COUNT(*) AS count
+            rows = conn.execute(text(f"""
+                SELECT {bucket_sql} AS bucket, COUNT(*) AS count
                 FROM users
-                WHERE created_at >= NOW() - INTERVAL '1 day' * :days
+                WHERE created_at >= {since_sql}
                 GROUP BY 1
                 ORDER BY 1
-            """), {"days": days}).fetchall()
+            """)).fetchall()
 
         return _json_response({
             "success": True,
-            "days": days,
-            "data": [{"day": str(r[0]), "count": int(r[1])} for r in rows],
+            "period": period,
+            "label": config["label"],
+            "granularity": config["granularity"],
+            "data": [{"bucket": str(r[0]), "count": int(r[1])} for r in rows],
         })
     except HTTPException:
         raise

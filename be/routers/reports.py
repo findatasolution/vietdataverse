@@ -18,13 +18,13 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy import text
 
 from core.engines import get_engine_knowledge, get_engine_user
-from middleware import authenticate_user
+from middleware import authenticate_user, authenticate_user_optional
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,12 @@ class AdminReportPatch(BaseModel):
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @router.post("/api/v1/knowledge/products/{product_id}/report")
-async def report_product(product_id: int, body: ReportBody, request: Request):
+async def report_product(
+    product_id: int,
+    body: ReportBody,
+    request: Request,
+    _auth: None = Depends(authenticate_user_optional),
+):
     """
     Submit a report on a product. Auth optional — anonymous OK with reporter_email.
 

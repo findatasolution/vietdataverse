@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from sqlalchemy import text
 
 from core.engines import get_engine_argus
-from middleware import authenticate_user_optional
+from middleware import authenticate_user, authenticate_user_optional
 
 router = APIRouter()
 
@@ -18,7 +18,10 @@ def _json_response(data: dict) -> Response:
 
 
 @router.get("/api/v1/gold-analysis")
-async def get_gold_analysis(request: Request):
+async def get_gold_analysis(
+    request: Request,
+    _auth: None = Depends(authenticate_user_optional),
+):
     try:
         with get_engine_argus().connect() as conn:
             row = conn.execute(text("""
@@ -137,6 +140,10 @@ async def get_market_pulse(
 
 @router.post("/api/v1/generate-market-pulse")
 async def generate_market_pulse(request: Request):
+    await authenticate_user(request)
+    user = getattr(request.state, "user", None) or {}
+    if not (user.get("is_admin") or user.get("user_level") == "admin"):
+        raise HTTPException(status_code=403, detail="Admin only")
     try:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         # Script lives one level up (be/), not in routers/

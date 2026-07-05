@@ -156,6 +156,24 @@
         }
         .period-btn.active { background:rgba(201,100,66,.10); border-color:rgba(201,100,66,.3); color:var(--terracotta); }
 
+        .report-period-bar {
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            margin-bottom: 20px; padding: 12px 14px; background: var(--pure-white);
+            border: 1px solid var(--border-cream); border-radius: 12px;
+        }
+        .report-period-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .report-period-tabs { display: flex; gap: 4px; }
+        .report-period-btn {
+            min-height: 36px; padding: 7px 14px; border: 1px solid transparent;
+            border-radius: 8px; background: transparent; color: var(--text-secondary);
+            font: 500 12px/1 inherit; cursor: pointer;
+        }
+        .report-period-btn.active {
+            color: var(--terracotta); background: rgba(201,100,66,.10);
+            border-color: rgba(201,100,66,.25);
+        }
+        .report-period-btn:disabled { opacity: .55; cursor: wait; }
+
         .feedback-table-wrap {
             overflow-x: auto; background: var(--pure-white); border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl); margin-bottom: 24px;
@@ -163,6 +181,12 @@
         .feedback-copy { min-width: 190px; max-width: 320px; white-space: pre-wrap; }
         .feedback-page { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .feedback-stars { color: var(--terracotta); white-space: nowrap; letter-spacing: 1px; }
+
+        @media (max-width: 640px) {
+            .report-period-bar { align-items: stretch; flex-direction: column; }
+            .report-period-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+            .report-period-btn { min-height: 44px; }
+        }
 
         #loading { text-align:center; padding:80px; color:var(--text-tertiary); font-size:14px; }
         #access-denied { display:none; text-align:center; padding:80px; }
@@ -194,25 +218,28 @@
 
 <div id="admin-app" class="admin-layout" style="display:none;">
 
-    <!-- KPI cards -->
-    <div class="kpi-grid" id="kpi-grid">
-        <div class="kpi-card"><div class="kpi-label">Doanh thu tháng này</div><div class="kpi-value" id="rev-this">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Doanh thu tháng trước</div><div class="kpi-value" id="rev-last">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Doanh thu YTD</div><div class="kpi-value" id="rev-ytd">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Active subscribers</div><div class="kpi-value" id="active-subs">—</div><div class="kpi-sub" id="tier-breakdown"></div></div>
-        <div class="kpi-card"><div class="kpi-label">Tổng users</div><div class="kpi-value" id="total-users">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Đăng ký hôm nay</div><div class="kpi-value" id="new-today">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Đăng ký tuần này</div><div class="kpi-value" id="new-week">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Đăng ký tháng này</div><div class="kpi-value" id="new-month">—</div></div>
+    <div class="report-period-bar">
+        <span class="report-period-label" id="report-period-label">Báo cáo · 24 giờ qua</span>
+        <div class="report-period-tabs" role="tablist" aria-label="Kỳ báo cáo">
+            <button class="report-period-btn active" role="tab" aria-selected="true" data-period="24h" onclick="setReportPeriod('24h', this)">24 giờ</button>
+            <button class="report-period-btn" role="tab" aria-selected="false" data-period="7d" onclick="setReportPeriod('7d', this)">1 tuần</button>
+            <button class="report-period-btn" role="tab" aria-selected="false" data-period="ytd" onclick="setReportPeriod('ytd', this)">YTD</button>
+        </div>
     </div>
 
-    <!-- Login engagement -->
-    <div class="section-h" style="margin-top:0;">Engagement đăng nhập</div>
-    <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-label">Đã từng đăng nhập</div><div class="kpi-value" id="ever-logged-in">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">DAU (hôm nay)</div><div class="kpi-value" id="dau">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">WAU (tuần này)</div><div class="kpi-value" id="wau">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">MAU (tháng này)</div><div class="kpi-value" id="mau">—</div></div>
+    <!-- KPI cards -->
+    <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Doanh thu</div><div class="kpi-value" id="revenue-period">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">User mới</div><div class="kpi-value" id="new-users-period">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Unique đăng nhập</div><div class="kpi-value" id="unique-logins-period">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">API thành công</div><div class="kpi-value" id="api-successful">—</div><div class="kpi-sub" id="api-unique-users">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Qua API key</div><div class="kpi-value" id="api-key-calls">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Qua FE / Bearer</div><div class="kpi-value" id="api-bearer-calls">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Public anonymous</div><div class="kpi-value" id="api-public-anonymous">—</div><div class="kpi-sub">API public gọi không đăng nhập</div></div>
+        <div class="kpi-card"><div class="kpi-label">Anonymous / key lỗi</div><div class="kpi-value" id="api-anonymous">—</div><div class="kpi-sub">Theo dõi từ 05/07/2026</div></div>
+        <div class="kpi-card"><div class="kpi-label">Request bị từ chối</div><div class="kpi-value" id="api-rejected">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Active subscribers</div><div class="kpi-value" id="active-subs">—</div><div class="kpi-sub" id="tier-breakdown"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Tổng users</div><div class="kpi-value" id="total-users">—</div></div>
     </div>
 
     <!-- Experience feedback -->
@@ -233,12 +260,7 @@
     <!-- Signup trend chart -->
     <div class="chart-wrap">
         <div class="chart-header">
-            <span class="chart-title">Đăng ký mới theo ngày</span>
-            <div class="period-btns">
-                <button class="period-btn active" onclick="loadSignupTrend(7, this)">7 ngày</button>
-                <button class="period-btn" onclick="loadSignupTrend(30, this)">30 ngày</button>
-                <button class="period-btn" onclick="loadSignupTrend(90, this)">90 ngày</button>
-            </div>
+            <span class="chart-title" id="signup-chart-title">Đăng ký mới · 24 giờ qua</span>
         </div>
         <canvas id="signup-chart" height="80"></canvas>
     </div>
@@ -247,7 +269,7 @@
     <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('users')">Users</button>
         <button class="tab-btn" onclick="switchTab('orders')">Payment Orders</button>
-        <button class="tab-btn" onclick="switchTab('stats')">Top Endpoints</button>
+        <button class="tab-btn" onclick="switchTab('stats')">API Activity</button>
     </div>
 
     <!-- Users tab -->
@@ -315,13 +337,13 @@
     <div class="tab-panel" id="tab-stats">
         <div style="overflow-x:auto;">
             <table class="admin-table" id="stats-table">
-                <thead><tr><th>#</th><th>Endpoint</th><th>Calls (tháng này)</th><th>Unique users</th></tr></thead>
+                <thead><tr><th>#</th><th>Endpoint</th><th>Calls</th><th>Thành công</th><th>Từ chối</th><th>Public anonymous</th><th>Anonymous / lỗi</th><th>Unique users</th></tr></thead>
                 <tbody id="stats-body"></tbody>
             </table>
         </div>
-        <div class="section-h" style="font-size:14px;margin-top:28px;">Top API Keys</div>
+        <div class="section-h" id="top-keys-title" style="font-size:14px;margin-top:28px;">Top API Keys · 24 giờ qua</div>
         <table class="admin-table" id="top-keys-table">
-            <thead><tr><th>#</th><th>Email</th><th>Requests tháng này</th></tr></thead>
+            <thead><tr><th>#</th><th>Email</th><th>Requests</th></tr></thead>
             <tbody id="top-keys-body"></tbody>
         </table>
     </div>
@@ -339,6 +361,8 @@ let _token = null;
 let _usersPage = 0, _ordersPage = 0;
 const PAGE_SIZE = 50;
 let _signupChart = null;
+let _reportPeriod = '24h';
+let _reportRequestId = 0;
 
 function showToast(msg, ok = true) {
     const el = document.getElementById('toast');
@@ -404,6 +428,23 @@ function levelBadge(level) {
     return `<span class="level-badge ${cls}">${labels[level] || level}</span>`;
 }
 
+async function setReportPeriod(period, btnEl) {
+    if (!['24h', '7d', 'ytd'].includes(period) || period === _reportPeriod) return;
+    _reportPeriod = period;
+    document.querySelectorAll('.report-period-btn').forEach(btn => {
+        const active = btn === btnEl;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        btn.disabled = true;
+    });
+    try {
+        await Promise.all([loadDashboard(period), loadSignupTrend(period)]);
+        if (document.getElementById('tab-stats').classList.contains('active')) await loadStats();
+    } finally {
+        document.querySelectorAll('.report-period-btn').forEach(btn => { btn.disabled = false; });
+    }
+}
+
 function switchTab(name) {
     document.querySelectorAll('.tab-btn').forEach((b, i) => {
         b.classList.toggle('active', ['users','orders','stats'][i] === name);
@@ -416,51 +457,59 @@ function switchTab(name) {
 
 // ── Dashboard KPIs ──────────────────────────────────────────────────────────
 
-async function loadDashboard() {
-    const res = await fetch(`${API}/api/v1/admin/dashboard`, {
+async function loadDashboard(period = _reportPeriod) {
+    const requestId = ++_reportRequestId;
+    const res = await fetch(`${API}/api/v1/admin/dashboard?period=${encodeURIComponent(period)}`, {
         headers: { Authorization: `Bearer ${_token}` }
     });
     if (!res.ok) return;
     const d = await res.json();
-    document.getElementById('rev-this').textContent   = fmt(d.revenue.this_month);
-    document.getElementById('rev-last').textContent   = fmt(d.revenue.last_month);
-    document.getElementById('rev-ytd').textContent    = fmt(d.revenue.ytd);
+    if (requestId !== _reportRequestId) return;
+    const periodLabel = d.period?.label || period;
+    document.getElementById('report-period-label').textContent = `Báo cáo · ${periodLabel}`;
+    document.getElementById('top-keys-title').textContent = `Top API Keys · ${periodLabel}`;
+    document.getElementById('revenue-period').textContent = fmt(d.revenue.period_total || 0);
+    document.getElementById('new-users-period').textContent = (d.subscribers.new_in_period || 0).toLocaleString('vi-VN');
+    document.getElementById('unique-logins-period').textContent = (d.logins?.unique_in_period || 0).toLocaleString('vi-VN');
     document.getElementById('total-users').textContent = d.subscribers.total_users.toLocaleString('vi-VN');
     const tiers = d.subscribers.active_by_tier;
     const total = Object.values(tiers).reduce((a, b) => a + b, 0);
     document.getElementById('active-subs').textContent = total.toLocaleString('vi-VN');
     document.getElementById('tier-breakdown').textContent =
         Object.entries(tiers).map(([k, v]) => `${k}: ${v}`).join(' · ');
-    document.getElementById('new-today').textContent = (d.subscribers.new_today  || 0).toLocaleString('vi-VN');
-    document.getElementById('new-week').textContent  = (d.subscribers.new_week   || 0).toLocaleString('vi-VN');
-    document.getElementById('new-month').textContent = (d.subscribers.new_month  || 0).toLocaleString('vi-VN');
 
-    const logins = d.logins || {};
-    document.getElementById('ever-logged-in').textContent = (logins.ever_logged_in || 0).toLocaleString('vi-VN');
-    document.getElementById('dau').textContent = (logins.dau || 0).toLocaleString('vi-VN');
-    document.getElementById('wau').textContent = (logins.wau || 0).toLocaleString('vi-VN');
-    document.getElementById('mau').textContent = (logins.mau || 0).toLocaleString('vi-VN');
+    const api = d.api_activity || {};
+    document.getElementById('api-successful').textContent = (api.successful || 0).toLocaleString('vi-VN');
+    document.getElementById('api-unique-users').textContent = `${api.unique_users || 0} user được nhận diện`;
+    document.getElementById('api-key-calls').textContent = (api.api_key_calls || 0).toLocaleString('vi-VN');
+    document.getElementById('api-bearer-calls').textContent = (api.bearer_calls || 0).toLocaleString('vi-VN');
+    document.getElementById('api-public-anonymous').textContent = (api.public_anonymous || 0).toLocaleString('vi-VN');
+    document.getElementById('api-anonymous').textContent = (api.anonymous_or_invalid || 0).toLocaleString('vi-VN');
+    document.getElementById('api-rejected').textContent = (api.rejected || 0).toLocaleString('vi-VN');
     renderFeedback(d.feedback);
 }
 
 // ── Signup trend chart ──────────────────────────────────────────────────────
 
-async function loadSignupTrend(days, btnEl) {
-    if (btnEl) {
-        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-        btnEl.classList.add('active');
-    }
-    const res = await fetch(`${API}/api/v1/admin/signup-trend?days=${days}`, {
+async function loadSignupTrend(period = _reportPeriod) {
+    const res = await fetch(`${API}/api/v1/admin/signup-trend?period=${encodeURIComponent(period)}`, {
         headers: { Authorization: `Bearer ${_token}` }
     });
     if (!res.ok) return;
     const d = await res.json();
 
     const labels = d.data.map(r => {
-        const dt = new Date(r.day);
+        const dt = new Date(r.bucket);
+        if (d.granularity === 'hour') {
+            return dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+        if (d.granularity === 'month') {
+            return dt.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' });
+        }
         return dt.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
     });
     const counts = d.data.map(r => r.count);
+    document.getElementById('signup-chart-title').textContent = `Đăng ký mới · ${d.label}`;
 
     const ctx = document.getElementById('signup-chart').getContext('2d');
     if (_signupChart) _signupChart.destroy();
@@ -673,7 +722,7 @@ async function reverifyOrder(orderCode) {
 // ── Stats ───────────────────────────────────────────────────────────────────
 
 async function loadStats() {
-    const res = await fetch(`${API}/api/v1/admin/dashboard`, {
+    const res = await fetch(`${API}/api/v1/admin/dashboard?period=${encodeURIComponent(_reportPeriod)}`, {
         headers: { Authorization: `Bearer ${_token}` }
     });
     if (!res.ok) return;
@@ -684,15 +733,19 @@ async function loadStats() {
             <td style="color:var(--text-tertiary)">${i + 1}</td>
             <td style="font-family:monospace;font-size:12px;">${ep.endpoint}</td>
             <td>${ep.calls.toLocaleString('vi-VN')}</td>
+            <td>${ep.successful.toLocaleString('vi-VN')}</td>
+            <td>${ep.rejected.toLocaleString('vi-VN')}</td>
+            <td>${ep.public_anonymous.toLocaleString('vi-VN')}</td>
+            <td>${ep.anonymous_or_invalid.toLocaleString('vi-VN')}</td>
             <td>${ep.unique_users.toLocaleString('vi-VN')}</td>
         </tr>
-    `).join('') || '<tr><td colspan="4" style="color:var(--text-tertiary);text-align:center;padding:24px;">Chưa có dữ liệu</td></tr>';
+    `).join('') || '<tr><td colspan="8" style="color:var(--text-tertiary);text-align:center;padding:24px;">Chưa có dữ liệu</td></tr>';
 
     document.getElementById('top-keys-body').innerHTML = d.top_api_keys.map((k, i) => `
         <tr>
             <td style="color:var(--text-tertiary)">${i + 1}</td>
             <td>${k.email}</td>
-            <td>${k.requests_this_month.toLocaleString('vi-VN')}</td>
+            <td>${k.requests.toLocaleString('vi-VN')}</td>
         </tr>
     `).join('') || '<tr><td colspan="3" style="color:var(--text-tertiary);text-align:center;padding:24px;">Chưa có dữ liệu</td></tr>';
 }
@@ -763,7 +816,7 @@ async function initAdmin() {
         document.getElementById('admin-app').style.display = 'block';
         loadDashboard();
         loadUsers();
-        loadSignupTrend(30);
+        loadSignupTrend();
     } catch {
         loadEl.style.display = 'none';
         document.getElementById('access-denied').style.display = 'block';

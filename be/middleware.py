@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from typing import Optional
 
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -10,7 +11,12 @@ from auth import verify_auth0_token, get_user_level, get_user_is_admin, NAMESPAC
 from quota import check_and_consume
 
 
-async def _log_api_call(user_id: int, key_id: int, endpoint: str, status_code: int):
+async def _log_api_call(
+    user_id: Optional[int],
+    key_id: Optional[int],
+    endpoint: str,
+    status_code: int,
+):
     """Fire-and-forget: insert into api_call_log for top-endpoint dashboard stats."""
     try:
         from core.engines import get_engine_user
@@ -58,6 +64,18 @@ async def _auth_via_api_key(request: Request, api_key: str) -> bool:
 
         (key_id, user_id, email, auth0_id, user_level, is_admin,
          premium_expiry, current_plan) = row
+
+        # Set identity before quota enforcement so rejected requests from a
+        # known key can still be attributed in api_call_log.
+        request.state.user = {
+            "auth0_id":    auth0_id,
+            "email":       email,
+            "user_level":  user_level,
+            "is_admin":    bool(is_admin),
+            "user_id":     user_id,
+            "api_key_id":  key_id,
+            "auth_method": "api_key",
+        }
 
         # 2. Subscription hết hạn → KHÔNG khoá cứng. Hạ về free tier
         #    (1.000 req/tháng) thay vì 402, để user từng trả phí không bị
@@ -120,15 +138,6 @@ async def _auth_via_api_key(request: Request, api_key: str) -> bool:
             """), {"uid": user_id})
 
         # Stash quota info trên request.state cho response headers + logging
-        request.state.user = {
-            "auth0_id":    auth0_id,
-            "email":       email,
-            "user_level":  user_level,
-            "is_admin":    bool(is_admin),
-            "user_id":     user_id,
-            "api_key_id":  key_id,
-            "auth_method": "api_key",
-        }
         request.state.quota = {
             "limit":     q.monthly_limit,
             "remaining": q.remaining,
@@ -197,6 +206,15 @@ async def _auth_via_bearer(request: Request, token: str) -> bool:
 
         user_id, db_email, user_level, is_admin, current_plan = row
 
+        # Preserve the resolved identity even when quota enforcement rejects
+        # the call, allowing the meter gate to log a known user instead of an
+        # anonymous failure.
+        request.state.user = {
+            "auth0_id": auth0_id, "email": db_email or email,
+            "user_level": user_level, "is_admin": bool(is_admin),
+            "user_id": user_id, "auth_method": "bearer",
+        }
+
         with engine.begin() as conn:
             q = check_and_consume(conn, user_id=user_id,
                                   user_level=user_level, plan=current_plan)
@@ -207,11 +225,6 @@ async def _auth_via_bearer(request: Request, token: str) -> bool:
                 WHERE user_id = :uid
             """), {"uid": user_id})
 
-        request.state.user = {
-            "auth0_id": auth0_id, "email": db_email or email,
-            "user_level": user_level, "is_admin": bool(is_admin),
-            "user_id": user_id, "auth_method": "bearer",
-        }
         request.state.quota = {
             "limit": q.monthly_limit, "remaining": q.remaining,
             "reset": q.reset_at.isoformat(),
@@ -290,6 +303,8 @@ async def authenticate_user(request: Request):
             "email":      email,
             "user_level": user_level,
             "is_admin":   is_admin,
+            "user_id":    row[0] if row else None,
+            "auth_method": "bearer",
         }
         return payload
     except JWTError as jwt_err:

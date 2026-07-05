@@ -20,8 +20,7 @@ router = APIRouter(prefix="/api/dataverse", tags=["dataverse"])
 # Get database connection from environment
 CRAWLING_BOT_DB = os.getenv("CRAWLING_BOT_DB")
 if not CRAWLING_BOT_DB:
-    logging.warning("CRAWLING_BOT_DB not found, using default connection")
-    CRAWLING_BOT_DB = 'postgresql://neondb_owner:npg_HYEChe05ayJQ@ep-square-boat-a1v539wy-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+    raise RuntimeError("CRAWLING_BOT_DB is required")
 
 # Use NullPool to avoid connection state issues
 engine = create_engine(CRAWLING_BOT_DB, poolclass=NullPool)

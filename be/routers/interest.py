@@ -8,8 +8,16 @@ from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from core.engines import get_engine_user
+from middleware import authenticate_user
 
 router = APIRouter()
+
+
+async def _require_admin(request: Request) -> None:
+    await authenticate_user(request)
+    user = getattr(request.state, "user", None) or {}
+    if not (user.get("is_admin") or user.get("user_level") == "admin"):
+        raise HTTPException(status_code=403, detail="Admin only")
 
 _CREATE_INTEREST_TABLE = """
     CREATE TABLE IF NOT EXISTS user_interest (
@@ -85,6 +93,7 @@ async def save_user_interest(request: Request, interest_type: str, data: Interes
 
 @router.get("/api/v1/interest/stats")
 async def get_interest_stats(request: Request):
+    await _require_admin(request)
     try:
         with get_engine_user().connect() as conn:
             rows = conn.execute(text("""
@@ -107,6 +116,7 @@ async def get_interest_details(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
+    await _require_admin(request)
     try:
         with get_engine_user().connect() as conn:
             if interest_type:
