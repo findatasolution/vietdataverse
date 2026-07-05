@@ -13,12 +13,24 @@ Viet Dataverse — financial data platform for Vietnam macro & corporate data, w
 Stack: Python crawlers → PostgreSQL (Neon) → FastAPI (`be/`) → static HTML/Chart.js FE (`fe/`).
 
 Two products in one SPA:
-1. **Open Data** — macro/finance/commodity/stock charts, public API + free downloads.
+1. **Open Data** — macro/finance/commodity/stock charts, API-key-metered data API + free static downloads. `gold-analysis` and `market-pulse` remain intentionally public.
 2. **AI Agent Knowledge & Skill Market** (short: "Agent Market") — paid/free `.md/.json/.yaml` knowledge packs for agent builders, with seller flow, wallet/credits, library.
 
 ## Security Rules
 
 **NEVER display secrets in chat or terminal output.** This includes DB connection strings, API keys, passwords, tokens, or any value read from `.env`. Use values programmatically; mask or skip prints that would expose them.
+
+## Documentation Close-out (Required)
+
+Documentation is part of the definition of done. Before marking any task complete:
+
+1. Identify every document affected by the change, including `BACKLOG.md`, `CLAUDE.md`, `CODEX.md`, scoped `fe/CLAUDE.md` / `AGENTS.md`, README/API docs, runbooks, architecture notes, migration notes, and `.env.example` when applicable.
+2. Update status, behavior, paths, commands, schemas, access rules, deployment state, and limitations in the same task. Do not leave documentation describing the pre-change behavior.
+3. When completing a backlog item, mark it complete only after implementation and required verification succeed. If production deployment is still pending or blocked, document that state explicitly instead of marking it fully complete.
+4. Replace stale statements rather than appending contradictory notes. Update source documents, not generated artifacts, then rebuild generated documentation when required.
+5. In the final handoff, list the documents updated. If no document needed a content change, explicitly state that the relevant documentation was reviewed and remains accurate.
+
+Do not close a task while related documentation is known to be stale.
 
 ## Repository Layout
 
@@ -165,6 +177,8 @@ Cron in VN time (UTC+7): `'30 1 * * *'` = 08:30 VN. Standard steps: checkout →
 /api/v1/seller/*             # seller dashboard, listings
 /api/v1/reports/*, /takedown/*  # moderation/DMCA
 ```
+
+Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated in `be/main.py`: anonymous or invalid credentials return `401`, while free and paid API keys and valid FE Bearer sessions are metered. Public `gold-analysis` / `market-pulse` calls and rejected metered calls are tracked without storing IP, token, raw API key, or user-agent. Admin performance reporting at `/pages/admin.html` supports `24h`, `7d`, and `YTD` periods.
 
 Response shape:
 ```json

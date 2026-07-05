@@ -136,9 +136,16 @@
 
 ---
 
+## Đang chờ triển khai / xác minh
+
+- [ ] Admin dashboard period report — 24h / 7d / YTD + API activity; code pushed in `c4a2d930f`, pending Render deployment verification
+- [ ] API access audit — track public-anonymous/rejected calls and lock analytics/generation routes to admin; code pushed in `c4a2d930f`, pending Render deployment verification
+
+---
+
 ## Đã xong ✅
 
-- [x] Admin dashboard — user metrics, signup trend chart
+- [x] Admin dashboard — user/revenue/feedback metrics and signup trend
 - [x] Seed 5 VD Official knowledge packs (id 20–24)
 - [x] Fix download flow cho free packs
 - [x] Fix list products API (description + seller_name)

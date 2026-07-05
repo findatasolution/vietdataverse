@@ -35,6 +35,7 @@ Luồng chính: Python crawlers → PostgreSQL/Neon → FastAPI (`be/`) → stat
 - Với task diagnose/review: chỉ báo nguyên nhân hoặc finding; không tự sửa nếu người dùng chưa yêu cầu.
 - Change nhỏ và scoped; không refactor tiện tay.
 - Nếu task xuyên DB/API/FE, làm theo thứ tự migration/schema → backfill → crawler/service → API/static JSON → FE → CI/test.
+- Trước khi kết thúc mọi task, thực hiện documentation close-out theo `CODEX.md`: rà và cập nhật status/hành vi/đường dẫn/lệnh/schema/deploy state trong tất cả tài liệu liên quan; không tuyên bố hoàn tất khi docs còn mô tả trạng thái cũ.
 
 ## Backend and data invariants
 
@@ -61,4 +62,3 @@ Luồng chính: Python crawlers → PostgreSQL/Neon → FastAPI (`be/`) → stat
 - Backend: chạy test/lint có sẵn theo phạm vi; nếu repo chưa có test phù hợp, thực hiện import/compile hoặc request-level smoke check không cần secret.
 - Crawler/DB: test parser và validator bằng fixture hoặc input cục bộ trước; không chạy write vào production DB nếu người dùng không yêu cầu rõ.
 - Báo rõ phần đã test và phần cần user kiểm tra thủ công.
-
