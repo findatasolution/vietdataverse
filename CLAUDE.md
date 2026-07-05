@@ -180,6 +180,10 @@ Cron in VN time (UTC+7): `'30 1 * * *'` = 08:30 VN. Standard steps: checkout →
 
 Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated in `be/main.py`: anonymous or invalid credentials return `401`, while free and paid API keys and valid FE Bearer sessions are metered. Public `gold-analysis` / `market-pulse` calls and rejected metered calls are tracked without storing IP, token, raw API key, or user-agent. Admin performance reporting at `/pages/admin.html` supports `24h`, `7d`, and `YTD` periods.
 
+### 1s Pulse API status
+
+`GET /api/v1/market-pulse` currently reads `ARGUS_FINTEL_DB.mri_analysis` and is intentionally public for the FE. It supports only `lang` and `limit` (maximum 50); it does not yet provide pagination, total count, time/source/label/MRI filters, or an official stable response contract. The Developer catalog currently labels it `premium_developer`, so access policy is inconsistent. Treat `BACKLOG.md` item `API-06` as the source of truth before marketing or monetizing this endpoint as an official API.
+
 Response shape:
 ```json
 {"success": true, "source": "GSO/NSO vn_gso_cpi_monthly", "count": 21, "data": [...]}

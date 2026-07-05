@@ -43,6 +43,15 @@
 - Mỗi sáng sau khi crawler chạy → push data mới tới endpoint
 - **Tại sao:** Fintech startup cần data pipeline tự động, không muốn poll
 
+### [API-06] Officialize 1s Pulse API
+- Audit 2026-07-05: `ARGUS_FINTEL_DB.mri_analysis` có 4.044 rows (2.022 VI + 2.022 EN), 300 rows/7 ngày; query 50 rows hiện khoảng 1,3 ms
+- Endpoint `/api/v1/market-pulse` đang public và trả tối đa 50 bài, nhưng Developer catalog đang ghi `premium_developer` — cần chốt một access policy duy nhất
+- Thêm pagination + filter (`source`, `label`, `min_mri`, time range), `total`, freshness metadata và response contract ổn định
+- Thêm index `(lang, generated_at DESC)` và `(label, generated_at DESC)`; đổi `source_date` từ text sang timestamp
+- Dedup/backfill 52 nhóm trùng `(url, lang)`, thêm unique constraint/upsert; chuẩn hoá label `TRADE_GEOPOLITICS`
+- Chốt public preview vs API-key full response; review quyền redistribution theo từng RSS source trước khi thương mại hoá nội dung tóm tắt
+- **Tại sao:** DB đủ nhanh để phục vụ API nhưng schema, access policy, dedup và licensing chưa production-grade
+
 ### [CHAT-01] MVP "Chat với dữ liệu VN" — prototype
 - Interface chat đơn giản, pre-loaded với context VN
 - Mỗi câu hỏi → tự gọi API lấy data realtime → trả lời
