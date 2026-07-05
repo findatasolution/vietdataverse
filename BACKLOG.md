@@ -58,6 +58,8 @@
 - Audit 2026-07-05: RSS CafeF chứng khoán trả 50 entries (XML hợp lệ nhưng sai Content-Type), VnExpress Kinh doanh trả 60 entries và parse sạch
 - Option miễn phí khả thi: RSS CafeF/VnExpress/Vietstock; RSS/HTML press room của IMF, ngân hàng trung ương, chính phủ và corporate IR; SEC EDGAR public API; YouTube Data API free quota/channel feed; Bluesky public API và Mastodon public endpoints
 - Không coi là option miễn phí production-grade: X API hiện pay-per-use; LinkedIn cấm crawler và read scopes bị giới hạn; Truth Social API trả 403 từ datacenter trong audit này
+- Audit thư viện unofficial 2026-07-05: `ntscraper==0.4.0` kiểm tra 10 Nitter instances nhưng không tìm được instance hoạt động; `twikit==2.3.3` không-auth lỗi `Couldn't get KEY_BYTE indices` trên Python 3.12 và luồng chuẩn cần account/cookie; `Mastodon.py==2.2.1` gọi Truth account statuses vẫn nhận 403 dù instance metadata trả 200
+- Không đưa `ntscraper`, `twikit` hoặc Truth hidden endpoints vào production: ngoài độ ổn định thấp, điều khoản hiện tại của X và Truth Social đều cấm scraping/automated access khi chưa được cho phép
 - Nếu sau này được duyệt: tách lane nguồn, đặt quota/ranking riêng, lưu provenance/trust metadata, dedup và chỉ public metadata + derived MRI + canonical link sau khi review license
 - **Tại sao:** feedparser giúp RSS nhanh/ổn định nhưng không biến social platform đóng thành nguồn miễn phí/bền vững
 
