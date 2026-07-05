@@ -184,9 +184,9 @@ Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated 
 
 `GET /api/v1/market-pulse` currently reads `ARGUS_FINTEL_DB.mri_analysis` and is intentionally public for the FE. It supports only `lang` and `limit` (maximum 50); it does not yet provide pagination, total count, time/source/label/MRI filters, or an official stable response contract. The Developer catalog currently labels it `premium_developer`, so access policy is inconsistent. Treat `BACKLOG.md` item `API-06` as the source of truth before marketing or monetizing this endpoint as an official API.
 
-### 1s Pulse source strategy
+### 1s Pulse source research (not approved)
 
-`be/1s_market_pulse.py` already uses `feedparser==6.0.11`. Vietnamese RSS sources (CafeF, VnExpress, Vietstock, ĐTCK, VietnamNet, Tuổi Trẻ) were removed in commit `d408d5887` on 2026-06-30 to make the product international-sentiment-only, not because feedparser failed. A 2026-07-05 audit confirmed CafeF and VnExpress feeds still return parseable entries. If reintroduced, follow `BACKLOG.md` item `PULSE-01`: separate Vietnam news, international news, official statements, and social signals into source lanes with provenance/trust metadata. Use official APIs or authorized feeds for X/Truth Social/LinkedIn; never HTML-scrape social profiles.
+No 1s Pulse source expansion has been approved. `be/1s_market_pulse.py` already uses `feedparser==6.0.11`. Vietnamese RSS sources (CafeF, VnExpress, Vietstock, ĐTCK, VietnamNet, Tuổi Trẻ) were removed in commit `d408d5887` on 2026-06-30 to make the product international-sentiment-only, not because feedparser failed. A 2026-07-05 audit confirmed CafeF and VnExpress feeds still return parseable entries. Free options under consideration are RSS/official press rooms, SEC EDGAR, YouTube free quota/channel feeds, Bluesky public API, and Mastodon public endpoints. X is pay-per-use; LinkedIn crawling is prohibited and read access is restricted; Truth Social blocked datacenter API checks. Treat the corresponding `BACKLOG.md` section as research only and do not implement it without explicit user approval.
 
 Response shape:
 ```json

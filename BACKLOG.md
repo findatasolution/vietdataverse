@@ -52,15 +52,14 @@
 - Chốt public preview vs API-key full response; review quyền redistribution theo từng RSS source trước khi thương mại hoá nội dung tóm tắt
 - **Tại sao:** DB đủ nhanh để phục vụ API nhưng schema, access policy, dedup và licensing chưa production-grade
 
-### [PULSE-01] Mở rộng 1s Pulse thành multi-source signal pipeline
+### [RESEARCH — CHƯA PHÊ DUYỆT] Các lựa chọn nguồn miễn phí cho 1s Pulse
+- Đây chỉ là kết quả khảo sát, **không phải hạng mục đã chốt để triển khai**. Không code/deploy mở rộng nguồn cho tới khi user chọn phương án.
 - Pipeline hiện đã dùng `feedparser`; nguồn Việt bị bỏ ngày 2026-06-30 để giới hạn scope ở sentiment quốc tế, không phải do lỗi parser
 - Audit 2026-07-05: RSS CafeF chứng khoán trả 50 entries (XML hợp lệ nhưng sai Content-Type), VnExpress Kinh doanh trả 60 entries và parse sạch
-- Khôi phục CafeF/VnExpress/Vietstock trong lane `vietnam_news` riêng, có quota nguồn và ranking riêng; không trộn trực tiếp vào pool quốc tế 45 bài
-- Thêm lane `official_statements`: IMF/central banks/government/corporate IR feeds, filings and press rooms; ưu tiên nguồn chính thức trước social repost
-- Social lane chỉ dùng API/authorized access: X API (pay-per-use), Truth Social authenticated compatible API nếu được phép, LinkedIn Posts API với scope/app review; không scrape HTML/profile
-- Lưu provenance/trust metadata (`source_type`, `author_id`, `verified`, `published_at`, `retrieved_at`, `content_hash`, `canonical_url`) và chỉ coi social post là signal chưa xác minh
-- Rà license/redistribution từng nguồn; public API ưu tiên metadata + derived MRI + canonical link, không phát lại full article text
-- **Tại sao:** feedparser giúp RSS nhanh/ổn định nhưng không thay thế social APIs, licensing, source trust hay dedup
+- Option miễn phí khả thi: RSS CafeF/VnExpress/Vietstock; RSS/HTML press room của IMF, ngân hàng trung ương, chính phủ và corporate IR; SEC EDGAR public API; YouTube Data API free quota/channel feed; Bluesky public API và Mastodon public endpoints
+- Không coi là option miễn phí production-grade: X API hiện pay-per-use; LinkedIn cấm crawler và read scopes bị giới hạn; Truth Social API trả 403 từ datacenter trong audit này
+- Nếu sau này được duyệt: tách lane nguồn, đặt quota/ranking riêng, lưu provenance/trust metadata, dedup và chỉ public metadata + derived MRI + canonical link sau khi review license
+- **Tại sao:** feedparser giúp RSS nhanh/ổn định nhưng không biến social platform đóng thành nguồn miễn phí/bền vững
 
 ### [CHAT-01] MVP "Chat với dữ liệu VN" — prototype
 - Interface chat đơn giản, pre-loaded với context VN
