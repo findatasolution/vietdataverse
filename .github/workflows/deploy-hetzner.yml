@@ -1,0 +1,43 @@
+name: Deploy to Hetzner
+
+# Auto-deploy so prod is never stale again:
+#   - on code push to main
+#   - after "Generate Static Chart Data" commits fresh fe/data (those commits use
+#     [skip ci], so a plain push trigger would miss them → use workflow_run)
+#   - manual
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Generate Static Chart Data"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hetzner
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if server secrets not configured
+        id: guard
+        run: echo "ready=${{ secrets.HETZNER_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy over SSH
+        if: steps.guard.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          port: ${{ secrets.HETZNER_PORT }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.HETZNER_APP_DIR }}"
+            git fetch --quiet origin main
+            git reset --hard origin/main
+            docker compose up -d --build
+            docker image prune -f
+            echo "Deployed $(git rev-parse --short HEAD)"

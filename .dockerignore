@@ -1,0 +1,12 @@
+.git
+.github
+.claude
+**/__pycache__
+**/*.pyc
+.env
+.env.*
+crawl_tools
+node_modules
+*.log
+logo.png
+*.md

@@ -1,0 +1,23 @@
+# Run on the Hetzner box:  docker compose up -d --build
+# Requires a .env (the same 23 vars as local) sitting next to this file.
+services:
+  vietdataverse:
+    build: .
+    image: vietdataverse:latest
+    container_name: vietdataverse
+    restart: unless-stopped
+    env_file:
+      - .env
+    # Bind to localhost only — your existing reverse proxy (nginx / Caddy / Traefik)
+    # forwards vietdataverse.online + api.vietdataverse.online → 127.0.0.1:8000.
+    # (Change to "8000:8000" only if you want to expose it directly, no proxy.)
+    ports:
+      - "127.0.0.1:8000:8000"
+    # Host has NO swap → cap memory so the app can never OOM the whole box.
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
