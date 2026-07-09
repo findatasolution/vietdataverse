@@ -13,6 +13,10 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Private infra docs / stray assets — keep OUT of this PUBLIC repo
+box-multi-app-deploy.md
+logo.png
+
 # IDE
 .claude/
 
