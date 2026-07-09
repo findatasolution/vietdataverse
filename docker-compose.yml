@@ -1,5 +1,8 @@
-# Run on the Hetzner box:  docker compose up -d --build
-# Requires a .env (the same 23 vars as local) sitting next to this file.
+# Runs on the shared Hetzner box (alongside mythreel.studio) per box-multi-app-deploy.md.
+# Own dir (~/vietdataverse) + own compose. Does NOT open 80/443 — the shared Caddy
+# (in ~/automated_video) proxies in over the `edge` network via caddy-conf.d/vietdataverse.caddy.
+# Prereqs (one-time box prep, see box-multi-app-deploy.md §1): 4G swap restored,
+# `docker network create edge`, Caddy joined to `edge` + imports caddy-conf.d/*.caddy.
 services:
   vietdataverse:
     build: .
@@ -8,16 +11,25 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    # Bind to localhost only — your existing reverse proxy (nginx / Caddy / Traefik)
-    # forwards vietdataverse.online + api.vietdataverse.online → 127.0.0.1:8000.
-    # (Change to "8000:8000" only if you want to expose it directly, no proxy.)
-    ports:
-      - "127.0.0.1:8000:8000"
-    # Host has NO swap → cap memory so the app can never OOM the whole box.
-    mem_limit: 1g
+    expose:
+      - "8000"                 # internal only — Caddy reaches it as vietdataverse:8000 over `edge`
+    mem_limit: 640m            # within the box's ~1.2G budget for new apps (FastAPI + pandas/genai)
+    cpus: "1.0"                # don't steal vCPU during mythreel renders
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 25s
+    networks:
+      - default
+      - edge
+
+networks:
+  edge:
+    external: true

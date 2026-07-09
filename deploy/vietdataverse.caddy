@@ -1,0 +1,18 @@
+# Copy to  ~/automated_video/caddy-conf.d/vietdataverse.caddy  then:
+#   cd ~/automated_video && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+# "vietdataverse:8000" = the compose service name : exposed port, resolved over the `edge` network.
+# Both hostnames hit the same FastAPI app (it serves /fe and /api/v1 by path, not by host).
+
+vietdataverse.online {
+	encode gzip zstd
+	reverse_proxy vietdataverse:8000
+}
+
+api.vietdataverse.online {
+	encode gzip zstd
+	reverse_proxy vietdataverse:8000
+}
+
+www.vietdataverse.online {
+	redir https://vietdataverse.online{uri} permanent
+}

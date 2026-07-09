@@ -1,86 +1,73 @@
-# Deploy Viet Dataverse to Hetzner (replace Render)
+# Deploy Viet Dataverse to the shared Hetzner box (replace Render)
 
-One container serves everything: FastAPI **API** + static **FE** (`/fe`). DBs stay
-external (Neon), so the box is stateless. Both `vietdataverse.online` and
-`api.vietdataverse.online` point at the same container; the app routes `/fe/*` and
-`/api/v1/*` itself.
+Follows **`box-multi-app-deploy.md`** (the box already runs mythreel.studio behind a
+single shared Caddy). VDV is one stateless container that serves the FastAPI **API**
++ static **FE** (`/fe`); DBs stay external on Neon. Both `vietdataverse.online` and
+`api.vietdataverse.online` hit the same container (routed by path, not host).
 
-Artifacts already in the repo: `Dockerfile`, `.dockerignore`, `docker-compose.yml`,
-`.github/workflows/deploy-hetzner.yml`.
+Box IP: `62.238.25.95`. App lives in its **own dir** `~/vietdataverse` with its **own
+compose**, joins the shared **`edge`** network, and does **NOT** open 80/443.
+
+Artifacts in repo: `Dockerfile`, `.dockerignore`, `docker-compose.yml`,
+`deploy/vietdataverse.caddy`, `.github/workflows/deploy-hetzner.yml`.
 
 ---
 
-## 1. One-time server setup (SSH into the Hetzner box)
+## 0. One-time box prep — SKIP if a 2nd app was already added before
+Per `box-multi-app-deploy.md` §1: restore **4G swap** (box has 0B — mandatory),
+`docker network create edge`, and make the shared Caddy join `edge` + `import
+/etc/caddy/conf.d/*.caddy`. Verify: `swapon --show` shows 4G, `docker network ls | grep edge`.
 
+## 1. DNS (Cloudflare) → point at the box
+`vietdataverse.online`, `api.vietdataverse.online`, `www.vietdataverse.online`
+→ **A → 62.238.25.95**. Caddy auto-issues certs once DNS resolves + 80/443 reachable.
+If keeping Cloudflare proxy (orange), set SSL mode **Full (strict)**.
+
+## 2. Bring the app up (on the box)
 ```bash
-sudo mkdir -p /opt/vietdataverse && sudo chown "$USER" /opt/vietdataverse
-git clone https://github.com/findatasolution/vietdataverse.git /opt/vietdataverse
-cd /opt/vietdataverse
-# Put the 23 env vars here (same file you use locally). NEVER commit it.
-scp/nano .env        # copy your local .env → /opt/vietdataverse/.env
+mkdir -p ~/vietdataverse && cd ~/vietdataverse
+git clone https://github.com/findatasolution/vietdataverse.git .
+cp/scp your local .env  ->  ~/vietdataverse/.env     # 23 vars; NEVER commit
+docker network create edge 2>/dev/null || true       # idempotent
 docker compose up -d --build
-curl -fsS http://127.0.0.1:8000/health   # -> should return OK
+curl -fsS http://127.0.0.1:8000/health               # from inside a container that shares edge, or:
+docker compose exec vietdataverse curl -fsS http://localhost:8000/health   # -> OK
 ```
 
-The container binds to `127.0.0.1:8000` only (not public). Your existing reverse
-proxy forwards the two hostnames to it.
-
-## 2. Reverse proxy (use your EXISTING proxy — do not add a new one)
-
-**Caddy** (`Caddyfile`):
-```
-vietdataverse.online, api.vietdataverse.online {
-    reverse_proxy 127.0.0.1:8000
-}
+## 3. Route it through the shared Caddy
+```bash
+cp ~/vietdataverse/deploy/vietdataverse.caddy ~/automated_video/caddy-conf.d/
+cd ~/automated_video && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+curl -sI https://vietdataverse.online/health          # HTTP/2 200, valid cert
+curl -sI https://mythreel.studio                      # confirm mythreel still 200
+docker stats --no-stream                              # vietdataverse ≤ 640m; total RAM safe
 ```
 
-**nginx** (one server block, repeat for the api. host or use both in `server_name`):
-```
-server {
-    server_name vietdataverse.online api.vietdataverse.online;
-    location / { proxy_pass http://127.0.0.1:8000; proxy_set_header Host $host;
-                 proxy_set_header X-Forwarded-For $remote_addr;
-                 proxy_set_header X-Forwarded-Proto $scheme; }
-}
-# then: certbot --nginx -d vietdataverse.online -d api.vietdataverse.online
-```
-
-## 3. DNS cutover (Cloudflare)
-
-Point both A records to the Hetzner IP (currently → Render):
-- `vietdataverse.online`  A → <HETZNER_IP>
-- `api.vietdataverse.online` A → <HETZNER_IP>
-
-Keep Cloudflare proxy (orange cloud) if you want its CDN/cache; make sure SSL mode
-is **Full (strict)** so it talks HTTPS to your proxy.
-
-## 4. Auto-deploy (kills the "prod is stale until I redeploy" problem for good)
-
-Add these GitHub repo secrets (Settings → Secrets → Actions):
+## 4. Auto-deploy (ends "prod stale until manual redeploy" forever)
+Add GitHub repo secrets (Settings → Secrets → Actions):
 
 | Secret | Value |
 |--------|-------|
-| `HETZNER_HOST` | server IP |
-| `HETZNER_USER` | SSH user (e.g. `root` or your deploy user) |
-| `HETZNER_SSH_KEY` | a **private** key whose public half is in the server's `~/.ssh/authorized_keys` |
+| `HETZNER_HOST` | `62.238.25.95` |
+| `HETZNER_USER` | `root` (or your deploy user) |
+| `HETZNER_SSH_KEY` | a **private** key whose pubkey is in the box's `authorized_keys` |
 | `HETZNER_PORT` | `22` |
-| `HETZNER_APP_DIR` | `/opt/vietdataverse` |
+| `HETZNER_APP_DIR` | `/root/vietdataverse` (or `~/vietdataverse` resolved) |
 
-Once set, `deploy-hetzner.yml` runs on every push to `main` **and** after each
-"Generate Static Chart Data" run → the server `git reset --hard origin/main` +
-`docker compose up -d --build`. Fresh data/code reaches prod automatically, no
-manual redeploy. (Until the secrets exist the workflow no-ops via a guard.)
+Then `deploy-hetzner.yml` runs on every push to `main` **and** after each "Generate
+Static Chart Data" run → the box `git reset --hard origin/main` + `docker compose up
+-d --build`. Fresh data/code reaches prod automatically. (Guarded: no-ops until the
+secrets exist.) Caddy needs no reload on redeploy — the service name/port don't change.
 
-## 5. Cutover order (zero-downtime-ish)
+## 5. Cutover order
+1. §2 + §3 while DNS still points at Render → test via
+   `curl --resolve vietdataverse.online:443:62.238.25.95 https://vietdataverse.online/health`.
+2. Flip DNS (§1).
+3. Add secrets (§4) → confirm next deploy is green.
+4. After a few days stable → delete the Render service.
 
-1. Server setup (§1) + proxy (§2) while DNS still points at Render → test via
-   `curl --resolve vietdataverse.online:443:<HETZNER_IP> https://vietdataverse.online/health`.
-2. Flip DNS (§3).
-3. Add GitHub secrets (§4) → confirm the next deploy runs green.
-4. After a few days stable, delete the Render service.
-
-## Notes
-- No swap on the box → compose sets `mem_limit: 1g`. App idles well under; if you add
-  workers or hit memory pressure, drop `--workers` to 1 in the Dockerfile CMD.
-- Rebuild on data commits is fast (deps layer cached; only fe/ + be/ layers rebuild).
+## Constraints (from box-multi-app-deploy.md — do not violate)
+- **Never** `docker system prune -a` (wipes mythreel images). Deploy uses `docker image prune -f` (dangling only). ✅
+- Keep `mem_limit` (640m) — no swap headroom; VDV must never OOM the box.
+- Don't touch `~/automated_video/docker-compose.yml` services (only drop the `.caddy` file).
 - Crawlers keep running on **GitHub Actions** (unchanged) — they only write to Neon.
