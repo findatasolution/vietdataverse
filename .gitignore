@@ -8,6 +8,7 @@ __pycache__/
 # Env
 .env
 .env.*
+.corp-prod-env*
 
 # OS
 .DS_Store
