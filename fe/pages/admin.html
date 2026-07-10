@@ -355,7 +355,7 @@
 <script>
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://127.0.0.1:8000'
-    : 'https://api.vietdataverse.online';
+    : window.location.origin; // same-origin: FE + API on the same box (no api.* subdomain dependency)
 
 let _token = null;
 let _usersPage = 0, _ordersPage = 0;

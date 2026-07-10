@@ -582,7 +582,10 @@
             window.APP_CONFIG.API_BASE_URL =
                 location.hostname === 'localhost' || location.hostname === '127.0.0.1'
                     ? 'http://localhost:8000/api/v1'
-                    : 'https://api.vietdataverse.online/api/v1';
+                    // Same-origin: FE and API are served by the same box, so the FE works on
+                    // vietdataverse.online / www / api.* alike, with no dependency on the
+                    // api.* subdomain resolving.
+                    : location.origin + '/api/v1';
 
             // Prefetch gold & silver data immediately (before DOMContentLoaded)
             // These promises are consumed by loadChartData() when it runs later

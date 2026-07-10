@@ -43,7 +43,7 @@
 
             var apiBase = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
                 ? 'http://localhost:8000/api/v1'
-                : 'https://api.vietdataverse.online/api/v1';
+                : location.origin + '/api/v1'; // same-origin: FE + API on the same box
 
             try {
                 var res  = await fetch(apiBase + '/seller/verify-email?token=' + encodeURIComponent(token));

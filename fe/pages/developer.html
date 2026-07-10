@@ -403,7 +403,7 @@ const data = await res.json();</div>
 <script>
     const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:8000'
-        : 'https://api.vietdataverse.online';
+        : window.location.origin; // same-origin: FE + API on the same box (no api.* subdomain dependency)
 
     let _currentKeyPreview = null;
     let _currentKeyFull = null;

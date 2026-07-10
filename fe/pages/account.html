@@ -863,7 +863,7 @@
     /* ── Config ───────────────────────────────────────────── */
     const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
         ? ''
-        : 'https://api.vietdataverse.online';
+        : location.origin; // same-origin: FE + API on the same box (no api.* subdomain dependency)
 
     const PLAN_LABELS = {
         pro_monthly:       'API Supper Lite (Tháng)',

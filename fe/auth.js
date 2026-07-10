@@ -25,9 +25,13 @@ const AUTH0_CONFIG = {
     cacheLocation: 'localstorage',
 };
 
+// Same-origin in prod: the FE is served by the same box that runs the API, so this
+// works on vietdataverse.online / www / api.* without the api.* subdomain resolving.
+// (Auth0 `audience` above stays the literal api.vietdataverse.online identifier — it is
+//  an Auth0 API id, not a network endpoint, and must match the backend token validator.)
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:8000'
-    : 'https://api.vietdataverse.online';
+    : window.location.origin;
 
 // ============================================================================
 // AUTH0 CLIENT
