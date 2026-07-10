@@ -16,6 +16,7 @@ Thumbs.db
 # Private infra docs / stray assets — keep OUT of this PUBLIC repo
 box-multi-app-deploy.md
 logo.png
+docs/research/
 
 # IDE
 .claude/
