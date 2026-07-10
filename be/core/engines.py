@@ -73,6 +73,21 @@ def get_engine_corp():
     return _engine_corp
 
 
+_engine_fuel = None
+
+
+def get_engine_fuel():
+    """FUEL_FORECAST_DB — isolated database for the fuel-forecast product
+    (medallion Silver/Gold: fuel_price_cycle, fuel_world_daily, forecasts)."""
+    global _engine_fuel
+    if _engine_fuel is None:
+        db_url = os.getenv("FUEL_FORECAST_DB")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="FUEL_FORECAST_DB not set")
+        _engine_fuel = create_engine(db_url, **_POOL_KWARGS)
+    return _engine_fuel
+
+
 _engine_knowledge = None
 
 
