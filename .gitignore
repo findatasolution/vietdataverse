@@ -8,6 +8,7 @@ __pycache__/
 # Env
 .env
 .env.*
+!.env.example
 .corp-prod-env*
 
 # OS
