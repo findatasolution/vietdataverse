@@ -66,6 +66,25 @@ secrets exist.) Caddy needs no reload on redeploy — the service name/port don'
 3. Add secrets (§4) → confirm next deploy is green.
 4. After a few days stable → delete the Render service.
 
+## Status (2026-07-10) — LIVE
+- ✅ Box built: 4G swap restored, `edge` network created, shared Caddy joined `edge` +
+  `import /etc/caddy/conf.d/*.caddy`; `mythreel.studio` verified still 200 throughout.
+- ✅ `vietdataverse.online` + `www` → `62.238.25.95` (box), served by the VDV container
+  (`server: uvicorn`), valid **production** Let's Encrypt cert. RAM ~68MB / 640MB.
+- ✅ Auto-deploy live: all 5 `HETZNER_*` secrets set, dedicated `vdv-github-deploy`
+  key in the box's `authorized_keys`, `deploy-hetzner.yml` ran green (real SSH deploy).
+- ⏳ `api.vietdataverse.online` — **no DNS record yet (NXDOMAIN)**. No longer blocks the
+  site: the **FE now calls the API same-origin** (`location.origin + '/api/v1'` in
+  `app.js`, `auth.js`, and the account/developer/admin/takedown/verify-email pages).
+  Still add `api.vietdataverse.online A → 62.238.25.95` for the **public API URL** used
+  in the docs/code samples (Caddy already has the `api.*` block; it certs on resolve).
+  The Auth0 `audience` stays the literal `api.vietdataverse.online` identifier.
+- ⏳ Render still running — delete after a few days stable.
+
+**Security note:** `HETZNER_SSH_KEY` authenticates as **root** on a box that also runs
+mythreel.studio. Consider hardening later: a dedicated non-root deploy user with a
+`command="…"`-restricted key, so a compromised Action can't take the whole box.
+
 ## Constraints (from box-multi-app-deploy.md — do not violate)
 - **Never** `docker system prune -a` (wipes mythreel images). Deploy uses `docker image prune -f` (dangling only). ✅
 - Keep `mem_limit` (640m) — no swap headroom; VDV must never OOM the box.

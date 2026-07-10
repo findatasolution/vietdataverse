@@ -158,8 +158,10 @@
 
 ## Đang chờ triển khai / xác minh
 
-- [ ] Admin dashboard period report — 24h / 7d / YTD + API activity; code pushed in `c4a2d930f`, pending Render deployment verification
-- [ ] API access audit — track public-anonymous/rejected calls and lock analytics/generation routes to admin; code pushed in `c4a2d930f`, pending Render deployment verification
+- [x] **Prod chuyển từ Render → Hetzner box (shared với mythreel.studio)** — `vietdataverse.online` + `www` đã trỏ về box `62.238.25.95`, chạy container FastAPI (API + FE) sau Caddy chung, cert Let's Encrypt production hợp lệ, RAM ~68MB/640MB. Auto-deploy qua GitHub Actions (`deploy-hetzner.yml`) đã bật + xanh: mỗi push `main` và mỗi lần "Generate Static Chart Data" → box `git reset --hard origin/main` + `docker compose up -d --build`. **Hết cảnh prod stale do quên manual redeploy.** Chi tiết: `DEPLOY_HETZNER.md`.
+  - Còn lại (user): thêm DNS `api.vietdataverse.online A → 62.238.25.95` (không còn chặn FE vì FE gọi API same-origin, nhưng cần cho API public tài liệu hoá cho dev ngoài); sau vài ngày ổn định → xoá service Render.
+- [x] Admin dashboard period report — 24h / 7d / YTD + API activity; code trong `c4a2d930f`, đã deploy lên Hetzner box (origin/main HEAD chạy trên prod).
+- [x] API access audit — track public-anonymous/rejected calls + khoá analytics/generation routes cho admin; code trong `c4a2d930f`, đã deploy lên Hetzner box (metering xác minh: gold anon → 401).
 
 ---
 
