@@ -35,3 +35,11 @@ def test_to_world_rows_maps_and_skips_nan():
 
 def test_to_world_rows_empty():
     assert cw.to_world_rows(_FakeSeries([]), "RBOB") == []
+
+
+def test_validate_per_instrument_units():
+    assert cw.validate([{"period": date(2026, 7, 9), "instrument": "RBOB", "close": 2.3}])
+    assert cw.validate([{"period": date(2026, 7, 9), "instrument": "BRENT", "close": 70.0}])
+    # RBOB is USD/gallon — a barrel-scale value must be rejected
+    assert not cw.validate([{"period": date(2026, 7, 9), "instrument": "RBOB", "close": 70.0}])
+    assert not cw.validate([])
