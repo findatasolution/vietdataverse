@@ -159,9 +159,12 @@
 ## Đang chờ triển khai / xác minh
 
 - [x] **Prod chuyển từ Render → Hetzner box (shared với mythreel.studio)** — `vietdataverse.online` + `www` đã trỏ về box `62.238.25.95`, chạy container FastAPI (API + FE) sau Caddy chung, cert Let's Encrypt production hợp lệ, RAM ~68MB/640MB. Auto-deploy qua GitHub Actions (`deploy-hetzner.yml`) đã bật + xanh: mỗi push `main` và mỗi lần "Generate Static Chart Data" → box `git reset --hard origin/main` + `docker compose up -d --build`. **Hết cảnh prod stale do quên manual redeploy.** Chi tiết: `DEPLOY_HETZNER.md`.
-  - Còn lại (user): thêm DNS `api.vietdataverse.online A → 62.238.25.95` (không còn chặn FE vì FE gọi API same-origin, nhưng cần cho API public tài liệu hoá cho dev ngoài); sau vài ngày ổn định → xoá service Render.
+  - [x] DNS `api.vietdataverse.online A → 62.238.25.95` đã thêm (2026-07-11). Caddy tự cấp cert Let's Encrypt hợp lệ khi resolve; verified admin.html → 200, `/api/v1/gold` → 401, Excel taskpane → 200. Sống lại toàn bộ URL `api.*` tuyệt đối trong docs/knowledge pack, Excel add-in, CI smoke-test + crawl webhook, SEO JSON-LD/sitemap — không đổi code.
+  - Còn lại (user): sau vài ngày ổn định → xoá service Render.
+  - ⚠️ Lỗi sót (không liên quan DNS): `sitemap.xml:127` + `_layout_head.html:366`/`:409` trỏ `/api/docs` nhưng Swagger ở `/docs` (`/api/docs` → 404) — cần sửa path.
 - [x] Admin dashboard period report — 24h / 7d / YTD + API activity; code trong `c4a2d930f`, đã deploy lên Hetzner box (origin/main HEAD chạy trên prod).
 - [x] API access audit — track public-anonymous/rejected calls + khoá analytics/generation routes cho admin; code trong `c4a2d930f`, đã deploy lên Hetzner box (metering xác minh: gold anon → 401).
+- [ ] **Fuel-forecast B2B (dự báo giá xăng dầu trong nước) — Phase 1, Plan 1 (data pipeline) đang triển khai** trên branch `feat/fuel-forecast-pipeline`. Kiến trúc medallion (Bronze R2 → Silver `FUEL_FORECAST_DB`), model hybrid NĐ80, feature MRI, corporate API riêng OAuth2 + `.corp-prod-env`. **Code + 13 unit test đã xanh** (formula NĐ80, MOIT parser NFC, raw-store, world normalizer, engine). Tài liệu private: `docs/research/` (feasibility + spec + plan). **Chờ user cấp hạ tầng live:** tạo Neon DB `FUEL_FORECAST_DB` + apply `be/fuel/schema.sql`, tạo R2 bucket `vdv-raw`, set secrets (`FUEL_FORECAST_DB`, `R2_BUCKET_RAW`), rồi chạy crawler + backfill lịch sử BCT. Sau đó: Plan 2 (model+backtest), 3 (public API), 4 (corp service). **Trước khi thu tiền:** ý kiến luật sư NĐ169 + license nguồn futures.
 
 ---
 

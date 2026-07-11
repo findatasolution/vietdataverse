@@ -94,6 +94,7 @@ Backend dependencies: `pip install -r be/requirements.txt`. Crawlers: `pip insta
 | `GLOBAL_INDICATOR_DB` | Global macro (Yahoo Finance) | `global_macro` |
 | `USER_DB` | Users, payments, KM (sellers, products, wallet, library) | knowledge_* |
 | `HELPER_DB` | Internal ops/DQ tables | — |
+| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; B2B, unreleased) | `fuel_price_cycle`, `fuel_world_daily`, `fuel_formula_params` |
 
 ### Table naming convention
 
@@ -155,6 +156,8 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | FX Rate | VCB, SBV | `vn_macro_sbv_rate_daily` | Daily |
 | CPI | NSO/GSO | `vn_gso_cpi_monthly` | Monthly |
 | Global | Yahoo Finance (GC=F, SI=F, ^IXIC) | `global_macro` | Daily |
+| Fuel (domestic) | Bộ Công Thương price-management announcements | `fuel_price_cycle` | Weekly (Thu) |
+| Fuel (world) | Yahoo Finance (BZ=F Brent, RB=F RBOB) | `fuel_world_daily` | Daily |
 
 ## GitHub Actions Workflows
 
@@ -164,7 +167,7 @@ Cron in VN time (UTC+7): `'30 1 * * *'` = 08:30 VN. Standard steps: checkout →
 
 ## Backend (FastAPI)
 
-`be/main.py` registers routers and mounts `fe/` as static at `/fe`. Static `.env` is read from repo root, not `be/.env`.
+`be/main.py` registers routers and mounts `fe/` as static at `/fe`. Static `.env` is read from repo root, not `be/.env`. Root `/` 307-redirects to `/fe/`. For SEO/AEO, `main.py` also serves `robots.txt`, `sitemap.xml` and `llms.txt` from `fe/` at the **domain root** (`/robots.txt`, `/sitemap.xml`, `/llms.txt`) — crawlers (Googlebot, GPTBot, ClaudeBot, PerplexityBot) only read these at root, not under `/fe/`. Edit the source files in `fe/`; the root routes just re-serve them. `robots.txt` explicitly welcomes AI/LLM crawlers; `llms.txt` is the machine-readable site/dataset overview (llmstxt.org format).
 
 ### API URL pattern
 

@@ -1,0 +1,36 @@
+name: Fuel Pipeline
+
+# Medallion extract→land + transform→load for the fuel-forecast product (Plan 1).
+# NOTE: requires repo secrets FUEL_FORECAST_DB + R2_* and a provisioned Neon DB.
+# The `model` job (forecast + backtest) is added in Plan 2 with `needs: extract-land`.
+
+on:
+  schedule:
+    - cron: '0 2 * * 4'   # 09:00 VN Thursday (MOIT announces ~15:00 the prior cycle day)
+  workflow_dispatch:
+
+jobs:
+  extract-land:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements-fuel.txt
+      - name: World futures → Bronze/Silver
+        run: python crawl_tools/crawl_fuel_world.py
+        env:
+          FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_RAW: ${{ secrets.R2_BUCKET_RAW }}
+      - name: MOIT announcement → Bronze/Silver
+        run: python crawl_tools/crawl_moit_fuel.py
+        env:
+          FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_RAW: ${{ secrets.R2_BUCKET_RAW }}
