@@ -44,9 +44,11 @@ def validate(rows: list[CycleRow]) -> bool:
     if not rows:
         return False
     for r in rows:
-        if not (30.0 <= r.world_avg_price <= 200.0):
+        # Wide bounds: refined-product world price can spike (diesel hit ~205 USD/bbl
+        # in the 2026-03 cycle) and retail follows it — reject only implausible garbage.
+        if not (30.0 <= r.world_avg_price <= 400.0):
             return False
-        if not (10000 <= r.retail_price <= 50000):
+        if not (10000 <= r.retail_price <= 60000):
             return False
     return True
 

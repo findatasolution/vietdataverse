@@ -49,12 +49,14 @@ _WORLD_PATTERNS = {
     "E5RON92": r"(\d+,\d+)\s*USD/thùng\s*xăng\s*RON\s*92\b",
     "DO005S": r"(\d+,\d+)\s*USD/thùng\s*dầu\s*(?:đi[êe]zen|diesel|diezen)",
 }
-# Retail patterns (dot thousands, must be đồng/lít not đồng/kg). Use `[^:]*:` up to
-# the label's colon — tolerant of the "-III"/"-II" grade suffix and dash variants.
+# Retail patterns (dot thousands, must be đồng/lít not đồng/kg). `[^:]{0,20}:` matches
+# only a SHORT grade suffix ("-III", " 0.05S") before the label's colon — this stops the
+# pattern from starting at the fuel's mention in the world-price sentence and greedily
+# skipping to the wrong retail colon. E10 rollout: gasoline relabelled "E10RON95-III".
 _RETAIL_PATTERNS = {
-    "RON95": r"Xăng\s*RON\s*95[^:]*:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
-    "E5RON92": r"Xăng\s*E5\s*RON\s*92[^:]*:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
-    "DO005S": r"Dầu\s*(?:đi[êe]zen|diesel|diezen)[^:]*:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
+    "RON95": r"Xăng\s*(?:E10\s*)?RON\s*95[^:]{0,20}:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
+    "E5RON92": r"Xăng\s*E5\s*RON\s*92[^:]{0,20}:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
+    "DO005S": r"Dầu\s*(?:đi[êe]zen|diesel|diezen)[^:]{0,20}:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
 }
 
 

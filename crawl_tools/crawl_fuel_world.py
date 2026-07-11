@@ -49,10 +49,16 @@ def to_world_rows(close_series, instrument: str) -> list[dict]:
     return rows
 
 
+# Per-instrument sane ranges — units differ: Brent USD/barrel (~20-200),
+# RBOB USD/gallon (~0.5-10), SGGO USD/barrel.
+_BOUNDS = {"BRENT": (20.0, 200.0), "RBOB": (0.5, 10.0), "SGGO": (20.0, 300.0)}
+
+
 def validate(rows: list[dict]) -> bool:
     if not rows:
         return False
-    return all(10.0 <= r["close"] <= 400.0 for r in rows)
+    lo, hi = _BOUNDS.get(rows[0]["instrument"], (0.0, 1e9))
+    return all(lo <= r["close"] <= hi for r in rows)
 
 
 def store(engine, rows: list[dict], source: str) -> None:

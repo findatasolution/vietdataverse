@@ -33,3 +33,17 @@ def test_retail_prices_vnd_per_liter():
 def test_period_and_source_set():
     rows = _rows()
     assert all(r.retail_price > 15000 for r in rows.values())
+
+
+def test_parses_e10_ron95_label():
+    # Vietnam relabelled RON95 gasoline "E10RON95-III" during the E10 rollout.
+    html = (
+        "<p>Bình quân giá ... 73,582 USD/thùng xăng RON95 (tăng); "
+        "85,154 USD/thùng dầu điêzen 0,05S (tăng).</p>"
+        "<p>- Xăng E10RON95-III: không cao hơn 20.003 đồng/lít; "
+        "- Xăng E5RON92: không cao hơn 19.191 đồng/lít; "
+        "- Dầu điêzen 0.05S: không cao hơn 21.745 đồng/lít.</p>"
+    )
+    rows = {r.fuel: r for r in parse_moit(html, date(2026, 7, 9))}
+    assert rows["RON95"].retail_price == 20003
+    assert rows["DO005S"].retail_price == 21745
