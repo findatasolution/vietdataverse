@@ -29,5 +29,5 @@ CREATE TABLE IF NOT EXISTS fuel_backtest (
   n INT NOT NULL,                              -- number of held-out cycles
   skill_vs_rw NUMERIC NOT NULL,                -- 1 - MAE_model/MAE_randomwalk
   model_version VARCHAR(40) NOT NULL,
-  UNIQUE (run_ts, fuel, horizon)
+  UNIQUE (run_ts, fuel, horizon, model_version)   -- one row per model per run
 );

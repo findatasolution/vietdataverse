@@ -292,3 +292,34 @@ class TestMultipleFuels:
 
         cal = fit_calibration(points, fx=26000.0)
         assert cal.fuel == "DO005S"
+
+
+class TestPassthroughDelta:
+    def test_fit_passthrough_recovers_k_exactly(self):
+        from be.fuel.calibration import fit_passthrough
+        from datetime import date, timedelta
+        # retail deltas = 150 * world deltas exactly
+        worlds = [80.0, 85.0, 82.0, 90.0, 95.0, 88.0]
+        pts, retail = [], 20000.0
+        for i, w in enumerate(worlds):
+            if i > 0:
+                retail += 150.0 * (w - worlds[i - 1])
+            pts.append(CyclePoint(date(2026, 1, 1) + timedelta(days=7 * i),
+                                  "RON95", w, retail, 70.0 + i))
+        k = fit_passthrough(pts)
+        assert abs(k - 150.0) < 1e-9
+
+    def test_fit_passthrough_validations(self):
+        from be.fuel.calibration import fit_passthrough
+        from datetime import date
+        import pytest
+        p = CyclePoint(date(2026, 1, 1), "RON95", 80.0, 20000.0, 70.0)
+        with pytest.raises(ValueError):
+            fit_passthrough([p, p, p])          # <4 points
+        pts = [CyclePoint(date(2026, 1, 1 + i), "RON95", 80.0, 20000.0, 70.0) for i in range(5)]
+        with pytest.raises(ValueError):
+            fit_passthrough(pts)                # zero world-delta variance
+
+    def test_predict_retail_from_world_delta(self):
+        from be.fuel.calibration import predict_retail_from_world_delta
+        assert predict_retail_from_world_delta(20000.0, 150.0, 80.0, 84.0) == 20600.0

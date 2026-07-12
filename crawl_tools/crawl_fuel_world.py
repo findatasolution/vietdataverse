@@ -78,7 +78,8 @@ def store(engine, rows: list[dict], source: str) -> None:
 
 def crawl_instrument(ticker: str, instrument: str, engine) -> int:
     import yfinance as yf
-    series = yf.download(ticker, period="1y", progress=False, auto_adjust=True)["Close"]
+    # 2y: cover the full span of discoverable MOIT cycles (continuous run starts 2025-05)
+    series = yf.download(ticker, period="2y", progress=False, auto_adjust=True)["Close"]
     if hasattr(series, "squeeze"):
         series = series.squeeze("columns") if getattr(series, "ndim", 1) > 1 else series
     payload = json.dumps({str(k): (None if v is None else float(v))
