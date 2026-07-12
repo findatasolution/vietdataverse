@@ -34,3 +34,21 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET_RAW: ${{ secrets.R2_BUCKET_RAW }}
+
+  model:
+    needs: extract-land
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements-fuel.txt
+      - name: Walk-forward backtest (dual model) → fuel_backtest
+        run: python be/fuel/backtest.py
+        env:
+          FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}
+      - name: Generate forecast fan → fuel_forecast
+        run: python be/fuel/forecast.py
+        env:
+          FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}

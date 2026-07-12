@@ -23,6 +23,9 @@ import os
 import json
 from decimal import Decimal
 
+# Allow running as a plain script (python3 be/fuel/forecast.py) — put repo root on sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
 from sqlalchemy import text
 
 from be.fuel.calibration import (
