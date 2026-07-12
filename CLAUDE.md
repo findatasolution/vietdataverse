@@ -16,6 +16,10 @@ Two products in one SPA:
 1. **Open Data** — macro/finance/commodity/stock charts, API-key-metered data API + free static downloads. `gold-analysis` and `market-pulse` remain intentionally public.
 2. **AI Agent Knowledge & Skill Market** (short: "Agent Market") — paid/free `.md/.json/.yaml` knowledge packs for agent builders, with seller flow, wallet/credits, library.
 
+## Git Workflow Rules
+
+**KHÔNG tự ý tạo branch.** Mặc định commit thẳng lên `main`. Chỉ tạo branch khi user yêu cầu rõ ràng (hoặc user chọn mở PR) — và hỏi trước nếu không chắc. Trước khi xoá branch/PR: verify trạng thái merge thật (`gh pr view`) rồi mới xoá, không xoá dựa trên giả định.
+
 ## Security Rules
 
 **NEVER display secrets in chat or terminal output.** This includes DB connection strings, API keys, passwords, tokens, or any value read from `.env`. Use values programmatically; mask or skip prints that would expose them.
