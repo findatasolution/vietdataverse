@@ -1324,11 +1324,12 @@
                             </div>
                             <div class="km-filterbar-dropdowns" id="km-filterbar-dropdowns">
                                 <select class="km-dropdown" id="km-filter-type" onchange="KM.onFilterChange()">
-                                    <option value="">Loại</option>
-                                    <option value="knowledge">Knowledge Pack</option>
-                                    <option value="agent">Agent</option>
-                                    <option value="skill">Skill</option>
-                                    <option value="dataset">Dataset</option>
+                                    <option value="">Định dạng</option>
+                                    <option value="md">Markdown</option>
+                                    <option value="json">JSON</option>
+                                    <option value="yaml">YAML</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="txt">Text</option>
                                 </select>
                                 <select class="km-dropdown" id="km-filter-price" onchange="KM.onFilterChange()">
                                     <option value="">Giá</option>
@@ -1390,13 +1391,14 @@
                     <h3 class="km-sheet-title">Bộ lọc &amp; Sắp xếp</h3>
 
                     <div class="km-sheet-group">
-                        <p class="km-sheet-group-label">Loại sản phẩm</p>
+                        <p class="km-sheet-group-label">Định dạng</p>
                         <div class="km-sheet-chips">
                             <button class="km-sheet-chip active" data-filter-type="" onclick="KM._sheetFilterType(this, '')">Tất cả</button>
-                            <button class="km-sheet-chip" data-filter-type="knowledge" onclick="KM._sheetFilterType(this, 'knowledge')">Knowledge Pack</button>
-                            <button class="km-sheet-chip" data-filter-type="agent"     onclick="KM._sheetFilterType(this, 'agent')">Agent</button>
-                            <button class="km-sheet-chip" data-filter-type="skill"     onclick="KM._sheetFilterType(this, 'skill')">Skill</button>
-                            <button class="km-sheet-chip" data-filter-type="dataset"   onclick="KM._sheetFilterType(this, 'dataset')">Dataset</button>
+                            <button class="km-sheet-chip" data-filter-type="md"   onclick="KM._sheetFilterType(this, 'md')">Markdown</button>
+                            <button class="km-sheet-chip" data-filter-type="json" onclick="KM._sheetFilterType(this, 'json')">JSON</button>
+                            <button class="km-sheet-chip" data-filter-type="yaml" onclick="KM._sheetFilterType(this, 'yaml')">YAML</button>
+                            <button class="km-sheet-chip" data-filter-type="csv"  onclick="KM._sheetFilterType(this, 'csv')">CSV</button>
+                            <button class="km-sheet-chip" data-filter-type="txt"  onclick="KM._sheetFilterType(this, 'txt')">Text</button>
                         </div>
                     </div>
 

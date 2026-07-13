@@ -929,6 +929,10 @@
             const target = document.getElementById(tabId);
             if (target) target.classList.add('active');
 
+            if (tabId === 'knowledge-market' && window.KM && typeof window.KM._initTab === 'function') {
+                window.KM._initTab();
+            }
+
             // Reset scroll to top when switching tabs
             const mainContent = document.querySelector('.main-content');
             if (mainContent) mainContent.scrollTop = 0;
@@ -1126,6 +1130,7 @@
                                 window.KM._setKmNavActive(tabId);
                             }
                             var KM_VIEW_MAP = {
+                                'marketplace':      function () { window.KM && window.KM.showMarketplace(); },
                                 'library':          function () { window.KM && window.KM.loadLibrary(); },
                                 'wallet':           function () { window.KM && window.KM.openWallet(); },
                                 'seller-dashboard': function () { window.KM && window.KM.openSellerDashboard(); },

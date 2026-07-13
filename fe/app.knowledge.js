@@ -332,18 +332,21 @@
         return _productsLoadingPromise;
     }
 
-    // Apply current category/search/type/price/sort filters to _allProducts → _products → render.
+    // Apply current category/search/format/price/sort filters to _allProducts → _products → render.
     function _applyFiltersAndRender() {
         var cat = _category || 'all';
         var q   = (document.getElementById('km-search-input') || {}).value || '';
         q = q.trim().toLowerCase();
-        var typeF  = (document.getElementById('km-filter-type')  || {}).value || '';
+        var formatF = (document.getElementById('km-filter-type') || {}).value || '';
         var priceF = (document.getElementById('km-filter-price') || {}).value || '';
         var sortF  = (document.getElementById('km-filter-sort')  || {}).value || 'popular';
 
         var out = _allProducts.slice();
         if (cat !== 'all')  out = out.filter(function (p) { return p && p.category === cat; });
-        if (typeF)          out = out.filter(function (p) { return p && (p.type === typeF || p.kind === typeF); });
+        if (formatF)        out = out.filter(function (p) {
+            if (!p) return false;
+            return formatF === 'yaml' ? (p.format === 'yaml' || p.format === 'yml') : p.format === formatF;
+        });
         if (priceF === 'free') out = out.filter(function (p) { return !p.price_credits || p.price_credits === 0; });
         if (priceF === 'paid') out = out.filter(function (p) { return p.price_credits && p.price_credits > 0; });
         if (q) {
@@ -354,11 +357,11 @@
             });
         }
         if (sortF === 'newest')    out.sort(function (a, b) { return (b.id || 0) - (a.id || 0); });
-        else if (sortF === 'rating')    out.sort(function (a, b) { return (b.rating || 0) - (a.rating || 0); });
+        else if (sortF === 'rating')    out.sort(function (a, b) { return (b.rating_avg || 0) - (a.rating_avg || 0); });
         else if (sortF === 'downloads' || sortF === 'popular') {
             out.sort(function (a, b) {
-                var da = a.downloads_count || a.downloads || 0;
-                var db = b.downloads_count || b.downloads || 0;
+                var da = a.download_count || 0;
+                var db = b.download_count || 0;
                 return db - da;
             });
         }
@@ -391,11 +394,7 @@
     }
 
     function filterCategory(cat) {
-        _category = cat || 'all';
-        document.querySelectorAll('.km-cat-chip, .km-cat-btn').forEach(function (b) {
-            b.classList.toggle('active', b.dataset.cat === _category);
-        });
-        _applyFiltersAndRender();
+        return loadProducts(cat || 'all');
     }
 
     // Empty state HTML (§11.8)
@@ -986,6 +985,7 @@
         if (catView) catView.style.display = 'none';
         if (trnView) trnView.style.display = 'none';
         if (mktView) mktView.style.display = 'block';
+        loadProducts(_category || 'all');
     }
 
     async function downloadFromLibrary(licenseKey) {
@@ -2322,10 +2322,10 @@
             _ensureAllProducts().then(function () { renderTrendingView(); });
             return;
         }
-        // Sort copy of _allProducts by downloads_count desc, fallback id desc
+        // Sort copy of _allProducts by download_count desc, fallback id desc
         var sorted = _allProducts.slice().sort(function (a, b) {
-            var da = (a && (a.downloads_count || a.downloads)) || 0;
-            var db = (b && (b.downloads_count || b.downloads)) || 0;
+            var da = (a && a.download_count) || 0;
+            var db = (b && b.download_count) || 0;
             if (db !== da) return db - da;
             return (b.id || 0) - (a.id || 0);
         });
@@ -2445,20 +2445,6 @@
         document.body.appendChild(toast);
         setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 3500);
     }
-
-    // ─────────────────────────────────────────────
-    // Tab click listener — activate KM when tab is clicked
-    // ─────────────────────────────────────────────
-
-    document.addEventListener('click', function (e) {
-        // Activate KM when clicking the knowledge-market nav-link OR the Agent Market workspace tab
-        if (
-            (e.target.closest && e.target.closest('[data-tab="knowledge-market"]')) ||
-            (e.target.closest && e.target.closest('[data-workspace="km"]'))
-        ) {
-            _initTab();
-        }
-    });
 
     // Prefetch products on hover/touchstart over the Agent Market workspace tab
     // → by the time user clicks, network is already in flight.
