@@ -183,10 +183,32 @@ if os.path.exists(_excel_addin):
     app.mount("/excel-addin", StaticFiles(directory=_excel_addin), name="excel_addin")
 
 
+# ── SEO / AEO: crawler files served at ROOT ───────────────────────────────────
+# robots.txt, sitemap.xml and llms.txt physically live in fe/, but web crawlers
+# (Googlebot, GPTBot, ClaudeBot, PerplexityBot, …) only look for them at the
+# domain root — not under /fe/. Serve them at root or they are invisible.
+from fastapi.responses import FileResponse, RedirectResponse, Response
+
+def _serve_fe_file(filename: str, media_type: str):
+    async def _endpoint():
+        path = os.path.join(_fe, filename)
+        if not os.path.exists(path):
+            return Response(status_code=404)
+        return FileResponse(path, media_type=media_type)
+    return _endpoint
+
+for _fname, _mtype in (
+    ("robots.txt", "text/plain; charset=utf-8"),
+    ("sitemap.xml", "application/xml"),
+    ("llms.txt", "text/plain; charset=utf-8"),
+):
+    app.add_api_route("/" + _fname, _serve_fe_file(_fname, _mtype),
+                      methods=["GET", "HEAD"], include_in_schema=False)
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 async def root():
-    from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/fe/")
 
 @app.get("/index.html")
