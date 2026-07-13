@@ -243,7 +243,7 @@ async def authenticate_user(request: Request):
     Skips public endpoints.
     """
     public_endpoints = [
-        "/api/docs", "/api/openapi.json",
+        "/docs", "/openapi.json", "/redoc",
         "/api/v1/gold", "/api/v1/silver", "/api/v1/sbv-interbank",
         "/api/v1/termdepo", "/api/v1/global-macro", "/api/v1/gold/types",
         "/api/v1/termdepo/banks", "/api/v1/gold-analysis",

@@ -73,12 +73,20 @@ secrets exist.) Caddy needs no reload on redeploy — the service name/port don'
   (`server: uvicorn`), valid **production** Let's Encrypt cert. RAM ~68MB / 640MB.
 - ✅ Auto-deploy live: all 5 `HETZNER_*` secrets set, dedicated `vdv-github-deploy`
   key in the box's `authorized_keys`, `deploy-hetzner.yml` ran green (real SSH deploy).
-- ⏳ `api.vietdataverse.online` — **no DNS record yet (NXDOMAIN)**. No longer blocks the
-  site: the **FE now calls the API same-origin** (`location.origin + '/api/v1'` in
-  `app.js`, `auth.js`, and the account/developer/admin/takedown/verify-email pages).
-  Still add `api.vietdataverse.online A → 62.238.25.95` for the **public API URL** used
-  in the docs/code samples (Caddy already has the `api.*` block; it certs on resolve).
-  The Auth0 `audience` stays the literal `api.vietdataverse.online` identifier.
+- ✅ `api.vietdataverse.online` — **DNS A → `62.238.25.95` added (2026-07-11)**. Caddy
+  auto-issued a valid Let's Encrypt cert (`CN=api.vietdataverse.online`) on first resolve;
+  verified `https://api.vietdataverse.online/pages/admin.html` → 200, `/api/v1/gold` → 401
+  (auth gate), `/excel-addin/taskpane.html` → 200. This revived every absolute `api.*` URL
+  in the docs/code samples, the Excel add-in (`manifest.xml` + `taskpane.js`), the CI smoke
+  test + crawl webhook, and the SEO JSON-LD / sitemap — no code change needed.
+  The FE itself still calls the API same-origin (`location.origin + '/api/v1'` in `app.js`
+  and the account/developer/admin/takedown/verify-email pages), so it works on
+  `vietdataverse.online` / `www` / `api.*` alike. The Auth0 `audience` stays the literal
+  `api.vietdataverse.online` identifier.
+  - ✅ Fixed `/api/docs` path (2026-07-11): Swagger is `/docs`, spec is `/openapi.json`
+    (FastAPI defaults; `/api/docs` never existed → 404). Updated `sitemap.xml`,
+    `_layout_head.html` (contentUrl→`/openapi.json`, link→`/docs`), `fe/llms.txt`, and the
+    `be/middleware.py` public allowlist. No `/api/docs` remains in the repo.
 - ⏳ Render still running — delete after a few days stable.
 
 **Security note:** `HETZNER_SSH_KEY` authenticates as **root** on a box that also runs
