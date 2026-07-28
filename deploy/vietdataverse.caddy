@@ -1,5 +1,12 @@
 # Copy to  ~/automated_video/caddy-conf.d/vietdataverse.caddy  then:
 #   cd ~/automated_video && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+#
+# This file does NOTHING unless the shared Caddy stack declares BOTH of these in its
+# own docker-compose.yml (see DEPLOY_HETZNER.md §0.1) — declaring them imperatively
+# instead cost 31h of downtime on 2026-07-27:
+#   volumes:  - ./caddy-conf.d:/etc/caddy/conf.d:ro   # else `import` matches 0 files
+#   networks: - edge                                   # else reverse_proxy → 502
+#
 # "vietdataverse:8000" = the compose service name : exposed port, resolved over the `edge` network.
 # Both hostnames hit the same FastAPI app (it serves /fe and /api/v1 by path, not by host).
 

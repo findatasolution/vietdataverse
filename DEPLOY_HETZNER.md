@@ -18,6 +18,35 @@ Per `box-multi-app-deploy.md` §1: restore **4G swap** (box has 0B — mandatory
 `docker network create edge`, and make the shared Caddy join `edge` + `import
 /etc/caddy/conf.d/*.caddy`. Verify: `swapon --show` shows 4G, `docker network ls | grep edge`.
 
+### 0.1 The shared Caddy needs TWO declarations in `~/automated_video/docker-compose.yml`
+Both must live **in the compose file**. Doing either one imperatively (`docker network
+connect`, or hand-copying a file into the running container) works until the next
+`docker compose up -d` recreates Caddy — then it silently vanishes and VDV goes dark.
+This exact failure took prod down for 31h on 2026-07-27 (see Status).
+
+```yaml
+  caddy:
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-conf.d:/etc/caddy/conf.d:ro   # ← without this, `import` matches 0 files
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - default
+      - edge                                   # ← without this, Caddy → 502 to vietdataverse:8000
+
+networks:
+  edge:
+    external: true
+```
+
+Verify both after **any** change to that stack:
+```bash
+docker exec automated_video-caddy-1 ls /etc/caddy/conf.d/          # vietdataverse.caddy
+docker inspect automated_video-caddy-1 --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'   # must include `edge`
+docker exec automated_video-caddy-1 curl -s localhost:2019/config/apps/http/servers | grep -c vietdataverse    # > 0
+```
+
 ## 1. DNS (Cloudflare) → point at the box
 `vietdataverse.online`, `api.vietdataverse.online`, `www.vietdataverse.online`
 → **A → 62.238.25.95**. Caddy auto-issues certs once DNS resolves + 80/443 reachable.
@@ -35,6 +64,7 @@ docker compose exec vietdataverse curl -fsS http://localhost:8000/health   # -> 
 ```
 
 ## 3. Route it through the shared Caddy
+Prerequisite: §0.1 (conf.d mount + `edge` network declared in that stack's compose).
 ```bash
 cp ~/vietdataverse/deploy/vietdataverse.caddy ~/automated_video/caddy-conf.d/
 cd ~/automated_video && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
@@ -89,6 +119,27 @@ secrets exist.) Caddy needs no reload on redeploy — the service name/port don'
     `be/middleware.py` public allowlist. No `/api/docs` remains in the repo.
 - ⏳ Render still running — delete after a few days stable.
 
+### Incident 2026-07-27 → 2026-07-28: HTTPS down 31h (`ERR_SSL_PROTOCOL_ERROR`)
+**Symptom:** `vietdataverse.online` (and `www`, `api`) → TLS alert 80, no certificate
+presented. `mythreel.studio` on the same Caddy stayed 200 the whole time.
+
+**Root cause:** `~/automated_video/docker-compose.yml` was edited 2026-07-27 06:41 and
+Caddy was recreated at 10:34. The new compose declared **neither** the `caddy-conf.d`
+bind mount **nor** the `edge` network — both had only ever been applied imperatively.
+So `import /etc/caddy/conf.d/*.caddy` matched 0 files → the three `vietdataverse.online`
+site blocks were absent from the running config → Caddy had no cert to serve for that
+SNI. Certs themselves were fine and still in `/data` the whole time; the VDV container
+was up and healthy. Nothing in this repo changed.
+
+**Red herring:** `http://vietdataverse.online/` returned `308 → https://…`, which looks
+like a live site. It is not — Caddy's HTTP→HTTPS redirect is a **catch-all**; a made-up
+host (`nonexistent-xyz.invalid`) gets the same 308. Only
+`localhost:2019/config/apps/http/servers` proves which hosts are actually loaded.
+
+**Fix:** declared both in that compose (§0.1), `docker compose up -d --no-deps caddy`.
+Verified durable with `--force-recreate`: conf.d + `edge` + all 5 hosts survive. No new
+ACME issuance was needed (existing certs reused → no rate-limit exposure).
+
 **Security note:** `HETZNER_SSH_KEY` authenticates as **root** on a box that also runs
 mythreel.studio. Consider hardening later: a dedicated non-root deploy user with a
 `command="…"`-restricted key, so a compromised Action can't take the whole box.
@@ -96,5 +147,7 @@ mythreel.studio. Consider hardening later: a dedicated non-root deploy user with
 ## Constraints (from box-multi-app-deploy.md — do not violate)
 - **Never** `docker system prune -a` (wipes mythreel images). Deploy uses `docker image prune -f` (dangling only). ✅
 - Keep `mem_limit` (640m) — no swap headroom; VDV must never OOM the box.
-- Don't touch `~/automated_video/docker-compose.yml` services (only drop the `.caddy` file).
+- Don't touch `~/automated_video/docker-compose.yml` **services** (app/worker/ollama/queuedb).
+  Its `caddy` service is the one exception: it must keep the conf.d mount + `edge` network
+  from §0.1, or VDV drops off the internet on the next recreate. Back the file up before editing.
 - Crawlers keep running on **GitHub Actions** (unchanged) — they only write to Neon.
