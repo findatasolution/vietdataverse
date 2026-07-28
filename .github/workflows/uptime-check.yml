@@ -1,0 +1,115 @@
+name: Uptime Check
+
+# Runs OFF-BOX on purpose: an on-box cron dies together with the box it is
+# supposed to watch. A GitHub runner is an outside vantage point, so it also
+# catches DNS, Caddy and TLS failures — not just "is uvicorn alive".
+#
+# The 2026-07-27 outage (31h of ERR_SSL_PROTOCOL_ERROR, see DEPLOY_HETZNER.md)
+# would have been caught by check 1 the next morning: curl without -k fails
+# with exit 35 when the server presents no usable certificate.
+#
+# Notification: a failing scheduled run turns the workflow red and GitHub
+# emails the repo owner. No secrets, no third-party service.
+#
+# Cron in VN time (UTC+7): '0 4 * * *' = 11:00 VN — after the morning crawls,
+# and at an hour someone is awake to act on it.
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: uptime-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe production
+        shell: bash
+        run: |
+          # No `set -e`: every check must run so one red build reports ALL breakage.
+          set -uo pipefail
+          FAILED=0
+          ERRLOG=$(mktemp)
+          note() { printf '%s\n' "$*"; }
+          fail() { printf '::error::%s\n' "$*"; FAILED=1; }
+
+          # probe <label> <expected_code> <url>
+          # Captures curl's stderr separately so a network error never ends up
+          # inside $code — the failure message stays readable.
+          probe() {
+            local label=$1 want=$2 url=$3 code rc
+            code=$(curl -sSL -m 30 -o /tmp/body -w '%{http_code}' "$url" 2>"$ERRLOG"); rc=$?
+            if [ $rc -ne 0 ]; then
+              fail "$label: curl exit $rc — $(tr '\n' ' ' < "$ERRLOG" | cut -c1-200)"
+              case $rc in
+                35) fail "  exit 35 = TLS handshake refused / no certificate served. Suspect the SHARED Caddy stack, not this repo — DEPLOY_HETZNER.md §0.1" ;;
+                60) fail "  exit 60 = certificate expired or untrusted. Caddy renewal is failing." ;;
+                6)  fail "  exit 6 = DNS does not resolve. Check the Cloudflare A records." ;;
+                7|28) fail "  exit $rc = cannot connect / timed out. Suspect the box or its firewall." ;;
+              esac
+              return 1
+            fi
+            note "$label -> HTTP $code"
+            [ "$code" = "$want" ] || { fail "$label: expected $want, got $code"; return 1; }
+            return 0
+          }
+
+          # --- 1. Root page over HTTPS ------------------------------------
+          # No -k anywhere: an invalid or absent cert MUST fail. -L because / 307s to /fe/.
+          note "--- 1. root page"
+          if probe "vietdataverse.online/" 200 https://vietdataverse.online/; then
+            size=$(stat -c%s /tmp/body)
+            note "    body ${size}B"
+            # A Caddy 502/error page is tiny; the real SPA is ~150KB. Guards
+            # against a "200 OK" served by something that isn't our app.
+            [ "$size" -gt 50000 ] || fail "root: body only ${size}B — too small to be the real page"
+          fi
+
+          # --- 2. www + api hostnames --------------------------------------
+          note "--- 2. other hostnames"
+          probe "www.vietdataverse.online/" 200 https://www.vietdataverse.online/
+          probe "api /market-pulse" 200 'https://api.vietdataverse.online/api/v1/market-pulse?limit=1'
+
+          # --- 3. Metering still enforced ----------------------------------
+          # Anonymous access to a metered route must stay 401. A 200 here means
+          # paid data went public — worth waking up for.
+          note "--- 3. metering"
+          probe "api /gold anonymous" 401 'https://api.vietdataverse.online/api/v1/gold?limit=1' \
+            || note "    (a 200 here would mean metering is bypassed)"
+
+          # --- 4. SEO files at domain root ---------------------------------
+          # These 404 silently if the root-level routes in be/main.py regress.
+          note "--- 4. SEO root files"
+          for f in robots.txt sitemap.xml llms.txt; do
+            probe "$f" 200 "https://vietdataverse.online/$f"
+          done
+
+          # --- 5. Certificate expiry ---------------------------------------
+          # Catches a failed renewal ~2 weeks BEFORE it becomes an outage.
+          note "--- 5. certificate expiry"
+          for host in vietdataverse.online api.vietdataverse.online; do
+            end=$(echo | timeout 20 openssl s_client -connect "$host:443" -servername "$host" 2>/dev/null \
+                  | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+            if [ -z "$end" ]; then
+              fail "$host: could not read certificate"
+              continue
+            fi
+            days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
+            note "$host expires $end (${days}d)"
+            [ "$days" -ge 14 ] || fail "$host: cert expires in ${days}d — Caddy renewal is not working"
+          done
+
+          note ""
+          if [ $FAILED -ne 0 ]; then
+            note "PROD CHECK FAILED — runbook: DEPLOY_HETZNER.md"
+            note "If TLS broke but https://mythreel.studio is still 200, the TLS layer is"
+            note "fine and our site block is missing from the shared Caddy config. Verify:"
+            note "  docker exec automated_video-caddy-1 curl -s localhost:2019/config/apps/http/servers | grep -c vietdataverse"
+            exit 1
+          fi
+          note "All production checks passed."

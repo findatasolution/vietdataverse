@@ -140,6 +140,14 @@ host (`nonexistent-xyz.invalid`) gets the same 308. Only
 Verified durable with `--force-recreate`: conf.d + `edge` + all 5 hosts survive. No new
 ACME issuance was needed (existing certs reused → no rate-limit exposure).
 
+**Follow-up:** the outage ran 31h because nothing was watching. `.github/workflows/uptime-check.yml`
+now probes prod daily at 11:00 VN from a GitHub runner (off-box on purpose — an on-box
+cron dies with the box). It fails the workflow, and GitHub emails the owner, on: TLS
+handshake refused (exit 35 — this incident), expired/untrusted cert (60), DNS gone (6),
+box unreachable (7/28), a 200 whose body is too small to be the real page, anonymous
+`/api/v1/gold` no longer returning 401, any SEO root file 404ing, or a cert with under
+14 days left. Both the pass and fail paths were tested before merge.
+
 **Security note:** `HETZNER_SSH_KEY` authenticates as **root** on a box that also runs
 mythreel.studio. Consider hardening later: a dedicated non-root deploy user with a
 `command="…"`-restricted key, so a compromised Action can't take the whole box.

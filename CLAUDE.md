@@ -165,7 +165,9 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 
 ## GitHub Actions Workflows
 
-`.github/workflows/` — one workflow per crawl source (`{asset}-crawl.yml`), plus `build-html.yml` (regenerates `fe/index.html` on `fe/partials/` change), `generate-static-data.yml`, `data-quality-check.yml`, `market-pulse.yml`.
+`.github/workflows/` — one workflow per crawl source (`{asset}-crawl.yml`), plus `build-html.yml` (regenerates `fe/index.html` on `fe/partials/` change), `generate-static-data.yml`, `data-quality-check.yml`, `market-pulse.yml`, `deploy-hetzner.yml` (auto-deploy to prod), and `uptime-check.yml`.
+
+`uptime-check.yml` runs daily at 11:00 VN and is the **only** production alerting we have: it probes prod from outside the box (root page + body size, `www`, `api`, anonymous `/gold` still 401, the three SEO root files, and cert expiry with a 14-day warning). A failure turns the workflow red and GitHub emails the repo owner. It must stay off-box — an on-box cron dies with the box it watches. Added after a 31h TLS outage went unnoticed (`DEPLOY_HETZNER.md`).
 
 Cron in VN time (UTC+7): `'30 1 * * *'` = 08:30 VN. Standard steps: checkout → setup-python → `pip install -r crawl_tools/requirements.txt` → `python crawl_tools/crawl_{source}.py` with DB env from secrets.
 
