@@ -249,6 +249,7 @@
         <div class="kpi-card"><div class="kpi-label">Điểm trung bình</div><div class="kpi-value" id="feedback-avg">—</div><div class="kpi-sub">trên 5 sao</div></div>
         <div class="kpi-card"><div class="kpi-label">Có nội dung chi tiết</div><div class="kpi-value" id="feedback-with-text">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Phân bố sao</div><div class="kpi-sub" id="feedback-ratings">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Nhóm người dùng</div><div class="kpi-sub" id="feedback-groups">—</div></div>
     </div>
     <div class="feedback-table-wrap">
         <table class="admin-table">
@@ -396,6 +397,10 @@ function renderFeedback(feedback) {
         business: 'Đại diện công ty',
         researcher: 'Nghiên cứu / Sinh viên',
     };
+    document.getElementById('feedback-groups').textContent = (data.groups || [])
+        .map(item => `${groupLabels[item.user_group] || item.user_group || '(không chọn)'}: ${item.count}`)
+        .join(' · ') || 'Chưa có dữ liệu';
+
     const body = document.getElementById('feedback-body');
     body.replaceChildren();
     const recent = data.recent || [];

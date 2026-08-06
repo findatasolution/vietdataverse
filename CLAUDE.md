@@ -189,6 +189,8 @@ Cron in VN time (UTC+7): `'30 1 * * *'` = 08:30 VN. Standard steps: checkout →
 
 Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated in `be/main.py`: anonymous or invalid credentials return `401`, while free and paid API keys and valid FE Bearer sessions are metered. Public `gold-analysis` / `market-pulse` calls and rejected metered calls are tracked without storing IP, token, raw API key, or user-agent. Admin performance reporting at `/pages/admin.html` supports `24h`, `7d`, and `YTD` periods.
 
+`/pages/admin.html` (Auth0 login + `is_admin`/`user_level='admin'`, backed by `/api/v1/admin/*` with `admin_audit_log`) is the **only** admin/reporting surface. The secret-link report `GET /api/v1/report?key=<REPORT_SECRET>` (`be/routers/report_dashboard.py`) was removed on 2026-08-06: it duplicated data the admin dashboard already showed, put a credential in the URL (Caddy access logs, browser history, `Referer`), had no per-person revocation or audit trail, and fell back to `WEBHOOK_INTERNAL_SECRET` — the same secret GitHub Actions sends on every crawl webhook. Do not reintroduce secret-in-URL admin surfaces; add new reporting as an `/api/v1/admin/*` endpoint plus a section in `admin.html`.
+
 ### 1s Pulse API status
 
 `GET /api/v1/market-pulse` currently reads `ARGUS_FINTEL_DB.mri_analysis` and is intentionally public for the FE. It supports only `lang` and `limit` (maximum 50); it does not yet provide pagination, total count, time/source/label/MRI filters, or an official stable response contract. The Developer catalog currently labels it `premium_developer`, so access policy is inconsistent. Treat `BACKLOG.md` item `API-06` as the source of truth before marketing or monetizing this endpoint as an official API.
