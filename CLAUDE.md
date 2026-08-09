@@ -139,7 +139,7 @@ INDEX  (period)
 Each crawler is standalone in `crawl_tools/`:
 
 ```python
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / '.env')
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
 DB_URL = os.getenv('CRAWLING_BOT_DB')
 if not DB_URL: sys.exit("CRAWLING_BOT_DB not set")
 
@@ -147,6 +147,8 @@ data = parse(html)
 if not validate(data): sys.exit(1)  # ≥3 valid numeric values in expected range
 save(data)
 ```
+
+Note the **three** `.parent` calls — that resolves to the directory *above* the repo root, not the repo root. All 17 active crawlers (`crawl_gold_silver.py`, `crawl_sbv.py`, `crawl_vn30_*.py`, …) do this; only the one-off `backfill_*.py` scripts use two. In CI it is moot because env comes from workflow `env:` blocks, but it means running a crawler locally from a repo-root `.env` does **not** work — export the vars, or keep an `.env` one level above the checkout.
 
 Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (use SERIAL). Always `conn.commit()` explicitly (SQLAlchemy 2.x). Validate range + completeness before insert — never write partial rows.
 
@@ -169,7 +171,20 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 
 `uptime-check.yml` runs daily at 11:00 VN and is the **only** production alerting we have: it probes prod from outside the box (root page + body size, `www`, `api`, anonymous `/gold` still 401, the three SEO root files, and cert expiry with a 14-day warning). A failure turns the workflow red and GitHub emails the repo owner. It must stay off-box — an on-box cron dies with the box it watches. Added after a 31h TLS outage went unnoticed (`DEPLOY_HETZNER.md`).
 
-Cron in VN time (UTC+7): `'30 1 * * *'` = 08:30 VN. Standard steps: checkout → setup-python → `pip install -r crawl_tools/requirements.txt` → `python crawl_tools/crawl_{source}.py` with DB env from secrets.
+Cron in VN time (UTC+7): `'7 1 * * *'` = 08:07 VN. Standard steps: checkout → setup-python → `pip install -r crawl_tools/requirements.txt` → `python crawl_tools/crawl_{source}.py` with DB env from secrets.
+
+**Never schedule a crawl on `:00` or `:30`.** GitHub runs scheduled workflows at low priority on shared runners and delays or drops them under load, and the round minutes are the congested slots. Measured 2026-08-09 on the old `'30 1'` + `'30 2-9'` gold/silver schedule: the 01:30 UTC primary slot *never fired at all* (first run of the day landed 03:04–04:38 UTC), only 4–8 of the 9 declared runs materialised, and the runs that did fire started **32 min late on average, 58 max**. Result: the day's gold data reached the DB at 10:00–12:40 VN instead of 08:30 VN, every day, with GitHub healthy. Daily crawlers now sit on distinct odd minutes so they neither hit a congested slot nor collide with each other: gold/silver `7`, termdepo `13`, exchange-rate `17`, SBV `23`, VN30 ratios `27`.
+
+### Box-side crawl fallback (`deploy/crawl-fallback.*`)
+
+Odd minutes reduce the delay but cannot eliminate it — scheduled runs stay best-effort. A systemd timer on the Hetzner box fires at **01:45 and 03:00 UTC** (08:45 / 10:00 VN) and crawls gold/silver **only if that day's rows are still missing**, bounding lateness independently of GitHub. It is a net, not a replacement: Actions remains the primary path and the timer is a no-op on a healthy day.
+
+Two things to preserve when touching it:
+
+- **Success is judged by re-probing the DB, never by the crawler's exit code.** `crawl_gold_silver.py` exits 1 whenever its Yahoo Finance section fails, and Yahoo blocks index tickers from datacenter IPs — which the box has. A non-zero exit there is expected and does not mean the domestic crawl failed.
+- **It runs in `python:3.11-slim` (`deploy/crawler.Dockerfile`), not on the box Python.** The box ships Python 3.14 with no `python3-venv`, while `crawl_tools/requirements.txt` pins 3.11-era versions. The image installs only the subset `crawl_gold_silver.py` imports, version-pinned by passing `crawl_tools/requirements.txt` to pip as a *constraint* file, so it stays in lockstep with CI without a duplicate dependency list. The repo is bind-mounted at `/repo`, so deploys refresh crawler code without an image rebuild.
+
+Install/verify steps are in `DEPLOY_HETZNER.md`. This does **not** change the rule that `uptime-check.yml` must stay off-box — a watchdog cannot live on the machine it watches, whereas a crawler net legitimately can.
 
 ## Backend (FastAPI)
 

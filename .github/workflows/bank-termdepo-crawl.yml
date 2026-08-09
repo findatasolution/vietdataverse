@@ -2,8 +2,9 @@ name: Bank Term Deposit Crawl
 
 on:
   schedule:
-    # Morning: 8:30 AM VN (1:30 AM UTC)
-    - cron: '30 1 * * *'
+    # Morning: 8:13 AM VN (1:13 AM UTC). Minute 13, not :30 — round minutes are
+    # GitHub's congested slots where scheduled runs get delayed or dropped.
+    - cron: '13 1 * * *'
   workflow_dispatch:
     inputs:
       force:

@@ -2,8 +2,9 @@ name: SBV Rates Crawl (Daily)
 
 on:
   schedule:
-    # Once daily: 9:30 AM VN (2:30 AM UTC)
-    - cron: '30 2 * * *'
+    # Once daily: 9:23 AM VN (2:23 AM UTC). Minute 23, not :30 — round minutes
+    # are GitHub's congested slots where scheduled runs get delayed or dropped.
+    - cron: '23 2 * * *'
   workflow_dispatch:
 
 jobs:

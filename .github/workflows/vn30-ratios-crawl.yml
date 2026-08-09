@@ -2,8 +2,9 @@ name: VN30 Financial Ratios Crawl (Daily)
 
 on:
   schedule:
-    # 17:30 VN = 10:30 UTC (Mon-Fri after HSX close)
-    - cron: '30 10 * * 1-5'
+    # 17:27 VN = 10:27 UTC (Mon-Fri after HSX close). Minute 27, not :30 — round
+    # minutes are GitHub's congested slots for scheduled runs.
+    - cron: '27 10 * * 1-5'
   workflow_dispatch:
 
 jobs:

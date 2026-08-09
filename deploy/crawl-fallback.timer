@@ -1,0 +1,21 @@
+# Fires twice, both AFTER GitHub has had a fair chance at the day's crawl.
+# gold-silver-crawl.yml's primary slot is 01:07 UTC (08:07 VN) with hourly
+# retries, so 01:45 UTC (08:45 VN) gives Actions ~38 minutes before the box
+# steps in. 03:00 UTC (10:00 VN) is a second attempt in case the 08:45 run
+# itself failed (source site down, transient network).
+#
+# Both runs are no-ops once the day's gold+silver rows exist, so a healthy
+# GitHub day costs two DB probes and nothing more.
+[Unit]
+Description=Timer for the Viet Dataverse fallback gold/silver crawl
+
+[Timer]
+OnCalendar=*-*-* 01:45:00 UTC
+OnCalendar=*-*-* 03:00:00 UTC
+# Catch up after a box reboot rather than silently skipping the day.
+Persistent=true
+AccuracySec=1min
+Unit=crawl-fallback.service
+
+[Install]
+WantedBy=timers.target

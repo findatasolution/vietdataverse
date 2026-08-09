@@ -2,8 +2,9 @@ name: Exchange Rate Crawl (Daily)
 
 on:
   schedule:
-    # Daily at 10:00 AM VN (3:00 AM UTC)
-    - cron: '0 3 * * *'
+    # Daily at 10:17 AM VN (3:17 AM UTC). Minute 17, not :00 — the top of the
+    # hour is GitHub's most congested slot for scheduled runs.
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 jobs:

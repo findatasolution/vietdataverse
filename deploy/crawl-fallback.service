@@ -1,0 +1,16 @@
+# Box-side fallback crawler — see deploy/crawl-fallback.sh for why this exists.
+# Install: cp deploy/crawl-fallback.{service,timer} /etc/systemd/system/
+#          systemctl daemon-reload && systemctl enable --now crawl-fallback.timer
+[Unit]
+Description=Viet Dataverse — fallback gold/silver crawl when GitHub Actions is late
+Documentation=file:///root/vietdataverse/deploy/crawl-fallback.sh
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/root/vietdataverse/deploy/crawl-fallback.sh
+# Output goes to the journal: journalctl -u crawl-fallback.service
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=900

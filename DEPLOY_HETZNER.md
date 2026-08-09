@@ -89,6 +89,53 @@ Static Chart Data" run → the box `git reset --hard origin/main` + `docker comp
 -d --build`. Fresh data/code reaches prod automatically. (Guarded: no-ops until the
 secrets exist.) Caddy needs no reload on redeploy — the service name/port don't change.
 
+## 4b. Box-side crawl fallback (gold/silver)
+
+GitHub's scheduled runs are best-effort. Measured 2026-08-09: the gold/silver
+primary cron slot never fired at all, 1–5 of 9 daily runs were dropped, and the
+runs that fired started 32 min late on average — so the day's data landed
+10:00–12:40 VN instead of 08:30. A systemd timer on the box crawls **only when
+that day's rows are still missing**, which bounds the lateness without touching
+GitHub Actions (still the primary path).
+
+One-time install on the box, after the code has deployed:
+
+```bash
+cd /root/vietdataverse
+docker build -f deploy/crawler.Dockerfile -t vdv-crawler:latest .   # ~2 min, ~600 MB
+cp deploy/crawl-fallback.service deploy/crawl-fallback.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now crawl-fallback.timer
+```
+
+Verify:
+
+```bash
+systemctl list-timers crawl-fallback.timer      # next fire 01:45 / 03:00 UTC
+systemctl start crawl-fallback.service          # run once by hand
+journalctl -u crawl-fallback.service -n 30 --no-pager
+```
+
+A healthy day logs `today's data already present (gold=9 silver=2) — GitHub
+Actions got there first, nothing to do` and exits 0.
+
+Two invariants — do not "fix" these into bugs:
+
+- **Judge success by the DB probe, not the crawler's exit code.**
+  `crawl_gold_silver.py` exits 1 when its Yahoo Finance section fails, and Yahoo
+  blocks index tickers from datacenter IPs like this box. Non-zero there is
+  normal; the script re-probes the DB and reports on that.
+- **The crawler runs in `python:3.11-slim`, not the box Python.** The box has
+  Python 3.14 and no `python3-venv`, while `crawl_tools/requirements.txt` pins
+  3.11-era versions. `deploy/crawler.Dockerfile` installs only the subset the
+  crawler imports, pinned via that same requirements file used as a pip
+  *constraint* file. The repo is bind-mounted at `/repo`, so ordinary deploys
+  refresh crawler code with **no image rebuild**. Rebuild only when
+  `deploy/crawler.Dockerfile` or the pinned versions change.
+
+This does not weaken the rule that `uptime-check.yml` stays **off**-box: a
+watchdog must outlive the machine it watches, while a crawler net need not.
+
 ## 5. Cutover order
 1. §2 + §3 while DNS still points at Render → test via
    `curl --resolve vietdataverse.online:443:62.238.25.95 https://vietdataverse.online/health`.
