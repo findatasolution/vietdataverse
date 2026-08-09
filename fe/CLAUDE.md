@@ -82,6 +82,33 @@ Example: fix gold chart markup in data portal tab.
 4. Test in browser
 5. Commit both `build.py` + new partial + regenerated `index.html`
 
+## Copy & Formatting Conventions (added 2026-08-09)
+
+Four rules that a UI audit of the Open Data page found broken in ~40 places. They
+are cheap to keep and expensive to notice later — the page reads as unfinished
+long before anyone can name why.
+
+1. **Bump `?v=` when you touch `app.js` or `style.css`.** Both are referenced as
+   `app.js?v=YYYYMMDDNN` from `_layout_head.html` / `_layout_footer.html`. Ship a
+   change without bumping and returning visitors keep the cached old bundle and
+   see none of it — the change looks like it silently failed.
+2. **Vietnamese headings use sentence case, not Title Case.** "Lịch sử giá vàng
+   trong nước", never "Lịch Sử Giá Vàng Trong Nước". Proper nouns keep their caps
+   (Việt Nam, Phú Quý, NHNN, NHTM, GDP, CPI, SBV). This does **not** apply to the
+   SEO `<title>` / `og:` / `twitter:` / JSON-LD strings — changing those affects
+   search results and is a separate, deliberate decision.
+3. **Every user-visible label needs a `data-i18n` key.** Hardcoded text silently
+   opts out of the En/Vi toggle: 22 period buttons read English in *both*
+   languages because they had no key. Period keys already exist —
+   `period7d/1m/3m/1y/3y/10y/20y/All`; add to both the `vi` and `en` blocks in
+   `app.js`, never one alone.
+4. **All chart numbers go through `formatNumVi` / `formatVndAxis`** (`app.js`,
+   defined above `parseGoldSilverData`). Chart.js otherwise falls back to the
+   browser locale and prints `150,000,000` next to KPI cards showing `25.463`.
+   `formatVndAxis` is for axis ticks only (`150 triệu`, `2,35 triệu`); tooltips
+   use `formatNumVi` so the exact figure stays readable. Keep the 2 fraction
+   digits — silver ticks step by 50.000đ, so 1 digit prints `2,3 triệu` twice.
+
 ## Important Rules
 
 - **NEVER edit `fe/index.html` directly** — changes will be overwritten next build
