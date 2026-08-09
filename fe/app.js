@@ -1937,6 +1937,14 @@
             return Number(value).toLocaleString('vi-VN');
         }
 
+        /* Percent deltas. toFixed(2) prints "0.19" with a dot, which sat right next
+           to a vi-VN number in the same string: "+3,28 (+0.19%)". */
+        function formatPctVi(pct) {
+            return Number(pct).toLocaleString('vi-VN', {
+                minimumFractionDigits: 2, maximumFractionDigits: 2
+            });
+        }
+
         /* Axis labels only: 150000000 -> "150 triệu", 2350000 -> "2,35 triệu".
            2 fraction digits keeps adjacent ticks distinct (silver steps by
            50.000đ, so 1 digit would print "2,3 triệu" twice in a row). */
@@ -2319,7 +2327,7 @@
                 if (!valueEl || !changeEl) return;
                 valueEl.textContent = value.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 const sign = delta >= 0 ? '+' : '';
-                changeEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${pct.toFixed(2)}%)`;
+                changeEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${formatPctVi(pct)}%)`;
                 changeEl.classList.remove('positive', 'negative');
                 changeEl.classList.add(delta >= 0 ? 'positive' : 'negative');
             }
@@ -2339,7 +2347,7 @@
                 if (pEl) pEl.textContent = value.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 if (cEl) {
                     const sign = delta >= 0 ? '+' : '';
-                    cEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${pct.toFixed(2)}%)`;
+                    cEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${formatPctVi(pct)}%)`;
                     cEl.className = 'ticker-change ' + (delta >= 0 ? 'positive' : 'negative');
                 }
                 if (tEl && lastDate) tEl.textContent = 'Cập nhật: ' + lastDate;
@@ -2562,7 +2570,7 @@
                         const up = lc.delta >= 0;
                         const arrow = up ? '▲' : '▼';
                         const sign = up ? '+' : '';
-                        cEl.textContent = `${arrow} ${sign}${lc.pct.toFixed(2)}%`;
+                        cEl.textContent = `${arrow} ${sign}${formatPctVi(lc.pct)}%`;
                         cEl.className = 'global-ticker-change ' + (up ? 'positive' : 'negative');
                     }
 
