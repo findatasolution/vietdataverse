@@ -1,11 +1,14 @@
 name: API Smoke Test
 
+# Runs AFTER a deploy finishes, never alongside it. When this triggered on `push`
+# it raced "Deploy to Hetzner" (same trigger) and probed prod mid-container-restart:
+# on 2026-08-09 that produced 4 spurious HTTP 502 failures, then 8/8 green on a plain
+# re-run 2 minutes later with no code change. A red smoke test has to mean prod is
+# actually broken, otherwise nobody reads it.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'be/**'
-      - '.github/workflows/api-smoke-test.yml'
+  workflow_run:
+    workflows: ["Deploy to Hetzner"]
+    types: [completed]
   schedule:
     # 9:00 AM VN (2:00 AM UTC) — sau khi crawlers chạy xong lúc 8:30
     - cron: '0 2 * * *'
@@ -15,8 +18,30 @@ jobs:
   smoke-test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Skip when the deploy itself failed — that run is already red; a second red
+    # workflow adds noise, not information.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
+      # Belt and braces: the deploy step returns as soon as `docker compose up -d`
+      # returns, which can be a few seconds before the app answers. This also covers
+      # the 9:00 VN cron happening to land during a deploy.
+      - name: Wait for API to answer
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+                   https://api.vietdataverse.online/api/health || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "API healthy after ${i} attempt(s)"
+              exit 0
+            fi
+            echo "attempt $i: HTTP $code — waiting"
+            sleep 5
+          done
+          echo "API did not return 200 within ~100s — continuing so the checks below report the real failure"
+
       - name: Run API smoke tests
         run: |
           API_ORIGIN="https://api.vietdataverse.online"
