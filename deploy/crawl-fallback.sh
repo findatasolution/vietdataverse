@@ -36,6 +36,31 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
+# Hand the container ONLY the two vars the crawler reads, via a private temp file.
+#
+# Two reasons not to point --env-file at the app's env file directly:
+#   1. Least privilege. That file also holds Auth0, PayOS, R2 and every DB URL;
+#      a price crawler has no business seeing them.
+#   2. `docker run --env-file` is stricter than compose's env_file parser and
+#      rejects the whole file over cosmetics — the box's file has `USER_DB = …`
+#      with spaces around the `=`, which compose accepts and docker run does not.
+#      Parsing the keys we need tolerantly sidesteps that class of breakage.
+CRAWL_ENV=$(mktemp) || { log "FATAL: mktemp failed"; exit 1; }
+chmod 600 "$CRAWL_ENV"
+trap 'rm -f "$CRAWL_ENV"' EXIT
+
+for key in CRAWLING_BOT_DB GLOBAL_INDICATOR_DB; do
+    # Tolerates leading spaces, spaces around '=', trailing spaces/CR and
+    # surrounding quotes. Keeps any '=' inside the value (sslmode=require).
+    value=$(sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*//p" "$ENV_FILE" \
+            | head -1 | sed -E 's/[[:space:]]*$//; s/\r$//; s/^"(.*)"$/\1/; s/^'\''(.*)'\''$/\1/')
+    if [ -z "$value" ]; then
+        log "FATAL: $key not found in $ENV_FILE"
+        exit 1
+    fi
+    printf '%s=%s\n' "$key" "$value" >> "$CRAWL_ENV"
+done
+
 # Build on first run, or after deploy/crawler.Dockerfile changes upstream.
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
     log "image $IMAGE not present — building from deploy/crawler.Dockerfile"
@@ -51,7 +76,7 @@ fi
 # Same query as the workflow guard in gold-silver-crawl.yml — keep them in sync.
 # Prints "gold=<n> silver=<n>"; exits 0 when both are present for today.
 probe() {
-    docker run --rm --env-file "$ENV_FILE" "$IMAGE" python -c '
+    docker run --rm --env-file "$CRAWL_ENV" "$IMAGE" python -c '
 import os, datetime, sys, psycopg2
 today = datetime.date.today().isoformat()
 conn = psycopg2.connect(os.environ["CRAWLING_BOT_DB"])
@@ -83,7 +108,7 @@ log "today's data incomplete ($before) — running fallback crawl"
 # three levels above itself, which resolves to a non-existent /.env inside the
 # container; load_dotenv does not override real env vars, so that is harmless.
 docker run --rm \
-    --env-file "$ENV_FILE" \
+    --env-file "$CRAWL_ENV" \
     -v "$APP_DIR:/repo:ro" \
     -w /repo/crawl_tools \
     --memory 1g \

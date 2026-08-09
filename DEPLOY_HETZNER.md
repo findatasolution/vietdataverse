@@ -135,6 +135,15 @@ Two invariants — do not "fix" these into bugs:
   refresh crawler code with **no image rebuild**. Rebuild only when
   `deploy/crawler.Dockerfile` or the pinned versions change.
 
+- **The container gets only `CRAWLING_BOT_DB` and `GLOBAL_INDICATOR_DB`,** copied
+  into a mode-600 temp file that is deleted on exit — not the box `.env`, which
+  also holds Auth0, PayOS, R2 and every other DB URL. Beyond least privilege this
+  dodges a real trap: `docker run --env-file` is stricter than compose's
+  `env_file` parser and rejects the entire file on cosmetics. The box `.env` has
+  `USER_DB = …` with spaces around the `=`; compose accepts it, `docker run`
+  fails with *"variable 'USER_DB ' contains whitespaces"*. Leave the file as is —
+  the app depends on it working under compose — and keep the tolerant parsing.
+
 This does not weaken the rule that `uptime-check.yml` stays **off**-box: a
 watchdog must outlive the machine it watches, while a crawler net need not.
 
