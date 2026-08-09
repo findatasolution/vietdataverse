@@ -1967,7 +1967,10 @@
             const buyPrices = apiData.data.buy_prices;
             const sellPrices = apiData.data.sell_prices;
 
-            const color = chartType === 'gold' ? '#c96442' : '#87867f';
+            // Silver was drawn in Stone Gray (#87867f) — that is the tertiary TEXT colour;
+            // as a 2px data line on white it read as disabled. Charcoal Warm keeps the
+            // warm palette but actually has contrast.
+            const color = chartType === 'gold' ? '#c96442' : '#4d4c48';
 
             return {
                 type: 'line',
@@ -1979,6 +1982,7 @@
                             data: buyPrices,
                             borderColor: color,
                             backgroundColor: color + '20',
+                            pointRadius: dates.length > 45 ? 0 : 3,
                             borderWidth: 2,
                             tension: 0.4,
                             fill: true
@@ -1988,6 +1992,7 @@
                             data: sellPrices,
                             borderColor: color + 'CC',
                             backgroundColor: 'transparent',
+                            pointRadius: dates.length > 45 ? 0 : 3,
                             borderWidth: 2,
                             tension: 0.4,
                             borderDash: [5, 5]
@@ -2000,7 +2005,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#87867f' }
+                            labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 }
                         },
                         tooltip: {
                             mode: 'index',
@@ -2012,7 +2017,7 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#87867f', maxRotation: 45 },
+                            ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
                         y: {
@@ -2045,40 +2050,45 @@
                         {
                             label: 'Kỳ hạn 1 tháng',
                             data: rate1m,
-                            borderColor: '#42A5F5',
+                            borderColor: '#d9a689',
                             backgroundColor: 'transparent',
+                            pointRadius: dates.length > 45 ? 0 : 2,
                             borderWidth: 2,
                             tension: 0.4
                         },
                         {
                             label: 'Kỳ hạn 3 tháng',
                             data: rate3m,
-                            borderColor: '#66BB6A',
+                            borderColor: '#cf8560',
                             backgroundColor: 'transparent',
+                            pointRadius: dates.length > 45 ? 0 : 2,
                             borderWidth: 2,
                             tension: 0.4
                         },
                         {
                             label: 'Kỳ hạn 6 tháng',
                             data: rate6m,
-                            borderColor: '#FFA726',
+                            borderColor: '#c96442',
                             backgroundColor: 'transparent',
+                            pointRadius: dates.length > 45 ? 0 : 2,
                             borderWidth: 2,
                             tension: 0.4
                         },
                         {
                             label: 'Kỳ hạn 12 tháng',
                             data: rate12m,
-                            borderColor: '#EF5350',
+                            borderColor: '#9e4a2e',
                             backgroundColor: 'transparent',
+                            pointRadius: dates.length > 45 ? 0 : 2,
                             borderWidth: 2,
                             tension: 0.4
                         },
                         {
                             label: 'Kỳ hạn 24 tháng',
                             data: rate24m,
-                            borderColor: '#AB47BC',
+                            borderColor: '#6b3520',
                             backgroundColor: 'transparent',
+                            pointRadius: dates.length > 45 ? 0 : 2,
                             borderWidth: 2,
                             tension: 0.4
                         }
@@ -2090,7 +2100,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#87867f' }
+                            labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 }
                         },
                         tooltip: {
                             mode: 'index',
@@ -2099,7 +2109,7 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#87867f', maxRotation: 45 },
+                            ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
                         y: {
@@ -2120,11 +2130,11 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: true, labels: { color: '#87867f' } },
+                legend: { display: true, labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 } },
                 tooltip: { mode: 'index', intersect: false }
             },
             scales: {
-                x: { ticks: { color: '#87867f', maxRotation: 45 }, grid: { display: false } },
+                x: { ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
                 y: {
                     ticks: { color: '#87867f', callback: v => v + '%' },
                     grid: { display: false }
@@ -2142,8 +2152,8 @@
                     labels: d.dates,
                     datasets: [
                         { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#c96442', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#42A5F5', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#66BB6A', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
+                        { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#d9a689', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#cf8560', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
                     ]
                 },
                 options: _sbvChartOptions
@@ -2159,8 +2169,8 @@
                 data: {
                     labels: d.dates,
                     datasets: [
-                        { label: 'Lãi suất chiết khấu (Rediscount)', data: d.rediscount,  borderColor: '#EF5350', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: 'Lãi suất tái cấp vốn (Refinancing)', data: d.refinancing, borderColor: '#AB47BC', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
+                        { label: 'Lãi suất chiết khấu (Rediscount)', data: d.rediscount,  borderColor: '#9e4a2e', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: 'Lãi suất tái cấp vốn (Refinancing)', data: d.refinancing, borderColor: '#6b3520', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
                     ]
                 },
                 options: _sbvChartOptions
@@ -2208,7 +2218,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#87867f' }
+                            labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 }
                         },
                         tooltip: {
                             mode: 'index',
@@ -2222,7 +2232,7 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#87867f', maxRotation: 45 },
+                            ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
                         y: {
@@ -2266,7 +2276,7 @@
                         {
                             label: 'Silver Spot ($/oz)',
                             data: silverSpot,
-                            borderColor: '#87867f',
+                            borderColor: '#4d4c48',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
@@ -2284,7 +2294,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            labels: { color: '#87867f' }
+                            labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 }
                         },
                         tooltip: {
                             mode: 'index',
@@ -2293,7 +2303,7 @@
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#87867f', maxRotation: 45 },
+                            ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
                         y: {
@@ -2485,7 +2495,10 @@
                         const silver = lastChange(prices);
                         if (silver) {
                             const lastDate = dates && dates.length ? dates[dates.length - 1] : null;
-                            setTicker('tk-silver-price', 'tk-silver-change', 'tk-silver-ts', silver.last, silver.delta, silver.pct, 0, lastDate);
+                            // Same "triệu" convention as the gold card above: raw VND
+                            // ("2.372.000") plus the "VND/lượng" unit wrapped onto a second
+                            // line, which made this one card taller than the rest of the strip.
+                            setTicker('tk-silver-price', 'tk-silver-change', 'tk-silver-ts', silver.last / 1e6, silver.delta / 1e6, silver.pct, 2, lastDate);
                             drawSpark('tk-silver-spark', prices, silver.delta >= 0);
                         }
                     }
@@ -3291,7 +3304,7 @@
                         maintainAspectRatio: false,
                         animation: { duration: 500 },
                         plugins: {
-                            legend: { labels: { color: '#87867f', font: { size: 11 }, boxWidth: 12 } },
+                            legend: { labels: { color: '#87867f', font: { size: 11 }, usePointStyle: true, pointStyle: 'line', boxWidth: 24 } },
                             tooltip: { mode: 'index', intersect: false }
                         },
                         scales: {

@@ -251,9 +251,28 @@ Critical card rule: badges like "VD Official" go in the seller footer row, **nev
 
 ```
 CPI/inflation : #EF5350 (≥10%), #FFA726 (≥5%), #66BB6A (≥0%), #42A5F5 (<0%)
-Gold          : #C9A55B
-Term deposit  : #42A5F5 (1m), #66BB6A (3m), #FFA726 (6m), #EF5350 (12m)
+Gold          : #c96442   (terracotta)
+Silver        : #4d4c48   (charcoal warm — NOT #87867f, see below)
+Term deposit  : #d9a689 (1m) → #cf8560 (3m) → #c96442 (6m) → #9e4a2e (12m) → #6b3520 (24m)
+Interbank/SBV : #c96442 (qua đêm), #d9a689 (1M), #cf8560 (3M/9M),
+                #9e4a2e (chiết khấu), #6b3520 (tái cấp vốn)
 ```
+
+**Rate charts use a warm ramp, not categorical hues (decided 2026-08-09).** They
+previously used `#42A5F5 / #66BB6A / #FFA726 / #EF5350 / #AB47BC`, which
+contradicted `DESIGN.md` §7 ("no cool blue-grays", "no saturated colours beyond
+Terracotta"). DESIGN.md wins. Tenor is an *ordered* variable, so light→dark reads
+as short→long on its own; if five same-hue lines ever prove hard to separate, add
+dash patterns rather than reintroducing hues.
+
+**CPI keeps its categorical colours** — there red/amber/green/blue encode
+inflation severity, which is data meaning, not decoration. Same for the ▲/▼
+sparkline pair and error text. Only re-colour a chart when the colour is
+decorative.
+
+**Never use `#87867f` (Stone Gray) for a data line.** It is the tertiary *text*
+colour; as a 2px line on white it reads as disabled. Both silver series were
+drawn in it.
 
 ## Data Quality
 

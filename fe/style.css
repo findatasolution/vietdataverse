@@ -1422,6 +1422,10 @@ html {
 }
 
 /* ── Market Ticker Strip ── */
+/* Horizontal scroller. The last card used to sit flush against the viewport edge
+   with no fade and no arrow, so a deliberately scrollable row read as a clipped,
+   broken layout. The mask fades both ends only while there is more to scroll
+   (DESIGN.md §11.4), which is the affordance that was missing. */
 .ticker-strip {
     display: flex;
     gap: 0.75rem;
@@ -1431,6 +1435,19 @@ html {
     scrollbar-width: thin;
     scrollbar-color: var(--border-warm) transparent;
     padding-bottom: 6px;
+}
+
+/* Below ~1350px the 7 cards genuinely cannot fit, so the strip scrolls — fade
+   both ends so it reads as "more to the right" instead of "cut off". Above that
+   the cards flex to fill (see .ticker-card-sm) and no mask is applied, otherwise
+   the end cards would look faded for no reason. */
+@media (max-width: 1350px) {
+    .ticker-strip {
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px,
+                                            #000 calc(100% - 24px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 24px,
+                                    #000 calc(100% - 24px), transparent 100%);
+    }
 }
 
 .ticker-strip::-webkit-scrollbar {
@@ -1446,9 +1463,13 @@ html {
     border-radius: 4px;
 }
 
+/* flex:1 1 0 + min-width, not a fixed 200px: at a ~1470px viewport seven fixed
+   cards came to 1472px and the last one was clipped at the screen edge, which
+   read as a broken layout rather than a scroller. Now they share the row evenly
+   and only scroll once min-width forces it. */
 .ticker-card-sm {
-    flex: 0 0 200px;
-    width: 200px;
+    flex: 1 1 0;
+    min-width: 178px;
     background: var(--pure-white);
     border: 1px solid var(--border-cream);
     border-radius: var(--radius-xl);
@@ -1536,10 +1557,15 @@ html {
     max-height: 44px;
 }
 
+/* margin-top:auto pins the timestamp to the card floor, so every card in the
+   strip shares one baseline even if one of them grows an extra line. Without it
+   a single wrapped unit label ("VND/lượng") pushed one card's footer below its
+   neighbours' and the whole row lost its horizon. */
 .ticker-ts {
     font-size: 0.625rem;
     color: var(--stone-gray);
-    margin-top: 4px;
+    margin-top: auto;
+    padding-top: 4px;
 }
 
 @media (max-width: 768px) {
