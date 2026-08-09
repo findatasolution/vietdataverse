@@ -274,6 +274,32 @@ decorative.
 colour; as a 2px line on white it reads as disabled. Both silver series were
 drawn in it.
 
+### Chart honesty rules (added 2026-08-10)
+
+Four defects where the chart said something the data did not. Do not reintroduce:
+
+- **Rate series use `type: 'time'`, not a category axis.** The 1-year term-deposit
+  and interbank series are sampled monthly up to 2026-01 and daily after, so a
+  category axis drew a 30-day step the same width as a 1-day step and invented a
+  vertical cliff in January. Requires `chartjs-adapter-date-fns` (loaded in
+  `_layout_head.html` next to Chart.js).
+- **`fill: true` requires a zero baseline.** An area fill states "magnitude
+  measured from zero". Gold (starting at 134 triệu), USD/VND and VN-Index cannot
+  sensibly start at zero, so they use `fill: false`. CPI and GDP keep their fill
+  and force `beginAtZero`.
+- **No dual axes.** The global gold/silver chart had gold on the left ($3–6k) and
+  silver on the right ($30–120); two arbitrary scales made the lines cross at
+  meaningless points and implied a correlation. Both are rebased to 100 at the
+  first point on one axis; the tooltip still shows real $/oz.
+- **Do not plot a constant.** `renderPolicyRatesAsStat()` swaps the SBV
+  policy-rate canvas for a stat block whenever both series are flat across the
+  window, and restores the chart automatically the day either rate moves.
+
+Related: the VN-Index period buttons offer up to "3 năm" but
+`vn_macro_vnindex_daily` only starts **2026-04-16**, so the chart prints the range
+it actually plotted underneath. The real fix is backfilling that table — until
+then, do not remove the coverage caption.
+
 ## Data Quality
 
 Validate before insert:

@@ -1379,20 +1379,40 @@ html {
     margin-bottom: 1rem;
 }
 
+/* These are the page's <h2> section dividers (Vàng & Bạc, Tiền tệ VN, Vĩ mô…).
+   They used to be 11px uppercase chips in a bordered box — structurally headings
+   but visually footnotes, so the page read as one undifferentiated stack of
+   cards. DESIGN.md puts section headings in the serif at 25px+; this restores
+   that and gives each group the editorial breathing room the spec asks for. */
 .chart-section-heading {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--stone-gray);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin: 0 0 0.625rem;
-    padding: 4px 10px;
-    background: var(--ivory);
-    border: 1px solid var(--border-cream);
-    border-radius: 6px;
+    gap: 0.55rem;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--near-black);
+    letter-spacing: normal;
+    text-transform: none;
+    margin: 3rem 0 1rem;
+    padding: 0 0 0.625rem;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border-cream);
+    border-radius: 0;
+}
+
+.chart-section-heading i {
+    font-size: 0.95rem;
+    color: var(--terracotta);
+}
+
+@media (max-width: 640px) {
+    .chart-section-heading {
+        font-size: 1.25rem;
+        margin-top: 2rem;
+    }
 }
 
 .chart-section-group:first-child .chart-section-heading {
@@ -4831,4 +4851,50 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 @media (max-width: 640px) {
     .vdv-fb { right: 14px; bottom: 14px; }
     .vdv-fb-panel { width: 300px; }
+}
+
+/* ── SBV policy rates shown as figures, not a flat chart ──────────────────────
+   Both rates typically hold for a year at a time, so plotting them produced two
+   perfectly horizontal lines across ~400px. renderPolicyRatesAsStat() swaps the
+   canvas for this block whenever the series are flat, and restores the chart the
+   moment either rate actually moves. */
+.policy-stat {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg, 24px);
+    align-items: flex-end;
+    padding: 0.5rem 1rem 0.25rem;
+}
+.policy-stat-item { min-width: 160px; }
+.policy-stat-label {
+    font-size: 0.75rem;
+    color: var(--stone-gray);
+    margin-bottom: 2px;
+}
+.policy-stat-value {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--near-black);
+    line-height: 1.1;
+}
+.policy-stat-value span {
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--olive-gray);
+    margin-left: 4px;
+}
+.policy-stat-note {
+    flex: 1 1 100%;
+    font-size: 0.7rem;
+    color: var(--stone-gray);
+}
+
+/* Stale marker on the KPI strip timestamps. Dates alone (08-05 sitting beside
+   08-09) made the reader do the arithmetic; this states it, using Error Crimson
+   from DESIGN.md §2 rather than a saturated red. */
+.ticker-ts.is-stale {
+    color: #b53333;
+    font-weight: 500;
 }

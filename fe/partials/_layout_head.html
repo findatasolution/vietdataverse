@@ -37,7 +37,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=2026080903">
+    <link rel="stylesheet" href="style.css?v=2026081001">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#c96442">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -78,13 +78,18 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=2026080903" as="style">
+    <link rel="preload" href="style.css?v=2026081001" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <!-- Date adapter for Chart.js `type: 'time'` axes. Needed by the rate charts:
+         their 1-year series carries MONTHLY points up to 2026-01 and DAILY ones
+         after, so a category axis drew a 30-day step the same width as a 1-day
+         step and manufactured a cliff that never happened. -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" defer></script>
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">

@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=2026080903">
+    <link rel="stylesheet" href="style.css?v=2026081001">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#c96442">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -79,13 +79,18 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=2026080903" as="style">
+    <link rel="preload" href="style.css?v=2026081001" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <!-- Date adapter for Chart.js `type: 'time'` axes. Needed by the rate charts:
+         their 1-year series carries MONTHLY points up to 2026-01 and DAILY ones
+         after, so a category axis drew a 30-day step the same width as a 1-day
+         step and manufactured a cliff that never happened. -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" defer></script>
 
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
@@ -936,6 +941,9 @@
                             <div class="chart-container">
                                 <canvas id="sbv2Chart"></canvas>
                             </div>
+                            <!-- Shown instead of the canvas while both policy rates are
+                                 flat across the window (see renderPolicyRatesAsStat). -->
+                            <div class="policy-stat" id="sbv2Stat" hidden></div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
@@ -1115,7 +1123,7 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày</small>
+                            <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày<span id="vnindexCoverage"></span></small>
                         </div>
                     </div>
 
@@ -1973,7 +1981,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2026080903" defer></script>
+    <script src="app.js?v=2026081001" defer></script>
     <script src="app.knowledge.js?v=2026061401" defer></script>
 
     <!-- Chart info tooltip popup (position:fixed — escapes overflow:hidden on .chart-card) -->
@@ -2012,35 +2020,37 @@
         <div class="site-footer-inner">
             <div class="site-footer-grid">
 
-                <!-- Col 1: Product -->
+                <!-- Col 1: Sản phẩm — "Giới thiệu" moved here from Legal, where it sat
+                     next to a second About link (route legal/about) doing the same job. -->
                 <div class="site-footer-col">
-                    <h4 class="site-footer-heading">Product</h4>
-                    <a class="site-footer-link" href="#" data-route="legal/about">About &amp; Terms</a>
-                    <a class="site-footer-link" href="pages/guide-buyer.html" target="_blank">Buyer Guide</a>
-                    <a class="site-footer-link" href="pages/guide-seller.html" target="_blank">Seller Guide</a>
+                    <h4 class="site-footer-heading" data-i18n="ftProduct">Sản phẩm</h4>
+                    <a class="site-footer-link" href="pages/about-us.html" data-i18n="ftAbout">Giới thiệu</a>
+                    <a class="site-footer-link" href="pages/guide-buyer.html" target="_blank" data-i18n="ftBuyerGuide">Hướng dẫn người mua</a>
+                    <a class="site-footer-link" href="pages/guide-seller.html" target="_blank" data-i18n="ftSellerGuide">Hướng dẫn người bán</a>
                 </div>
 
-                <!-- Col 2: Legal -->
+                <!-- Col 2: Pháp lý -->
                 <div class="site-footer-col">
-                    <h4 class="site-footer-heading">Legal</h4>
-                    <a class="site-footer-link" href="pages/about-us.html">Giới thiệu</a>
-                    <a class="site-footer-link" href="#" data-route="legal/privacy">Privacy Policy</a>
-                    <a class="site-footer-link" href="pages/cookie-policy.html">Cookie Policy</a>
-                    <a class="site-footer-link" href="pages/takedown.html" target="_blank">DMCA / Takedown</a>
+                    <h4 class="site-footer-heading" data-i18n="ftLegal">Pháp lý</h4>
+                    <a class="site-footer-link" href="#" data-route="legal/about" data-i18n="ftTerms">Điều khoản sử dụng</a>
+                    <a class="site-footer-link" href="#" data-route="legal/privacy" data-i18n="ftPrivacy">Chính sách bảo mật</a>
+                    <a class="site-footer-link" href="pages/cookie-policy.html" data-i18n="ftCookie">Chính sách cookie</a>
+                    <a class="site-footer-link" href="pages/takedown.html" target="_blank" data-i18n="ftTakedown">DMCA / Gỡ nội dung</a>
                 </div>
 
-                <!-- Col 3: Developers -->
+                <!-- Col 3: Nhà phát triển. "Status" removed — it pointed at legal/about,
+                     and there is no status page to link to. -->
                 <div class="site-footer-col">
-                    <h4 class="site-footer-heading">Developers</h4>
-                    <a class="site-footer-link" href="pages/api-docs.html">API Docs</a>
-                    <a class="site-footer-link" href="pages/developer.html">API Key</a>
-                    <a class="site-footer-link" href="#" data-route="legal/about">Status</a>
+                    <h4 class="site-footer-heading" data-i18n="ftDevelopers">Nhà phát triển</h4>
+                    <a class="site-footer-link" href="pages/api-docs.html" data-i18n="ftApiDocs">Tài liệu API</a>
+                    <a class="site-footer-link" href="pages/developer.html" data-i18n="ftApiKey">API Key</a>
+                    <a class="site-footer-link" href="pages/docs.html" data-i18n="ftDocs">Tài liệu &amp; hướng dẫn</a>
                 </div>
 
-                <!-- Col 4: Connect -->
+                <!-- Col 4: Liên hệ -->
                 <div class="site-footer-col">
-                    <h4 class="site-footer-heading">Connect</h4>
-                    <a class="site-footer-link" href="#" data-route="legal/contact">Contact</a>
+                    <h4 class="site-footer-heading" data-i18n="ftConnect">Liên hệ</h4>
+                    <a class="site-footer-link" href="#" data-route="legal/contact" data-i18n="ftContact">Gửi liên hệ</a>
                     <a class="site-footer-link" href="https://github.com/vietdataverse" target="_blank" rel="noopener">GitHub</a>
                     <a class="site-footer-link" href="mailto:hello@vietdataverse.vn">hello@vietdataverse.vn</a>
                 </div>

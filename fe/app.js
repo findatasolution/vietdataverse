@@ -107,6 +107,11 @@
                 tabDownload: 'Tải xuống',
                 // Chart titles & periods
                 cpiChart: 'CPI Việt Nam (% YoY/năm)',
+                ftProduct: 'Sản phẩm', ftLegal: 'Pháp lý', ftDevelopers: 'Nhà phát triển', ftConnect: 'Liên hệ',
+                ftAbout: 'Giới thiệu', ftBuyerGuide: 'Hướng dẫn người mua', ftSellerGuide: 'Hướng dẫn người bán',
+                ftTerms: 'Điều khoản sử dụng', ftPrivacy: 'Chính sách bảo mật', ftCookie: 'Chính sách cookie',
+                ftTakedown: 'DMCA / Gỡ nội dung', ftApiDocs: 'Tài liệu API', ftApiKey: 'API Key',
+                ftDocs: 'Tài liệu & hướng dẫn', ftContact: 'Gửi liên hệ',
                 period7d: '7 ngày',
                 period1m: '1 tháng',
                 period3m: '3 tháng',
@@ -295,6 +300,11 @@
                 tabDownload: 'Download',
                 // Chart titles & periods
                 cpiChart: 'Vietnam CPI (% YoY)',
+                ftProduct: 'Product', ftLegal: 'Legal', ftDevelopers: 'Developers', ftConnect: 'Connect',
+                ftAbout: 'About', ftBuyerGuide: 'Buyer guide', ftSellerGuide: 'Seller guide',
+                ftTerms: 'Terms of use', ftPrivacy: 'Privacy policy', ftCookie: 'Cookie policy',
+                ftTakedown: 'DMCA / Takedown', ftApiDocs: 'API docs', ftApiKey: 'API key',
+                ftDocs: 'Docs & guides', ftContact: 'Contact us',
                 period7d: '7 days',
                 period1m: '1 month',
                 period3m: '3 months',
@@ -1909,7 +1919,13 @@
                 if (canvas2) {
                     if (chartInstances['sbv2']) chartInstances['sbv2'].destroy();
                     const cfg2 = parseSBVPolicyData(apiData);
-                    if (cfg2) chartInstances['sbv2'] = new Chart(canvas2.getContext('2d'), cfg2);
+                    // Policy rates move maybe once a year. Over a typical window both
+                    // series are perfectly flat, and a 400px chart of two horizontal
+                    // lines says less than one sentence does. Show the numbers instead,
+                    // and fall back to the chart automatically the day they move.
+                    if (cfg2 && !renderPolicyRatesAsStat(apiData, cfg2)) {
+                        chartInstances['sbv2'] = new Chart(canvas2.getContext('2d'), cfg2);
+                    }
                 }
             } else if (chartType === 'fxrate') {
                 chartData = parseFxRateData(apiData);
@@ -1956,6 +1972,47 @@
             return formatNumVi(value);
         }
 
+        /* Returns true when the SBV policy rates did not move across the window, in
+           which case the canvas is swapped for a compact stat line. Returns false
+           (leaving the chart to render) as soon as either series actually varies. */
+        function renderPolicyRatesAsStat(apiData, cfg) {
+            const wrap = document.getElementById('sbv2Chart')?.parentElement;
+            const stat = document.getElementById('sbv2Stat');
+            if (!wrap || !stat) return false;
+
+            const d = apiData.data || {};
+            const series = [
+                { label: 'Lãi suất tái cấp vốn', values: d.refinancing },
+                { label: 'Lãi suất chiết khấu',  values: d.rediscount },
+            ];
+            const clean = series.map(s => ({
+                label: s.label,
+                vals: (s.values || []).filter(v => v !== null && v !== undefined)
+            }));
+            if (clean.some(s => s.vals.length === 0)) return false;
+
+            const flat = clean.every(s => s.vals.every(v => v === s.vals[0]));
+            if (!flat) {
+                wrap.hidden = false;
+                stat.hidden = true;
+                return false;
+            }
+
+            const dates = (d.dates || []).filter(Boolean);
+            const since = dates.length ? dates[0].split('-').reverse().join('/') : null;
+            stat.innerHTML = clean.map(s =>
+                `<div class="policy-stat-item">
+                     <div class="policy-stat-label">${s.label}</div>
+                     <div class="policy-stat-value">${formatPctVi(s.vals[0])}<span>%/năm</span></div>
+                 </div>`
+            ).join('') +
+            `<div class="policy-stat-note">Không thay đổi trong toàn bộ khoảng đang xem${since ? ` (từ ${since})` : ''}.</div>`;
+
+            wrap.hidden = true;
+            stat.hidden = false;
+            return true;
+        }
+
         function parseGoldSilverData(apiData, chartType) {
             // API format: { success: true, data: { dates: [...], buy_prices: [...], sell_prices: [...] } }
             if (!apiData || !apiData.data || !apiData.data.dates) {
@@ -1985,7 +2042,9 @@
                             pointRadius: dates.length > 45 ? 0 : 3,
                             borderWidth: 2,
                             tension: 0.4,
-                            fill: true
+                            // Truncated axis (prices are never near zero): an area fill would imply
+                            // magnitude measured from 0 and exaggerate every move.
+                            fill: false
                         },
                         {
                             label: 'Giá bán ra',
@@ -2108,7 +2167,13 @@
                         }
                     },
                     scales: {
+                        // Real time scale, not a category one. The 1-year series is monthly
+                        // until 2026-01 and daily after; a category axis gave the 30-day
+                        // steps the same width as the 1-day ones, so the rate looked like it
+                        // leapt vertically in January when it had simply been sampled coarsely.
                         x: {
+                            type: 'time',
+                            time: { unit: 'month', tooltipFormat: 'dd/MM/yyyy' },
                             ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
@@ -2134,7 +2199,15 @@
                 tooltip: { mode: 'index', intersect: false }
             },
             scales: {
-                x: { ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
+                // Time scale for the same reason as the term-deposit chart: the 1-year
+                // interbank series has gaps of up to 20 days, which a category axis drew
+                // as a single ordinary step.
+                x: {
+                    type: 'time',
+                    time: { unit: 'month', tooltipFormat: 'dd/MM/yyyy' },
+                    ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+                    grid: { display: false }
+                },
                 y: {
                     ticks: { color: '#87867f', callback: v => v + '%' },
                     grid: { display: false }
@@ -2205,7 +2278,9 @@
                             backgroundColor: 'rgba(201, 100, 66, 0.08)',
                             borderWidth: 2,
                             tension: 0.3,
-                            fill: true,
+                            // Truncated axis (prices are never near zero): an area fill would imply
+                            // magnitude measured from 0 and exaggerate every move.
+                            fill: false,
                             pointRadius: dates.length > 60 ? 0 : 3,
                             pointHoverRadius: 5,
                             pointBackgroundColor: '#c96442'
@@ -2259,28 +2334,44 @@
             const goldFuture = apiData.data.gold_prices;
             const silverSpot = apiData.data.silver_prices;
 
+            // Gold ($3-6k/oz) and silver ($30-120/oz) used to get one axis each. Two
+            // independently chosen scales let the lines cross wherever the axis ranges
+            // happen to put them, which reads as correlation the data never showed.
+            // Rebasing both to 100 at the first point puts them on ONE axis where the
+            // only thing compared is relative change — which is the real question.
+            const rebase = arr => {
+                const base = (arr || []).find(v => v !== null && v !== undefined && v !== 0);
+                if (!base) return arr || [];
+                return arr.map(v => (v === null || v === undefined) ? null : (v / base) * 100);
+            };
+            const goldIdx = rebase(goldFuture);
+            const silverIdx = rebase(silverSpot);
+            const firstDate = dates.length ? dates[0].split('-').reverse().join('/') : '';
+
             return {
                 type: 'line',
                 data: {
                     labels: dates,
                     datasets: [
                         {
-                            label: 'Gold Future ($/oz)',
-                            data: goldFuture,
+                            label: 'Vàng (Gold Future)',
+                            data: goldIdx,
+                            _raw: goldFuture,
                             borderColor: '#c96442',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
-                            yAxisID: 'y'
+                            pointRadius: dates.length > 45 ? 0 : 2
                         },
                         {
-                            label: 'Silver Spot ($/oz)',
-                            data: silverSpot,
+                            label: 'Bạc (Silver Spot)',
+                            data: silverIdx,
+                            _raw: silverSpot,
                             borderColor: '#4d4c48',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
-                            yAxisID: 'y1'
+                            pointRadius: dates.length > 45 ? 0 : 2
                         }
                     ]
                 },
@@ -2298,7 +2389,18 @@
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false
+                            intersect: false,
+                            callbacks: {
+                                // Show the real $/oz alongside the index so nothing is lost
+                                // by plotting relative change.
+                                label: ctx => {
+                                    const raw = ctx.dataset._raw && ctx.dataset._raw[ctx.dataIndex];
+                                    const idx = formatPctVi(ctx.parsed.y);
+                                    const usd = (raw === null || raw === undefined)
+                                        ? '' : ` · ${formatNumVi(Math.round(raw * 100) / 100)} $/oz`;
+                                    return `${ctx.dataset.label}: ${idx}${usd}`;
+                                }
+                            }
                         }
                     },
                     scales: {
@@ -2306,17 +2408,18 @@
                             ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
+                        // ONE axis now: both series are indexed to 100 at the first point,
+                        // so the y value is "% of starting price" for either metal.
                         y: {
                             type: 'linear',
                             display: true,
                             position: 'left',
-                            ticks: { color: '#c96442', callback: formatNumVi },
-                            grid: { display: false }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
+                            title: {
+                                display: true,
+                                text: `Chỉ số (100 = ${firstDate})`,
+                                color: '#87867f',
+                                font: { size: 10 }
+                            },
                             ticks: { color: '#87867f', callback: formatNumVi },
                             grid: { display: false }
                         }
@@ -2360,7 +2463,30 @@
                     cEl.textContent = `${sign}${delta.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} (${sign}${formatPctVi(pct)}%)`;
                     cEl.className = 'ticker-change ' + (delta >= 0 ? 'positive' : 'negative');
                 }
-                if (tEl && lastDate) tEl.textContent = 'Cập nhật: ' + lastDate;
+                if (tEl && lastDate) {
+                    // The strip showed bare dates spanning several days (08-05 next to
+                    // 08-09) and left the reader to work out which cards were stale.
+                    // Say it: same-day and yesterday read as fresh, older is flagged.
+                    const days = Math.floor(
+                        (new Date().setHours(0, 0, 0, 0) - new Date(lastDate).setHours(0, 0, 0, 0))
+                        / 86400000
+                    );
+                    const vn = lastDate.split('-').reverse().join('/');
+                    if (!Number.isFinite(days) || days < 0) {
+                        tEl.textContent = 'Cập nhật: ' + vn;
+                        tEl.classList.remove('is-stale');
+                    } else if (days === 0) {
+                        tEl.textContent = 'Cập nhật hôm nay';
+                        tEl.classList.remove('is-stale');
+                    } else if (days === 1) {
+                        tEl.textContent = 'Cập nhật hôm qua';
+                        tEl.classList.remove('is-stale');
+                    } else {
+                        tEl.textContent = `Dữ liệu ${days} ngày trước (${vn})`;
+                        tEl.classList.add('is-stale');
+                    }
+                    tEl.title = 'Ngày dữ liệu gần nhất: ' + vn;
+                }
             }
 
             function drawSpark(canvasId, values, up) {
@@ -2718,6 +2844,16 @@
                 const up    = last >= first;
                 const color = up ? '#4CAF50' : '#EF5350';
 
+                // The period buttons offer up to "3 năm"/"Tất cả", but the table only
+                // holds VN-Index from 2026-04-16, so every long period silently returned
+                // the same ~4 months while the active pill still claimed "1 năm". State
+                // the range actually plotted instead of letting the label overpromise.
+                const cov = document.getElementById('vnindexCoverage');
+                if (cov && labels.length) {
+                    const vn = iso => iso.split('-').reverse().join('/');
+                    cov.textContent = ` · Dữ liệu hiện có: ${vn(labels[0])} – ${vn(labels[labels.length - 1])}`;
+                }
+
                 _vnindexChart = new Chart(canvas.getContext('2d'), {
                     type: 'line',
                     data: {
@@ -2730,7 +2866,9 @@
                             borderWidth: 2,
                             pointRadius: data.length > 60 ? 0 : 3,
                             tension: 0.3,
-                            fill: true,
+                            // Truncated axis (prices are never near zero): an area fill would imply
+                            // magnitude measured from 0 and exaggerate every move.
+                            fill: false,
                         }]
                     },
                     options: {
@@ -3378,6 +3516,7 @@
                         fill: true,
                     }]);
                 }
+                cfg.options.scales.y.beginAtZero = true;
                 cfg.options.scales.y.title = { display: true, text: '%', color: '#87867f', font: { size: 10 } };
                 _cpiChart = new Chart(canvas.getContext('2d'), cfg);
             }
@@ -3403,6 +3542,7 @@
                     tension: 0.3,
                     fill: true,
                 }]);
+                cfg.options.scales.y.beginAtZero = true;
                 cfg.options.scales.y.title = { display: true, text: '%', color: '#87867f', font: { size: 10 } };
                 _gdpChart = new Chart(canvas.getContext('2d'), cfg);
             }

@@ -299,6 +299,9 @@
                             <div class="chart-container">
                                 <canvas id="sbv2Chart"></canvas>
                             </div>
+                            <!-- Shown instead of the canvas while both policy rates are
+                                 flat across the window (see renderPolicyRatesAsStat). -->
+                            <div class="policy-stat" id="sbv2Stat" hidden></div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>
 
@@ -478,7 +481,7 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày</small>
+                            <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày<span id="vnindexCoverage"></span></small>
                         </div>
                     </div>
 
