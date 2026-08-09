@@ -252,4 +252,22 @@ def validate_rates(data):
     return True
 ```
 
-Workflow `data-quality-check.yml` runs scheduled DQ checks. There is also a `data-quality-check` skill that detects OCR decimal-point errors and unrealistic intra-month spikes in `manual_listing_report` / `manual_keyword_report`.
+Workflow `data-quality-check.yml` runs scheduled DQ checks. There is also a `data-quality-check` skill — note it is scoped to `manual_listing_report` / `manual_keyword_report` only, **not** the macro tables.
+
+### Gold & silver validation (`crawl_tools/gold_validation.py`)
+
+Rules live in their own module so they are unit-testable (`crawl_tools/test_gold_validation.py`, run with `python -m pytest crawl_tools/` from the repo root — CI does not run it yet):
+
+- **Range**: gold 20M–500M VND/lượng, silver 300k–20M VND/lượng. Rejects a dropped or extra digit.
+- **Cross-brand median**: a brand more than 15% off the same-day median across all brands is rejected (needs ≥3 brands, otherwise skipped). Catches a digit error that still lands inside the range.
+- Rejected rows are never inserted; if the whole page fails, `crawl_gold_silver.py` exits non-zero (`gold_failed`, mirroring `global_failed`) so the workflow turns red instead of silently serving stale data.
+
+Added 2026-08-07 after 24h.com.vn itself published DOJI at `14,450` instead of `144,500` on 2026-07-18–19. The crawler had no pre-insert validation, so a price one tenth of the real value reached the public chart and the API and stayed there 20 days. The DQ email agent did flag it as a WARNING — it just never blocked anything and nobody read the mail.
+
+### Uniqueness
+
+`vn_macro_gold_daily` has `uq_vn_gold_date_type (date, type)`; `vn_macro_silver_daily` has `uq_vn_silver_date_source (date, source)`. Both crawler INSERTs use `ON CONFLICT … DO UPDATE`, so overlapping hourly retries refresh the row instead of appending a second one. Before these existed (2026-01→06), retries left 1,217 duplicate gold rows and 298 silver rows, 347 of them disagreeing on price.
+
+### Missing values are `null`, never `0`
+
+`be/generate_static_data.py` (`num()`) and `be/routers/market_data.py` (`_num()`) emit `null` for a NULL column on the gold and global-macro endpoints. Emitting `0` made charts plunge to the axis and API consumers read a gap as a real price of zero. Chart.js skips nulls, leaving an honest gap. Other tables still coerce to `0` — they have no NULLs today; convert them the same way if that changes.

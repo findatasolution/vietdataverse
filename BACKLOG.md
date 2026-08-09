@@ -38,6 +38,20 @@
 
 ## 🟡 MEDIUM — Làm sau khi HIGH xong
 
+### [DQ-01] DQ agent phải chặn/báo động, không chỉ gửi email
+- Sự cố 2026-07-18: 24h.com.vn công bố DOJI thiếu 1 chữ số (`14,450` thay vì `144,500`); giá sai lên chart + API và nằm đó 20 ngày
+- `crawl_tools/data_quality_check.py` ĐÃ phát hiện (rule range 50M–200M) nhưng chỉ gửi email WARNING tới `findatasolution@gmail.com` — không ai đọc, workflow vẫn xanh
+- Crawler đã được vá (validate trước insert, xem `crawl_tools/gold_validation.py`) nên lỗi cùng dạng không lọt nữa; phần còn thiếu là **lớp cảnh báo**
+- Cần: DQ agent exit non-zero khi có ERROR (không chỉ CRITICAL) để workflow đỏ → GitHub email chủ repo, giống `uptime-check.yml`; cân nhắc chạy pytest `crawl_tools/` trong CI
+- Sweep 2026-08-07 sau khi dọn: **0 ERROR** trên toàn bộ 8 bảng vĩ mô
+- **Tại sao:** cảnh báo không ai đọc = không có cảnh báo
+
+### [DQ-02] Lỗ hổng dữ liệu GSO còn tồn đọng
+- `vn_gso_cpi_monthly`: thiếu hẳn `2025-03` và `2025-06`; 17 tháng thiếu `cpi_yoy_pct`; mới nhất `2026-06`
+- `vn_gso_gdp_quarterly`, `vn_gso_iip_monthly`, `vn_gso_trade_monthly`: **0 rows** — bảng tồn tại nhưng chưa từng có dữ liệu
+- `global_macro`: `sp500`/`dowjones` NULL 31 ngày trong 1 năm qua (chủ yếu ngày FRED fallback bù cho cuối tuần/nghỉ lễ); nay public đúng là `null`, không còn `0`
+- **Tại sao:** chart CPI khuyết điểm, và schema gợi ý có GDP/IIP/trade trong khi thực tế không có
+
 ### [API-04] Webhook / scheduled data push
 - User đăng ký nhận data mới qua webhook URL của họ
 - Mỗi sáng sau khi crawler chạy → push data mới tới endpoint

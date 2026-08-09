@@ -41,6 +41,16 @@ PERIODS = {
 }
 
 
+def num(value):
+    """Serialize a numeric column, preserving 'no data' as null.
+
+    Missing values used to be emitted as 0, which charts render as a plunge to the
+    x-axis and consumers read as a real price of zero. Chart.js skips nulls, leaving
+    an honest gap instead.
+    """
+    return float(value) if value is not None else None
+
+
 def get_date_filter(period):
     """Get date filter string for SQL query."""
     days = PERIODS.get(period, 30)
@@ -107,8 +117,8 @@ def generate_gold_data():
                 'period': period,
                 'count': len(rows),
                 'dates': [row[0].strftime('%Y-%m-%d') for row in rows],
-                'buy_prices': [float(row[1]) if row[1] else 0 for row in rows],
-                'sell_prices': [float(row[2]) if row[2] else 0 for row in rows]
+                'buy_prices': [num(row[1]) for row in rows],
+                'sell_prices': [num(row[2]) for row in rows]
             }
 
             # Sanitize filename
@@ -425,11 +435,11 @@ def generate_global_data():
                 'period': period,
                 'count': len(rows),
                 'dates': [row[0].strftime('%Y-%m-%d') if hasattr(row[0], 'strftime') else str(row[0]) for row in rows],
-                'gold_prices': [float(row[1]) if row[1] else 0 for row in rows],
-                'silver_prices': [float(row[2]) if row[2] else 0 for row in rows],
-                'nasdaq_prices': [float(row[3]) if row[3] else 0 for row in rows],
-                'sp500_prices': [float(row[4]) if row[4] else 0 for row in rows],
-                'dowjones_prices': [float(row[5]) if row[5] else 0 for row in rows]
+                'gold_prices': [num(row[1]) for row in rows],
+                'silver_prices': [num(row[2]) for row in rows],
+                'nasdaq_prices': [num(row[3]) for row in rows],
+                'sp500_prices': [num(row[4]) for row in rows],
+                'dowjones_prices': [num(row[5]) for row in rows]
             }
 
             save_json(f'global_{period}.json', data)

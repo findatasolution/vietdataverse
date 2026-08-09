@@ -12,6 +12,15 @@ from core.utils import get_date_filter
 router = APIRouter()
 
 
+def _num(value):
+    """Serialize a numeric column, preserving 'no data' as null.
+
+    Emitting 0 for a missing price made consumers read a gap as a real value of zero
+    (and charts plunge to the axis). null is the honest answer.
+    """
+    return float(value) if value is not None else None
+
+
 def _paginate(rows: list, page: int, limit: int) -> tuple[list, int]:
     """Return (page_rows, total). page is 1-indexed."""
     total  = len(rows)
@@ -64,8 +73,8 @@ async def get_gold_data(
         if format == "csv":
             csv_rows = [
                 [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]),
-                 float(r[1]) if r[1] else 0,
-                 float(r[2]) if r[2] else 0]
+                 _num(r[1]),
+                 _num(r[2])]
                 for r in rows
             ]
             return _csv_response(["date", "buy_price", "sell_price"], csv_rows)
@@ -73,16 +82,16 @@ async def get_gold_data(
         if page is not None:
             page_rows, total = _paginate(rows, page, limit)
             data = [{"date": r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]),
-                     "buy_price": float(r[1]) if r[1] else 0,
-                     "sell_price": float(r[2]) if r[2] else 0} for r in page_rows]
+                     "buy_price": _num(r[1]),
+                     "sell_price": _num(r[2])} for r in page_rows]
             return _json_response({"success": True, "data": data,
                                    "total": total, "page": page, "limit": limit,
                                    "pages": (total + limit - 1) // limit,
                                    "type": type, "period": period})
 
         dates = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
-        buy   = [float(r[1]) if r[1] else 0 for r in rows]
-        sell  = [float(r[2]) if r[2] else 0 for r in rows]
+        buy   = [_num(r[1]) for r in rows]
+        sell  = [_num(r[2]) for r in rows]
         return _json_response({"success": True,
                                "data": {"dates": dates, "buy_prices": buy, "sell_prices": sell},
                                "type": type, "period": period, "count": len(dates)})
@@ -95,8 +104,9 @@ async def get_gold_data(
 @router.get("/api/v1/gold/types")
 async def get_gold_types(request: Request):
     try:
-        # Loại silver (BẠC) bị crawl nhầm vào bảng gold — filter tại query layer
-        # cho đến khi data cleanup + crawler fix xong.
+        # The silver (BẠC) rows that had leaked into the gold table were deleted on
+        # 2026-08-07 and the crawler now rejects them, so this filter is defence in
+        # depth rather than the workaround it started as.
         with get_engine_crawl().connect() as conn:
             rows = conn.execute(text("""
                 SELECT DISTINCT type FROM vn_macro_gold_daily
@@ -348,9 +358,9 @@ async def get_global_macro_data(
             """), {"date_filter": date_filter}).fetchall()))
 
         dates   = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
-        gold    = [float(r[1]) if r[1] else 0 for r in rows]
-        silver  = [float(r[2]) if r[2] else 0 for r in rows]
-        nasdaq  = [float(r[3]) if r[3] else 0 for r in rows]
+        gold    = [_num(r[1]) for r in rows]
+        silver  = [_num(r[2]) for r in rows]
+        nasdaq  = [_num(r[3]) for r in rows]
 
         if page is not None:
             page_rows, total = _paginate(list(zip(dates, gold, silver, nasdaq)), page, limit)

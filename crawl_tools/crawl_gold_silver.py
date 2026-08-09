@@ -20,6 +20,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from global_market_sources import fill_missing_indices
+from gold_validation import silver_is_plausible, validate_gold_records
 
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
@@ -74,7 +75,7 @@ try:
     else:
         print("  #priceTable not found in HTML")
 
-    if buy_price and sell_price:
+    if buy_price and sell_price and silver_is_plausible('giabac.vn', buy_price, sell_price):
         crawl_time = datetime.now()
 
         # Day-scoped dedup: 1 row per source per day (crawl runs once/day, hourly only on
@@ -93,7 +94,11 @@ try:
             with engine.connect() as conn:
                 conn.execute(
                     text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
-                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'giabac.vn', 'commodity')"""),
+                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'giabac.vn', 'commodity')
+                            ON CONFLICT (date, source) DO UPDATE SET
+                                buy_price  = EXCLUDED.buy_price,
+                                sell_price = EXCLUDED.sell_price,
+                                crawl_time = EXCLUDED.crawl_time"""),
                     {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price, 'sell_price': sell_price}
                 )
                 conn.commit()
@@ -135,7 +140,7 @@ try:
                         print(f"  Found: {product_name}")
                         break
 
-    if buy_price_pq and sell_price_pq:
+    if buy_price_pq and sell_price_pq and silver_is_plausible('phuquygroup.vn', buy_price_pq, sell_price_pq):
         crawl_time = datetime.now()
 
         with engine.connect() as conn:
@@ -150,7 +155,11 @@ try:
             else:
                 conn.execute(
                     text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
-                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'phuquygroup.vn', 'commodity')"""),
+                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'phuquygroup.vn', 'commodity')
+                            ON CONFLICT (date, source) DO UPDATE SET
+                                buy_price  = EXCLUDED.buy_price,
+                                sell_price = EXCLUDED.sell_price,
+                                crawl_time = EXCLUDED.crawl_time"""),
                     {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price_pq, 'sell_price': sell_price_pq}
                 )
                 conn.commit()
@@ -166,6 +175,11 @@ except Exception as e:
 print(f"\n--- Crawling Gold Prices ---")
 
 url_gold = f'https://www.24h.com.vn/gia-vang-hom-nay-c425.html?ngaythang={date_str}'
+
+# Mirrors global_failed below: stays True until today's gold is on disk, so a source
+# outage or a page-wide validation reject turns the workflow RED instead of passing
+# silently with yesterday's data still being served.
+gold_failed = True
 
 try:
     response_gold = requests.get(url_gold, timeout=10)
@@ -211,10 +225,20 @@ try:
     if gold_records:
         print(f"  Crawled {len(gold_records)} gold brands for {date_str}")
 
+        # Validate before insert — never write a partial or implausible row.
+        # Rules live in gold_validation.py so they can be unit-tested.
+        valid_records = validate_gold_records(gold_records)
+
+        rejected = len(gold_records) - len(valid_records)
+        if rejected:
+            print(f"  Rejected {rejected} implausible record(s) — not inserted")
+        if not valid_records:
+            raise RuntimeError(f"All {len(gold_records)} gold records failed validation")
+
         inserted = 0
         skipped = 0
 
-        for record in gold_records:
+        for record in valid_records:
             with engine.connect() as conn:
                 # Day-scoped dedup: 1 row per gold type per day.
                 result = conn.execute(
@@ -233,10 +257,17 @@ try:
                     skipped += 1
                     continue
 
+                # ON CONFLICT backs the day-scoped guard above with the DB-level
+                # uq_vn_gold_date_type index, so two overlapping hourly retries can
+                # never write a second row for the same (date, type) again.
                 conn.execute(
                     text("""
                         INSERT INTO vn_macro_gold_daily (date, type, buy_price, sell_price, crawl_time, source, group_name)
                         VALUES (:date, :type, :buy_price, :sell_price, :crawl_time, '24h.com.vn', 'commodity')
+                        ON CONFLICT (date, type) DO UPDATE SET
+                            buy_price  = EXCLUDED.buy_price,
+                            sell_price = EXCLUDED.sell_price,
+                            crawl_time = EXCLUDED.crawl_time
                     """),
                     record
                 )
@@ -244,6 +275,7 @@ try:
                 inserted += 1
 
         print(f"  Pushed {inserted} gold records, skipped {skipped}")
+        gold_failed = False  # today's gold is persisted (freshly inserted or already present)
     else:
         print(f"  No gold data found for {date_str}")
 
@@ -373,8 +405,15 @@ print(f"\n{'='*60}")
 print(f"Gold & Silver Crawler completed at {datetime.now().strftime('%H:%M:%S')}")
 print(f"{'='*60}")
 
-# Gold/silver are already persisted above; fail loudly only on the global section
-# so a stale Yahoo Finance feed surfaces as a red workflow instead of passing silently.
+# Fail loudly so a stale feed surfaces as a red workflow instead of passing silently:
+# a Yahoo Finance outage, or a gold page that returned nothing / failed validation
+# (source published implausible prices — see GOLD_MIN_VND and the median check).
+failures = []
+if gold_failed:
+    failures.append("Domestic gold (24h.com.vn)")
 if global_failed:
-    print("\n❌ Global macro (Yahoo Finance) crawl failed — exiting non-zero to flag staleness")
+    failures.append("Global macro (Yahoo Finance)")
+
+if failures:
+    print(f"\n❌ {' + '.join(failures)} crawl failed — exiting non-zero to flag staleness")
     sys.exit(1)
