@@ -102,7 +102,9 @@ One-time install on the box, after the code has deployed:
 
 ```bash
 cd /root/vietdataverse
-docker build -f deploy/crawler.Dockerfile -t vdv-crawler:latest .   # ~2 min, ~600 MB
+# context is crawl_tools/ — the root .dockerignore excludes it, so a root context
+# cannot see requirements.txt
+docker build -f deploy/crawler.Dockerfile -t vdv-crawler:latest crawl_tools
 cp deploy/crawl-fallback.service deploy/crawl-fallback.timer /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now crawl-fallback.timer

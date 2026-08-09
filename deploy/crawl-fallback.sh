@@ -39,7 +39,9 @@ fi
 # Build on first run, or after deploy/crawler.Dockerfile changes upstream.
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
     log "image $IMAGE not present — building from deploy/crawler.Dockerfile"
-    if ! docker build -q -f "$APP_DIR/deploy/crawler.Dockerfile" -t "$IMAGE" "$APP_DIR" >/dev/null; then
+    # Context is crawl_tools/, not the repo root — the root .dockerignore excludes
+    # crawl_tools, so requirements.txt is invisible from a root context.
+    if ! docker build -q -f "$APP_DIR/deploy/crawler.Dockerfile" -t "$IMAGE" "$APP_DIR/crawl_tools" >/dev/null; then
         log "FATAL: image build failed"
         exit 1
     fi
