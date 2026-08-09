@@ -640,8 +640,8 @@
 
                     <!-- ── Value-Prop Hero ── -->
                     <section class="data-hero">
-                        <h1 class="data-hero-title" data-i18n="mainTitle">Tải Dữ Liệu Kinh Tế Mở</h1>
-                        <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí</p>
+                        <h1 class="data-hero-title" data-i18n="mainTitle">Tải dữ liệu kinh tế mở</h1>
+                        <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái</p>
                         <div class="data-hero-cta">
                             <a href="#data-charts" class="btn-data-primary"><i class="fas fa-chart-line"></i> <span data-i18n="dataHeroCTAExplore">Xem & tải dữ liệu</span></a>
                             <a href="/fe/pages/api-docs.html" class="btn-data-secondary"><i class="fas fa-code"></i> <span data-i18n="dataHeroCTAApi">API cho lập trình viên</span></a>
@@ -790,17 +790,17 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="goldChart">Lịch Sử Giá Vàng Việt Nam</span>
+                                    <span data-i18n="goldChart">Lịch sử giá vàng trong nước</span>
                                     <span class="chart-info-icon" data-tooltip="Giá vàng mua/bán trong nước. Đơn vị: nghìn VND/chỉ (3.75g).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <select id="goldTypeSelect" class="type-select" style="margin-right:10px;padding:8px;border-radius:4px;border:1px solid var(--border-warm);background:var(--warm-sand);color:var(--charcoal);">
                                         <option value="DOJI HN">DOJI HN</option>
                                     </select>
-                                    <button class="filter-btn" data-chart="gold" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="gold" data-period="1m">1 Month</button>
-                                    <button class="filter-btn" data-chart="gold" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="gold" data-period="all">All</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="7d" data-i18n="period7d">7 ngày</button>
+                                    <button class="filter-btn active" data-chart="gold" data-period="1m" data-i18n="period1m">1 tháng</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-chart="gold" data-period="all" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadDataset('gold-' + (document.getElementById('goldTypeSelect')?.value || 'DOJI HN'))" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -828,14 +828,14 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="silverChart">Lịch Sử Giá Bạc Việt Nam - Phú Quý</span>
+                                    <span data-i18n="silverChart">Lịch sử giá bạc (Phú Quý)</span>
                                     <span class="chart-info-icon" data-tooltip="Giá bạc mua/bán của Phú Quý Group. Đơn vị: nghìn VND/lượng (37.5g).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <button class="filter-btn" data-chart="silver" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="silver" data-period="1m">1 Month</button>
-                                    <button class="filter-btn" data-chart="silver" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="silver" data-period="all">All</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="7d" data-i18n="period7d">7 ngày</button>
+                                    <button class="filter-btn active" data-chart="silver" data-period="1m" data-i18n="period1m">1 tháng</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-chart="silver" data-period="all" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadDataset('silver')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -869,7 +869,7 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="tdChart">Lãi Suất Gửi Tiết Kiệm</span>
+                                    <span data-i18n="tdChart">Lịch sử lãi suất gửi tiết kiệm (NHTM)</span>
                                     <span class="chart-info-icon" data-tooltip="Lãi suất gửi tiết kiệm kỳ hạn của các ngân hàng thương mại (ACB, VCB, SHB, CTG...). Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
@@ -878,8 +878,8 @@
                                         <option value="CTG">CTG</option>
                                         <option value="SHB">SHB</option>
                                     </select>
-                                    <button class="filter-btn" data-chart="td" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="td" data-period="all">All</button>
+                                    <button class="filter-btn" data-chart="td" data-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-chart="td" data-period="all" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadDataset('termdepo-' + (document.getElementById('bankTypeSelect')?.value || 'ACB'))" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -905,14 +905,14 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="sbvChart">Lịch Sử Lãi Suất Liên Ngân Hàng SBV</span>
+                                    <span data-i18n="sbvChart">Lịch sử lãi suất liên ngân hàng SBV</span>
                                     <span class="chart-info-icon" data-tooltip="Lãi suất thị trường liên ngân hàng do NHNN VN công bố. Đơn vị: %/năm.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <button class="filter-btn" data-chart="sbv" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="sbv" data-period="1m">1 Month</button>
-                                    <button class="filter-btn" data-chart="sbv" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="sbv" data-period="all">All</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="7d" data-i18n="period7d">7 ngày</button>
+                                    <button class="filter-btn active" data-chart="sbv" data-period="1m" data-i18n="period1m">1 tháng</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-chart="sbv" data-period="all" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadDataset('sbv-interbank')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -943,14 +943,14 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="fxrateChart">Tỷ Giá Trung Tâm USD/VND (NHNN)</span>
+                                    <span data-i18n="fxrateChart">Tỷ giá trung tâm USD/VND (NHNN)</span>
                                     <span class="chart-info-icon" data-tooltip="Tỷ giá trung tâm USD/VND do Ngân hàng Nhà nước Việt Nam (SBV) công bố hàng ngày. Đơn vị: VND/USD.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <button class="filter-btn" data-chart="fxrate" data-period="7d">7 Days</button>
-                                    <button class="filter-btn active" data-chart="fxrate" data-period="1m">1 Month</button>
-                                    <button class="filter-btn" data-chart="fxrate" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="fxrate" data-period="all">All</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="7d" data-i18n="period7d">7 ngày</button>
+                                    <button class="filter-btn active" data-chart="fxrate" data-period="1m" data-i18n="period1m">1 tháng</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-chart="fxrate" data-period="all" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadDataset('fxrate-SBV-USD')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -977,20 +977,20 @@
                     <div class="chart-section-group" data-lazy-section="global">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-globe"></i>
-                            <span data-i18n="tabGlobal">Thị trường Quốc tế</span>
+                            <span data-i18n="tabGlobal">Thị trường quốc tế</span>
                         </h2>
 
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    <span data-i18n="globalChart">Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc)</span>
+                                    <span data-i18n="globalChart">Xu hướng thị trường toàn cầu (vàng, bạc)</span>
                                     <span class="chart-info-icon" data-tooltip="Dữ liệu từ Yahoo Finance; FRED dự phòng cho NASDAQ, S&amp;P 500 và Dow Jones khi Yahoo giới hạn truy cập.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <button class="filter-btn" data-chart="global" data-period="7d">7 Days</button>
-                                    <button class="filter-btn" data-chart="global" data-period="1m">1 Month</button>
-                                    <button class="filter-btn active" data-chart="global" data-period="1y">1 Year</button>
-                                    <button class="filter-btn" data-chart="global" data-period="all">All</button>
+                                    <button class="filter-btn" data-chart="global" data-period="7d" data-i18n="period7d">7 ngày</button>
+                                    <button class="filter-btn" data-chart="global" data-period="1m" data-i18n="period1m">1 tháng</button>
+                                    <button class="filter-btn active" data-chart="global" data-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-chart="global" data-period="all" data-i18n="periodAll">Tất cả</button>
                                     <button class="filter-btn" onclick="downloadDataset('global-macro')" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
@@ -1017,7 +1017,7 @@
                     <div class="chart-section-group" data-lazy-section="macro">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-chart-area"></i>
-                            <span data-i18n="tabMacro">Vĩ Mô</span>
+                            <span data-i18n="tabMacro">Vĩ mô</span>
                         </h2>
 
                         <!-- CPI -->
@@ -1054,7 +1054,7 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    Tăng Trưởng GDP Việt Nam (%/năm)
+                                    Tăng trưởng GDP Việt Nam (%/năm)
                                     <span class="chart-info-icon" data-tooltip="Tốc độ tăng trưởng GDP thực tế hàng năm (constant prices). Nguồn: World Bank Open Data.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
@@ -1095,12 +1095,12 @@
                                     <span class="chart-info-icon" data-tooltip="Chỉ số VN-Index (điểm đóng cửa hàng ngày). Nguồn: vnstock3 / VCI, cập nhật sau 17:15 VN mỗi ngày giao dịch.">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
-                                    <button class="filter-btn" data-vnindex-period="7d">7 ngày</button>
-                                    <button class="filter-btn" data-vnindex-period="1m">1 tháng</button>
-                                    <button class="filter-btn" data-vnindex-period="3m">3 tháng</button>
-                                    <button class="filter-btn active" data-vnindex-period="1y">1 năm</button>
-                                    <button class="filter-btn" data-vnindex-period="3y">3 năm</button>
-                                    <button class="filter-btn" data-vnindex-period="all">Tất cả</button>
+                                    <button class="filter-btn" data-vnindex-period="7d" data-i18n="period7d">7 ngày</button>
+                                    <button class="filter-btn" data-vnindex-period="1m" data-i18n="period1m">1 tháng</button>
+                                    <button class="filter-btn" data-vnindex-period="3m" data-i18n="period3m">3 tháng</button>
+                                    <button class="filter-btn active" data-vnindex-period="1y" data-i18n="period1y">1 năm</button>
+                                    <button class="filter-btn" data-vnindex-period="3y" data-i18n="period3y">3 năm</button>
+                                    <button class="filter-btn" data-vnindex-period="all" data-i18n="periodAll">Tất cả</button>
                                 </div>
                             </div>
                             <div class="chart-container">

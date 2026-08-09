@@ -54,19 +54,19 @@
                 sidebarAccount: 'Tài khoản',
                 loginBtn: 'Đăng nhập',
                 logoutBtn: 'Đăng xuất',
-                mainTitle: 'Tải Dữ Liệu Kinh Tế Mở',
-                mainSubtitle: '<strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm, tỷ giá hối đoái hoàn toàn miễn phí',
+                mainTitle: 'Tải dữ liệu kinh tế mở',
+                mainSubtitle: '<strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái',
                 dataHeroCTAExplore: 'Xem & tải dữ liệu',
                 dataHeroCTAApi: 'API cho lập trình viên',
-                sectionTitle: 'Tải Dữ Liệu Kinh Tế Mở',
+                sectionTitle: 'Tải dữ liệu kinh tế mở',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
-                goldChart: 'Lịch Sử Giá Vàng Trong Nước',
-                silverChart: 'Lịch Sử Giá Bạc (Phú Quý)',
-                sbvChart: 'Lịch Sử Lãi Suất Liên Ngân Hàng',
-                tdChart: 'Lịch Sử Lãi Suất Gửi Tiết Kiệm (NHTM)',
-                fxrateChart: 'Tỷ Giá Trung Tâm USD/VND (NHNN)',
-                globalChart: 'Xu Hướng Thị Trường Toàn Cầu (Vàng, Bạc)',
-                downloadTitle: 'Tải Dữ liệu Lịch Sử',
+                goldChart: 'Lịch sử giá vàng trong nước',
+                silverChart: 'Lịch sử giá bạc (Phú Quý)',
+                sbvChart: 'Lịch sử lãi suất liên ngân hàng',
+                tdChart: 'Lịch sử lãi suất gửi tiết kiệm (NHTM)',
+                fxrateChart: 'Tỷ giá trung tâm USD/VND (NHNN)',
+                globalChart: 'Xu hướng thị trường toàn cầu (vàng, bạc)',
+                downloadTitle: 'Tải dữ liệu lịch sử',
                 downloadSubtitle: 'Tải dữ liệu lịch sử giá vàng trong nước, giá bạc, và dữ liệu vĩ mô tại đây',
                 goldDatasetTitle: 'Tải Lịch Sử Giá Vàng',
                 goldDatasetDesc: 'Tải lịch sử giá vàng trong nước. Download Vietnam historical gold price miễn phí với giá mua/bán từ nguồn uy tín.',
@@ -102,12 +102,16 @@
                 pricingBtnContact: 'Liên hệ Sales',
                 tabGoldSilver: "Vàng & Bạc",
                 tabCurrency: "Tiền tệ VN",
-                tabGlobal: "Thị trường Quốc tế",
-                tabMacro: 'Vĩ Mô',
+                tabGlobal: "Thị trường quốc tế",
+                tabMacro: 'Vĩ mô',
                 tabDownload: 'Tải xuống',
                 // Chart titles & periods
                 cpiChart: 'CPI Việt Nam (% YoY/năm)',
+                period7d: '7 ngày',
+                period1m: '1 tháng',
+                period3m: '3 tháng',
                 period1y: '1 năm',
+                period3y: '3 năm',
                 period10y: '10 năm',
                 period20y: '20 năm',
                 periodAll: 'Tất cả',
@@ -291,7 +295,11 @@
                 tabDownload: 'Download',
                 // Chart titles & periods
                 cpiChart: 'Vietnam CPI (% YoY)',
+                period7d: '7 days',
+                period1m: '1 month',
+                period3m: '3 months',
                 period1y: '1 year',
+                period3y: '3 years',
                 period10y: '10 years',
                 period20y: '20 years',
                 periodAll: 'All',
@@ -1921,6 +1929,25 @@
         /* =========================================================
            DATA PARSERS FOR DIFFERENT CHART TYPES
         ========================================================= */
+        /* Number formatting for chart axes/tooltips.
+           Chart.js defaults to the browser locale, which rendered "150,000,000"
+           with commas while the KPI cards used vi-VN dots — two conventions on
+           one screen. Always route chart numbers through these two helpers. */
+        function formatNumVi(value) {
+            return Number(value).toLocaleString('vi-VN');
+        }
+
+        /* Axis labels only: 150000000 -> "150 triệu", 2350000 -> "2,35 triệu".
+           2 fraction digits keeps adjacent ticks distinct (silver steps by
+           50.000đ, so 1 digit would print "2,3 triệu" twice in a row). */
+        function formatVndAxis(value) {
+            const abs = Math.abs(value);
+            const opts = { maximumFractionDigits: 2 };
+            if (abs >= 1e9) return (value / 1e9).toLocaleString('vi-VN', opts) + ' tỷ';
+            if (abs >= 1e6) return (value / 1e6).toLocaleString('vi-VN', opts) + ' triệu';
+            return formatNumVi(value);
+        }
+
         function parseGoldSilverData(apiData, chartType) {
             // API format: { success: true, data: { dates: [...], buy_prices: [...], sell_prices: [...] } }
             if (!apiData || !apiData.data || !apiData.data.dates) {
@@ -1940,7 +1967,7 @@
                     labels: dates,
                     datasets: [
                         {
-                            label: 'Buy Price (Mua vào)',
+                            label: 'Giá mua vào',
                             data: buyPrices,
                             borderColor: color,
                             backgroundColor: color + '20',
@@ -1949,7 +1976,7 @@
                             fill: true
                         },
                         {
-                            label: 'Sell Price (Bán ra)',
+                            label: 'Giá bán ra',
                             data: sellPrices,
                             borderColor: color + 'CC',
                             backgroundColor: 'transparent',
@@ -1969,7 +1996,10 @@
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false
+                            intersect: false,
+                            callbacks: {
+                                label: ctx => `${ctx.dataset.label}: ${formatNumVi(ctx.parsed.y)}`
+                            }
                         }
                     },
                     scales: {
@@ -1978,7 +2008,7 @@
                             grid: { display: false }
                         },
                         y: {
-                            ticks: { color: '#87867f' },
+                            ticks: { color: '#87867f', callback: formatVndAxis },
                             grid: { display: false }
                         }
                     }
@@ -2262,14 +2292,14 @@
                             type: 'linear',
                             display: true,
                             position: 'left',
-                            ticks: { color: '#c96442' },
+                            ticks: { color: '#c96442', callback: formatNumVi },
                             grid: { display: false }
                         },
                         y1: {
                             type: 'linear',
                             display: true,
                             position: 'right',
-                            ticks: { color: '#87867f' },
+                            ticks: { color: '#87867f', callback: formatNumVi },
                             grid: { display: false }
                         }
                     }
@@ -2697,7 +2727,7 @@
                         },
                         scales: {
                             x: { ticks: { color: '#87867f', font: { size: 11 }, maxTicksLimit: 10 }, grid: { display: false } },
-                            y: { ticks: { color: '#87867f', font: { size: 11 } }, grid: { display: false },
+                            y: { ticks: { color: '#87867f', font: { size: 11 }, callback: formatNumVi }, grid: { display: false },
                                  title: { display: true, text: 'điểm', color: '#87867f', font: { size: 10 } } }
                         }
                     }

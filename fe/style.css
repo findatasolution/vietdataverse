@@ -1904,13 +1904,17 @@ html {
     cursor: crosshair;
 }
 
+/* Left-aligned on purpose: the feedback FAB is position:fixed at the bottom-right
+   (.vdv-fb), so a right-aligned source line sat underneath it and got clipped
+   mid-scroll ("Nguồn: Yahoo Finance · FRED (inde…"). Left also puts the source on
+   the same axis as the chart title. */
 .chart-source {
     display: block;
-    text-align: right;
+    text-align: left;
     font-size: 0.7rem;
     color: var(--stone-gray);
     margin-top: 0.4rem;
-    padding-right: 0.25rem;
+    padding-left: 0.25rem;
 }
 
 .chart-source a {
