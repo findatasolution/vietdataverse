@@ -2039,7 +2039,7 @@
                             data: buyPrices,
                             borderColor: color,
                             backgroundColor: color + '20',
-                            pointRadius: dates.length > 45 ? 0 : 3,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4,
                             // Truncated axis (prices are never near zero): an area fill would imply
@@ -2051,7 +2051,7 @@
                             data: sellPrices,
                             borderColor: color + 'CC',
                             backgroundColor: 'transparent',
-                            pointRadius: dates.length > 45 ? 0 : 3,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4,
                             borderDash: [5, 5]
@@ -2111,7 +2111,7 @@
                             data: rate1m,
                             borderColor: '#d9a689',
                             backgroundColor: 'transparent',
-                            pointRadius: dates.length > 45 ? 0 : 2,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4
                         },
@@ -2120,7 +2120,7 @@
                             data: rate3m,
                             borderColor: '#cf8560',
                             backgroundColor: 'transparent',
-                            pointRadius: dates.length > 45 ? 0 : 2,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4
                         },
@@ -2129,7 +2129,7 @@
                             data: rate6m,
                             borderColor: '#c96442',
                             backgroundColor: 'transparent',
-                            pointRadius: dates.length > 45 ? 0 : 2,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4
                         },
@@ -2138,7 +2138,7 @@
                             data: rate12m,
                             borderColor: '#9e4a2e',
                             backgroundColor: 'transparent',
-                            pointRadius: dates.length > 45 ? 0 : 2,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4
                         },
@@ -2147,7 +2147,7 @@
                             data: rate24m,
                             borderColor: '#6b3520',
                             backgroundColor: 'transparent',
-                            pointRadius: dates.length > 45 ? 0 : 2,
+                            pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
                             tension: 0.4
                         }
@@ -2242,8 +2242,11 @@
                 data: {
                     labels: d.dates,
                     datasets: [
-                        { label: 'Lãi suất chiết khấu (Rediscount)', data: d.rediscount,  borderColor: '#9e4a2e', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: 'Lãi suất tái cấp vốn (Refinancing)', data: d.refinancing, borderColor: '#6b3520', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
+                        // stepped, tension 0 — a policy rate does not glide between
+                        // announcements, it holds and then jumps on a decision date.
+                        // Smoothing it drew a curve through dates on which nothing happened.
+                        { label: 'Lãi suất chiết khấu', data: d.rediscount,  borderColor: '#9e4a2e', backgroundColor: 'transparent', borderWidth: 2, tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 4 },
+                        { label: 'Lãi suất tái cấp vốn', data: d.refinancing, borderColor: '#6b3520', backgroundColor: 'transparent', borderWidth: 2, tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 4 }
                     ]
                 },
                 options: _sbvChartOptions
@@ -2281,7 +2284,7 @@
                             // Truncated axis (prices are never near zero): an area fill would imply
                             // magnitude measured from 0 and exaggerate every move.
                             fill: false,
-                            pointRadius: dates.length > 60 ? 0 : 3,
+                            pointRadius: 0, pointHoverRadius: 4,
                             pointHoverRadius: 5,
                             pointBackgroundColor: '#c96442'
                         }
@@ -2361,7 +2364,7 @@
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
-                            pointRadius: dates.length > 45 ? 0 : 2
+                            pointRadius: 0, pointHoverRadius: 4
                         },
                         {
                             label: 'Bạc (Silver Spot)',
@@ -2371,7 +2374,7 @@
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
-                            pointRadius: dates.length > 45 ? 0 : 2
+                            pointRadius: 0, pointHoverRadius: 4
                         }
                     ]
                 },
@@ -2864,7 +2867,7 @@
                             borderColor: color,
                             backgroundColor: up ? 'rgba(76,175,80,0.07)' : 'rgba(239,83,80,0.07)',
                             borderWidth: 2,
-                            pointRadius: data.length > 60 ? 0 : 3,
+                            pointRadius: 0, pointHoverRadius: 4,
                             tension: 0.3,
                             // Truncated axis (prices are never near zero): an area fill would imply
                             // magnitude measured from 0 and exaggerate every move.
@@ -3498,7 +3501,7 @@
                         borderColor: '#FFA726',
                         backgroundColor: 'rgba(255,167,38,0.1)',
                         borderWidth: 2,
-                        pointRadius: 3,
+                        pointRadius: 0, pointHoverRadius: 4,
                         tension: 0.3,
                         fill: true,
                     }]);
@@ -3509,7 +3512,7 @@
                         borderColor: '#FFA726',
                         backgroundColor: 'rgba(255,167,38,0.08)',
                         borderWidth: 2,
-                        pointRadius: 4,
+                        pointRadius: 0, pointHoverRadius: 5,
                         pointBackgroundColor: colors,
                         pointBorderColor: colors,
                         tension: 0.3,
@@ -3536,7 +3539,7 @@
                     borderColor: TEAL,
                     backgroundColor: 'rgba(38, 166, 154, 0.08)',
                     borderWidth: 2,
-                    pointRadius: 4,
+                    pointRadius: 0, pointHoverRadius: 5,
                     pointBackgroundColor: values.map(v => v >= 0 ? TEAL : RED),
                     pointBorderColor: values.map(v => v >= 0 ? TEAL : RED),
                     tension: 0.3,
@@ -3567,9 +3570,9 @@
                 if (!canvas) return;
                 if (_tradeChart) _tradeChart.destroy();
                 const cfg = baseConfig('line', labels, [
-                    { label: 'Xuất khẩu (tỷ USD)', data: exports_, borderColor: GOLD, backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
-                    { label: 'Nhập khẩu (tỷ USD)', data: imports_, borderColor: BLUE, backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
-                    { label: 'Cán cân TM (tỷ USD)', data: balance, borderColor: TEAL, backgroundColor: 'transparent', tension: 0.3, borderDash: [4,3], pointRadius: 2 }
+                    { label: 'Xuất khẩu (tỷ USD)', data: exports_, borderColor: GOLD, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
+                    { label: 'Nhập khẩu (tỷ USD)', data: imports_, borderColor: BLUE, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
+                    { label: 'Cán cân TM (tỷ USD)', data: balance, borderColor: TEAL, backgroundColor: 'transparent', tension: 0.3, borderDash: [4,3], pointRadius: 0, pointHoverRadius: 4 }
                 ]);
                 cfg.options.scales.y.title = { display: true, text: 'tỷ USD', color: '#87867f', font: { size: 10 } };
                 _tradeChart = new Chart(canvas.getContext('2d'), cfg);
