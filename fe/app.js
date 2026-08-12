@@ -1998,15 +1998,20 @@
                 return false;
             }
 
+            // Show the WINDOW, not a single date. "từ 10/07/2026" was being read as
+            // the last decision date when it is only where the visible range starts —
+            // the 4.5% level has actually held since 2015-03-26 per the source table.
             const dates = (d.dates || []).filter(Boolean);
-            const since = dates.length ? dates[0].split('-').reverse().join('/') : null;
+            const vnd = iso => iso.split('-').reverse().join('/');
+            const range = dates.length
+                ? `${vnd(dates[0])} – ${vnd(dates[dates.length - 1])}` : null;
             stat.innerHTML = clean.map(s =>
                 `<div class="policy-stat-item">
                      <div class="policy-stat-label">${s.label}</div>
                      <div class="policy-stat-value">${formatPctVi(s.vals[0])}<span>%/năm</span></div>
                  </div>`
             ).join('') +
-            `<div class="policy-stat-note">Không thay đổi trong toàn bộ khoảng đang xem${since ? ` (từ ${since})` : ''}.</div>`;
+            `<div class="policy-stat-note">Không thay đổi suốt khoảng đang xem${range ? ` (${range})` : ''}. Đây là lãi suất điều hành — NHNN chỉ điều chỉnh vài lần mỗi năm, nên xu hướng chỉ đọc được trên khung nhiều năm.</div>`;
 
             wrap.hidden = true;
             stat.hidden = false;
