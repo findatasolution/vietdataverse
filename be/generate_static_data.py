@@ -229,6 +229,70 @@ def generate_sbv_data():
 
         save_json(f'sbv_{period}.json', data)
 
+    generate_sbv_policy_history()
+
+
+def generate_sbv_policy_history():
+    """Full SBV policy-rate history (refinancing + rediscount) as change points.
+
+    These are administered rates: SBV moves them a handful of times a year and
+    then holds, so they only mean anything on a multi-year frame. The 7d/1m/1y
+    files above share the interbank window, where both rates are a single flat
+    value — which is why the FE could not show a trend at all.
+
+    vn_macro_sbv_rate_daily mixes two kinds of rows: sparse policy-decision rows
+    going back to 2002 (interbank columns NULL) and recent daily interbank
+    observations that carry the prevailing policy rate along. Selecting on
+    "policy rate is present" picks up both, so we collapse to the dates where a
+    rate actually CHANGED — which is what a step chart needs, and keeps the file
+    tiny (~35 points instead of thousands).
+    """
+    print("\n--- Generating SBV Policy Rate History ---")
+
+    with engine_crawl.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT date, refinancing_rate, rediscount_rate
+            FROM (
+                SELECT DISTINCT ON (date) date, refinancing_rate, rediscount_rate, crawl_time
+                FROM vn_macro_sbv_rate_daily
+                WHERE refinancing_rate IS NOT NULL OR rediscount_rate IS NOT NULL
+                ORDER BY date, crawl_time DESC
+            ) s
+            ORDER BY date ASC
+        """)).fetchall()
+
+    dates, refinancing, rediscount = [], [], []
+    prev = None
+    for d, ref, red in rows:
+        cur = (float(ref) if ref is not None else None,
+               float(red) if red is not None else None)
+        if cur == prev:
+            continue
+        prev = cur
+        dates.append(d.strftime('%Y-%m-%d'))
+        refinancing.append(cur[0])
+        rediscount.append(cur[1])
+
+    # Extend the last step to today so the chart does not stop at the final
+    # decision date and imply the rate lapsed there.
+    today = datetime.now().strftime('%Y-%m-%d')
+    last_change = dates[-1] if dates else None
+    if dates and dates[-1] != today:
+        dates.append(today)
+        refinancing.append(refinancing[-1])
+        rediscount.append(rediscount[-1])
+
+    save_json('sbv_policy_all.json', {
+        'period': 'all',
+        'count': len(dates),
+        'dates': dates,
+        'refinancing': refinancing,
+        'rediscount': rediscount,
+        # The FE states "không đổi kể từ <ngày>" from this — it must be the last
+        # DECISION date, never the first date of the visible window.
+        'last_change': last_change,
+    })
+
 
 # ============================================================
 # TERM DEPOSIT DATA

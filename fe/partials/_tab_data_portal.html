@@ -296,11 +296,21 @@
                                 </div>
                             </div>
                             <p data-i18n="sbvPanelPolicy" style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
+                            <!-- Policy rates get their OWN horizon, independent of the
+                                 interbank selector above. SBV moves them a few times a
+                                 year, so on the interbank window (7 ngày–1 năm) they are
+                                 flat by construction and carry no information. -->
+                            <div class="chart-filters policy-filters">
+                                <button class="filter-btn" data-policy-period="5y">5 năm</button>
+                                <button class="filter-btn" data-policy-period="10y">10 năm</button>
+                                <button class="filter-btn active" data-policy-period="all" data-i18n="periodAll">Tất cả</button>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="sbv2Chart"></canvas>
                             </div>
-                            <!-- Shown instead of the canvas while both policy rates are
-                                 flat across the window (see renderPolicyRatesAsStat). -->
+                            <!-- Current level + last decision date, always shown under the
+                                 chart: the trend answers "which way", this answers "where
+                                 are we now and since when". -->
                             <div class="policy-stat" id="sbv2Stat" hidden></div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
                         </div>

@@ -4898,3 +4898,10 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
     color: #b53333;
     font-weight: 500;
 }
+
+/* Policy-rate horizon selector — its own control, sitting under the interbank
+   chart it is no longer tied to. */
+.policy-filters {
+    justify-content: flex-end;
+    margin: 0 1rem 0.5rem;
+}

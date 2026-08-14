@@ -1915,18 +1915,9 @@
             } else if (chartType === 'sbv') {
                 chartData = parseSBVData(apiData);
                 // Also render policy-rate panel
-                const canvas2 = document.getElementById('sbv2Chart');
-                if (canvas2) {
-                    if (chartInstances['sbv2']) chartInstances['sbv2'].destroy();
-                    const cfg2 = parseSBVPolicyData(apiData);
-                    // Policy rates move maybe once a year. Over a typical window both
-                    // series are perfectly flat, and a 400px chart of two horizontal
-                    // lines says less than one sentence does. Show the numbers instead,
-                    // and fall back to the chart automatically the day they move.
-                    if (cfg2 && !renderPolicyRatesAsStat(apiData, cfg2)) {
-                        chartInstances['sbv2'] = new Chart(canvas2.getContext('2d'), cfg2);
-                    }
-                }
+                // The policy panel no longer rides the interbank payload — it loads
+                // its own multi-year history (see loadPolicyRates).
+                loadPolicyRates();
             } else if (chartType === 'fxrate') {
                 chartData = parseFxRateData(apiData);
             } else if (chartType === 'global') {
@@ -1975,47 +1966,113 @@
         /* Returns true when the SBV policy rates did not move across the window, in
            which case the canvas is swapped for a compact stat line. Returns false
            (leaving the chart to render) as soon as either series actually varies. */
-        function renderPolicyRatesAsStat(apiData, cfg) {
-            const wrap = document.getElementById('sbv2Chart')?.parentElement;
-            const stat = document.getElementById('sbv2Stat');
-            if (!wrap || !stat) return false;
+        /* ── SBV policy rates: refinancing + rediscount ──────────────────────────
+           Administered rates. SBV moves them a handful of times a year and then
+           holds, so on the interbank window (7 ngày–1 năm) they are flat by
+           construction — which is why this panel used to be either two straight
+           lines or a bare pair of numbers, neither of which showed a trend.
 
-            const d = apiData.data || {};
-            const series = [
-                { label: 'Lãi suất tái cấp vốn', values: d.refinancing },
-                { label: 'Lãi suất chiết khấu',  values: d.rediscount },
-            ];
-            const clean = series.map(s => ({
-                label: s.label,
-                vals: (s.values || []).filter(v => v !== null && v !== undefined)
-            }));
-            if (clean.some(s => s.vals.length === 0)) return false;
+           It now loads data/sbv_policy_all.json (45 decision points back to 2002,
+           ~1KB) and renders a STEP chart on its own horizon, with the current level
+           and the last decision date underneath. */
+        let _policyData = null;
+        let _policyPeriod = 'all';
 
-            const flat = clean.every(s => s.vals.every(v => v === s.vals[0]));
-            if (!flat) {
-                wrap.hidden = false;
-                stat.hidden = true;
-                return false;
+        async function loadPolicyRates() {
+            if (!_policyData) {
+                try {
+                    const r = await fetch('./data/sbv_policy_all.json');
+                    if (!r.ok) throw new Error(r.status);
+                    _policyData = (await r.json()).data;
+                } catch (e) {
+                    console.warn('[policy] history unavailable:', e);
+                    return;
+                }
             }
+            renderPolicyRates();
+        }
 
-            // Show the WINDOW, not a single date. "từ 10/07/2026" was being read as
-            // the last decision date when it is only where the visible range starts —
-            // the 4.5% level has actually held since 2015-03-26 per the source table.
-            const dates = (d.dates || []).filter(Boolean);
-            const vnd = iso => iso.split('-').reverse().join('/');
-            const range = dates.length
-                ? `${vnd(dates[0])} – ${vnd(dates[dates.length - 1])}` : null;
-            stat.innerHTML = clean.map(s =>
-                `<div class="policy-stat-item">
-                     <div class="policy-stat-label">${s.label}</div>
-                     <div class="policy-stat-value">${formatPctVi(s.vals[0])}<span>%/năm</span></div>
-                 </div>`
-            ).join('') +
-            `<div class="policy-stat-note">Không thay đổi suốt khoảng đang xem${range ? ` (${range})` : ''}. Đây là lãi suất điều hành — NHNN chỉ điều chỉnh vài lần mỗi năm, nên xu hướng chỉ đọc được trên khung nhiều năm.</div>`;
+        function renderPolicyRates() {
+            const canvas = document.getElementById('sbv2Chart');
+            const stat = document.getElementById('sbv2Stat');
+            if (!canvas || !_policyData) return;
 
-            wrap.hidden = true;
-            stat.hidden = false;
-            return true;
+            const d = _policyData;
+            const cutoff = new Date();
+            if (_policyPeriod === '5y') cutoff.setFullYear(cutoff.getFullYear() - 5);
+            else if (_policyPeriod === '10y') cutoff.setFullYear(cutoff.getFullYear() - 10);
+            else cutoff.setFullYear(1900);
+
+            // Keep the last point BEFORE the cutoff too, otherwise a window that opens
+            // mid-plateau would start at the next decision and hide the level in force.
+            const idx = d.dates.map((iso, i) => ({ iso, i }))
+                              .filter(x => new Date(x.iso) >= cutoff)
+                              .map(x => x.i);
+            let from = idx.length ? idx[0] : 0;
+            if (from > 0) from -= 1;
+            const dates = d.dates.slice(from);
+            const ref = d.refinancing.slice(from);
+            const red = d.rediscount.slice(from);
+
+            if (chartInstances['sbv2']) chartInstances['sbv2'].destroy();
+            chartInstances['sbv2'] = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        // stepped: a policy rate holds, then jumps on a decision date.
+                        { label: 'Lãi suất tái cấp vốn', data: ref, borderColor: '#6b3520',
+                          backgroundColor: 'transparent', borderWidth: 2, tension: 0,
+                          stepped: 'before', pointRadius: 0, pointHoverRadius: 4 },
+                        { label: 'Lãi suất chiết khấu', data: red, borderColor: '#9e4a2e',
+                          backgroundColor: 'transparent', borderWidth: 2, tension: 0,
+                          stepped: 'before', pointRadius: 0, pointHoverRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 } },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            callbacks: { label: ctx => `${ctx.dataset.label}: ${formatPctVi(ctx.parsed.y)}%/năm` }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: _policyPeriod === '5y' ? 'year' : 'year', tooltipFormat: 'dd/MM/yyyy' },
+                            ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#87867f', callback: v => v + '%' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            if (stat) {
+                const vnd = iso => iso.split('-').reverse().join('/');
+                // last_change is the last DECISION date from the source table, never the
+                // first date of the visible window.
+                const since = d.last_change ? vnd(d.last_change) : null;
+                stat.innerHTML =
+                    `<div class="policy-stat-item">
+                         <div class="policy-stat-label">Tái cấp vốn hiện tại</div>
+                         <div class="policy-stat-value">${formatPctVi(ref[ref.length - 1])}<span>%/năm</span></div>
+                     </div>
+                     <div class="policy-stat-item">
+                         <div class="policy-stat-label">Chiết khấu hiện tại</div>
+                         <div class="policy-stat-value">${formatPctVi(red[red.length - 1])}<span>%/năm</span></div>
+                     </div>` +
+                    (since ? `<div class="policy-stat-note">Không thay đổi kể từ ${since}.</div>` : '');
+                stat.hidden = false;
+            }
         }
 
         function parseGoldSilverData(apiData, chartType) {
@@ -2231,27 +2288,20 @@
                     datasets: [
                         { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#c96442', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#d9a689', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#cf8560', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 }
-                    ]
-                },
-                options: _sbvChartOptions
-            };
-        }
-
-        function parseSBVPolicyData(apiData) {
-            // Policy rates: rediscount, refinancing
-            if (!apiData || !apiData.data || !apiData.data.dates) return null;
-            const d = apiData.data;
-            return {
-                type: 'line',
-                data: {
-                    labels: d.dates,
-                    datasets: [
-                        // stepped, tension 0 — a policy rate does not glide between
-                        // announcements, it holds and then jumps on a decision date.
-                        // Smoothing it drew a curve through dates on which nothing happened.
-                        { label: 'Lãi suất chiết khấu', data: d.rediscount,  borderColor: '#9e4a2e', backgroundColor: 'transparent', borderWidth: 2, tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 4 },
-                        { label: 'Lãi suất tái cấp vốn', data: d.refinancing, borderColor: '#6b3520', backgroundColor: 'transparent', borderWidth: 2, tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 4 }
+                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#cf8560', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        // Policy rates as reference lines on the SAME % axis. The
+                        // refinancing rate is the ceiling of SBV's corridor, so what
+                        // analysts read here is the GAP: overnight drifting up toward —
+                        // or through — the ceiling is the liquidity-stress signal. With
+                        // the two living in separate charts that relationship was
+                        // invisible. Dashed, stepped and thinner so they read as context
+                        // rather than as a fourth and fifth market series.
+                        { label: 'Trần: tái cấp vốn', data: d.refinancing, borderColor: '#6b3520',
+                          backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [6, 4],
+                          tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 3 },
+                        { label: 'Sàn: chiết khấu', data: d.rediscount, borderColor: '#9e4a2e',
+                          backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [6, 4],
+                          tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 3 }
                     ]
                 },
                 options: _sbvChartOptions
@@ -2908,6 +2958,18 @@
                 loadVnindexChart(btn.dataset.vnindexPeriod);
             });
         })();
+
+        // SBV policy rates have their own horizon, separate from the interbank
+        // selector above them (see loadPolicyRates).
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('[data-policy-period]');
+            if (!btn) return;
+            _policyPeriod = btn.dataset.policyPeriod;
+            document.querySelectorAll('[data-policy-period]').forEach(b => {
+                b.classList.toggle('active', b.dataset.policyPeriod === _policyPeriod);
+            });
+            loadPolicyRates();
+        });
 
         /* =========================================================
            MARKET PULSE - LOAD & RENDER ARTICLES
