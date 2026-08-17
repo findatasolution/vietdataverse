@@ -32,3 +32,6 @@ finstock/back/model/*.png
 finstock/forecast_*.csv
 finstock/model_pipeline.ipynb
 finstock/run_forecast_*.py
+
+# Visual brainstorming mockups (superpowers)
+.superpowers/
