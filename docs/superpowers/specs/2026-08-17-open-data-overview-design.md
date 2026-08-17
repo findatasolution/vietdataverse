@@ -154,12 +154,27 @@ weight, so:
 - Section headings stay as real `<h2>` elements in the overview grid.
 - `<title>`, `og:`, `twitter:` and JSON-LD are untouched.
 
-## Mobile
+## Phasing
 
-Explicitly **out of scope for this change** and tracked as the next task. The
-grid must collapse to one column <768px, and `DESIGN.md` §13.9 forbids horizontal
-scroll — both need verifying at ≤640px together with the earlier layout work that
-has not been checked at that width either.
+**Desktop and mobile ship together** (decided 2026-08-17, after the SEO audit).
+Google indexes the mobile rendering, so shipping a desktop-only overview would
+mean the version Google sees is the one nobody has checked. Build desktop first,
+then mobile, then release both.
+
+**Desktop** — everything in this spec at ≥768px.
+
+**Mobile** — same feature at <768px, in the same release:
+
+- Grid collapses to one column; tiles keep the same anatomy but the chart drops
+  to ~110px and the y axis to 2 ticks.
+- Detail view: ‹ › becomes a sticky bottom bar (`DESIGN.md` §11.9 mobile note).
+- `DESIGN.md` §13.9 forbids horizontal scroll anywhere — verify at ≤640px.
+- Phase 2 also covers the earlier layout work (section headings, KPI strip,
+  policy filters, footer grid, index-100 axis title), none of which has been
+  checked at that width yet.
+
+Splitting this way keeps one variable moving at a time: if something breaks at
+≤640px we know whether it came from the overview or from the earlier pass.
 
 ## Out of scope
 
