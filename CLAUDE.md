@@ -49,7 +49,7 @@ be/                 FastAPI backend
   payment.py        PayOS + credit_topup webhook
   generate_static_data.py          DB → fe/data/*.json
   1s_market_pulse.py               news pulse generator
-fe/                 Static frontend (served by FastAPI at /fe, also GitHub Pages)
+fe/                 Static frontend (served by FastAPI at /fe — see note below)
   partials/         8 HTML fragments — source of truth (see fe/CLAUDE.md)
   build.py          Concatenates partials → index.html (stdlib only)
   index.html        AUTO-GENERATED — never edit directly
@@ -226,6 +226,17 @@ Response shape:
 ## Frontend
 
 `fe/index.html` is **auto-generated** from 8 partials in `fe/partials/` by `python fe/build.py`. Never edit `index.html` directly — CI rebuilds and overwrites it. See `fe/CLAUDE.md` for full build workflow.
+
+### Where production actually serves from
+
+**FastAPI + Caddy on the Hetzner box, and nowhere else.** `https://vietdataverse.online/` answers with `server: uvicorn`, `via: Caddy`, and 307-redirects to `/fe/`.
+
+GitHub Pages is **also enabled** on this repo (source: `main` branch, root path) and builds on every push, but it is a stale orphan, not a deploy target:
+
+- `findatasolution.github.io/vietdataverse/` → 404, because the repo root has no `index.html` (it lives at `fe/index.html`).
+- `findatasolution.github.io/vietdataverse/fe/` → **200, a full public duplicate of the site.**
+
+That duplicate is kept out of trouble solely by the hardcoded `<link rel="canonical" href="https://vietdataverse.online/">` in `index.html`, which points search engines back at the real domain. A repo `robots.txt` cannot block it: on `github.io` the effective robots file is at the domain root, which GitHub controls. If you ever drop or template that canonical, verify the github.io copy first. Turning Pages off would remove the duplicate and stop the `pages-build-deployment` CI run, but that has not been done — confirm nobody relies on it as a fallback before disabling.
 
 ### Workspace IA (top-level navigation)
 
