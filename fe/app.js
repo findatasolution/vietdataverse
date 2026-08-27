@@ -2008,6 +2008,27 @@
         /* =========================================================
            FETCH CHART DATA - STATIC CDN FIRST, API FALLBACK
         ========================================================= */
+        // Maps a chart request onto its generated static JSON, if one exists.
+        // generate_static_data.py only ever produces 7d/1m/1y — never "all" — so
+        // this returns null for that period and the caller falls through to the
+        // live (metered, anonymous-gated) API exactly as before. Filenames must
+        // match generate_static_data.py's save_json() calls exactly; verify
+        // there with `ls fe/data/` before changing either side.
+        function staticFileFor(chartType, period, goldType, bankCode) {
+            if (period === 'all') return null;
+            switch (chartType) {
+                case 'gold':   return `gold_${goldType.replace(/ /g, '_')}_${period}.json`;
+                case 'silver': return `silver_${period}.json`;
+                case 'td':     return `termdepo_${bankCode}_${period}.json`;
+                case 'sbv':    return `sbv_${period}.json`;
+                // fxrate has no bank/currency selector in the UI — the live-API
+                // branch below hardcodes bank=SBV&currency=USD too, so this matches.
+                case 'fxrate': return `fxrate_SBV_USD_${period}.json`;
+                case 'global': return `global_${period}.json`;
+                default:       return null;
+            }
+        }
+
         async function loadChartData(chartType, period = '1m', goldType = 'DOJI HN', bankCode = 'ACB') {
             const base = window.APP_CONFIG.API_BASE_URL;
             if (!chartType) return;
@@ -2035,7 +2056,26 @@
                     delete window._prefetchPromises[prefetchKey]; // consume once
                 }
 
-                // Fallback: fetch from API if prefetch missed or failed
+                // Fallback #2: the generated static JSON for THIS exact period,
+                // if one exists. Only period="1m" (and a handful of other
+                // hardcoded combos) was ever prefetched at page load, so
+                // switching to any other period fell straight to the metered
+                // live API and 401'd for every anonymous visitor — even though
+                // fe/data/{type}_{period}.json already sat there with the answer.
+                // Uses the SAME shape as the prefetch promises above ({data:{…}}
+                // straight from res.json(), unwrapped by parseXData()), so this
+                // is transparent to renderChart().
+                if (!data) {
+                    const file = staticFileFor(chartType, period, goldType, bankCode);
+                    if (file) {
+                        try {
+                            const sres = await fetch(`./data/${file}`);
+                            if (sres.ok) data = await sres.json();
+                        } catch (_) { /* fall through to live API below */ }
+                    }
+                }
+
+                // Fallback #3: fetch from the live API if the above both missed.
                 if (!data && base) {
                     let apiUrl = `${base}/${endpoint}?period=${period}`;
                     if (chartType === 'gold' && goldType) apiUrl += `&type=${encodeURIComponent(goldType)}`;
