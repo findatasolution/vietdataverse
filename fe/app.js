@@ -656,6 +656,12 @@
             initScrollSections();
             initFilterButtons();
             initNotifications();
+            // Overview mounts unconditionally: the five detail sections start
+            // hidden in the static HTML (ov-section-hidden), so "overview visible"
+            // is the safe default regardless of which code path activated the
+            // data-portal tab. If the hash then resolves to a chart/section route,
+            // ovShowChartDetail() immediately hides it again — see below.
+            if (window.VDOverview) window.VDOverview.mount(document.getElementById('data-charts'));
             initPulseSidebar();
             initReportListing();
             loadMarketMovement();
@@ -1095,6 +1101,177 @@
                 });
             }
 
+            /* =====================================================
+               OPEN DATA — OVERVIEW <-> DETAIL ROUTING
+               Spec: docs/superpowers/specs/2026-08-17-open-data-overview-design.md
+               Routes: #data/portal (overview) | #data/portal/chart/<id> (detail)
+               | #data/portal/<section> (legacy — redirects to that section's
+               first chart, kept one release per DESIGN.md §12.6).
+            ===================================================== */
+
+            // Returns overview to view: the default state already present in the
+            // static HTML (five sections hidden via ov-section-hidden), restated
+            // here so "Back to overview" and popstate can return to it explicitly.
+            function ovShowOverview() {
+                const root = document.getElementById('data-charts');
+                const bar = document.getElementById('ov-detail-bar');
+                if (bar) bar.hidden = true;
+                if (root) root.classList.remove('ov-section-hidden');
+                document.querySelectorAll('[data-lazy-section]').forEach(el => {
+                    el.classList.add('ov-section-hidden');
+                });
+                if (window.VDOverview) window.VDOverview.mount(root);
+            }
+
+            // Runs the ONE existing load function for a chart's family. Every
+            // family already destroys its previous Chart.js instance before
+            // creating a new one (chartInstances[x].destroy(), _cpiChart.destroy(),
+            // _vnindexChart.destroy(), …), so calling it again here is safe AND
+            // — importantly — creates the new instance sized against the
+            // container that is now visible, which sidesteps the classic Chart.js
+            // "canvas was display:none when first drawn" sizing bug for free.
+            function ovLoadDetailData(chart) {
+                if (chart.family === 'dispatch') {
+                    const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
+                    const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
+                    loadChartData(chart.chartType, chart.detailPeriod, goldType, bankCode);
+                } else if (chart.family === 'policy') {
+                    loadPolicyRates();
+                } else if (chart.family === 'macro') {
+                    loadMacroCharts(chart.detailPeriod === 'all' ? 0 : parseInt(chart.detailPeriod, 10));
+                } else if (chart.family === 'stock') {
+                    loadVnindexChart(chart.detailPeriod);
+                }
+            }
+
+            function ovShowChartDetail(chartId) {
+                const overview = window.VDOverview;
+                const chart = overview && overview.byId(chartId);
+                if (!chart) { ovShowOverview(); return; } // unknown id -> overview, not a blank view
+
+                if (overview) overview.unmount(); // destroy mini instances while a detail is open
+
+                document.getElementById('data-charts')?.classList.add('ov-section-hidden');
+
+                // Show only this chart's section; hide the other four.
+                document.querySelectorAll('[data-lazy-section]').forEach(el => {
+                    el.classList.toggle('ov-section-hidden', el.dataset.lazySection !== chart.section);
+                });
+
+                // Within that section, reveal only this chart's card. interbank and
+                // policy share ONE .chart-card in the DOM (see the registry comment
+                // in app.overview.js) — both ids reveal that same card.
+                const sectionEl = document.querySelector(`[data-lazy-section="${chart.section}"]`);
+                if (sectionEl) {
+                    sectionEl.querySelectorAll('.chart-card[data-chart-id]').forEach(card => {
+                        card.classList.toggle('ov-section-hidden', card.dataset.chartId !== chart.domCardId);
+                    });
+                }
+
+                // Sections other than gold-silver never auto-load once hidden — their
+                // IntersectionObserver in initScrollSections() cannot fire on a
+                // display:none element. loadChartsForSection is idempotent
+                // (guarded by loadedSections), so calling it here is always safe.
+                loadChartsForSection(chart.section);
+                ovLoadDetailData(chart);
+
+                if (chart.scrollAnchor) {
+                    setTimeout(() => {
+                        document.getElementById(chart.scrollAnchor)
+                            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                }
+
+                // Detail chrome: back link (static), section label, ‹ › position.
+                const bar = document.getElementById('ov-detail-bar');
+                if (bar) bar.hidden = false;
+                const secMeta = overview.SECTIONS.find(s => s.key === chart.section);
+                const secLabelEl = document.getElementById('ov-detail-section');
+                if (secLabelEl) secLabelEl.textContent = secMeta ? secMeta.label : '';
+
+                // ‹ › steps over DISTINCT DOM cards in the section, in registry
+                // order — interbank and policy collapse to ONE stop, since they
+                // are the same card.
+                const domOrder = [];
+                overview.REGISTRY.filter(c => c.section === chart.section).forEach(c => {
+                    if (!domOrder.includes(c.domCardId)) domOrder.push(c.domCardId);
+                });
+                const pos = domOrder.indexOf(chart.domCardId);
+                const posEl = document.getElementById('ov-detail-pos');
+                if (posEl) posEl.textContent = `${pos + 1}/${domOrder.length}`;
+                const prevBtn = document.getElementById('ov-prev');
+                const nextBtn = document.getElementById('ov-next');
+                if (prevBtn) prevBtn.disabled = pos <= 0;
+                if (nextBtn) nextBtn.disabled = pos >= domOrder.length - 1;
+                window._ovSectionOrder = domOrder;
+                window._ovSectionPos = pos;
+            }
+
+            // #data/portal/<sub> dispatcher. sub is null (bare #data/portal),
+            // "chart/<id>" (detail route), or a bare section key (legacy 3-segment
+            // form — redirects to that section's first chart and rewrites the URL).
+            function applyDataPortalRoute(sub) {
+                if (!sub) { ovShowOverview(); return; }
+                if (sub.indexOf('chart/') === 0) {
+                    ovShowChartDetail(sub.slice('chart/'.length));
+                    return;
+                }
+                const overview = window.VDOverview;
+                const firstId = overview && overview.firstChartOfSection(sub);
+                if (firstId) {
+                    history.replaceState(null, '', `#data/portal/chart/${firstId}`);
+                    ovShowChartDetail(firstId);
+                } else {
+                    ovShowOverview();
+                }
+            }
+
+            // Tile clicks (event delegation — tiles are (re)built by
+            // VDOverview.mount on every return to the overview).
+            document.addEventListener('click', e => {
+                const tile = e.target.closest('.ov-tile[data-chart-id]');
+                if (!tile) return;
+                const id = tile.dataset.chartId;
+                history.pushState(null, '', `#data/portal/chart/${id}`);
+                ovShowChartDetail(id);
+            });
+
+            // Detail chrome: back link and ‹ › — plain buttons/anchor, not
+            // hash-driven, matching this app's existing pattern of pairing
+            // pushState with a direct function call (there is no hashchange
+            // listener anywhere in this file).
+            document.getElementById('ov-back')?.addEventListener('click', e => {
+                e.preventDefault();
+                history.pushState(null, '', '#data/portal');
+                ovShowOverview();
+            });
+            document.getElementById('ov-prev')?.addEventListener('click', () => {
+                const order = window._ovSectionOrder, pos = window._ovSectionPos;
+                if (!order || pos <= 0) return;
+                const id = ovChartIdForDomCard(order[pos - 1]);
+                if (id) { history.pushState(null, '', `#data/portal/chart/${id}`); ovShowChartDetail(id); }
+            });
+            document.getElementById('ov-next')?.addEventListener('click', () => {
+                const order = window._ovSectionOrder, pos = window._ovSectionPos;
+                if (!order || pos >= order.length - 1) return;
+                const id = ovChartIdForDomCard(order[pos + 1]);
+                if (id) { history.pushState(null, '', `#data/portal/chart/${id}`); ovShowChartDetail(id); }
+            });
+            function ovChartIdForDomCard(domCardId) {
+                const c = window.VDOverview && window.VDOverview.REGISTRY.find(x => x.domCardId === domCardId);
+                return c ? c.id : null;
+            }
+
+            // Browser Back/Forward. Scoped to #data/portal so this does not take
+            // on making the rest of the SPA's navigation popstate-aware — no
+            // popstate listener exists elsewhere in this file today.
+            window.addEventListener('popstate', () => {
+                const hash = window.location.hash.replace('#', '');
+                if (hash.indexOf('data/portal') !== 0) return;
+                const parts = hash.split('/'); // ['data','portal', ...rest]
+                applyDataPortalRoute(parts.slice(2).join('/') || null);
+            });
+
             // Handle URL hash on page load
             // Supports: #ws/view[/sub]  |  legacy #tabId  |  plain #tabId
             const rawHash = window.location.hash.replace('#', '');
@@ -1110,23 +1287,20 @@
                     setWorkspace(ws);
                     if (tabId === 'portal' && ws === 'data') {
                         activateTab('data-portal');
-                        if (sub) {
-                            setTimeout(() => {
-                                const el = document.querySelector(`[data-lazy-section="${sub}"]`);
-                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }, 100);
-                        }
+                        applyDataPortalRoute(sub);
                     } else if (tabId && document.getElementById(tabId)) {
                         activateTab(tabId);
                     } else if (ws === 'km' && tabId) {
                         activateTab('knowledge-market');
                     }
                 } else if (rawHash.includes('/')) {
-                    // New format: ws/view[/sub]
+                    // New format: ws/view[/sub]. sub is everything after
+                    // parts[1] rejoined — data/portal/chart/gold must keep
+                    // "chart/gold" intact, not just parts[2] ("chart").
                     const parts = rawHash.split('/');
                     const ws = parts[0];
                     const tabId = parts[1] || null;
-                    const sub = parts[2] || null;
+                    const sub = parts.slice(2).join('/') || null;
                     setWorkspace(ws);
                     if (ws === 'legal' && tabId && LEGAL_VIEW_MAP[tabId]) {
                         // Legal route: show as data workspace tab
@@ -1134,10 +1308,7 @@
                         activateTab(LEGAL_VIEW_MAP[tabId]);
                     } else if (ws === 'data' && tabId === 'portal') {
                         activateTab('data-portal');
-                        if (sub) {
-                            const chartBtn = document.querySelector(`.chart-tab-btn[data-tab="tab-${sub}"]`);
-                            if (chartBtn) chartBtn.click();
-                        }
+                        applyDataPortalRoute(sub);
                     } else if (tabId && document.getElementById(tabId)) {
                         activateTab(tabId);
                     } else if (ws === 'km' && tabId) {
@@ -1170,6 +1341,7 @@
                 history.replaceState(null, '', '#data/portal');
                 setWorkspace('data');
                 activateTab('data-portal');
+                ovShowOverview();
             }
         }
 
@@ -1793,7 +1965,14 @@
            CHART RENDERING SYSTEM WITH LAZY LOADING & CACHING
         ========================================================= */
 
-        // Store Chart.js instances
+        // Store Chart.js instances.
+        // Exposed on window for introspection (spec acceptance criterion: "no
+        // chart is rendered twice; chartInstances holds at most one object per
+        // id") — every load function here already destroys the previous instance
+        // before creating a new one, so the overview/detail router never needs to
+        // touch this directly; it just re-runs the relevant load function, which
+        // is idempotent. `const` does not become a global on its own (unlike the
+        // top-level function declarations in this file), hence this line.
         const chartInstances = {
             gold: null,
             silver: null,
@@ -1802,6 +1981,7 @@
             fxrate: null,
             global: null
         };
+        window.chartInstances = chartInstances;
 
         // Cache for loaded data (avoid redundant API calls)
         const chartCache = {};
@@ -3649,6 +3829,17 @@
             // CPI: cached per view type (annual vs monthly)
             let _rawCpiAnnual = null, _rawCpiMonthly = null;
             let _rawGdp = null, _rawExp = null, _rawImp = null;
+
+            // GDP has no static JSON (unlike CPI, gold, silver, …) — it is fetched
+            // live from the World Bank API by wbFetch(), private to this IIFE. The
+            // overview's GDP mini-tile needs that same series, so this thin export
+            // reuses wbFetch and writes into the SAME _rawGdp the full detail view
+            // reads — opening the GDP detail after viewing the overview tile does
+            // not re-fetch. Returns [{date, value}, …], sorted ascending.
+            window.loadGdpSeries = async function () {
+                if (!_rawGdp) _rawGdp = await wbFetch('NY.GDP.MKTP.KD.ZG', 40);
+                return _rawGdp;
+            };
 
             // ── Main load function
             window.loadMacroCharts = async function (years = 20) {

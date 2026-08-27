@@ -236,7 +236,9 @@ GitHub Pages is **also enabled** on this repo (source: `main` branch, root path)
 - `findatasolution.github.io/vietdataverse/` → 404, because the repo root has no `index.html` (it lives at `fe/index.html`).
 - `findatasolution.github.io/vietdataverse/fe/` → **200, a full public duplicate of the site.**
 
-That duplicate is kept out of trouble solely by the hardcoded `<link rel="canonical" href="https://vietdataverse.online/">` in `index.html`, which points search engines back at the real domain. A repo `robots.txt` cannot block it: on `github.io` the effective robots file is at the domain root, which GitHub controls. If you ever drop or template that canonical, verify the github.io copy first. Turning Pages off would remove the duplicate and stop the `pages-build-deployment` CI run, but that has not been done — confirm nobody relies on it as a fallback before disabling.
+That duplicate is kept out of trouble solely by the hardcoded `<link rel="canonical" href="https://vietdataverse.online/">` in `index.html`, which points search engines back at the real domain. A repo `robots.txt` cannot block it: on `github.io` the effective robots file is at the domain root, which GitHub controls. If you ever drop or template that canonical, verify the github.io copy first.
+
+**Disabling Pages needs the repo owner.** Attempted 2026-08-26 via `gh api -X DELETE repos/findatasolution/vietdataverse/pages` → `404`. The repo is owned by the user account `findatasolution`; the usual working account (`Hiienng`) has `push`/`triage` but `admin: false`, and deleting a Pages site requires admin. No token scope fixes this — it is a repo-level permission. Do it in the UI as `findatasolution`: **Settings → Pages → Build and deployment → Source → None**. Until then Pages keeps building on every push and the `/fe/` duplicate stays up.
 
 ### Workspace IA (top-level navigation)
 
@@ -247,6 +249,48 @@ That duplicate is kept out of trouble solely by the hardcoded `<link rel="canoni
 - **`data-workspace="pulse"`** — Thời báo 1 giây
 
 Routing: hash `#<workspace>/<view>` handled by `setWorkspace()`/`setView()` in `app.js`. `LEGACY_HASH_MAP` redirects old hashes (`#knowledge-market`, `#tab-library`, …).
+
+### Open Data — Overview grid (`#data/portal`)
+
+Landing on Open Data shows a grid of 10 mini-charts grouped under the same 5
+section headings the charts have always used (Vàng & Bạc, Tiền tệ VN, Thị
+trường quốc tế, Vĩ mô, Chứng khoán), not the five full-size sections stacked
+vertically. Clicking a tile routes to `#data/portal/chart/<id>` — that one
+chart, full size, unchanged from before. Spec:
+`docs/superpowers/specs/2026-08-17-open-data-overview-design.md`.
+
+- **`fe/app.overview.js`** (new, `window.VDOverview`) owns `CHART_REGISTRY` —
+  the single declaration of the 10 charts, their static JSON source, and which
+  of app.js's four unrelated chart-loading paths (`dispatch` / `policy` /
+  `macro` / `stock`) each one uses. It does not touch the full-size charts;
+  those stay in `app.js`.
+- The five `.chart-section-group` blocks are hidden **in the static HTML**
+  (`ov-section-hidden` class baked into `_tab_data_portal.html`), not by JS at
+  runtime — the safe default is "show overview" regardless of which code path
+  activates the `data-portal` tab. The routing functions
+  (`ovShowOverview`/`ovShowChartDetail`/`applyDataPortalRoute`, in `app.js`
+  next to the hash-parsing block) toggle that class to reveal one section and
+  one `.chart-card[data-chart-id]` at a time.
+- **`interbank` and `policy` share one `.chart-card`** in the DOM — the
+  interbank chart and the SBV policy-rate panel are two blocks inside the same
+  card, not two cards (see `_tab_data_portal.html`'s currency section). Both
+  registry ids resolve to `domCardId: 'interbank'`; routing to `policy`
+  additionally scrolls to `#sbv-policy-anchor` inside that shared card. The ‹ ›
+  detail-nav steps over *distinct DOM cards*, so interbank and policy count as
+  one stop, not two.
+- `#data/portal/<section>` (the pre-existing 3-segment legacy form) now
+  redirects to that section's first chart rather than the dead
+  `.chart-tab-btn` click it used to fire — kept one release per §12.6.
+- Entering any chart detail re-runs that chart's own load function
+  (`loadChartData` / `loadPolicyRates` / `loadMacroCharts` / `loadVnindexChart`).
+  Every one of those already destroys its previous Chart.js instance before
+  creating a new one, so calling it again is safe *and* — deliberately — sizes
+  the new instance against the now-visible container, sidestepping the classic
+  Chart.js "canvas was `display:none` on first draw" bug for free.
+- `fe/check_overview.py` checks structural invariants (registry ↔ static-file
+  field names, DOM `data-chart-id` set, sections hidden by default) — run it
+  after touching the registry or the portal partial. It cannot check Chart.js
+  rendering itself; that still needs a real browser.
 
 ### Agent Market (KM) auth states
 

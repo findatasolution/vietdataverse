@@ -141,8 +141,33 @@
                         <span class="global-ticker-ts" id="gtk-ts"></span>
                     </div>
 
+                    <!-- ── Overview grid — default landing view ──
+                         Populated by VDOverview.mount() (fe/app.overview.js).
+                         Section headings and chart titles render as real text
+                         here (not canvas-only), so they stay crawlable when the
+                         five detail sections below are hidden. -->
+                    <div class="ov-root" id="data-charts" data-view="overview"></div>
+
+                    <!-- ── Detail chrome — shown only when routed to one chart ──
+                         Built by the router in app.js (setDataPortalRoute). -->
+                    <div class="ov-detail-bar" id="ov-detail-bar" hidden>
+                        <a href="#data/portal" class="ov-back" id="ov-back">
+                            <i class="fas fa-arrow-left"></i> Tổng quan
+                        </a>
+                        <span class="ov-detail-section" id="ov-detail-section"></span>
+                        <span class="ov-detail-nav">
+                            <button type="button" class="ov-nav-btn" id="ov-prev" aria-label="Chỉ số trước">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="ov-detail-pos"></span>
+                            <button type="button" class="ov-nav-btn" id="ov-next" aria-label="Chỉ số sau">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </span>
+                    </div>
+
                     <!-- ── Section: Vàng & Bạc ── -->
-                    <div class="chart-section-group" id="data-charts" data-lazy-section="gold-silver">
+                    <div class="chart-section-group ov-section-hidden" data-lazy-section="gold-silver">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-coins"></i>
                             <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
@@ -150,7 +175,7 @@
 
                         <!-- Gold Price Chart -->
                         <div class="gold-section-grid gold-full-width">
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="gold">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="goldChart">Lịch sử giá vàng trong nước</span>
@@ -188,7 +213,7 @@
                         </div>
 
                         <!-- Silver Price Chart -->
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="silver">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="silverChart">Lịch sử giá bạc (Phú Quý)</span>
@@ -222,14 +247,14 @@
                     </div>
 
                     <!-- ── Section: Tiền Tệ VN ── -->
-                    <div class="chart-section-group" data-lazy-section="currency">
+                    <div class="chart-section-group ov-section-hidden" data-lazy-section="currency">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-university"></i>
                             <span data-i18n="tabCurrency">Tiền tệ VN</span>
                         </h2>
 
                         <!-- Term Deposit Chart -->
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="termdepo">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="tdChart">Lịch sử lãi suất gửi tiết kiệm (NHTM)</span>
@@ -265,7 +290,7 @@
                         </div>
 
                         <!-- SBV Interbank Rate Chart -->
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="interbank">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="sbvChart">Lịch sử lãi suất liên ngân hàng SBV</span>
@@ -300,7 +325,7 @@
                                  interbank selector above. SBV moves them a few times a
                                  year, so on the interbank window (7 ngày–1 năm) they are
                                  flat by construction and carry no information. -->
-                            <div class="chart-filters policy-filters">
+                            <div class="chart-filters policy-filters" id="sbv-policy-anchor">
                                 <button class="filter-btn" data-policy-period="5y">5 năm</button>
                                 <button class="filter-btn" data-policy-period="10y">10 năm</button>
                                 <button class="filter-btn active" data-policy-period="all" data-i18n="periodAll">Tất cả</button>
@@ -316,7 +341,7 @@
                         </div>
 
                         <!-- FX Rate Chart -->
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="fxrate">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="fxrateChart">Tỷ giá trung tâm USD/VND (NHNN)</span>
@@ -350,13 +375,13 @@
                     </div>
 
                     <!-- ── Section: Thị trường Quốc tế ── -->
-                    <div class="chart-section-group" data-lazy-section="global">
+                    <div class="chart-section-group ov-section-hidden" data-lazy-section="global">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-globe"></i>
                             <span data-i18n="tabGlobal">Thị trường quốc tế</span>
                         </h2>
 
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="global">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="globalChart">Xu hướng thị trường toàn cầu (vàng, bạc)</span>
@@ -390,14 +415,14 @@
                     </div>
 
                     <!-- ── Section: Vĩ Mô ── -->
-                    <div class="chart-section-group" data-lazy-section="macro">
+                    <div class="chart-section-group ov-section-hidden" data-lazy-section="macro">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-chart-area"></i>
                             <span data-i18n="tabMacro">Vĩ mô</span>
                         </h2>
 
                         <!-- CPI -->
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="cpi">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     <span data-i18n="cpiChart">CPI Việt Nam (% YoY/năm)</span>
@@ -427,7 +452,7 @@
                         </div>
 
                         <!-- GDP -->
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="gdp">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     Tăng trưởng GDP Việt Nam (%/năm)
@@ -458,13 +483,13 @@
                     </div>
 
                     <!-- ── Section: Chứng khoán ── -->
-                    <div class="chart-section-group" data-lazy-section="stock">
+                    <div class="chart-section-group ov-section-hidden" data-lazy-section="stock">
                         <h2 class="chart-section-heading">
                             <i class="fas fa-chart-line"></i>
                             <span>Chứng khoán</span>
                         </h2>
 
-                        <div class="chart-card">
+                        <div class="chart-card" data-chart-id="vnindex">
                             <div class="chart-header">
                                 <h3 class="chart-title">
                                     VN-Index

@@ -2,6 +2,15 @@
 
 Status: approved 2026-08-17. Supersedes nothing; extends the existing Open Data workspace.
 
+**Implemented 2026-08-27** (desktop + mobile CSS together, per the phasing
+decision below). Code: `fe/app.overview.js`, routing in `fe/app.js` next to
+the hash-parsing block, grid/tile/detail CSS in `fe/style.css`, structural
+checks in `fe/check_overview.py`. Verified: JS syntax, every registry entry
+against its real static-file shape, DOM tag consistency, HTTP 200 on all new
+assets. **Not yet verified: actual Chart.js rendering, click-through routing,
+and mobile at a real viewport width — this environment has no browser.** See
+the handoff message for the exact manual QA checklist.
+
 ## Problem
 
 `#data/portal` renders five sections stacked vertically with ten full-width charts.

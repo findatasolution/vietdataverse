@@ -4734,23 +4734,28 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 */
 
 /* ── Open Data — value-prop hero (above ticker strip) ── */
+/* Compacted for the overview (spec: "Page header" decision) — the grid needs to
+   reach above the fold, so this trades vertical space while keeping the <h1>
+   and both CTAs intact for SEO and the API entry point. */
 .data-hero {
-    padding: 2.25rem 0 1.5rem;
+    padding: 1.25rem 0 1rem;
     max-width: 760px;
 }
 .data-hero-title {
     font-family: 'Lora', Georgia, serif;
-    font-size: 2.4rem;
+    font-size: 1.9rem;
     font-weight: 600;
     line-height: 1.15;
     color: var(--near-black);
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.4rem;
 }
 .data-hero-sub {
-    font-size: 1.05rem;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.5;
     color: var(--olive-gray);
-    margin: 0 0 1.25rem;
+    margin: 0 0 0.9rem;
+    /* One line on desktop — the lead's job now is orientation, not a pitch. */
+    max-width: 640px;
 }
 .data-hero-sub strong { color: var(--terracotta); font-weight: 600; }
 .data-hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
@@ -4904,4 +4909,206 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 .policy-filters {
     justify-content: flex-end;
     margin: 0 1rem 0.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   OPEN DATA — OVERVIEW GRID
+   Spec: docs/superpowers/specs/2026-08-17-open-data-overview-design.md
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* The five existing sections (Vàng & Bạc, Tiền tệ VN, …) render in full below
+   the grid, hidden by DEFAULT via this class. This is a CSS display:none, not
+   a DOM removal — the spec requires that distinction: content Google should
+   still index vs. content the visitor sees. The router in app.js toggles this
+   class; it never touches innerHTML on these sections. */
+.ov-section-hidden { display: none !important; }
+
+.ov-root { margin: 0 0 1.5rem; }
+
+.ov-heading:first-child { margin-top: 0; }
+
+.ov-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+@media (max-width: 1199px) and (min-width: 768px) {
+    .ov-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 767px) {
+    .ov-grid { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+/* Tile — the whole element is one <button>, so the entire card is the click
+   target (DESIGN.md §11.12: hover uses a ring shadow shift + translateY, never
+   scale() — scale() breaks the pixel-perfect ring). */
+.ov-tile {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    gap: 0.25rem;
+    text-align: left;
+    width: 100%;
+    /* Grid items default to min-width:auto, which lets an unbreakable long
+       title (or the mobile 1-column layout) force the tile past its column and
+       cause page-level horizontal scroll — forbidden by DESIGN.md §13.9. */
+    min-width: 0;
+    background: var(--pure-white);
+    border: 1px solid var(--border-cream);
+    border-radius: var(--radius-xl);
+    padding: 1rem 1.1rem 0.9rem;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    box-shadow: var(--whisper);
+    transition: box-shadow 180ms ease-out, transform 180ms ease-out, border-color 180ms ease-out;
+}
+.ov-tile:hover, .ov-tile:focus-visible {
+    box-shadow: 0 0 0 2px var(--ring-warm, #d1cfc5), var(--whisper);
+    transform: translateY(-2px);
+    outline: none;
+}
+.ov-tile:active { transform: translateY(0); }
+
+.ov-tile-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.ov-tile-title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--near-black);
+    line-height: 1.3;
+    min-width: 0;
+    overflow-wrap: break-word;
+}
+.ov-tile-src {
+    font-size: 0.6875rem;
+    color: var(--stone-gray);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ov-tile-value {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--near-black);
+    line-height: 1.15;
+}
+.ov-tile-value small {
+    font-family: inherit;
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--stone-gray);
+    margin-left: 0.3rem;
+}
+
+.ov-tile-delta { font-size: 0.75rem; font-weight: 500; min-height: 1.1em; }
+.ov-tile-delta.is-up    { color: #26A69A; }
+.ov-tile-delta.is-down  { color: #EF5350; }
+.ov-tile-delta.is-flat  { color: var(--stone-gray); }
+
+.ov-tile-canvas { position: relative; height: 130px; width: 100%; }
+.ov-tile-canvas canvas { width: 100% !important; height: 100% !important; }
+@media (max-width: 767px) {
+    .ov-tile-canvas { height: 110px; }
+}
+
+.ov-tile-msg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 130px;
+    font-size: 0.75rem;
+    color: var(--stone-gray);
+    text-align: center;
+}
+@media (max-width: 767px) { .ov-tile-msg { height: 110px; } }
+
+/* Skeleton — shown for at most 800ms before the tile settles (DESIGN.md §11.13). */
+.ov-tile.is-loading .ov-tile-value,
+.ov-tile.is-loading .ov-tile-delta {
+    background: linear-gradient(90deg, #ece9dd 25%, #f5f4ed 50%, #ece9dd 75%);
+    background-size: 200% 100%;
+    animation: ov-shimmer 1.4s linear infinite;
+    border-radius: 4px;
+    color: transparent;
+}
+@keyframes ov-shimmer { to { background-position: -200% 0; } }
+
+/* ── Detail chrome ─────────────────────────────────────────────────────── */
+
+.ov-detail-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-cream);
+}
+.ov-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--olive-gray);
+    text-decoration: none;
+}
+.ov-back:hover { color: var(--near-black); }
+.ov-detail-section {
+    font-size: 0.75rem;
+    color: var(--stone-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.ov-detail-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--stone-gray);
+}
+.ov-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border-cream);
+    background: var(--pure-white);
+    color: var(--olive-gray);
+    cursor: pointer;
+}
+.ov-nav-btn:hover { background: var(--warm-sand); color: var(--near-black); }
+.ov-nav-btn:disabled { opacity: 0.35; cursor: default; }
+.ov-nav-btn:disabled:hover { background: var(--pure-white); color: var(--olive-gray); }
+
+/* Mobile: detail nav becomes a sticky bottom bar (DESIGN.md §11.9 mobile note),
+   so ‹ › stays reachable without scrolling back up past a tall chart. */
+@media (max-width: 767px) {
+    .ov-detail-bar {
+        flex-wrap: nowrap;
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        background: var(--ivory);
+        /* .main-content's horizontal padding is 1.5rem at every width (no
+           mobile override exists) — this must match it exactly, or the bar
+           either leaves a gap or overshoots into horizontal scroll
+           (DESIGN.md §13.9 forbids the latter outright). */
+        margin: 0 -1.5rem;
+        padding: 0.6rem 1.5rem;
+        border-bottom: none;
+        border-top: 1px solid var(--border-cream);
+        box-shadow: 0 -4px 16px rgba(20, 20, 19, 0.06);
+    }
+    .ov-detail-section { display: none; }
+    .ov-back span { display: none; }
 }
