@@ -1788,48 +1788,19 @@
         /* =========================================================
            DOWNLOAD DATASET (tab-download)
         ========================================================= */
-        // Users may only download historical data older than 2 months.
-        // Why: product rule — free users get delayed data; recent 2 months are gated.
-        function _downloadCutoffISO() {
-            const d = new Date();
-            d.setMonth(d.getMonth() - 2);
-            return d.toISOString().slice(0, 10);
-        }
-
-        function _filterBeforeCutoff(datasetId, data, cutoff) {
-            if (datasetId === 'vn30-profile') return data; // static reference, no date axis
-
-            // Parallel-array shape: { dates: [...], <metric>: [...], ... }
-            if (data && Array.isArray(data.dates)) {
-                const n = data.dates.length;
-                const keep = [];
-                for (let i = 0; i < n; i++) {
-                    if (String(data.dates[i] ?? '').slice(0, 10) <= cutoff) keep.push(i);
-                }
-                const out = {};
-                for (const k of Object.keys(data)) {
-                    out[k] = Array.isArray(data[k]) && data[k].length === n
-                        ? keep.map(i => data[k][i])
-                        : data[k];
-                }
-                return out;
-            }
-
-            // Row-array shape (vn30-prices / ratios / financials)
-            if (Array.isArray(data)) {
-                return data.filter(r => {
-                    if (r.date) return String(r.date).slice(0, 10) <= cutoff;
-                    if (r.year != null && r.quarter != null) {
-                        const m = r.quarter * 3;
-                        const last = new Date(r.year, m, 0).getDate();
-                        return `${r.year}-${String(m).padStart(2, '0')}-${String(last).padStart(2, '0')}` <= cutoff;
-                    }
-                    return true;
-                });
-            }
-
-            return data;
-        }
+        // Removed 2026-08-28: _downloadCutoffISO()/_filterBeforeCutoff() used to
+        // strip the most recent 2 months from every AUTHENTICATED "Tất cả"
+        // download, keeping only data older than that. The comment here claimed
+        // it as a deliberate product rule ("free users get delayed data"), but
+        // it was undocumented anywhere else (not in CLAUDE.md, not in
+        // BACKLOG.md), untraceable to any authored decision (the only commit
+        // touching it is a 2026-06-09 mass repo restructure that moved files,
+        // not a rule anyone wrote down), and — after the anonymous CSV fix
+        // earlier this same day — actively self-contradicting: an anonymous
+        // visitor's free download already includes the full, uncut 1-year
+        // window, so a signed-in user pulling "Tất cả" was getting LESS recent
+        // data than someone who never logged in. Full history now downloads
+        // uncut for authenticated users.
 
         // Build Authorization header từ Auth0 token — data endpoints giờ cần đăng nhập (free tier 1.000 req/tháng).
         async function _authHeaders() {
@@ -1962,12 +1933,7 @@
                     if (!res.ok) throw new Error(`API error ${res.status}`);
                     const json = await res.json();
                     if (!json.success || !json.data) throw new Error('Invalid response');
-                    // The 2-month cutoff only applies to the full "all" history
-                    // pulled from the live API — the anonymous static-file path
-                    // below is already the exact 1-year window shown on-screen
-                    // with no gate at all, so cutting it further would make no
-                    // sense (there is nothing more recent being held back).
-                    dataOut = _filterBeforeCutoff(datasetId, json.data, _downloadCutoffISO());
+                    dataOut = json.data; // full history, uncut — see removal note above
                 } else {
                     const anonFile = _anonDownloadFile(datasetId);
                     if (!anonFile) {
