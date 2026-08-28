@@ -1457,11 +1457,14 @@ html {
     padding-bottom: 6px;
 }
 
-/* Below ~1350px the 7 cards genuinely cannot fit, so the strip scrolls — fade
-   both ends so it reads as "more to the right" instead of "cut off". Above that
-   the cards flex to fill (see .ticker-card-sm) and no mask is applied, otherwise
-   the end cards would look faded for no reason. */
-@media (max-width: 1350px) {
+/* Below ~1450px the 7 cards genuinely cannot fit (7 × 190px min-width + 6 ×
+   12px gap ≈ 1400px), so the strip scrolls — fade both ends so it reads as
+   "more to the right" instead of "cut off". Above that the cards flex to fill
+   (see .ticker-card-sm) and no mask is applied, otherwise the end cards would
+   look faded for no reason. Threshold bumped from 1350 to 1450 alongside the
+   card min-width bump (178px -> 190px) so the mask still covers the real
+   scroll-trigger point, not the old one. */
+@media (max-width: 1450px) {
     .ticker-strip {
         -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px,
                                             #000 calc(100% - 24px), transparent 100%);
@@ -1487,17 +1490,21 @@ html {
    cards came to 1472px and the last one was clipped at the screen edge, which
    read as a broken layout rather than a scroller. Now they share the row evenly
    and only scroll once min-width forces it. */
+/* Padding matches .ov-tile (the overview grid tile) on purpose — same card
+   family, same breathing room, so the KPI strip and the grid right below it
+   don't read as two different densities. Previously tighter than the sparkline
+   + 6 lines of content it holds actually needed. */
 .ticker-card-sm {
     flex: 1 1 0;
-    min-width: 178px;
+    min-width: 190px;
     background: var(--pure-white);
     border: 1px solid var(--border-cream);
     border-radius: var(--radius-xl);
-    padding: 0.75rem 1rem 0.625rem;
+    padding: 1rem 1.1rem 0.9rem;
     box-shadow: var(--whisper);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -4736,10 +4743,16 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 /* ── Open Data — value-prop hero (above ticker strip) ── */
 /* Compacted for the overview (spec: "Page header" decision) — the grid needs to
    reach above the fold, so this trades vertical space while keeping the <h1>
-   and both CTAs intact for SEO and the API entry point. */
+   and both CTAs intact for SEO and the API entry point.
+   No max-width here on purpose: the KPI strip right below runs full-bleed
+   (edge to edge of the content column), and a 760px cap on the hero alone left
+   a wide band of empty space to its right that the packed 7-card strip right
+   under it didn't have — the two read as mismatched widths stacked on top of
+   each other. .data-hero-sub keeps its own 640px cap below so the paragraph
+   itself doesn't stretch to an unreadable line length; only the title and
+   button row are now allowed to breathe across the full column. */
 .data-hero {
-    padding: 1.25rem 0 1rem;
-    max-width: 760px;
+    padding: 1.25rem 0 1.5rem;
 }
 .data-hero-title {
     font-family: 'Lora', Georgia, serif;
