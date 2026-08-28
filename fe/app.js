@@ -1842,18 +1842,41 @@
             return {};
         }
 
+        // Anonymous-visitor fallback: the same 1-year static JSON the chart itself
+        // already reads with zero auth (fe/data/*.json, no login, no quota) — the
+        // CSV button used to hard-block anonymous users with a login wall even
+        // though the exact numbers were already sitting on their screen, free.
+        // Full "all" history via the live metered API remains the reason to make
+        // a free account — that story is unchanged, this only unblocks the
+        // window a visitor is already looking at.
+        // Returns null (falls back to the login wall) where no static file exists
+        // — vn30-*, and any bank/type combo generate_static_data.py doesn't cover
+        // (confirmed against fe/data/ before writing this: only termdepo/ACB has
+        // a file, not CTG/SHB, even though the bank picker offers all three).
+        function _anonDownloadFile(datasetId) {
+            if (datasetId.startsWith('gold-')) {
+                return `gold_${datasetId.slice(5).replace(/ /g, '_')}_1y.json`;
+            }
+            if (datasetId === 'silver') return 'silver_1y.json';
+            if (datasetId.startsWith('fxrate-')) {
+                const [, bank, currency] = datasetId.split('-');
+                return `fxrate_${bank}_${currency}_1y.json`;
+            }
+            if (datasetId.startsWith('termdepo-')) {
+                const bank = datasetId.slice(9);
+                return bank === 'ACB' ? 'termdepo_ACB_1y.json' : null;
+            }
+            if (datasetId === 'sbv-interbank') return 'sbv_1y.json';
+            if (datasetId === 'global-macro') return 'global_1y.json';
+            return null; // vn30-profile / vn30-prices / vn30-financials / vn30-ratios
+        }
+
         async function downloadDataset(datasetId) {
             const base = window.APP_CONFIG.API_BASE_URL;
             const btn = event.currentTarget;
             const origHtml = btn.innerHTML;
 
-            // Yêu cầu đăng nhập — tải dữ liệu cần tài khoản (miễn phí) để hệ thống đo được usage.
             const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
-            if (!authed) {
-                const overlay = document.getElementById('notification-overlay');
-                if (overlay) overlay.classList.add('active');
-                return;
-            }
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
             btn.disabled = true;
@@ -1933,13 +1956,35 @@
                     throw new Error('Unknown dataset: ' + datasetId);
                 }
 
-                const res = await fetch(url, { headers: await _authHeaders() });
-                if (!res.ok) throw new Error(`API error ${res.status}`);
-                const json = await res.json();
-                if (!json.success || !json.data) throw new Error('Invalid response');
-
-                const filtered = _filterBeforeCutoff(datasetId, json.data, _downloadCutoffISO());
-                const csv = rows2csv(filtered);
+                let dataOut;
+                if (authed) {
+                    const res = await fetch(url, { headers: await _authHeaders() });
+                    if (!res.ok) throw new Error(`API error ${res.status}`);
+                    const json = await res.json();
+                    if (!json.success || !json.data) throw new Error('Invalid response');
+                    // The 2-month cutoff only applies to the full "all" history
+                    // pulled from the live API — the anonymous static-file path
+                    // below is already the exact 1-year window shown on-screen
+                    // with no gate at all, so cutting it further would make no
+                    // sense (there is nothing more recent being held back).
+                    dataOut = _filterBeforeCutoff(datasetId, json.data, _downloadCutoffISO());
+                } else {
+                    const anonFile = _anonDownloadFile(datasetId);
+                    if (!anonFile) {
+                        const overlay = document.getElementById('notification-overlay');
+                        if (overlay) overlay.classList.add('active');
+                        btn.innerHTML = origHtml;
+                        btn.disabled = false;
+                        return;
+                    }
+                    const sres = await fetch(`./data/${anonFile}`);
+                    if (!sres.ok) throw new Error(`Static file error ${sres.status}`);
+                    const sjson = await sres.json();
+                    if (!sjson.data) throw new Error('Invalid static response');
+                    dataOut = sjson.data;
+                    filename += '_1nam_mienphi';
+                }
+                const csv = rows2csv(dataOut);
                 const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
