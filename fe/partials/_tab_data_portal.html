@@ -1,14 +1,25 @@
             <div class="tab-content active" id="data-portal">
                 <div class="charts-scroll-page">
 
-                    <!-- ── Value-Prop Hero ── -->
+                    <!-- ── Value-Prop Hero ──
+                         Two columns: copy+CTAs left, illustration right. The
+                         illustration is what closes the top-right corner that
+                         used to sit empty — text/buttons don't stretch to fill
+                         a wider container on their own, so widening .data-hero
+                         alone (an earlier, reverted attempt) never fixed it. -->
                     <section class="data-hero">
-                        <h1 class="data-hero-title" data-i18n="mainTitle">Tải dữ liệu kinh tế mở</h1>
-                        <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái</p>
-                        <div class="data-hero-cta">
-                            <a href="/fe/pages/google-sheets.html" class="btn-data-primary"><i class="fas fa-table"></i> <span data-i18n="dataHeroCTAExplore">Tích hợp Google Sheets</span></a>
-                            <a href="/fe/pages/api-docs.html" class="btn-data-secondary"><i class="fas fa-code"></i> <span data-i18n="dataHeroCTAApi">API cho lập trình viên</span></a>
+                        <div class="data-hero-copy">
+                            <h1 class="data-hero-title" data-i18n="mainTitle">Tải dữ liệu kinh tế mở</h1>
+                            <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái</p>
+                            <div class="data-hero-cta">
+                                <a href="/fe/pages/google-sheets.html" class="btn-data-primary"><i class="fas fa-table"></i> <span data-i18n="dataHeroCTAExplore">Tích hợp Google Sheets</span></a>
+                                <a href="/fe/pages/api-docs.html" class="btn-data-secondary"><i class="fas fa-code"></i> <span data-i18n="dataHeroCTAApi">API cho lập trình viên</span></a>
+                            </div>
                         </div>
+                        <picture class="data-hero-art">
+                            <source srcset="images/hero-illustration.webp" type="image/webp">
+                            <img src="images/hero-illustration.png" alt="" width="1728" height="910" loading="eager" fetchpriority="high">
+                        </picture>
                     </section>
 
                     <!-- ── Market Ticker Strip ── -->

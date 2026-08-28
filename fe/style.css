@@ -4744,15 +4744,26 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 /* Compacted for the overview (spec: "Page header" decision) — the grid needs to
    reach above the fold, so this trades vertical space while keeping the <h1>
    and both CTAs intact for SEO and the API entry point.
-   No max-width here on purpose: the KPI strip right below runs full-bleed
-   (edge to edge of the content column), and a 760px cap on the hero alone left
-   a wide band of empty space to its right that the packed 7-card strip right
-   under it didn't have — the two read as mismatched widths stacked on top of
-   each other. .data-hero-sub keeps its own 640px cap below so the paragraph
-   itself doesn't stretch to an unreadable line length; only the title and
-   button row are now allowed to breathe across the full column. */
+
+   History on this block, so it doesn't get re-litigated: an earlier version
+   removed max-width to "match" the full-bleed KPI strip below — wrong, text
+   doesn't stretch to fill a wider container on its own, that just widened the
+   empty box next to it. A version after that kept a capped text column and
+   accepted the whitespace as normal editorial breathing room — closer, but
+   the user wanted the corner actually filled, not just less obviously empty.
+   This version is two flex columns: copy left, illustration right
+   (data-hero-art) — the image is what closes the corner; the text column
+   still doesn't need to stretch. */
 .data-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
     padding: 1.25rem 0 1.5rem;
+}
+.data-hero-copy {
+    flex: 1 1 480px;
+    max-width: 720px;
 }
 .data-hero-title {
     font-family: 'Lora', Georgia, serif;
@@ -4772,6 +4783,20 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 }
 .data-hero-sub strong { color: var(--terracotta); font-weight: 600; }
 .data-hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+/* Decorative only (alt="" on the <img>) — hidden below 1100px rather than
+   shrunk, since a tiny illustration reads as clutter next to the headline on
+   a narrower viewport; the text column already stands on its own there. */
+.data-hero-art {
+    flex: 0 0 auto;
+    display: block;
+    width: min(300px, 30vw);
+    height: auto;
+}
+.data-hero-art img { width: 100%; height: auto; display: block; }
+@media (max-width: 1100px) {
+    .data-hero-art { display: none; }
+}
 .btn-data-primary,
 .btn-data-secondary {
     display: inline-flex;
