@@ -152,6 +152,14 @@
                         <span class="global-ticker-ts" id="gtk-ts"></span>
                     </div>
 
+                    <!-- ── Portal body: chart column + sticky market-overview sidebar ──
+                         The sidebar spans all 5 detail sections (not just Vàng & Bạc)
+                         per design decision — it sits alongside .ov-root/.chart-section-group
+                         so it never gets touched by ovShowOverview()/ovShowChartDetail()'s
+                         show/hide toggling of those elements. -->
+                    <div class="portal-body">
+                    <div class="portal-main">
+
                     <!-- ── Overview grid — default landing view ──
                          Populated by VDOverview.mount() (fe/app.overview.js).
                          Section headings and chart titles render as real text
@@ -530,6 +538,56 @@
                             <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày<span id="vnindexCoverage"></span></small>
                         </div>
                     </div>
+
+                    </div><!-- /.portal-main -->
+
+                    <!-- ── Sticky market-overview sidebar — spans all 5 sections ──
+                         Values populated in loadMarketMovement() (app.js). Rows with
+                         no crawl source yet (HNX-INDEX, UPCOM-INDEX, Dầu Brent, WTI)
+                         render as "—" and stay that way until a crawler exists — see
+                         CLAUDE.md "Active sources" table before wiring these up. -->
+                    <aside class="market-overview-panel" id="market-overview-panel">
+                        <h4><i class="fas fa-chart-bar"></i> Tổng quan thị trường</h4>
+                        <table class="mo-table">
+                            <thead>
+                                <tr><th>Chỉ số</th><th>Giá trị</th><th>Thay đổi</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>VN-INDEX</td>
+                                    <td id="moVnindexValue">—</td>
+                                    <td id="moVnindexChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>HNX-INDEX</td>
+                                    <td id="moHnxValue">—</td>
+                                    <td id="moHnxChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>UPCOM-INDEX</td>
+                                    <td id="moUpcomValue">—</td>
+                                    <td id="moUpcomChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>USD/VND</td>
+                                    <td id="moFxValue">—</td>
+                                    <td id="moFxChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>Dầu Brent</td>
+                                    <td id="moBrentValue">—</td>
+                                    <td id="moBrentChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>WTI</td>
+                                    <td id="moWtiValue">—</td>
+                                    <td id="moWtiChange">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </aside>
+
+                    </div><!-- /.portal-body -->
 
                 </div>
             </div>

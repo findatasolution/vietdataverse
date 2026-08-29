@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=2026082904">
+    <link rel="stylesheet" href="style.css?v=2026082905">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#2f5fde">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -76,7 +76,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=2026082904" as="style">
+    <link rel="preload" href="style.css?v=2026082905" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -791,6 +791,14 @@
                         <span class="global-ticker-ts" id="gtk-ts"></span>
                     </div>
 
+                    <!-- ── Portal body: chart column + sticky market-overview sidebar ──
+                         The sidebar spans all 5 detail sections (not just Vàng & Bạc)
+                         per design decision — it sits alongside .ov-root/.chart-section-group
+                         so it never gets touched by ovShowOverview()/ovShowChartDetail()'s
+                         show/hide toggling of those elements. -->
+                    <div class="portal-body">
+                    <div class="portal-main">
+
                     <!-- ── Overview grid — default landing view ──
                          Populated by VDOverview.mount() (fe/app.overview.js).
                          Section headings and chart titles render as real text
@@ -1169,6 +1177,56 @@
                             <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày<span id="vnindexCoverage"></span></small>
                         </div>
                     </div>
+
+                    </div><!-- /.portal-main -->
+
+                    <!-- ── Sticky market-overview sidebar — spans all 5 sections ──
+                         Values populated in loadMarketMovement() (app.js). Rows with
+                         no crawl source yet (HNX-INDEX, UPCOM-INDEX, Dầu Brent, WTI)
+                         render as "—" and stay that way until a crawler exists — see
+                         CLAUDE.md "Active sources" table before wiring these up. -->
+                    <aside class="market-overview-panel" id="market-overview-panel">
+                        <h4><i class="fas fa-chart-bar"></i> Tổng quan thị trường</h4>
+                        <table class="mo-table">
+                            <thead>
+                                <tr><th>Chỉ số</th><th>Giá trị</th><th>Thay đổi</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>VN-INDEX</td>
+                                    <td id="moVnindexValue">—</td>
+                                    <td id="moVnindexChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>HNX-INDEX</td>
+                                    <td id="moHnxValue">—</td>
+                                    <td id="moHnxChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>UPCOM-INDEX</td>
+                                    <td id="moUpcomValue">—</td>
+                                    <td id="moUpcomChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>USD/VND</td>
+                                    <td id="moFxValue">—</td>
+                                    <td id="moFxChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>Dầu Brent</td>
+                                    <td id="moBrentValue">—</td>
+                                    <td id="moBrentChange">—</td>
+                                </tr>
+                                <tr>
+                                    <td>WTI</td>
+                                    <td id="moWtiValue">—</td>
+                                    <td id="moWtiChange">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </aside>
+
+                    </div><!-- /.portal-body -->
 
                 </div>
             </div>
@@ -2024,7 +2082,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2026082904" defer></script>
+    <script src="app.js?v=2026082905" defer></script>
     <script src="app.overview.js?v=2026082701" defer></script>
     <script src="app.knowledge.js?v=2026061401" defer></script>
 

@@ -4966,6 +4966,61 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 
 .ov-root { margin: 0 0 1.5rem; }
 
+/* ── Portal 2-column body: chart content + sticky market-overview sidebar ──
+   Sidebar spans all 5 detail sections, not just Vàng & Bạc, so it lives
+   outside .ov-root/.chart-section-group and is never touched by the
+   overview/detail show-hide routing. */
+.portal-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+}
+.portal-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.market-overview-panel {
+    flex: 0 0 280px;
+    width: 280px;
+    background: var(--card, var(--ivory));
+    border: 1px solid var(--border-warm);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1rem 1.1rem;
+    position: sticky;
+    top: 80px;
+}
+.market-overview-panel h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--near-black);
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.market-overview-panel h4 i { color: var(--terracotta); font-size: 0.85em; }
+.mo-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
+.mo-table th {
+    text-align: left;
+    color: var(--stone-gray);
+    font-weight: 600;
+    font-size: 0.68rem;
+    padding: 0 0 0.5rem;
+}
+.mo-table th:last-child, .mo-table td:last-child { text-align: right; }
+.mo-table td {
+    padding: 0.45rem 0;
+    color: var(--near-black);
+    border-top: 1px solid var(--border-cream);
+    white-space: nowrap;
+}
+.mo-table td.positive { color: #2fa96a; }
+.mo-table td.negative { color: var(--error-red); }
+@media (max-width: 1100px) {
+    .portal-body { flex-direction: column; }
+    .market-overview-panel { position: static; width: 100%; flex-basis: auto; }
+}
+
 .ov-heading:first-child { margin-top: 0; }
 
 .ov-grid {

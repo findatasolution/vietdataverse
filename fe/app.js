@@ -2834,6 +2834,7 @@
                     const fx = lastChange(rates);
                     if (fx) {
                         setRow('mmFxValue', 'mmFxChange', fx.last, fx.delta, fx.pct, 0);
+                        setRow('moFxValue', 'moFxChange', fx.last, fx.delta, fx.pct, 0);
                         const lastDate = fxDates && fxDates.length ? fxDates[fxDates.length - 1] : null;
                         setTicker('tk-fx-price', 'tk-fx-change', 'tk-fx-ts', fx.last, fx.delta, fx.pct, 0, lastDate);
                         drawSpark('tk-fx-spark', rates, fx.delta >= 0);
@@ -2877,6 +2878,7 @@
                         if (lc) {
                             const lastDate = dates ? dates[dates.length - 1] : null;
                             setRow('mmVnindexValue', 'mmVnindexChange', lc.last, lc.delta, lc.pct, 2);
+                            setRow('moVnindexValue', 'moVnindexChange', lc.last, lc.delta, lc.pct, 2);
                             setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
                             drawSpark('tk-vni-spark', closes, lc.delta >= 0);
                         }
@@ -2889,6 +2891,7 @@
                         const vnindex = lastChange(closes);
                         if (vnindex) {
                             setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
+                            setRow('moVnindexValue', 'moVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
                             const lastDate = jsonDates.length ? jsonDates[jsonDates.length - 1] : null;
                             setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', vnindex.last, vnindex.delta, vnindex.pct, 2, lastDate);
                             drawSpark('tk-vni-spark', closes, vnindex.delta >= 0);
