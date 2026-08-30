@@ -338,10 +338,14 @@
                 },
                 scales: {
                     x: {
+                        // unit:'month' printed a single "Aug 2026" tick for a
+                        // one-month window, so the axis carried no readable
+                        // information. Day unit + dd/MM matches the reference.
                         type: 'time',
-                        time: { unit: 'month', tooltipFormat: 'dd/MM/yyyy' },
+                        time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy',
+                                displayFormats: { day: 'dd/MM' } },
                         ticks: { color: '#87867f', font: { size: 9 },
-                                 maxRotation: 0, autoSkip: true, maxTicksLimit: 3 },
+                                 maxRotation: 0, autoSkip: true, maxTicksLimit: 5 },
                         grid: { display: false }
                     },
                     y: {

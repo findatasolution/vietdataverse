@@ -4,6 +4,15 @@
     box-sizing: border-box;
 }
 
+/* The UA stylesheet's `[hidden] { display: none }` loses to ANY class selector
+   that sets `display`, so an element shipped with the `hidden` attribute and a
+   class like `.ov-tile-msg { display: flex }` stays in the layout while empty.
+   That is what put a dead 130px band under every Open Data overview tile
+   (tile measured 369px tall for 220px of real content). Four elements in this
+   sheet hit the same trap — .ov-tile-msg, .ov-detail-bar, .policy-stat,
+   .km-progress-row — so it is fixed once here rather than per-class. */
+[hidden] { display: none !important; }
+
 :root {
     /* ── Pastel milky-white + soft blue palette (replaces warm terracotta,
        2026-08) — flat swap via CSS custom properties; every rule below
@@ -5051,7 +5060,11 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 
 .ov-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* auto-fit (not a fixed repeat(3)) so a section holding only two charts —
+       Vàng & Bạc — collapses the unused third track and lets both tiles span
+       the full content width beside the market-overview sidebar, as the
+       approved reference shows. Sections with 3+ charts still lay out in 3. */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.25rem;
     margin-bottom: 0.5rem;
 }
