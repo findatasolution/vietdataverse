@@ -143,6 +143,22 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 
+# StaticFiles sends no Cache-Control header, so browsers fall back to heuristic
+# freshness on Last-Modified/ETag — an HTML entry point (index.html, /pages/*)
+# can then be served straight from disk cache across full browser restarts,
+# even though the app.js/style.css it references were cache-busted with a new
+# ?v=. The stale HTML keeps pointing at the OLD ?v=, so a "hard refresh" never
+# reaches the new bundle at all. Only entry HTML needs this: JS/CSS/images are
+# already cache-busted via the ?v= query string and should keep caching hard.
+@app.middleware("http")
+async def no_cache_html(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.endswith(".html") or path in ("/fe", "/fe/", "/pages", "/pages/"):
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
+
+
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(payment_router)
 app.include_router(market_data.router)
