@@ -5256,3 +5256,41 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
     .ov-detail-section { display: none; }
     .ov-back span { display: none; }
 }
+
+/* ── Overview: per-section period picker ──────────────────────────────────
+   Sits on the section heading row, right-aligned, as the reference shows.
+   Only rendered for sections whose charts all have {7d,1m,1y} static files
+   (see app.overview.js sectionIsPeriodic). */
+.ov-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.ov-section-head .ov-heading { margin-bottom: 0; }
+.ov-period {
+    display: inline-flex;
+    gap: 2px;
+    background: var(--ivory);
+    border: 1px solid var(--border-warm);
+    border-radius: 999px;
+    padding: 3px;
+}
+.ov-period-btn {
+    font: inherit;
+    font-size: 0.78rem;
+    line-height: 1;
+    padding: 0.4rem 0.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--olive-gray);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 150ms ease-out, color 150ms ease-out;
+}
+.ov-period-btn:hover { color: var(--near-black); }
+.ov-period-btn.is-active {
+    background: var(--terracotta);
+    color: #fff;
+}

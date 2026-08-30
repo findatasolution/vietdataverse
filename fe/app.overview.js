@@ -39,7 +39,7 @@
             title: 'Giá vàng trong nước', source: 'DOJI HN', unit: 'triệu/lượng',
             detailPeriod: '1m',
             mini: { file: 'data/gold_DOJI_HN_1m.json', series: 'buy_prices',
-                    scale: 1e6, decimals: 1, color: '#2f5fde' }
+                    scale: 1e6, decimals: 1, color: '#2f5fde', periodic: true }
         },
         {
             id: 'silver', section: 'gold-silver', family: 'dispatch',
@@ -47,7 +47,7 @@
             title: 'Giá bạc trong nước', source: 'Phú Quý', unit: 'triệu/lượng',
             detailPeriod: '1m',
             mini: { file: 'data/silver_1m.json', series: 'buy_prices',
-                    scale: 1e6, decimals: 2, color: '#4d4c48' }
+                    scale: 1e6, decimals: 2, color: '#4d4c48', periodic: true }
         },
         {
             id: 'termdepo', section: 'currency', family: 'dispatch',
@@ -56,7 +56,7 @@
             title: 'Lãi suất gửi tiết kiệm', source: 'ACB', unit: '%/năm',
             detailPeriod: '1y',
             mini: { file: 'data/termdepo_ACB_1y.json', series: 'term_12m',
-                    scale: 1, decimals: 2, color: '#1e3fae', stepped: false }
+                    scale: 1, decimals: 2, color: '#1e3fae', stepped: false, periodic: true }
         },
         {
             id: 'interbank', section: 'currency', family: 'dispatch',
@@ -65,7 +65,7 @@
             title: 'Lãi suất liên ngân hàng', source: 'SBV', unit: '%/năm',
             detailPeriod: '1m',
             mini: { file: 'data/sbv_1m.json', series: 'overnight',
-                    scale: 1, decimals: 2, color: '#2f5fde' }
+                    scale: 1, decimals: 2, color: '#2f5fde', periodic: true }
         },
         {
             id: 'policy', section: 'currency', family: 'policy',
@@ -87,7 +87,7 @@
             detailPeriod: '1m',
             // Field is `usd_vnd_rate` in fxrate_SBV_USD_1m.json, not `rates`.
             mini: { file: 'data/fxrate_SBV_USD_1m.json', series: 'usd_vnd_rate',
-                    scale: 1, decimals: 0, color: '#2f5fde' }
+                    scale: 1, decimals: 0, color: '#2f5fde', periodic: true }
         },
         {
             id: 'global', section: 'global', family: 'dispatch',
@@ -95,7 +95,7 @@
             title: 'Vàng thế giới', source: 'Yahoo Finance', unit: '$/oz',
             detailPeriod: '1y',
             mini: { file: 'data/global_1y.json', series: 'gold_prices',
-                    scale: 1, decimals: 1, color: '#2f5fde' }
+                    scale: 1, decimals: 1, color: '#2f5fde', periodic: true }
         },
         {
             id: 'cpi', section: 'macro', family: 'macro', domCardId: 'cpi',
@@ -123,7 +123,7 @@
             title: 'VN-Index', source: 'HSX', unit: 'điểm',
             detailPeriod: '1y',
             mini: { file: 'data/vnindex_1y.json', series: 'close',
-                    scale: 1, decimals: 2, color: '#2f5fde' }
+                    scale: 1, decimals: 2, color: '#2f5fde', periodic: true }
         }
     ];
 
@@ -143,6 +143,31 @@
 
     const miniCharts = {};   // id -> Chart instance (overview only)
     const dataCache  = {};   // file path -> parsed payload
+
+    /* ── Per-section period switching ──────────────────────────────────────────
+       The reference layout puts a "7 ngày ⌄" selector beside each section
+       heading. It is offered only for sections where EVERY chart is
+       `periodic` — i.e. its static file is one of a {7d,1m,1y} set whose name
+       ends in the period. CPI (annual records), GDP (live) and the SBV policy
+       history (single all-time file) have no such variants, so the macro and
+       currency sections show no selector rather than a control that silently
+       does nothing to some of their tiles. */
+    const PERIODS = [
+        { key: '7d', label: '7 ngày' },
+        { key: '1m', label: '1 tháng' },
+        { key: '1y', label: '1 năm' }
+    ];
+    const sectionPeriod = {};   // section key -> period key
+
+    const isPeriodic = c => !!(c.mini && c.mini.periodic);
+    const sectionIsPeriodic = key =>
+        CHART_REGISTRY.filter(c => c.section === key).every(isPeriodic);
+
+    /* 'data/gold_DOJI_HN_1m.json' + '7d' -> 'data/gold_DOJI_HN_7d.json' */
+    function fileForPeriod(chart, period) {
+        if (!isPeriodic(chart) || !period) return chart.mini.file;
+        return chart.mini.file.replace(/_(7d|1m|1y)\.json$/, `_${period}.json`);
+    }
 
     /* mini.live -> loader returning [{date, value}, …] directly, already sorted
        ascending. Currently only GDP; window.loadGdpSeries is exported by app.js
@@ -229,14 +254,54 @@
 
     function buildGrid(root) {
         root.innerHTML = SECTIONS.map(sec => {
-            const tiles = CHART_REGISTRY.filter(c => c.section === sec.key)
-                                        .map(tileMarkup).join('');
+            const charts = CHART_REGISTRY.filter(c => c.section === sec.key);
+            const tiles = charts.map(tileMarkup).join('');
+            let picker = '';
+            if (sectionIsPeriodic(sec.key)) {
+                // Seed from the period the section's own default file already
+                // uses, so the highlighted button matches what is drawn.
+                if (!sectionPeriod[sec.key]) {
+                    const m = /_(7d|1m|1y)\.json$/.exec(charts[0].mini.file);
+                    sectionPeriod[sec.key] = m ? m[1] : '1m';
+                }
+                picker = `<span class="ov-period" data-section="${sec.key}">` +
+                    PERIODS.map(p =>
+                        `<button type="button" class="ov-period-btn${
+                            p.key === sectionPeriod[sec.key] ? ' is-active' : ''
+                        }" data-period="${p.key}">${p.label}</button>`).join('') +
+                    `</span>`;
+            }
             return `
-              <h2 class="chart-section-heading ov-heading">
-                <i class="fas ${sec.icon}"></i><span>${sec.label}</span>
-              </h2>
+              <div class="ov-section-head">
+                <h2 class="chart-section-heading ov-heading">
+                  <i class="fas ${sec.icon}"></i><span>${sec.label}</span>
+                </h2>
+                ${picker}
+              </div>
               <div class="ov-grid">${tiles}</div>`;
         }).join('');
+
+        root.querySelectorAll('.ov-period-btn').forEach(btn => {
+            btn.addEventListener('click', ev => {
+                // Tiles are <button>s that route to the detail view; this control
+                // sits outside them, but stop propagation anyway so a future
+                // wrapper cannot turn a period change into a navigation.
+                ev.stopPropagation();
+                const wrap = btn.closest('.ov-period');
+                const sec = wrap.dataset.section;
+                const period = btn.dataset.period;
+                if (sectionPeriod[sec] === period) return;
+                sectionPeriod[sec] = period;
+                wrap.querySelectorAll('.ov-period-btn').forEach(b =>
+                    b.classList.toggle('is-active', b === btn));
+                // Redraw just this section: destroy its instances so renderTile's
+                // "already drawn" guard lets them through again.
+                CHART_REGISTRY.filter(c => c.section === sec).forEach(c => {
+                    if (miniCharts[c.id]) { miniCharts[c.id].destroy(); delete miniCharts[c.id]; }
+                    renderTile(c);
+                });
+            });
+        });
     }
 
     function setTileState(tileEl, { value, delta, pct, unit, msg }) {
@@ -282,7 +347,8 @@
                 if (!loader) throw new Error(`no live loader for "${chart.mini.live}"`);
                 pairs = await loader();
             } else {
-                pairs = extractSeries(await loadStatic(chart.mini.file), chart.mini);
+                const file = fileForPeriod(chart, sectionPeriod[chart.section]);
+                pairs = extractSeries(await loadStatic(file), chart.mini);
             }
             if (!pairs || !pairs.length) throw new Error('empty series');
         } catch (e) {
@@ -305,14 +371,31 @@
 
         const canvas = tileEl.querySelector('canvas');
         if (!canvas || !window.Chart) return;
-        miniCharts[chart.id] = new window.Chart(canvas.getContext('2d'), {
+        const ctx2d = canvas.getContext('2d');
+
+        /* Soft gradient under the line, as the approved reference shows.
+           Note CLAUDE.md's chart-honesty rule: an area fill implies magnitude
+           measured from ZERO, so the full-size gold / USD-VND / VN-Index charts
+           deliberately keep fill:false (they start at 135 triệu, 25.000₫, …).
+           That rule is about the detail charts and is left intact. These minis
+           are the glanceable tier — same role as the KPI ticker sparklines
+           above them, which have always been filled — and use `fill: 'start'`,
+           which fills to the bottom of the drawn area rather than asserting a
+           zero baseline. */
+        const gradH = canvas.clientHeight || 195;
+        const grad = ctx2d.createLinearGradient(0, 0, 0, gradH);
+        grad.addColorStop(0, chart.mini.color + '30');
+        grad.addColorStop(1, chart.mini.color + '00');
+
+        miniCharts[chart.id] = new window.Chart(ctx2d, {
             type: 'line',
             data: {
                 labels: pairs.map(p => p.date),
                 datasets: [{
                     data: pairs.map(p => p.value),
                     borderColor: chart.mini.color,
-                    backgroundColor: 'transparent',
+                    backgroundColor: grad,
+                    fill: 'start',
                     borderWidth: 1.8,
                     tension: chart.mini.stepped ? 0 : 0.35,
                     stepped: chart.mini.stepped ? 'before' : false,
