@@ -1444,6 +1444,24 @@ html {
     grid-template-columns: minmax(0, 1fr);
 }
 
+/* ── Gold + Silver, side by side — explicit 2-col grid (replaces the old
+   gold-alone-full-width + silver-stacked-below layout) so the pair sits
+   next to the market-overview sidebar exactly as the approved reference
+   shows, instead of relying on default block stacking. Chart height is
+   also scoped down here: the sitewide .chart-container 400px was sized
+   for a single full-width chart and left a large dead area once these
+   cards became narrower next to the sidebar. */
+.gs-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+.gs-two-col .chart-card { margin-bottom: 0; }
+.gs-two-col .chart-container { height: 160px; }
+@media (max-width: 1024px) {
+    .gs-two-col { grid-template-columns: 1fr; }
+}
+
 /* ── Market Ticker Strip ── */
 /* Horizontal scroller. The last card used to sit flush against the viewport edge
    with no fade and no arrow, so a deliberately scrollable row read as a clipped,
@@ -4974,42 +4992,50 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
     display: flex;
     align-items: flex-start;
     gap: 1.25rem;
+    width: 100%;
 }
 .portal-main {
-    flex: 1 1 auto;
+    flex: 1 1 0%;
     min-width: 0;
+    width: 100%;
 }
+.portal-main > * { width: 100%; }
 .market-overview-panel {
     flex: 0 0 280px;
     width: 280px;
-    background: var(--card, var(--ivory));
+    background: var(--ivory);
     border: 1px solid var(--border-warm);
     border-radius: var(--radius-lg, 12px);
     padding: 1rem 1.1rem;
     position: sticky;
     top: 80px;
+    align-self: flex-start;
 }
 .market-overview-panel h4 {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--near-black);
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.9rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-cream);
     display: flex;
     align-items: center;
     gap: 0.4rem;
 }
 .market-overview-panel h4 i { color: var(--terracotta); font-size: 0.85em; }
-.mo-table { width: 100%; font-size: 0.78rem; border-collapse: collapse; }
+.mo-table { width: 100%; font-size: 0.8rem; border-collapse: collapse; }
 .mo-table th {
     text-align: left;
     color: var(--stone-gray);
     font-weight: 600;
-    font-size: 0.68rem;
-    padding: 0 0 0.5rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 0 0 0.6rem;
 }
 .mo-table th:last-child, .mo-table td:last-child { text-align: right; }
 .mo-table td {
-    padding: 0.45rem 0;
+    padding: 0.6rem 0;
     color: var(--near-black);
     border-top: 1px solid var(--border-cream);
     white-space: nowrap;

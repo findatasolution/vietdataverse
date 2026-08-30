@@ -192,8 +192,10 @@
                             <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
                         </h2>
 
+                        <!-- Gold + Silver side by side, compact chart height — matches the
+                             approved reference layout (2 charts + sticky overview sidebar). -->
+                        <div class="gs-two-col">
                         <!-- Gold Price Chart -->
-                        <div class="gold-section-grid gold-full-width">
                         <div class="chart-card" data-chart-id="gold">
                             <div class="chart-header">
                                 <h3 class="chart-title">
@@ -229,8 +231,6 @@
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
                         </div>
 
-                        </div>
-
                         <!-- Silver Price Chart -->
                         <div class="chart-card" data-chart-id="silver">
                             <div class="chart-header">
@@ -263,6 +263,7 @@
                             </div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
                         </div>
+                        </div><!-- /.gs-two-col -->
                     </div>
 
                     <!-- ── Section: Tiền Tệ VN ── -->

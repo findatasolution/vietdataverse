@@ -169,7 +169,7 @@
                 dlColName: 'Tên bảng',
                 dlColDesc: 'Mô tả',
                 dlColSource: 'Nguồn',
-                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột. Dữ liệu <span style="color:#c96442;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium. Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.',
+                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Dữ liệu cập nhật hàng ngày. CSV sử dụng encoding UTF-8, dấu phẩy (<code>,</code>) phân cách cột. Dữ liệu <span style="color:#2f5fde;font-weight:600;">PREMIUM</span> yêu cầu đăng nhập tài khoản Premium. Sử dụng cho mục đích tham khảo và nghiên cứu, không phải tư vấn đầu tư.',
                 // About & Terms
                 aboutSectionTitle: 'Giới thiệu & Điều khoản',
                 aboutH1: 'Về Viet Dataverse',
@@ -362,7 +362,7 @@
                 dlColName: 'Dataset',
                 dlColDesc: 'Description',
                 dlColSource: 'Source',
-                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Data updated daily. CSV uses UTF-8 encoding, comma (<code>,</code>) as column separator. <span style="color:#c96442;font-weight:600;">PREMIUM</span> datasets require a Premium account. For reference and research only, not investment advice.',
+                dlFooter: '<i class="fas fa-info-circle" style="margin-right:4px;"></i> Data updated daily. CSV uses UTF-8 encoding, comma (<code>,</code>) as column separator. <span style="color:#2f5fde;font-weight:600;">PREMIUM</span> datasets require a Premium account. For reference and research only, not investment advice.',
                 // About & Terms
                 aboutSectionTitle: 'About & Terms',
                 aboutH1: 'About Viet Dataverse',
@@ -599,7 +599,12 @@
             window.APP_CONFIG = window.APP_CONFIG || {};
             window.APP_CONFIG.API_BASE_URL =
                 location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-                    ? 'http://localhost:8000/api/v1'
+                    // Use whichever host alias the page was actually opened with —
+                    // hardcoding 'localhost' here made every API call go to a
+                    // DIFFERENT origin than the page itself whenever the page was
+                    // opened via 127.0.0.1:8000, and the browser CORS-blocks that
+                    // even though both resolve to the same machine.
+                    ? `http://${location.hostname}:8000/api/v1`
                     // Same-origin: FE and API are served by the same box, so the FE works on
                     // vietdataverse.online / www / api.* alike, with no dependency on the
                     // api.* subdomain resolving.
@@ -1158,11 +1163,18 @@
                     el.classList.toggle('ov-section-hidden', el.dataset.lazySection !== chart.section);
                 });
 
-                // Within that section, reveal only this chart's card. interbank and
-                // policy share ONE .chart-card in the DOM (see the registry comment
-                // in app.overview.js) — both ids reveal that same card.
+                // Within that section, reveal only this chart's card — EXCEPT
+                // gold-silver, whose two cards sit in one .gs-two-col grid
+                // (fixed 2 columns) alongside the market-overview sidebar. Hiding
+                // one card there still left its grid column reserved, showing as
+                // a large dead gap next to the sidebar. Vàng & Bạc is meant to
+                // always show both charts together (per the approved reference
+                // layout), so it is exempt from the one-card-at-a-time drill-down
+                // the other sections use. interbank and policy still share ONE
+                // .chart-card in the DOM (see the registry comment in
+                // app.overview.js) — both ids reveal that same card.
                 const sectionEl = document.querySelector(`[data-lazy-section="${chart.section}"]`);
-                if (sectionEl) {
+                if (sectionEl && chart.section !== 'gold-silver') {
                     sectionEl.querySelectorAll('.chart-card[data-chart-id]').forEach(card => {
                         card.classList.toggle('ov-section-hidden', card.dataset.chartId !== chart.domCardId);
                     });
@@ -2320,7 +2332,7 @@
             // Silver was drawn in Stone Gray (#87867f) — that is the tertiary TEXT colour;
             // as a 2px data line on white it read as disabled. Charcoal Warm keeps the
             // warm palette but actually has contrast.
-            const color = chartType === 'gold' ? '#c96442' : '#4d4c48';
+            const color = chartType === 'gold' ? '#2f5fde' : '#4d4c48';
 
             return {
                 type: 'line',
@@ -2368,7 +2380,14 @@
                         }
                     },
                     scales: {
+                        // Time scale, explicit day unit: a plain category axis here
+                        // rendered a single collapsed "Aug 2026" tick instead of daily
+                        // dates once enough points accumulated — Chart.js's category
+                        // scale doesn't reformat date strings, but leaving unit
+                        // undetermined let it fall back to a coarse auto-picked unit.
                         x: {
+                            type: 'time',
+                            time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy', displayFormats: { day: 'dd/MM' } },
                             ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
                             grid: { display: false }
                         },
@@ -2420,7 +2439,7 @@
                         {
                             label: 'Kỳ hạn 6 tháng',
                             data: rate6m,
-                            borderColor: '#c96442',
+                            borderColor: '#2f5fde',
                             backgroundColor: 'transparent',
                             pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
@@ -2517,7 +2536,7 @@
                 data: {
                     labels: d.dates,
                     datasets: [
-                        { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#c96442', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#2f5fde', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#d9a689', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#cf8560', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         // Policy rates as reference lines on the SAME % axis. The
@@ -2563,7 +2582,7 @@
                         {
                             label: 'USD/VND',
                             data: rates,
-                            borderColor: '#c96442',
+                            borderColor: '#2f5fde',
                             backgroundColor: 'rgba(201, 100, 66, 0.08)',
                             borderWidth: 2,
                             tension: 0.3,
@@ -2572,7 +2591,7 @@
                             fill: false,
                             pointRadius: 0, pointHoverRadius: 4,
                             pointHoverRadius: 5,
-                            pointBackgroundColor: '#c96442'
+                            pointBackgroundColor: '#2f5fde'
                         }
                     ]
                 },
@@ -2646,7 +2665,7 @@
                             label: 'Vàng (Gold Future)',
                             data: goldIdx,
                             _raw: goldFuture,
-                            borderColor: '#c96442',
+                            borderColor: '#2f5fde',
                             backgroundColor: 'transparent',
                             borderWidth: 2,
                             tension: 0.4,
@@ -3210,7 +3229,7 @@
         ========================================================= */
         const LABEL_COLORS = {
             VNINDEX: '#4CAF50',
-            GOLD: '#c96442',
+            GOLD: '#2f5fde',
             REAL_ESTATE: '#FF7043',
             BANKING: '#42A5F5',
             FX: '#AB47BC'
@@ -3710,7 +3729,7 @@
         ========================================================= */
         (function () {
             const WB_BASE = 'https://api.worldbank.org/v2/country/VN/indicator';
-            const GOLD = '#c96442';
+            const GOLD = '#2f5fde';
             const RED  = '#EF5350';
             const BLUE = '#42A5F5';
             const TEAL = '#26A69A';

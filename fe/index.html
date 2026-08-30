@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=2026082905">
+    <link rel="stylesheet" href="style.css?v=2026082909">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#2f5fde">
     <meta name="msapplication-TileImage" content="https://ik.imagekit.io/o2u9hny2s/vietdataverse/icon-512.png">
@@ -76,7 +76,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=2026082905" as="style">
+    <link rel="preload" href="style.css?v=2026082909" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -831,8 +831,10 @@
                             <span data-i18n="tabGoldSilver">Vàng & Bạc</span>
                         </h2>
 
+                        <!-- Gold + Silver side by side, compact chart height — matches the
+                             approved reference layout (2 charts + sticky overview sidebar). -->
+                        <div class="gs-two-col">
                         <!-- Gold Price Chart -->
-                        <div class="gold-section-grid gold-full-width">
                         <div class="chart-card" data-chart-id="gold">
                             <div class="chart-header">
                                 <h3 class="chart-title">
@@ -868,8 +870,6 @@
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
                         </div>
 
-                        </div>
-
                         <!-- Silver Price Chart -->
                         <div class="chart-card" data-chart-id="silver">
                             <div class="chart-header">
@@ -902,6 +902,7 @@
                             </div>
                             <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://giabac.phuquygroup.vn/" target="_blank" rel="noopener">giabac.phuquygroup.vn</a></small>
                         </div>
+                        </div><!-- /.gs-two-col -->
                     </div>
 
                     <!-- ── Section: Tiền Tệ VN ── -->
@@ -2082,7 +2083,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2026082905" defer></script>
+    <script src="app.js?v=2026082909" defer></script>
     <script src="app.overview.js?v=2026082701" defer></script>
     <script src="app.knowledge.js?v=2026061401" defer></script>
 
