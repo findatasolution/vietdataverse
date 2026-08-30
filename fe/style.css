@@ -5147,10 +5147,19 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 .ov-tile-delta.is-down  { color: #EF5350; }
 .ov-tile-delta.is-flat  { color: var(--stone-gray); }
 
-.ov-tile-canvas { position: relative; height: 130px; width: 100%; }
+/* 195px, not a round number on purpose — it is derived so the first row of
+   tiles ends level with the market-overview panel beside it, as the approved
+   reference shows:
+     panel height 356 - section heading 56 (the grid starts below it, the
+     panel does not) - tile chrome 105 (head 19 + value 23 + delta 19 + gaps
+     + padding) = 195.
+   Re-measure if the panel gains/loses a row or the heading size changes. */
+.ov-tile-canvas { position: relative; height: 195px; width: 100%; }
 .ov-tile-canvas canvas { width: 100% !important; height: 100% !important; }
 @media (max-width: 767px) {
-    .ov-tile-canvas { height: 110px; }
+    /* Panel stacks below the grid on mobile, so the desktop height match no
+       longer applies — but keep the chart substantial, scaled from 251px. */
+    .ov-tile-canvas { height: 190px; }
 }
 
 .ov-tile-msg {

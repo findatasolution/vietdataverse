@@ -39,7 +39,7 @@
             title: 'Giá vàng trong nước', source: 'DOJI HN', unit: 'triệu/lượng',
             detailPeriod: '1m',
             mini: { file: 'data/gold_DOJI_HN_1m.json', series: 'buy_prices',
-                    scale: 1e6, decimals: 1, color: '#c96442' }
+                    scale: 1e6, decimals: 1, color: '#2f5fde' }
         },
         {
             id: 'silver', section: 'gold-silver', family: 'dispatch',
@@ -56,7 +56,7 @@
             title: 'Lãi suất gửi tiết kiệm', source: 'ACB', unit: '%/năm',
             detailPeriod: '1y',
             mini: { file: 'data/termdepo_ACB_1y.json', series: 'term_12m',
-                    scale: 1, decimals: 2, color: '#9e4a2e', stepped: false }
+                    scale: 1, decimals: 2, color: '#1e3fae', stepped: false }
         },
         {
             id: 'interbank', section: 'currency', family: 'dispatch',
@@ -65,7 +65,7 @@
             title: 'Lãi suất liên ngân hàng', source: 'SBV', unit: '%/năm',
             detailPeriod: '1m',
             mini: { file: 'data/sbv_1m.json', series: 'overnight',
-                    scale: 1, decimals: 2, color: '#c96442' }
+                    scale: 1, decimals: 2, color: '#2f5fde' }
         },
         {
             id: 'policy', section: 'currency', family: 'policy',
@@ -78,7 +78,7 @@
             title: 'Lãi suất điều hành', source: 'NHNN', unit: '%/năm',
             detailPeriod: 'all',
             mini: { file: 'data/sbv_policy_all.json', series: 'refinancing',
-                    scale: 1, decimals: 2, color: '#6b3520', stepped: true }
+                    scale: 1, decimals: 2, color: '#16307f', stepped: true }
         },
         {
             id: 'fxrate', section: 'currency', family: 'dispatch',
@@ -87,7 +87,7 @@
             detailPeriod: '1m',
             // Field is `usd_vnd_rate` in fxrate_SBV_USD_1m.json, not `rates`.
             mini: { file: 'data/fxrate_SBV_USD_1m.json', series: 'usd_vnd_rate',
-                    scale: 1, decimals: 0, color: '#c96442' }
+                    scale: 1, decimals: 0, color: '#2f5fde' }
         },
         {
             id: 'global', section: 'global', family: 'dispatch',
@@ -95,7 +95,7 @@
             title: 'Vàng thế giới', source: 'Yahoo Finance', unit: '$/oz',
             detailPeriod: '1y',
             mini: { file: 'data/global_1y.json', series: 'gold_prices',
-                    scale: 1, decimals: 1, color: '#c96442' }
+                    scale: 1, decimals: 1, color: '#2f5fde' }
         },
         {
             id: 'cpi', section: 'macro', family: 'macro', domCardId: 'cpi',
@@ -123,7 +123,7 @@
             title: 'VN-Index', source: 'HSX', unit: 'điểm',
             detailPeriod: '1y',
             mini: { file: 'data/vnindex_1y.json', series: 'close',
-                    scale: 1, decimals: 2, color: '#c96442' }
+                    scale: 1, decimals: 2, color: '#2f5fde' }
         }
     ];
 
