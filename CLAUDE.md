@@ -160,7 +160,8 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | Gold | BTMC, DOJI, SJC, PNJ | `vn_macro_gold_daily` | Daily |
 | Silver | Phú Quý | `vn_macro_silver_daily` | Daily |
 | FX Rate | VCB, SBV | `vn_macro_sbv_rate_daily` | Daily |
-| CPI | NSO/GSO | `vn_gso_cpi_monthly` | Monthly |
+| CPI | NSO | `vn_gso_cpi_monthly` | Monthly |
+| GDP / IIP / Xuất nhập khẩu | NSO monthly & quarterly bulletin | `vn_gso_gdp_quarterly`, `vn_gso_iip_monthly`, `vn_gso_trade_monthly` | Monthly / Quarterly |
 | Global | Yahoo Finance (GC=F, SI=F, ^IXIC) | `global_macro` | Daily |
 | Fuel (domestic) | Bộ Công Thương price-management announcements | `fuel_price_cycle` | Weekly (Thu) |
 | Fuel (world) | Yahoo Finance (BZ=F Brent, RB=F RBOB) | `fuel_world_daily` | Daily |
@@ -419,6 +420,43 @@ def validate_rates(data):
 ```
 
 Workflow `data-quality-check.yml` runs scheduled DQ checks. There is also a `data-quality-check` skill — note it is scoped to `manual_listing_report` / `manual_keyword_report` only, **not** the macro tables.
+
+`crawl_tools/data_quality_check.py` was overhauled on 2026-08-31 after an audit
+found it reporting 15 issues of which 11 were false, which is why a real outage
+(VN30 `pe`/`pb` 100% NULL since 2026-05-15) went unnoticed for months. Rules that
+keep it honest:
+
+- **Duplicates group by each table's real business key** (`dup_key` in `TABLES`),
+  not `(period, source)`. `source` is constant per crawler, so the old grouping
+  reported one "duplicate" per extra brand/ticker/bank on the same day.
+- **Ranges must match the stored unit.** VN30 prices are in *thousand* VND
+  (close 1.29–236); checking them against `[1000, 500000]` flagged all 73,307
+  rows. A 100% hit rate is a broken threshold, not a data problem.
+- **Freshness for Mon–Fri-only tables compares against the last business day**
+  (`market_days=True`), or every Monday run fails because T-1 is Sunday.
+- **NULL checks look at recent rows and fire at a ≥10% rate**, so long-closed
+  historical gaps and market holidays stop re-reporting forever.
+- **`row_filter` scopes both the null and range checks** where a column applies
+  to only some rows — `usd_vnd_rate` exists only on the USD row, and
+  `Vàng TG ($)` is USD-denominated inside a VND table.
+
+### Gold history was unit-repaired (2026-08-31)
+
+`be/migrations/fix_gold_units.py` corrected 1,431 rows of `vn_macro_gold_daily`
+whose 2015–2021 backfill mixed units (×1000 = thousand VND, ×10 = per chỉ rather
+than per lượng). It only touches a row when one power of ten lands it within 15%
+of the median of nearby correctly-quoted brands, and dumps every change to CSV
+first. Domestic gold now spans 21.19M (2009) to 191.3M (Feb 2026 peak) with no
+out-of-range row.
+
+`Vàng TG ($)` (771 rows) is world gold in USD sitting in this VND table, stale
+since 2019 — a different instrument, not a unit error. Left in place; the DQ
+range check excludes it.
+
+**PNJ quotes ring gold while DOJI/SJC quote SJC bars.** During the 2022–2023 bar
+premium they differed by ~17% (2023-06-15: DOJI 67.1M vs PNJ 55.5M). Both are
+correct. `crawl_tools/gold_validation.py`'s 15% cross-brand rule would reject the
+ring-gold quotes if that premium returns.
 
 ### Gold & silver validation (`crawl_tools/gold_validation.py`)
 
