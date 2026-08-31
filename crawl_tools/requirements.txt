@@ -4,6 +4,10 @@ sqlalchemy==2.0.36
 psycopg2-binary==2.9.10
 beautifulsoup4==4.12.3
 yfinance==1.4.1
+# vnstock 4.x supplies company.ratio_summary(), the only endpoint still
+# returning pe/pb/ps/market_cap. It was never pinned here, so CI ran with the
+# import missing and the crawler's first layer was dead on arrival.
+vnstock==4.0.7
 vnstock3==0.3.0.9
 python-dotenv==1.0.1
 pytesseract==0.3.13

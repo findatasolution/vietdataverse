@@ -111,8 +111,79 @@ def _parse_kbs_ratio(df) -> dict:
     }
 
 
+def _fetch_ratio_summary(ticker: str) -> dict:
+    """Layer 0 — vnstock 4.x `company.ratio_summary()` (VCI).
+
+    Added 2026-08-31. pe and pb had been 100% NULL since 2026-05-15 because both
+    older layers died: the KBS ratio endpoint now returns HTTP 404, and VCI's
+    company payload changed shape so vnstock 3.x raises KeyError('data') while
+    merely CONSTRUCTING the component. The crawler silently degraded to
+    `company.overview()`, which carries roe/roa/eps but no valuation ratios —
+    exactly the observed NULL pattern. Nothing alarmed because vn30_ratio_daily
+    was not in the data-quality catalogue at the time.
+
+    This endpoint returns the whole TTM ratio history; the newest (year,
+    quarter) row is the one we want. It also supplies ps and market_cap, which
+    the older code hardcoded to None.
+
+    Unit note: the source expresses roe/roa as FRACTIONS (0.2647) while this
+    table has always stored percent (27.33), so they are scaled by 100.
+    dividend_yield is a fraction in both and is left alone.
+    """
+    try:
+        from vnstock import Vnstock
+    except ImportError:
+        return {}
+    try:
+        df = Vnstock().stock(symbol=ticker, source='VCI').company.ratio_summary()
+        if df is None or df.empty:
+            return {}
+        if {'year', 'quarter'}.issubset(df.columns):
+            df = df.sort_values(['year', 'quarter'])
+        row = df.iloc[-1]
+
+        def g(col):
+            return _safe_float(row.get(col)) if col in df.columns else None
+
+        pct = lambda v: None if v is None else v * 100
+        mktcap = g('market_cap')
+        return {
+            'pe':             g('pe'),
+            'pb':             g('pb'),
+            'ps':             g('ps'),
+            'roe':            pct(g('roe')),
+            'roa':            pct(g('roa')),
+            'eps':            None,      # not in this payload — filled by later layers
+            'dividend_yield': g('dividend_yield'),
+            'market_cap_billion': None if mktcap is None else mktcap / 1e9,
+        }
+    except Exception as e:
+        print(f"  [{ticker}] ratio_summary error: {e}")
+        return {}
+
+
 def fetch_ratios_vnstock(ticker: str) -> dict:
-    """Fetch latest financial ratios. Tries vnstock (KBS) → vnstock3 (VCI)."""
+    """Fetch latest financial ratios.
+
+    Layer 0 (ratio_summary) → layer 1 (KBS) → layer 2 (vnstock3/VCI). Results are
+    MERGED rather than first-wins: layer 0 has the valuation ratios but no eps,
+    the older layers have eps, and a partial answer from any of them is better
+    than the NULLs that three months of first-wins-with-a-dead-first-layer
+    produced.
+    """
+    merged = _fetch_ratio_summary(ticker)
+    if merged and merged.get('pe') is not None and merged.get('eps') is not None:
+        return merged
+
+    def _merge(extra):
+        """Fill only the keys layer 0 could not supply."""
+        if not extra:
+            return merged
+        for k, v in extra.items():
+            if merged.get(k) is None and v is not None:
+                merged[k] = v
+        return merged
+
     # --- Layer 1: vnstock 3.5+ (KBS — works from any IP) ---
     try:
         from vnstock import Vnstock
@@ -121,7 +192,7 @@ def fetch_ratios_vnstock(ticker: str) -> dict:
             try:
                 ratio_df = stock.finance.ratio(period='quarter')
                 if ratio_df is not None and not ratio_df.empty:
-                    return _parse_kbs_ratio(ratio_df)
+                    return _merge(_parse_kbs_ratio(ratio_df))
                 break
             except Exception as e:
                 msg = str(e).lower()
@@ -150,7 +221,7 @@ def fetch_ratios_vnstock(ticker: str) -> dict:
             ratio_df = stock.finance.ratio(period='quarter', lang='en')
             if ratio_df is not None and not ratio_df.empty:
                 row = ratio_df.iloc[-1]
-                return {
+                return _merge({
                     'pe': _safe_float(row.get('pe') or row.get('P/E')),
                     'pb': _safe_float(row.get('pb') or row.get('P/B')),
                     'ps': _safe_float(row.get('ps') or row.get('P/S')),
@@ -159,7 +230,7 @@ def fetch_ratios_vnstock(ticker: str) -> dict:
                     'eps': _safe_float(row.get('eps') or row.get('EPS')),
                     'dividend_yield': _safe_float(row.get('dividend_yield')),
                     'market_cap_billion': None,
-                }
+                })
         except Exception as e:
             print(f"  [{ticker}] VCI ratio() error: {e}")
 
@@ -167,7 +238,7 @@ def fetch_ratios_vnstock(ticker: str) -> dict:
             overview = stock.company.overview()
             if overview is not None and not overview.empty:
                 row = overview.iloc[0]
-                return {
+                return _merge({
                     'pe': _safe_float(row.get('pe')),
                     'pb': _safe_float(row.get('pb')),
                     'ps': _safe_float(row.get('ps')),
@@ -176,13 +247,13 @@ def fetch_ratios_vnstock(ticker: str) -> dict:
                     'eps': _safe_float(row.get('eps')),
                     'dividend_yield': _safe_float(row.get('dividendYield')),
                     'market_cap_billion': _safe_float(row.get('marketCap', 0)) / 1e9 if row.get('marketCap') else None,
-                }
+                })
         except Exception as e:
             print(f"  [{ticker}] VCI overview() error: {e}")
 
     except Exception as e:
         print(f"  [{ticker}] vnstock3 error: {e}")
-    return {}
+    return merged
 
 
 def upsert_ratios(ticker: str, ratios: dict, trade_date: str, crawl_time: datetime):
