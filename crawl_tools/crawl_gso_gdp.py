@@ -1,6 +1,6 @@
 """
 Vietnam GDP Quarterly Crawler
-Source: gso.gov.vn (Tổng cục Thống kê)
+Source: nso.gov.vn (Tổng cục Thống kê)
 Strategy: 3-layer adaptive parsing — Structured → Heuristic → LLM (Gemini)
 Schedule: Quarterly — end of Mar, Jun, Sep, Dec (02:00 UTC)
 """
@@ -43,7 +43,7 @@ engine = create_engine(CRAWLING_BOT_DB)
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-GSO_GDP_SEARCH = "https://www.gso.gov.vn/wp-json/wp/v2/posts?search=t%E1%BB%95ng+s%E1%BA%A3n+ph%E1%BA%A9m+trong+n%C6%B0%E1%BB%9Bc&per_page=5"
+GSO_GDP_SEARCH = "https://www.nso.gov.vn/wp-json/wp/v2/posts?search=t%E1%BB%95ng+s%E1%BA%A3n+ph%E1%BA%A9m+trong+n%C6%B0%E1%BB%9Bc&per_page=5"
 
 GDP_SECTORS = {
     'Tổng số': 'total',
@@ -111,7 +111,11 @@ def layer3_llm(html: str, year: int, quarter: int) -> list[dict]:
     if not GEMINI_API_KEY:
         return []
     soup = BeautifulSoup(html, 'html.parser')
-    text_content = soup.get_text(separator='\n', strip=True)[:6000]
+    # The bulletin body runs ~16k characters and the figures sit well past the
+    # 6,000-character mark this used to cut at, so the extractor was reading
+    # only the opening summary. `content.rendered` is body-only, so passing it
+    # whole costs a few thousand tokens and no noise.
+    text_content = soup.get_text(separator='\n', strip=True)[:20000]
     prompt = f"""Extract Vietnam GDP data for {year} Q{quarter} from this GSO text.
 Return JSON array: [{{year, quarter, sector, gdp_billion_vnd, growth_yoy_pct}}]
 Sectors: total, agriculture, industry, services, taxes_subsidies
@@ -120,9 +124,10 @@ Only JSON, nothing else.
 Text:
 {text_content}"""
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
         resp = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}],
-                                        "generationConfig": {"temperature": 0.1}}, timeout=30)
+                                        "generationConfig": {"temperature": 0.1,
+                                                             "thinkingConfig": {"thinkingBudget": 0}}}, timeout=30)
         resp.raise_for_status()
         raw = resp.json()['candidates'][0]['content']['parts'][0]['text']
         raw = re.sub(r'```json\s*|\s*```', '', raw).strip()
@@ -132,24 +137,90 @@ Text:
         return []
 
 
-def fetch_gso_html(search_url: str) -> "Optional[str]":
+# NSO publishes its statistics inside the monthly socio-economic bulletin, whose
+# slug always starts with this. Free-text search alone returns the newsroom —
+# a piece about a deputy director's site visit outranked the actual report —
+# so hits are filtered by slug the way crawl_gso_cpi.py already does.
+# GDP is a QUARTERLY figure: it is absent from the monthly bulletin and appears
+# in the quarter-closing report, whose slug carries the quarter in Roman
+# numerals (…-quy-ii-va-6-thang-dau-nam-2026).
+REPORT_SLUG_ANY = ('tinh-hinh-kinh-te-xa-hoi-quy-', 'bao-cao-tinh-hinh-kinh-te-xa-hoi')
+REPORT_SEARCH = ("https://www.nso.gov.vn/wp-json/wp/v2/posts?search="
+                 + requests.utils.quote("tổng sản phẩm trong nước quý")
+                 + "&per_page=30&_fields=link,date,title,content")
+
+
+def fetch_gso_html(search_url: str = "", keywords=None) -> "Optional[str]":
+    """Return the BODY html of the newest NSO monthly bulletin.
+
+    Three separate faults kept this table empty since it was created:
+      - it pointed at gso.gov.vn, a domain that stopped resolving when the
+        office rebranded to nso.gov.vn (the CPI crawler was already migrated);
+      - it fetched the article's full page, so the first 6,000 characters handed
+        to the extractor were the site menu and stylesheet, not the report —
+        `content.rendered` from the API is the body alone;
+      - it took posts[0] from a free-text search, which returns newsroom items.
+    
+    GDP additionally needs a quarter-closing bulletin — see below.
+    """
     headers = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'vi-VN,vi;q=0.9'}
     try:
-        resp = requests.get(search_url, headers=headers, timeout=15)
-        if resp.status_code == 200:
-            posts = resp.json()
-            if posts:
-                url = posts[0].get('link', '')
-                if url:
-                    page = requests.get(url, headers=headers, timeout=20)
-                    if page.status_code == 200:
-                        return page.text
+        resp = requests.get(REPORT_SEARCH, headers=headers, timeout=25)
+        if resp.status_code != 200:
+            print(f"  Search HTTP {resp.status_code}")
+            return None
+        posts = [p for p in resp.json()
+                 if any(sl in p.get('link', '') for sl in REPORT_SLUG_ANY)]
+        if not posts:
+            print("  No bulletin matched the report slug")
+            return None
+        posts.sort(key=lambda p: p.get('date', ''), reverse=True)
+        # Prefer a genuine quarterly report over a monthly bulletin.
+        quarterly = [p for p in posts if 'tinh-hinh-kinh-te-xa-hoi-quy-' in p.get('link', '')]
+        best = (quarterly or posts)[0]
+        print(f"  Article: {best.get('date','?')[:10]} — "
+              f"{re.sub(r'<[^>]+>', '', (best.get('title',{}) or {}).get('rendered',''))[:70]}")
+        return (best.get('content', {}) or {}).get('rendered', '') or None
     except Exception as e:
         print(f"  Fetch error: {e}")
     return None
 
+def _clean_records(records: list[dict], year: int, quarter: int) -> list[dict]:
+    """Coerce the LLM's answer to the column types and drop empty rows.
+
+    The prompt asks for the period as "Q2", so the model returns it as a string
+    while `quarter` is an INTEGER column — the insert failed with
+    InvalidTextRepresentation. And a row where BOTH figures came back null
+    carries no information but still violates the NOT NULL columns, which is how
+    this crawler ended a run with a DataError instead of a clean "nothing
+    published yet". Both are handled here rather than trusting the model.
+    """
+    out = []
+    for rec in records:
+        q = rec.get('quarter', quarter)
+        if isinstance(q, str):
+            digits = ''.join(ch for ch in q if ch.isdigit())
+            q = int(digits) if digits else quarter
+        y = rec.get('year', year)
+        try:
+            y = int(y)
+        except (TypeError, ValueError):
+            y = year
+        gdp = rec.get('gdp_billion_vnd')
+        yoy = rec.get('growth_yoy_pct')
+        if gdp is None and yoy is None:
+            continue                      # nothing extracted — do not write a hollow row
+        out.append({'year': y, 'quarter': int(q),
+                    'sector': rec.get('sector') or 'total',
+                    'gdp_billion_vnd': gdp, 'growth_yoy_pct': yoy})
+    return out
+
 
 def upsert_records(records: list[dict], crawl_time: datetime):
+    records = _clean_records(records, TARGET_YEAR, TARGET_QUARTER)
+    if not records:
+        print("  Nothing usable extracted — no rows written")
+        return 0
     with engine.connect() as conn:
         for rec in records:
             conn.execute(text("""

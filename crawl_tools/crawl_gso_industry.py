@@ -1,6 +1,6 @@
 """
 Vietnam Industrial Production Index (IIP) Monthly Crawler
-Source: gso.gov.vn — Chỉ số Sản xuất Công nghiệp (IIP)
+Source: nso.gov.vn — Chỉ số Sản xuất Công nghiệp (IIP)
 Strategy: 3-layer adaptive parsing — Structured → Heuristic → LLM (Gemini)
 Schedule: Monthly ~25th-28th at 9:00 AM VN (02:00 UTC)
 """
@@ -41,7 +41,7 @@ engine = create_engine(CRAWLING_BOT_DB)
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-GSO_IIP_SEARCH = "https://www.gso.gov.vn/wp-json/wp/v2/posts?search=ch%E1%BB%89+s%E1%BB%91+s%E1%BA%A3n+xu%E1%BA%A5t+c%C3%B4ng+nghi%E1%BB%87p&per_page=5"
+GSO_IIP_SEARCH = "https://www.nso.gov.vn/wp-json/wp/v2/posts?search=ch%E1%BB%89+s%E1%BB%91+s%E1%BA%A3n+xu%E1%BA%A5t+c%C3%B4ng+nghi%E1%BB%87p&per_page=5"
 
 IIP_SECTORS = [
     'Toàn ngành công nghiệp',
@@ -62,13 +62,13 @@ def ensure_table():
                 iip_index FLOAT,
                 iip_yoy_pct FLOAT,
                 crawl_time TIMESTAMP NOT NULL,
-                source TEXT NOT NULL DEFAULT 'gso.gov.vn',
+                source TEXT NOT NULL DEFAULT 'nso.gov.vn',
                 group_name VARCHAR(20) NOT NULL DEFAULT 'macro',
                 UNIQUE (period, sector_name)
             )
         """))
         for col, definition in [
-            ('source',     "TEXT NOT NULL DEFAULT 'gso.gov.vn'"),
+            ('source',     "TEXT NOT NULL DEFAULT 'nso.gov.vn'"),
             ('group_name', "VARCHAR(20) NOT NULL DEFAULT 'macro'"),
         ]:
             try:
@@ -137,7 +137,11 @@ def layer3_llm(html: str, period: str) -> list[dict]:
     if not GEMINI_API_KEY:
         return []
     soup = BeautifulSoup(html, 'html.parser')
-    text_content = soup.get_text(separator='\n', strip=True)[:6000]
+    # The bulletin body runs ~16k characters and the figures sit well past the
+    # 6,000-character mark this used to cut at, so the extractor was reading
+    # only the opening summary. `content.rendered` is body-only, so passing it
+    # whole costs a few thousand tokens and no noise.
+    text_content = soup.get_text(separator='\n', strip=True)[:20000]
     prompt = f"""Extract Vietnam Industrial Production Index (IIP/Chỉ số sản xuất công nghiệp) for period {period}.
 Return JSON array: [{{period, sector_name, iip_index, iip_yoy_pct}}]
 Only JSON, nothing else.
@@ -145,9 +149,10 @@ Only JSON, nothing else.
 Text:
 {text_content}"""
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
         resp = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}],
-                                        "generationConfig": {"temperature": 0.1}}, timeout=30)
+                                        "generationConfig": {"temperature": 0.1,
+                                                             "thinkingConfig": {"thinkingBudget": 0}}}, timeout=30)
         resp.raise_for_status()
         raw = resp.json()['candidates'][0]['content']['parts'][0]['text']
         raw = re.sub(r'```json\s*|\s*```', '', raw).strip()
@@ -157,23 +162,45 @@ Text:
         return []
 
 
+# NSO publishes its statistics inside the monthly socio-economic bulletin, whose
+# slug always starts with this. Free-text search alone returns the newsroom —
+# a piece about a deputy director's site visit outranked the actual report —
+# so hits are filtered by slug the way crawl_gso_cpi.py already does.
+REPORT_SLUG = 'bao-cao-tinh-hinh-kinh-te-xa-hoi'
+REPORT_SEARCH = ("https://www.nso.gov.vn/wp-json/wp/v2/posts?search="
+                 + requests.utils.quote("báo cáo tình hình kinh tế xã hội")
+                 + "&per_page=30&_fields=link,date,title,content")
+
+
 def fetch_gso_html() -> "Optional[str]":
+    """Return the BODY html of the newest NSO monthly bulletin.
+
+    Three separate faults kept this table empty since it was created:
+      - it pointed at gso.gov.vn, a domain that stopped resolving when the
+        office rebranded to nso.gov.vn (the CPI crawler was already migrated);
+      - it fetched the article's full page, so the first 6,000 characters handed
+        to the extractor were the site menu and stylesheet, not the report —
+        `content.rendered` from the API is the body alone;
+      - it took posts[0] from a free-text search, which returns newsroom items.
+    """
     headers = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'vi-VN,vi;q=0.9'}
     try:
-        resp = requests.get(GSO_IIP_SEARCH, headers=headers, timeout=15)
-        if resp.status_code == 200:
-            posts = resp.json()
-            if posts:
-                url = posts[0].get('link', '')
-                if url:
-                    print(f"  Found GSO post: {url}")
-                    page = requests.get(url, headers=headers, timeout=20)
-                    if page.status_code == 200:
-                        return page.text
+        resp = requests.get(REPORT_SEARCH, headers=headers, timeout=25)
+        if resp.status_code != 200:
+            print(f"  Search HTTP {resp.status_code}")
+            return None
+        posts = [p for p in resp.json() if REPORT_SLUG in p.get('link', '')]
+        if not posts:
+            print("  No bulletin matched the report slug")
+            return None
+        posts.sort(key=lambda p: p.get('date', ''), reverse=True)
+        best = posts[0]
+        print(f"  Article: {best.get('date','?')[:10]} — "
+              f"{re.sub(r'<[^>]+>', '', (best.get('title',{}) or {}).get('rendered',''))[:70]}")
+        return (best.get('content', {}) or {}).get('rendered', '') or None
     except Exception as e:
         print(f"  Fetch error: {e}")
     return None
-
 
 def upsert_records(records: list[dict], crawl_time: datetime):
     with engine.connect() as conn:
@@ -187,7 +214,7 @@ def upsert_records(records: list[dict], crawl_time: datetime):
                     crawl_time = EXCLUDED.crawl_time,
                     source = EXCLUDED.source,
                     group_name = EXCLUDED.group_name
-            """), {**rec, 'crawl_time': crawl_time, 'source': 'gso.gov.vn', 'group_name': 'macro'})
+            """), {**rec, 'crawl_time': crawl_time, 'source': 'nso.gov.vn', 'group_name': 'macro'})
         conn.commit()
     return len(records)
 

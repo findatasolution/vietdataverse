@@ -293,7 +293,7 @@ Chỉ trả về JSON, không có text khác.
 Bài viết:
 {clean_text}"""
 
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
     for attempt in range(3):
         try:
             if attempt > 0:
