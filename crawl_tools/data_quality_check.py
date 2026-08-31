@@ -163,7 +163,11 @@ TABLES = [
      'date', 'date',
      ['gold_price', 'silver_price', 'nasdaq_price', 'sp500_price', 'dowjones_price'],
      (0, 1_000_000),
-     ('date',), False),
+     ('date',), False,
+     # Gold and silver futures trade on Sunday evening; the US equity indices do
+     # not, so their weekend rows are legitimately empty. Restrict the checks to
+     # trading days rather than reporting the calendar as a defect.
+     'EXTRACT(ISODOW FROM date) <= 5'),
 ]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -249,6 +253,10 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
         # It still catches a live outage: vn30_ratio's pe/pb went 100% NULL on
         # 2026-05-15 and would fire here on day one.
         if period_type == 'date':
+            # 90 days: long enough that weekend and holiday blanks stay a small
+            # fraction of the window. A 14-day window was tried and made this
+            # noisier, not quieter — two Sundays out of twelve rows tripped the
+            # 10% threshold for the US indices.
             window = f"{period_col} >= CURRENT_DATE - 90"
         else:
             # 'YYYY-MM' / 'YYYY' strings — lexicographic compare is safe
