@@ -215,7 +215,10 @@ def fetch_article_html(url: str) -> str:
                 href = a['href']
                 if 'chi-so-gia-tieu-dung' not in href or str(PERIOD_YEAR) not in href:
                     continue
-                if not month_slug or f'-thang-{month_slug}-' not in href:
+                # '-thang-muoi-' is a prefix of '-thang-muoi-mot-', so month 10
+                # matched November's article. NSO slugs always read
+                # '-thang-{slug}-va-{N}-thang-…', so anchor on the '-va-' too.
+                if not month_slug or f'-thang-{month_slug}-va-' not in href:
                     continue
                 print(f"  Found via listing: {href}")
                 r2 = requests.get(href, headers=HEADERS, timeout=20, verify=NSO_VERIFY)
