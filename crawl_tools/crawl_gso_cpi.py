@@ -160,15 +160,20 @@ def discover_articles_by_period() -> dict:
     return found
 
 
+# Vietnamese ordinal month names as they appear in NSO slugs
+# (tháng Tư = 'tu', not 'bon'). Shared by the URL builder and the listing
+# fallback so the two cannot disagree about which month an article covers.
+MONTH_SLUGS = {
+    1: 'mot', 2: 'hai', 3: 'ba', 4: 'tu', 5: 'nam', 6: 'sau',
+    7: 'bay', 8: 'tam', 9: 'chin', 10: 'muoi', 11: 'muoi-mot', 12: 'muoi-hai'
+}
+
+
 def construct_article_urls(period_year: int, period_month: int) -> list:
     """Best-effort fallback URLs when the WP API does not list a period."""
     pub_month = period_month + 1 if period_month < 12 else 1
     pub_year  = period_year if period_month < 12 else period_year + 1
-    # Vietnamese ordinal month names as used in NSO slugs (tháng Tư = 'tu', not 'bon')
-    month_names = {
-        1:'mot', 2:'hai', 3:'ba', 4:'tu', 5:'nam', 6:'sau',
-        7:'bay', 8:'tam', 9:'chin', 10:'muoi', 11:'muoi-mot', 12:'muoi-hai'
-    }
+    month_names = MONTH_SLUGS
     slug = (f"chi-so-gia-tieu-dung-chi-so-gia-vang-va-chi-so-gia-do-la-my"
             f"-thang-{month_names[period_month]}-va-{period_month}-thang-dau-nam-{period_year}")
     return [
@@ -192,19 +197,32 @@ def fetch_article_html(url: str) -> str:
     except Exception as e:
         print(f"  Fetch error: {e}")
 
-    # Try listing page as fallback
+    # Try listing page as fallback.
+    #
+    # The month must match. This used to accept any link containing
+    # "chi-so-gia-tieu-dung" and the year, so when a month's own article 404'd
+    # it silently returned whatever CPI article the listing happened to show —
+    # a backfill of July, August, September, October and December 2025 all came
+    # back with NOVEMBER's article and stored five identical rows
+    # (m/m 0.23, y/y 3.29). Wrong data is worse than a gap.
     try:
         listing = f"https://www.nso.gov.vn/tin-tuc-thong-ke/{PERIOD_YEAR}/"
         resp = requests.get(listing, headers=HEADERS, timeout=15, verify=NSO_VERIFY)
         if resp.status_code == 200:
             soup = BeautifulSoup(resp.text, 'html.parser')
+            month_slug = MONTH_SLUGS.get(PERIOD_MONTH)
             for a in soup.find_all('a', href=True):
                 href = a['href']
-                if 'chi-so-gia-tieu-dung' in href and str(PERIOD_YEAR) in href:
-                    print(f"  Found via listing: {href}")
-                    r2 = requests.get(href, headers=HEADERS, timeout=20, verify=NSO_VERIFY)
-                    if r2.status_code == 200:
-                        return r2.text
+                if 'chi-so-gia-tieu-dung' not in href or str(PERIOD_YEAR) not in href:
+                    continue
+                if not month_slug or f'-thang-{month_slug}-' not in href:
+                    continue
+                print(f"  Found via listing: {href}")
+                r2 = requests.get(href, headers=HEADERS, timeout=20, verify=NSO_VERIFY)
+                if r2.status_code == 200:
+                    return r2.text
+            print(f"  Listing has no article for month {PERIOD_MONTH} — giving up rather "
+                  f"than using another month's figures")
     except Exception as e:
         print(f"  Listing fetch error: {e}")
 

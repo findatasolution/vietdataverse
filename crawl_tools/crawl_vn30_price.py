@@ -148,10 +148,25 @@ def upsert_records(records: list[dict], crawl_time: datetime):
     if not records:
         return 0
     from psycopg2.extras import execute_values
+
+    # De-duplicate on (ticker, date) before batching.
+    #
+    # Postgres rejects an INSERT … ON CONFLICT batch that contains two rows with
+    # the same conflict key: "ON CONFLICT DO UPDATE command cannot affect row a
+    # second time". The source returns the odd repeated session, so one duplicate
+    # pair failed the WHOLE batch for that ticker — which is why vn30_ohlcv_daily
+    # stopped at 2026-08-27 while the workflow kept reporting a crawl. Later
+    # records win, matching the ON CONFLICT DO UPDATE semantics.
+    deduped = {}
+    for r in records:
+        deduped[(r['ticker'], r['date'])] = r
+    if len(deduped) < len(records):
+        print(f"  Dropped {len(records) - len(deduped)} duplicate (ticker, date) rows before insert")
+
     rows = [
         (r['ticker'], r['date'], r.get('open'), r.get('high'), r.get('low'),
          r.get('close'), r.get('volume'), r.get('value'), crawl_time, 'vnstock3', 'stock')
-        for r in records
+        for r in deduped.values()
     ]
     sql = """
         INSERT INTO vn30_ohlcv_daily
