@@ -225,22 +225,22 @@ def layer1_structured(text_content: str, period: str) -> dict:
     patterns = {
         # CPI mom
         'cpi_mom_pct': [
-            r'(?:cpi|chỉ số giá tiêu dùng)[^\n]*?(?:tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
-            r'(?:tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước[^\n]*?(?:cpi|tiêu dùng)',
+            r'(?:cpi|chỉ số giá tiêu dùng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
+            r'(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước[^\n]*?(?:cpi|tiêu dùng)',
         ],
         # CPI yoy
         'cpi_yoy_pct': [
-            r'(?:cpi|tiêu dùng)[^\n]*?(?:tăng|giảm)\s+([\d,\.]+)%\s*so với cùng kỳ',
+            r'(?:cpi|tiêu dùng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với cùng kỳ',
         ],
         # Gold mom
         'gold_mom_pct': [
-            r'(?:giá vàng|vàng)[^\n]*?(?:tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
-            r'chỉ số giá vàng[^\n]*?(?:tăng|giảm)\s+([\d,\.]+)%',
+            r'(?:giá vàng|vàng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
+            r'chỉ số giá vàng[^\n]*?(tăng|giảm)\s+([\d,\.]+)%',
         ],
         # USD mom
         'usd_mom_pct': [
-            r'(?:đô la|đô la mỹ|usd)[^\n]*?(?:tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
-            r'chỉ số giá đô la[^\n]*?(?:tăng|giảm)\s+([\d,\.]+)%',
+            r'(?:đô la|đô la mỹ|usd)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
+            r'chỉ số giá đô la[^\n]*?(tăng|giảm)\s+([\d,\.]+)%',
         ],
     }
 
@@ -248,10 +248,19 @@ def layer1_structured(text_content: str, period: str) -> dict:
         for pat in pats:
             m = re.search(pat, text_lower, re.IGNORECASE)
             if m:
-                val = float(m.group(1).replace(',', '.'))
-                # Detect sign
-                context = text_lower[max(0, m.start()-20):m.end()]
-                if 'giảm' in context:
+                # The direction word is captured immediately before the number.
+                #
+                # It used to be inferred by scanning the whole matched span for
+                # "giảm", but these patterns run from "CPI" all the way to
+                # "so với cùng kỳ", so a sentence like
+                #   "CPI tháng Bảy giảm 0,12% so với tháng trước; … và tăng
+                #    4,45% so với cùng kỳ năm trước"
+                # put the month-on-month "giảm" inside the year-on-year match and
+                # flipped its sign. July and June 2026 were stored as -4.45 and
+                # -4.69 when the source said +4.45 and +4.69.
+                direction, raw = m.group(1), m.group(2)
+                val = float(raw.replace(',', '.'))
+                if direction == 'giảm':
                     val = -val
                 result[field] = val
                 break
