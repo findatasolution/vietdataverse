@@ -32,6 +32,18 @@ REPORT_TO = 'findatasolution@gmail.com'
 TODAY  = date.today()
 CUTOFF = TODAY - timedelta(days=1)
 
+def last_business_day(d):
+    """Most recent Mon–Fri strictly before `d`.
+
+    Market tables (HSX/VN30, VN-Index) have no weekend rows by construction, so
+    comparing them against a plain T-1 made every Monday run fail: T-1 is Sunday.
+    That false ERROR fired 2 days out of 7 and is part of why the daily report
+    was ignored."""
+    d = d - timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
+
 issues: list[dict]    = []
 summaries: list[dict] = []
 
@@ -52,51 +64,100 @@ ENGINES = {
 }
 
 # ── Table catalogue ───────────────────────────────────────────────────────────
-# (table_name, db_key, date_col, period_type, numeric_cols, valid_range)
-# period_type: 'date' = daily (check T-1), 'month'/'quarter' = skip freshness
+# (table, db_key, date_col, period_type, numeric_cols, valid_range, dup_key, market_days)
+#
+# dup_key: the table's REAL business key. The check used to group by
+# (period, source) for every table, but `source` is a constant per crawler
+# ('24h.com.vn' for all gold rows), so it reported one "duplicate" per extra
+# brand/ticker/bank on the same day — 4019 for gold, 2730 for vn30_ohlcv, none
+# of them real. Grouping by the key the unique index actually enforces gives 0.
+#
+# market_days: table only has Mon–Fri rows, so freshness compares against the
+# last business day rather than T-1.
 TABLES = [
     # ── Macro / BOT DB ────────────────────────────────────────────────────────
     ('vn_macro_gold_daily',       'CRAWLING_BOT_DB',
      'date', 'date',
      ['buy_price', 'sell_price'],
-     (50_000_000, 200_000_000)),
+     # Floor is 15M, not 50M: gold legitimately traded at ~20M/lượng in 2009,
+     # the first year this table covers. A 50M floor flagged 21k rows of
+     # correct history.
+     (15_000_000, 250_000_000),
+     ('date', 'type'), False),
 
     ('vn_macro_silver_daily',     'CRAWLING_BOT_DB',
      'date', 'date',
      ['buy_price', 'sell_price'],
-     (500_000, 5_000_000)),
+     (500_000, 5_000_000),
+     ('date', 'source'), False),
 
     ('vn_macro_termdepo_daily',   'CRAWLING_BOT_DB',
      'date', 'date',
      ['term_1m', 'term_3m', 'term_6m', 'term_12m'],
-     (0.1, 20.0)),
+     (0.1, 20.0),
+     ('date', 'bank_code'), False),
 
     ('vn_macro_fxrate_daily',     'CRAWLING_BOT_DB',
      'date', 'date',
      ['usd_vnd_rate'],
-     (20_000, 35_000)),
+     (20_000, 35_000),
+     ('date', 'bank', 'type'), False,
+     # The table holds one row per currency; usd_vnd_rate is populated only on
+     # the USD row, so an unscoped NULL check flagged 9,178 correct EUR/JPY/…
+     # rows every day.
+     "type = 'USD'"),
+
+    ('vn_macro_sbv_rate_daily',   'CRAWLING_BOT_DB',
+     'date', 'date',
+     ['ls_quadem'],
+     (0.0, 30.0),
+     ('date',), True,
+     # Rows before the daily interbank feed began are policy-decision records
+     # (refinancing/rediscount only) and legitimately have no overnight rate.
+     'refinancing_rate IS NULL'),
+
+    ('vn_macro_vnindex_daily',    'CRAWLING_BOT_DB',
+     'date', 'date',
+     ['close'],
+     (100.0, 5_000.0),
+     ('date',), True),
 
     ('vn_gso_cpi_monthly',        'CRAWLING_BOT_DB',
      'period', 'month',
      ['cpi_mom_pct', 'cpi_yoy_pct'],
-     (-5.0, 30.0)),
+     (-5.0, 30.0),
+     ('period',), False),
 
     ('vn_gso_gdp_quarterly',      'CRAWLING_BOT_DB',
      'year', 'quarter',
      ['gdp_billion_vnd', 'growth_yoy_pct'],
-     (-10.0, 1_000_000)),
+     (-10.0, 1_000_000),
+     ('year',), False),
 
     # ── Corp DB ───────────────────────────────────────────────────────────────
     ('vn30_ohlcv_daily',          'CRAWLING_CORP_DB',
      'date', 'date',
-     ['open', 'high', 'low', 'close', 'volume'],
-     (1_000, 500_000)),
+     # Prices are quoted in THOUSAND VND (close ranges 1.29–236), so the old
+     # [1000, 500000] range flagged all 73,307 rows — a 100% hit rate, which is
+     # a broken threshold, not a data problem.
+     ['open', 'high', 'low', 'close'],
+     (0.5, 1_000.0),
+     ('ticker', 'date'), True),
+
+    ('vn30_ratio_daily',          'CRAWLING_CORP_DB',
+     'date', 'date',
+     # pe/pb silently went 100% NULL on 2026-05-15 when both upstream ratio
+     # sources broke, and nothing noticed because this table was not checked.
+     ['pe', 'pb', 'roe', 'eps'],
+     (-1_000.0, 10_000.0),
+     ('ticker', 'date'), True),
 
     # ── Global DB ────────────────────────────────────────────────────────────
     ('global_macro',              'GLOBAL_INDICATOR_DB',
      'date', 'date',
      ['gold_price', 'silver_price', 'nasdaq_price', 'sp500_price', 'dowjones_price'],
-     (0, 1_000_000)),
+     (0, 1_000_000),
+     ('date',), False),
 ]
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -106,7 +167,8 @@ def flag(table, db, check, detail, severity='WARNING'):
                    'detail': detail, 'severity': severity})
 
 
-def check_table(table, db_key, period_col, period_type, numeric_cols, valid_range):
+def check_table(table, db_key, period_col, period_type, numeric_cols, valid_range,
+                dup_key=None, market_days=False, null_filter=None):
     engine = ENGINES.get(db_key)
     if engine is None:
         return
@@ -139,14 +201,19 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
 
         # 2. Freshness
         if period_type == 'date':
-            cutoff = CUTOFF.isoformat()
+            cut = last_business_day(TODAY) if market_days else CUTOFF
             recent = conn.execute(
                 text(f"SELECT COUNT(*) FROM {table} WHERE {period_col} >= :d"),
-                {'d': cutoff}
+                {'d': cut.isoformat()}
             ).scalar()
             if recent == 0:
+                # SBV publishes its interbank series with a lag of several days
+                # and the crawler can only read the newest record the API
+                # returns (pageSize=1), so a gap here is the source's cadence,
+                # not a broken pipeline. Reported, but not as an ERROR.
+                sev = 'WARNING' if table == 'vn_macro_sbv_rate_daily' else 'ERROR'
                 flag(table, db_key, 'freshness',
-                     f'No row for {CUTOFF} or today', 'ERROR')
+                     f'No row for {cut} or later', sev)
                 freshness_ok = False
         elif period_type == 'month':
             # Monthly reports for month M publish early in M+1, so by mid-month the
@@ -166,15 +233,36 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
                      f'Latest {period_col}={latest}, expected ≥ {floor_ym}', 'ERROR')
                 freshness_ok = False
 
-        # 3. Nulls in required columns
+        # 3. Nulls in required columns — RECENT rows only.
+        #
+        # This check answers "is the pipeline filling this column today?", not
+        # "has every row since 2002 been complete". Scoping it to a recent window
+        # stops long-closed historical gaps (PNJ stopped publishing a buy price
+        # between 2022 and 2024; CPI has 17 missing months across 23 years) from
+        # re-reporting forever, which is what turned the daily mail into noise.
+        # It still catches a live outage: vn30_ratio's pe/pb went 100% NULL on
+        # 2026-05-15 and would fire here on day one.
+        if period_type == 'date':
+            window = f"{period_col} >= CURRENT_DATE - 90"
+        else:
+            # 'YYYY-MM' / 'YYYY' strings — lexicographic compare is safe
+            window = f"{period_col} >= '{(TODAY.year - 2):04d}'"
+        scope = f"{window} AND ({null_filter})" if null_filter else window
         for col in numeric_cols:
             try:
                 n = conn.execute(
-                    text(f'SELECT COUNT(*) FROM {table} WHERE {col} IS NULL')
+                    text(f'SELECT COUNT(*) FROM {table} WHERE {col} IS NULL AND {scope}')
                 ).scalar()
-                if n:
+                total = conn.execute(
+                    text(f'SELECT COUNT(*) FROM {table} WHERE {scope}')
+                ).scalar()
+                # A couple of gaps is normal — US indices have no Sunday or
+                # market-holiday row while gold futures do, which produced three
+                # standing warnings for correct data. A column that has largely
+                # stopped filling is the real signal.
+                if n and total and (n / total) >= 0.10:
                     flag(table, db_key, 'null_values',
-                         f'{col}: {n} NULL rows', 'WARNING')
+                         f'{col}: {n}/{total} ({n*100//total}%) NULL in recent rows', 'WARNING')
                     null_counts += n
             except Exception:
                 pass  # column may not exist in all table variants
@@ -195,21 +283,23 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
             except Exception:
                 pass
 
-        # 5. Duplicates on (period, source) if both columns exist
+        # 5. Duplicates on the table's REAL business key (see TABLES.dup_key)
+        key = dup_key or (period_col,)
+        cols = ', '.join(key)
         try:
             dup_count = conn.execute(
                 text(f'SELECT COUNT(*) FROM ('
-                     f'  SELECT {period_col}, source, COUNT(*) c '
+                     f'  SELECT {cols} '
                      f'  FROM {table} '
-                     f'  GROUP BY {period_col}, source '
+                     f'  GROUP BY {cols} '
                      f'  HAVING COUNT(*) > 1'
                      f') t')
             ).scalar()
             if dup_count:
                 flag(table, db_key, 'duplicates',
-                     f'{dup_count} duplicate (period, source) combos', 'ERROR')
+                     f'{dup_count} duplicate ({cols}) combos', 'ERROR')
         except Exception:
-            pass  # source column may be absent on older tables
+            pass  # a key column may be absent on older table variants
 
     summaries.append({
         'table': table, 'db': db_key,
