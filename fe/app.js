@@ -1121,6 +1121,11 @@
                 const root = document.getElementById('data-charts');
                 const bar = document.getElementById('ov-detail-bar');
                 if (bar) bar.hidden = true;
+                // The market-overview panel belongs to the overview: there it
+                // sits beside the tile grid as a market-at-a-glance companion.
+                // A detail view is one chart the visitor deliberately opened,
+                // so it gets the full width instead (see ovShowChartDetail).
+                document.getElementById('market-overview-panel')?.removeAttribute('hidden');
                 if (root) root.classList.remove('ov-section-hidden');
                 document.querySelectorAll('[data-lazy-section]').forEach(el => {
                     el.classList.add('ov-section-hidden');
@@ -1157,6 +1162,9 @@
                 if (overview) overview.unmount(); // destroy mini instances while a detail is open
 
                 document.getElementById('data-charts')?.classList.add('ov-section-hidden');
+                // Full width for the chart the visitor opened — the overview's
+                // companion panel would otherwise keep 300px of it.
+                document.getElementById('market-overview-panel')?.setAttribute('hidden', '');
 
                 // Show only this chart's section; hide the other four.
                 document.querySelectorAll('[data-lazy-section]').forEach(el => {
@@ -2264,10 +2272,10 @@
                     labels: dates,
                     datasets: [
                         // stepped: a policy rate holds, then jumps on a decision date.
-                        { label: 'Lãi suất tái cấp vốn', data: ref, borderColor: '#6b3520',
+                        { label: 'Lãi suất tái cấp vốn', data: ref, borderColor: '#16307f',
                           backgroundColor: 'transparent', borderWidth: 2, tension: 0,
                           stepped: 'before', pointRadius: 0, pointHoverRadius: 4 },
-                        { label: 'Lãi suất chiết khấu', data: red, borderColor: '#9e4a2e',
+                        { label: 'Lãi suất chiết khấu', data: red, borderColor: '#1e3fae',
                           backgroundColor: 'transparent', borderWidth: 2, tension: 0,
                           stepped: 'before', pointRadius: 0, pointHoverRadius: 4 }
                     ]
@@ -2421,7 +2429,7 @@
                         {
                             label: 'Kỳ hạn 1 tháng',
                             data: rate1m,
-                            borderColor: '#d9a689',
+                            borderColor: '#a3c0f2',
                             backgroundColor: 'transparent',
                             pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
@@ -2430,7 +2438,7 @@
                         {
                             label: 'Kỳ hạn 3 tháng',
                             data: rate3m,
-                            borderColor: '#cf8560',
+                            borderColor: '#6c93e4',
                             backgroundColor: 'transparent',
                             pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
@@ -2448,7 +2456,7 @@
                         {
                             label: 'Kỳ hạn 12 tháng',
                             data: rate12m,
-                            borderColor: '#9e4a2e',
+                            borderColor: '#1e3fae',
                             backgroundColor: 'transparent',
                             pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
@@ -2457,7 +2465,7 @@
                         {
                             label: 'Kỳ hạn 24 tháng',
                             data: rate24m,
-                            borderColor: '#6b3520',
+                            borderColor: '#16307f',
                             backgroundColor: 'transparent',
                             pointRadius: 0, pointHoverRadius: 4,
                             borderWidth: 2,
@@ -2537,8 +2545,8 @@
                     labels: d.dates,
                     datasets: [
                         { label: 'Qua đêm (Overnight)', data: d.overnight, borderColor: '#2f5fde', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#d9a689', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#cf8560', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: '1 Tháng (1M)',         data: d.month_1,   borderColor: '#a3c0f2', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
+                        { label: d.month_9 ? '9 Tháng (9M)' : '3 Tháng (3M)', data: d.month_9 ?? d.month_3, borderColor: '#6c93e4', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
                         // Policy rates as reference lines on the SAME % axis. The
                         // refinancing rate is the ceiling of SBV's corridor, so what
                         // analysts read here is the GAP: overnight drifting up toward —
@@ -2546,10 +2554,10 @@
                         // the two living in separate charts that relationship was
                         // invisible. Dashed, stepped and thinner so they read as context
                         // rather than as a fourth and fifth market series.
-                        { label: 'Trần: tái cấp vốn', data: d.refinancing, borderColor: '#6b3520',
+                        { label: 'Trần: tái cấp vốn', data: d.refinancing, borderColor: '#16307f',
                           backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [6, 4],
                           tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 3 },
-                        { label: 'Sàn: chiết khấu', data: d.rediscount, borderColor: '#9e4a2e',
+                        { label: 'Sàn: chiết khấu', data: d.rediscount, borderColor: '#1e3fae',
                           backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [6, 4],
                           tension: 0, stepped: 'before', pointRadius: 0, pointHoverRadius: 3 }
                     ]

@@ -1466,7 +1466,10 @@ html {
     gap: 1.25rem;
 }
 .gs-two-col .chart-card { margin-bottom: 0; }
-.gs-two-col .chart-container { height: 160px; }
+.gs-two-col .chart-container { height: 340px; }  /* detail view is full
+   width now that the overview's companion panel is hidden there, so the
+   pair of charts gets a readable height rather than the 160px strip that
+   suited a column squeezed beside the panel. */
 @media (max-width: 1024px) {
     .gs-two-col { grid-template-columns: 1fr; }
 }

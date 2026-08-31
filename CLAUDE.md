@@ -291,6 +291,23 @@ chart, full size, unchanged from before. Spec:
   field names, DOM `data-chart-id` set, sections hidden by default) — run it
   after touching the registry or the portal partial. It cannot check Chart.js
   rendering itself; that still needs a real browser.
+- **A sticky "Tổng quan thị trường" panel (`#market-overview-panel`) sits beside
+  the tile grid**, inside `.portal-body` but outside `.ov-root`, so the routing's
+  show/hide of `.ov-root`/`.chart-section-group` never touches it. It is shown on
+  the overview and `hidden` on any chart detail — a detail view is one chart the
+  visitor opened deliberately and gets the full width; VN-INDEX/Brent/WTI beside
+  a term-deposit chart is unrelated noise. Its VN-INDEX and USD/VND rows are fed
+  by `loadMarketMovement()` in `app.js`; **HNX-INDEX, UPCOM-INDEX, Dầu Brent and
+  WTI render "—" because no crawler or table exists for them yet** — they are
+  placeholders, not a bug.
+- Sections whose charts all have `{7d,1m,1y}` static files (gold-silver, global,
+  stock) show a period picker beside the section heading. Macro and currency do
+  not: CPI is annual records, GDP is fetched live, and the SBV policy history is
+  a single all-time file, so a picker there would leave some tiles unchanged.
+- **Tile height is a derived constant** (`.ov-tile-canvas`, currently 212px):
+  panel height − section head row − tile chrome, so the first row of tiles ends
+  level with the panel. Re-measure it in a browser if the panel gains a row or
+  the head row changes height — adding the period picker already moved it once.
 
 ### Agent Market (KM) auth states
 
@@ -298,7 +315,9 @@ chart, full size, unchanged from before. Spec:
 
 ### Design system
 
-`.claude/rules/DESIGN.md` is the source of truth — Claude/Anthropic-inspired warm palette (parchment `#f5f4ed`, terracotta `#c96442`, no cool blue-grays), Anthropic Serif for headlines, ring shadows (`0px 0px 0px 1px`), generous radius (8–32px). §11 covers marketplace patterns (card anatomy, filter bar, badges, empty states, mobile bottom-sheet) — follow it when touching Agent Market UI.
+`.claude/rules/DESIGN.md` is the source of truth for *structure* — Anthropic Serif for headlines, ring shadows (`0px 0px 0px 1px`), generous radius (8–32px). §11 covers marketplace patterns (card anatomy, filter bar, badges, empty states, mobile bottom-sheet) — follow it when touching Agent Market UI.
+
+**The palette was replaced on 2026-08-29**: pastel milky-white + soft blue, not the warm parchment/terracotta scheme DESIGN.md describes. The CSS custom properties in `fe/style.css` kept their names (`--terracotta`, `--parchment`, `--ivory`, …) and now hold blue/near-white values, so component rules did not change — only the values. Brand blue is `#2f5fde`. DESIGN.md carries an override note at the top; its §7 "no cool blue-grays / terracotta only" rules are superseded.
 
 Critical card rule: badges like "VD Official" go in the seller footer row, **never adjacent to the title** (breaks wrap).
 
@@ -306,19 +325,26 @@ Critical card rule: badges like "VD Official" go in the seller footer row, **nev
 
 ```
 CPI/inflation : #EF5350 (≥10%), #FFA726 (≥5%), #66BB6A (≥0%), #42A5F5 (<0%)
-Gold          : #c96442   (terracotta)
-Silver        : #4d4c48   (charcoal warm — NOT #87867f, see below)
-Term deposit  : #d9a689 (1m) → #cf8560 (3m) → #c96442 (6m) → #9e4a2e (12m) → #6b3520 (24m)
-Interbank/SBV : #c96442 (qua đêm), #d9a689 (1M), #cf8560 (3M/9M),
-                #9e4a2e (chiết khấu), #6b3520 (tái cấp vốn)
+Gold          : #2f5fde   (brand blue)
+Silver        : #4d4c48   (charcoal — NOT #87867f, see below)
+Term deposit  : #a3c0f2 (1m) → #6c93e4 (3m) → #2f5fde (6m) → #1e3fae (12m) → #16307f (24m)
+Interbank/SBV : #2f5fde (qua đêm), #a3c0f2 (1M), #6c93e4 (3M/9M),
+                #1e3fae (chiết khấu), #16307f (tái cấp vốn)
+GDP           : #26A69A   (teal)
 ```
 
-**Rate charts use a warm ramp, not categorical hues (decided 2026-08-09).** They
-previously used `#42A5F5 / #66BB6A / #FFA726 / #EF5350 / #AB47BC`, which
-contradicted `DESIGN.md` §7 ("no cool blue-grays", "no saturated colours beyond
-Terracotta"). DESIGN.md wins. Tenor is an *ordered* variable, so light→dark reads
-as short→long on its own; if five same-hue lines ever prove hard to separate, add
-dash patterns rather than reintroducing hues.
+**Rate charts use a single-hue ramp, not categorical hues.** They once used
+`#42A5F5 / #66BB6A / #FFA726 / #EF5350 / #AB47BC`, which read as five unrelated
+categories for what is an *ordered* variable; light→dark reads short→long on its
+own. If five same-hue lines ever prove hard to separate, add dash patterns rather
+than reintroducing hues. The ramp was terracotta until the 2026-08-29 palette
+change and is now blue — same structure, new hue.
+
+**Chart colours live in TWO files and both must be changed together.** The
+full-size charts are coloured in `fe/app.js`; the overview mini-charts have their
+own colour per entry in `CHART_REGISTRY` (`fe/app.overview.js`). Editing only
+`app.js` leaves the overview tiles on the old palette — that shipped once and is
+easy to repeat.
 
 **CPI keeps its categorical colours** — there red/amber/green/blue encode
 inflation severity, which is data meaning, not decoration. Same for the ▲/▼
