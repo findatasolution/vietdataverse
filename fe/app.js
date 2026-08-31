@@ -230,6 +230,51 @@
                 notifApiTitle: 'API đang phát triển',
                 notifApiMessage: 'Tính năng API access hiện đang trong giai đoạn phát triển. Tạo tài khoản để nhận thông báo ngay khi tính năng sẵn sàng.',
                 notifApiMessageLoggedIn: 'Tính năng API access hiện đang trong giai đoạn phát triển. Bạn sẽ nhận được thông báo qua email khi tính năng sẵn sàng.',
+
+                // ── Open Data: ticker strip, overview grid, market panel ──
+                // Added 2026-08-31: these rendered in Vietnamese even in EN mode
+                // because they carried no data-i18n key at all.
+                tkVnindexName: 'Chứng khoán VN',
+                tkGoldName: 'Vàng trong nước',
+                tkSilverName: 'Bạc trong nước',
+                tkSavingsName: 'Lãi suất 12T',
+                tkIbonName: 'Liên NH qua đêm',
+                tkIb3mName: 'Liên NH 3 tháng',
+                tkFxName: 'Tỷ giá trung tâm',
+                unitTrieuLuong: 'triệu/lượng',
+                unitPctYear: '%/năm',
+                unitPoint: 'điểm',
+                gtkGoldIntl: 'Vàng Quốc tế',
+                gtkSilverIntl: 'Bạc Quốc tế',
+                moTitle: 'Tổng quan thị trường',
+                moColIndex: 'Chỉ số',
+                moColValue: 'Giá trị',
+                moColChange: 'Thay đổi',
+                moBrent: 'Dầu Brent',
+                ovSecGoldSilver: 'Vàng & Bạc',
+                ovSecCurrency: 'Tiền tệ VN',
+                ovSecGlobal: 'Thị trường quốc tế',
+                ovSecMacro: 'Vĩ mô',
+                ovSecStock: 'Chứng khoán',
+                ovGold: 'Giá vàng trong nước',
+                ovSilver: 'Giá bạc trong nước',
+                ovTermdepo: 'Lãi suất gửi tiết kiệm',
+                ovInterbank: 'Lãi suất liên ngân hàng',
+                ovPolicy: 'Lãi suất điều hành',
+                ovFxrate: 'Tỷ giá trung tâm USD/VND',
+                ovGlobal: 'Vàng thế giới',
+                ovCpi: 'CPI Việt Nam',
+                ovGdp: 'Tăng trưởng GDP',
+                ovVnindex: 'VN-Index',
+                ovOpen: 'Mở',
+                ovTileError: 'Không tải được dữ liệu',
+                ovTileErrorHint: ' — nhấn để xem chi tiết',
+                tsToday: 'Cập nhật hôm nay',
+                tsYesterday: 'Cập nhật hôm qua',
+                tsDaysAgo: 'Dữ liệu {n} ngày trước',
+                tsUpdated: 'Cập nhật: ',
+                tsLastData: 'Ngày dữ liệu gần nhất: ',
+                tsPrev: 'Tổng quan',
             },
             en: {
                 langBtn: 'Vie',
@@ -423,23 +468,89 @@
                 notifApiTitle: 'API in development',
                 notifApiMessage: 'API access is currently in development. Create an account to be notified when it is ready.',
                 notifApiMessageLoggedIn: 'API access is currently in development. You will be notified by email when it is ready.',
+
+                // ── Open Data: ticker strip, overview grid, market panel ──
+                tkVnindexName: 'VN stock market',
+                tkGoldName: 'Domestic gold',
+                tkSilverName: 'Domestic silver',
+                tkSavingsName: '12M deposit rate',
+                tkIbonName: 'Interbank overnight',
+                tkIb3mName: 'Interbank 3M',
+                tkFxName: 'Central FX rate',
+                unitTrieuLuong: 'M VND/tael',
+                unitPctYear: '%/yr',
+                unitPoint: 'pts',
+                gtkGoldIntl: 'Gold (global)',
+                gtkSilverIntl: 'Silver (global)',
+                moTitle: 'Market overview',
+                moColIndex: 'Index',
+                moColValue: 'Value',
+                moColChange: 'Change',
+                moBrent: 'Brent crude',
+                ovSecGoldSilver: 'Gold & Silver',
+                ovSecCurrency: 'VN monetary',
+                ovSecGlobal: 'Global markets',
+                ovSecMacro: 'Macro',
+                ovSecStock: 'Equities',
+                ovGold: 'Domestic gold price',
+                ovSilver: 'Domestic silver price',
+                ovTermdepo: 'Savings deposit rate',
+                ovInterbank: 'Interbank rate',
+                ovPolicy: 'Policy rate',
+                ovFxrate: 'USD/VND central rate',
+                ovGlobal: 'Global gold',
+                ovCpi: 'Vietnam CPI',
+                ovGdp: 'GDP growth',
+                ovVnindex: 'VN-Index',
+                ovOpen: 'Open',
+                ovTileError: 'Could not load data',
+                ovTileErrorHint: ' — click for details',
+                tsToday: 'Updated today',
+                tsYesterday: 'Updated yesterday',
+                tsDaysAgo: 'Data from {n} days ago',
+                tsUpdated: 'Updated: ',
+                tsLastData: 'Latest data date: ',
+                tsPrev: 'Overview',
             }
+        };
+
+        /* Single-key lookup, exported so code that BUILDS markup (app.overview.js's
+           grid, setTicker's freshness line) can translate at write time instead of
+           hardcoding Vietnamese — which is exactly how 38 strings ended up
+           untranslatable in EN mode. Falls back to the given text when a key is
+           missing, so a typo degrades to the original rather than to blank. */
+        window.i18nText = function (key, fallback) {
+            const t = translations[currentLang] || translations.vi;
+            return t[key] !== undefined ? t[key] : (fallback !== undefined ? fallback : key);
+        };
+
+        /* Generic sweep, scoped. Exported so freshly-built DOM (the overview grid
+           is re-rendered on period change) can be translated without re-running
+           the whole updateLanguage(), which also touches nav and chart titles. */
+        window.applyI18n = function (root) {
+            const t = translations[currentLang] || translations.vi;
+            const scope = root || document;
+            scope.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key] !== undefined) el.textContent = t[key];
+            });
+            scope.querySelectorAll('[data-i18n-html]').forEach(el => {
+                const key = el.getAttribute('data-i18n-html');
+                if (t[key] !== undefined) el.innerHTML = t[key];
+            });
+            scope.querySelectorAll('[data-i18n-aria]').forEach(el => {
+                const key = el.getAttribute('data-i18n-aria');
+                if (t[key] !== undefined) el.setAttribute('aria-label', t[key]);
+            });
         };
 
         function updateLanguage(lang) {
             currentLang = lang;
             const t = translations[lang];
 
-            // Generic sweep — any element with [data-i18n] / [data-i18n-html] gets translated.
-            // Keys that don't exist in the translations map are skipped (leaves original text).
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key] !== undefined) el.textContent = t[key];
-            });
-            document.querySelectorAll('[data-i18n-html]').forEach(el => {
-                const key = el.getAttribute('data-i18n-html');
-                if (t[key] !== undefined) el.innerHTML = t[key];
-            });
+            // Generic sweep — any element with [data-i18n] / [data-i18n-html] gets
+            // translated. Keys missing from the map are skipped (original text stays).
+            window.applyI18n(document);
 
             // Update button - Header
             document.getElementById('lang-text').textContent = t.langBtn;
@@ -545,10 +656,48 @@
                 const key = el.getAttribute('data-i18n');
                 if (t[key]) el.textContent = t[key];
             });
+            // Freshness lines ("Updated today", "Data from 3 days ago (…)") and the
+            // global-ticker timestamp are composed in JS at data-load time, so the
+            // [data-i18n] sweep above cannot reach them. Re-render from the date
+            // each node remembers.
+            window.renderTimestamps();
+
             // Set HTML lang and persist choice
             document.documentElement.lang = lang;
             localStorage.setItem('lang', lang);
         }
+
+        /* Re-renders every JS-composed timestamp from its stored date. Safe to call
+           any time; nodes without a stored date are skipped. */
+        window.renderTimestamps = function () {
+            const T = window.i18nText;
+            document.querySelectorAll('[data-date]').forEach(el => {
+                const iso = el.dataset.date;
+                if (!iso) return;
+                const days = Math.floor(
+                    (new Date().setHours(0, 0, 0, 0) - new Date(iso).setHours(0, 0, 0, 0)) / 86400000
+                );
+                const vn = iso.split('-').reverse().join('/');
+                if (!Number.isFinite(days) || days < 0) {
+                    el.textContent = T('tsUpdated', 'Cập nhật: ') + vn;
+                    el.classList.remove('is-stale');
+                } else if (days === 0) {
+                    el.textContent = T('tsToday', 'Cập nhật hôm nay');
+                    el.classList.remove('is-stale');
+                } else if (days === 1) {
+                    el.textContent = T('tsYesterday', 'Cập nhật hôm qua');
+                    el.classList.remove('is-stale');
+                } else {
+                    el.textContent =
+                        T('tsDaysAgo', 'Dữ liệu {n} ngày trước').replace('{n}', days) + ` (${vn})`;
+                    el.classList.add('is-stale');
+                }
+                el.title = T('tsLastData', 'Ngày dữ liệu gần nhất: ') + vn;
+            });
+            document.querySelectorAll('[data-dateplain]').forEach(el => {
+                el.textContent = T('tsUpdated', 'Cập nhật: ') + el.dataset.dateplain;
+            });
+        };
 
         // Check authentication status and update UI
         function checkAuthenticationStatus() {
@@ -2780,6 +2929,10 @@
                     cEl.className = 'ticker-change ' + (delta >= 0 ? 'positive' : 'negative');
                 }
                 if (tEl && lastDate) {
+                    // Remember the date on the node: this line is composed in JS,
+                    // so the [data-i18n] sweep cannot retranslate it on a language
+                    // toggle. renderFreshness() below re-renders from data-date.
+                    tEl.dataset.date = lastDate;
                     // The strip showed bare dates spanning several days (08-05 next to
                     // 08-09) and left the reader to work out which cards were stale.
                     // Say it: same-day and yesterday read as fresh, older is flagged.
@@ -2788,20 +2941,22 @@
                         / 86400000
                     );
                     const vn = lastDate.split('-').reverse().join('/');
+                    const T = window.i18nText;
                     if (!Number.isFinite(days) || days < 0) {
-                        tEl.textContent = 'Cập nhật: ' + vn;
+                        tEl.textContent = T('tsUpdated', 'Cập nhật: ') + vn;
                         tEl.classList.remove('is-stale');
                     } else if (days === 0) {
-                        tEl.textContent = 'Cập nhật hôm nay';
+                        tEl.textContent = T('tsToday', 'Cập nhật hôm nay');
                         tEl.classList.remove('is-stale');
                     } else if (days === 1) {
-                        tEl.textContent = 'Cập nhật hôm qua';
+                        tEl.textContent = T('tsYesterday', 'Cập nhật hôm qua');
                         tEl.classList.remove('is-stale');
                     } else {
-                        tEl.textContent = `Dữ liệu ${days} ngày trước (${vn})`;
+                        tEl.textContent =
+                            T('tsDaysAgo', 'Dữ liệu {n} ngày trước').replace('{n}', days) + ` (${vn})`;
                         tEl.classList.add('is-stale');
                     }
-                    tEl.title = 'Ngày dữ liệu gần nhất: ' + vn;
+                    tEl.title = T('tsLastData', 'Ngày dữ liệu gần nhất: ') + vn;
                 }
             }
 
@@ -3039,7 +3194,10 @@
                     setGlobalTicker('gtk-silver-price', 'gtk-silver-change', d.silver_prices, 2);
 
                     const tsEl = document.getElementById('gtk-ts');
-                    if (tsEl && lastDate) tsEl.textContent = 'Cập nhật: ' + lastDate;
+                    if (tsEl && lastDate) {
+                        tsEl.dataset.dateplain = lastDate;
+                        tsEl.textContent = window.i18nText('tsUpdated', 'Cập nhật: ') + lastDate;
+                    }
 
                     setupGlobalTickerMarquee();
                 } catch (e) {

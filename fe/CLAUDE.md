@@ -104,6 +104,24 @@ long before anyone can name why.
    languages because they had no key. Period keys already exist —
    `period7d/1m/3m/1y/3y/10y/20y/All`; add to both the `vi` and `en` blocks in
    `app.js`, never one alone.
+
+   **Markup built in JS cannot rely on the `[data-i18n]` sweep alone.** An audit
+   on 2026-08-31 found 38 strings stuck in Vietnamese in EN mode — the whole
+   ticker strip, the overview grid (section headings, tile titles, units, period
+   buttons) and the market-overview panel — because they were written straight
+   into template strings. Two helpers exist for this:
+   - `window.i18nText(key, fallback)` — look a key up at write time. Use it in
+     any module that generates markup (`app.overview.js` aliases it as `T`).
+   - `window.applyI18n(root)` — run the sweep over a subtree after inserting it.
+   Text *composed* in JS (e.g. "Data from 3 days ago (28/08/2026)") cannot be
+   swept at all, so those nodes store their input in `data-date` /
+   `data-dateplain` and `window.renderTimestamps()` re-renders them; it is
+   called at the end of `updateLanguage()`.
+
+   There is **no locale auto-detection** — the site opens in Vietnamese and
+   remembers the visitor's choice in `localStorage.lang`. `navigator.language`
+   is read only for the device fingerprint and signup telemetry. Brand names
+   (Phú Quý, DOJI, ACB, SBV, NHNN) stay untranslated by design.
 4. **All chart numbers go through `formatNumVi` / `formatVndAxis`** (`app.js`,
    defined above `parseGoldSilverData`). Chart.js otherwise falls back to the
    browser locale and prints `150,000,000` next to KPI cards showing `25.463`.

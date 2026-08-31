@@ -36,7 +36,8 @@
         {
             id: 'gold', section: 'gold-silver', family: 'dispatch',
             chartType: 'gold', domCardId: 'gold',
-            title: 'Giá vàng trong nước', source: 'DOJI HN', unit: 'triệu/lượng',
+            i18nKey: 'ovGold',
+            title: 'Giá vàng trong nước', source: 'DOJI HN', unit: 'triệu/lượng', unitKey: 'unitTrieuLuong',
             detailPeriod: '1m',
             mini: { file: 'data/gold_DOJI_HN_1m.json', series: 'buy_prices',
                     scale: 1e6, decimals: 1, color: '#2f5fde', periodic: true }
@@ -44,7 +45,8 @@
         {
             id: 'silver', section: 'gold-silver', family: 'dispatch',
             chartType: 'silver', domCardId: 'silver',
-            title: 'Giá bạc trong nước', source: 'Phú Quý', unit: 'triệu/lượng',
+            i18nKey: 'ovSilver',
+            title: 'Giá bạc trong nước', source: 'Phú Quý', unit: 'triệu/lượng', unitKey: 'unitTrieuLuong',
             detailPeriod: '1m',
             mini: { file: 'data/silver_1m.json', series: 'buy_prices',
                     scale: 1e6, decimals: 2, color: '#4d4c48', periodic: true }
@@ -53,7 +55,8 @@
             id: 'termdepo', section: 'currency', family: 'dispatch',
             // internal chartInstances key is 'td', not 'termdepo'
             chartType: 'td', domCardId: 'termdepo',
-            title: 'Lãi suất gửi tiết kiệm', source: 'ACB', unit: '%/năm',
+            i18nKey: 'ovTermdepo',
+            title: 'Lãi suất gửi tiết kiệm', source: 'ACB', unit: '%/năm', unitKey: 'unitPctYear',
             detailPeriod: '1y',
             mini: { file: 'data/termdepo_ACB_1y.json', series: 'term_12m',
                     scale: 1, decimals: 2, color: '#1e3fae', stepped: false, periodic: true }
@@ -62,7 +65,8 @@
             id: 'interbank', section: 'currency', family: 'dispatch',
             // internal chartInstances key is 'sbv', not 'interbank'
             chartType: 'sbv', domCardId: 'interbank',
-            title: 'Lãi suất liên ngân hàng', source: 'SBV', unit: '%/năm',
+            i18nKey: 'ovInterbank',
+            title: 'Lãi suất liên ngân hàng', source: 'SBV', unit: '%/năm', unitKey: 'unitPctYear',
             detailPeriod: '1m',
             mini: { file: 'data/sbv_1m.json', series: 'overnight',
                     scale: 1, decimals: 2, color: '#2f5fde', periodic: true }
@@ -75,7 +79,8 @@
             // routing reveals that shared card for either id, then scrolls to
             // scrollAnchor so the policy block is what's in view.
             domCardId: 'interbank', scrollAnchor: 'sbv-policy-anchor',
-            title: 'Lãi suất điều hành', source: 'NHNN', unit: '%/năm',
+            i18nKey: 'ovPolicy',
+            title: 'Lãi suất điều hành', source: 'NHNN', unit: '%/năm', unitKey: 'unitPctYear',
             detailPeriod: 'all',
             mini: { file: 'data/sbv_policy_all.json', series: 'refinancing',
                     scale: 1, decimals: 2, color: '#16307f', stepped: true }
@@ -83,6 +88,7 @@
         {
             id: 'fxrate', section: 'currency', family: 'dispatch',
             chartType: 'fxrate', domCardId: 'fxrate',
+            i18nKey: 'ovFxrate',
             title: 'Tỷ giá trung tâm USD/VND', source: 'NHNN', unit: 'VND',
             detailPeriod: '1m',
             // Field is `usd_vnd_rate` in fxrate_SBV_USD_1m.json, not `rates`.
@@ -92,6 +98,7 @@
         {
             id: 'global', section: 'global', family: 'dispatch',
             chartType: 'global', domCardId: 'global',
+            i18nKey: 'ovGlobal',
             title: 'Vàng thế giới', source: 'Yahoo Finance', unit: '$/oz',
             detailPeriod: '1y',
             mini: { file: 'data/global_1y.json', series: 'gold_prices',
@@ -99,7 +106,8 @@
         },
         {
             id: 'cpi', section: 'macro', family: 'macro', domCardId: 'cpi',
-            title: 'CPI Việt Nam', source: 'GSO', unit: '%/năm',
+            i18nKey: 'ovCpi',
+            title: 'CPI Việt Nam', source: 'GSO', unit: '%/năm', unitKey: 'unitPctYear',
             detailPeriod: '20',
             // cpi_annual.json is a bare array of {period, yoy_pct, months} records —
             // not the {dates:[…], <series>:[…]} shape every other file uses.
@@ -110,7 +118,8 @@
         },
         {
             id: 'gdp', section: 'macro', family: 'macro', domCardId: 'gdp',
-            title: 'Tăng trưởng GDP', source: 'World Bank', unit: '%/năm',
+            i18nKey: 'ovGdp',
+            title: 'Tăng trưởng GDP', source: 'World Bank', unit: '%/năm', unitKey: 'unitPctYear',
             detailPeriod: '20',
             // No static file exists for GDP (unlike CPI/gold/silver/…) — the full
             // detail view fetches it live from the World Bank API. `live: 'gdp'`
@@ -120,7 +129,8 @@
         },
         {
             id: 'vnindex', section: 'stock', family: 'stock', domCardId: 'vnindex',
-            title: 'VN-Index', source: 'HSX', unit: 'điểm',
+            i18nKey: 'ovVnindex',
+            title: 'VN-Index', source: 'HSX', unit: 'điểm', unitKey: 'unitPoint',
             detailPeriod: '1y',
             mini: { file: 'data/vnindex_1y.json', series: 'close',
                     scale: 1, decimals: 2, color: '#2f5fde', periodic: true }
@@ -128,17 +138,23 @@
     ];
 
     const SECTIONS = [
-        { key: 'gold-silver', label: 'Vàng & Bạc',          icon: 'fa-coins' },
-        { key: 'currency',    label: 'Tiền tệ VN',          icon: 'fa-landmark' },
-        { key: 'global',      label: 'Thị trường quốc tế',  icon: 'fa-globe' },
-        { key: 'macro',       label: 'Vĩ mô',               icon: 'fa-chart-area' },
-        { key: 'stock',       label: 'Chứng khoán',         icon: 'fa-chart-line' }
+        { key: 'gold-silver', i18nKey: 'ovSecGoldSilver', label: 'Vàng & Bạc',          icon: 'fa-coins' },
+        { key: 'currency', i18nKey: 'ovSecCurrency',    label: 'Tiền tệ VN',          icon: 'fa-landmark' },
+        { key: 'global', i18nKey: 'ovSecGlobal',      label: 'Thị trường quốc tế',  icon: 'fa-globe' },
+        { key: 'macro', i18nKey: 'ovSecMacro',       label: 'Vĩ mô',               icon: 'fa-chart-area' },
+        { key: 'stock', i18nKey: 'ovSecStock',       label: 'Chứng khoán',         icon: 'fa-chart-line' }
     ];
 
     const byId = id => CHART_REGISTRY.find(c => c.id === id) || null;
 
     /* Borrowed from app.js rather than reimplemented — see the header note. */
     const fmtNum = v => (window.formatNumVi ? window.formatNumVi(v) : String(v));
+
+    /* Translation lookup shared with app.js's dictionary (window.i18nText). This
+       module BUILDS its markup, so every label here must go through it — text
+       written straight into a template string cannot be reached by the
+       [data-i18n] sweep and silently stays Vietnamese in EN mode. */
+    const T = (key, fallback) => (window.i18nText ? window.i18nText(key, fallback) : fallback);
     const fmtPct = v => (window.formatPctVi ? window.formatPctVi(v) : String(v));
 
     const miniCharts = {};   // id -> Chart instance (overview only)
@@ -153,9 +169,9 @@
        currency sections show no selector rather than a control that silently
        does nothing to some of their tiles. */
     const PERIODS = [
-        { key: '7d', label: '7 ngày' },
-        { key: '1m', label: '1 tháng' },
-        { key: '1y', label: '1 năm' }
+        { key: '7d', label: '7 ngày',  i18nKey: 'period7d' },
+        { key: '1m', label: '1 tháng', i18nKey: 'period1m' },
+        { key: '1y', label: '1 năm',   i18nKey: 'period1y' }
     ];
     const sectionPeriod = {};   // section key -> period key
 
@@ -240,9 +256,9 @@
         // removes it the moment data arrives or fails, whichever is first.
         return `
             <button class="ov-tile is-loading" data-chart-id="${chart.id}" type="button"
-                    aria-label="Mở ${chart.title}">
+                    aria-label="${T('ovOpen', 'Mở')} ${T(chart.i18nKey, chart.title)}">
               <span class="ov-tile-head">
-                <span class="ov-tile-title">${chart.title}</span>
+                <span class="ov-tile-title" data-i18n="${chart.i18nKey}">${T(chart.i18nKey, chart.title)}</span>
                 <span class="ov-tile-src">${chart.source}</span>
               </span>
               <span class="ov-tile-value" data-role="value">—</span>
@@ -268,13 +284,14 @@
                     PERIODS.map(p =>
                         `<button type="button" class="ov-period-btn${
                             p.key === sectionPeriod[sec.key] ? ' is-active' : ''
-                        }" data-period="${p.key}">${p.label}</button>`).join('') +
+                        }" data-period="${p.key}" data-i18n="${p.i18nKey}"` +
+                        `>${T(p.i18nKey, p.label)}</button>`).join('') +
                     `</span>`;
             }
             return `
               <div class="ov-section-head">
                 <h2 class="chart-section-heading ov-heading">
-                  <i class="fas ${sec.icon}"></i><span>${sec.label}</span>
+                  <i class="fas ${sec.icon}"></i><span data-i18n="${sec.i18nKey}">${T(sec.i18nKey, sec.label)}</span>
                 </h2>
                 ${picker}
               </div>
@@ -304,7 +321,7 @@
         });
     }
 
-    function setTileState(tileEl, { value, delta, pct, unit, msg }) {
+    function setTileState(tileEl, { value, delta, pct, unit, unitKey, msg }) {
         // Skeleton is over the moment there is an outcome, success or failure —
         // never wait past that (DESIGN.md §11.13: skeleton for at most 800ms).
         tileEl.classList.remove('is-loading');
@@ -318,14 +335,18 @@
             // <button>. The detail view's own chart already has a working "Thử
             // lại" button (showChartError in app.js) — word this so the existing
             // click-to-navigate affordance doubles as the retry path.
-            msgEl.textContent = msg + ' — nhấn để xem chi tiết';
+            msgEl.textContent = msg + T('ovTileErrorHint', ' — nhấn để xem chi tiết');
             msgEl.hidden = false;
             if (canvasWrap) canvasWrap.hidden = true;
             return;
         }
         msgEl.hidden = true;
         if (canvasWrap) canvasWrap.hidden = false;
-        valEl.innerHTML = `${value}<small>${unit}</small>`;
+        // data-i18n on the unit so switching language after load re-translates it —
+        // the tile is not rebuilt on toggle, only swept.
+        valEl.innerHTML = unitKey
+            ? `${value}<small data-i18n="${unitKey}">${unit}</small>`
+            : `${value}<small>${unit}</small>`;
         if (pct === null || pct === undefined) {
             dltEl.textContent = '';
             return;
@@ -354,7 +375,7 @@
         } catch (e) {
             console.warn(`[overview] ${chart.id}:`, e.message);
             // One dead source must not blank the grid.
-            setTileState(tileEl, { msg: 'Không tải được dữ liệu' });
+            setTileState(tileEl, { msg: T('ovTileError', 'Không tải được dữ liệu') });
             return;
         }
 
@@ -366,7 +387,7 @@
         setTileState(tileEl, {
             value: last.toLocaleString('vi-VN',
                 { minimumFractionDigits: d, maximumFractionDigits: d }),
-            delta, pct, unit: chart.unit
+            delta, pct, unit: T(chart.unitKey, chart.unit), unitKey: chart.unitKey
         });
 
         const canvas = tileEl.querySelector('canvas');
