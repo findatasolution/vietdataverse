@@ -83,7 +83,11 @@ TABLES = [
      # the first year this table covers. A 50M floor flagged 21k rows of
      # correct history.
      (15_000_000, 250_000_000),
-     ('date', 'type'), False),
+     ('date', 'type'), False,
+     # 'Vàng TG ($)' is world gold quoted in USD — a different instrument that
+     # ended up in this VND table (dead since 2019). Range-checking it against
+     # VND bounds reports 771 correct rows as broken.
+     "type <> 'Vàng TG ($)'"),
 
     ('vn_macro_silver_daily',     'CRAWLING_BOT_DB',
      'date', 'date',
@@ -130,7 +134,9 @@ TABLES = [
 
     ('vn_gso_gdp_quarterly',      'CRAWLING_BOT_DB',
      'year', 'quarter',
-     ['gdp_billion_vnd', 'growth_yoy_pct'],
+     # NSO's bulletins publish the quarterly GROWTH rate; the absolute level is
+     # not in them, so gdp_billion_vnd is legitimately NULL and is not required.
+     ['growth_yoy_pct'],
      (-10.0, 1_000_000),
      ('year',), False),
 
@@ -168,7 +174,7 @@ def flag(table, db, check, detail, severity='WARNING'):
 
 
 def check_table(table, db_key, period_col, period_type, numeric_cols, valid_range,
-                dup_key=None, market_days=False, null_filter=None):
+                dup_key=None, market_days=False, row_filter=None):
     engine = ENGINES.get(db_key)
     if engine is None:
         return
@@ -247,7 +253,7 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
         else:
             # 'YYYY-MM' / 'YYYY' strings — lexicographic compare is safe
             window = f"{period_col} >= '{(TODAY.year - 2):04d}'"
-        scope = f"{window} AND ({null_filter})" if null_filter else window
+        scope = f"{window} AND ({row_filter})" if row_filter else window
         for col in numeric_cols:
             try:
                 n = conn.execute(
@@ -269,11 +275,12 @@ def check_table(table, db_key, period_col, period_type, numeric_cols, valid_rang
 
         # 4. Out-of-range values (sample first numeric col)
         lo, hi = valid_range
+        rf = f' AND ({row_filter})' if row_filter else ''
         for col in numeric_cols[:2]:
             try:
                 n = conn.execute(
                     text(f'SELECT COUNT(*) FROM {table} '
-                         f'WHERE {col} IS NOT NULL AND ({col} < :lo OR {col} > :hi)'),
+                         f'WHERE {col} IS NOT NULL AND ({col} < :lo OR {col} > :hi){rf}'),
                     {'lo': lo, 'hi': hi}
                 ).scalar()
                 if n:
