@@ -169,6 +169,42 @@ MONTH_SLUGS = {
 }
 
 
+def find_article_by_window(period_year: int, period_month: int) -> "Optional[str]":
+    """Find a month's CPI article by WHEN it was published, not by guessing its slug.
+
+    NSO publishes month M's CPI report in the first half of M+1, but the slug
+    wording is not stable — September 2025 is
+    "…-thang-9-quy-iii-va-9-thang-nam-2025" while August is
+    "…-thang-tam-va-8-thang-dau-nam-2025". construct_article_urls() guesses one
+    spelling, so four months of 2025 returned 404 and were written off as
+    missing even though every one of them is still online.
+
+    Listing the posts published in the window and taking the one whose slug
+    contains "chi-so-gia-tieu-dung" does not care how the month is spelled.
+    """
+    start = f"{period_year}-{period_month:02d}-25"
+    if period_month == 12:
+        end = f"{period_year + 1}-01-20"
+    else:
+        end = f"{period_year}-{period_month + 1:02d}-20"
+    url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
+           f"?after={start}T00:00:00&before={end}T23:59:59"
+           f"&per_page=100&_fields=link,date")
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=30, verify=NSO_VERIFY)
+        if resp.status_code != 200:
+            return None
+        hits = [x for x in resp.json() if 'chi-so-gia-tieu-dung' in x.get('link', '')]
+        if not hits:
+            return None
+        hits.sort(key=lambda x: x.get('date', ''))
+        print(f"  Found by publication window: {hits[0]['link']}")
+        return hits[0]['link']
+    except Exception as e:
+        print(f"  Window search error: {e}")
+        return None
+
+
 def construct_article_urls(period_year: int, period_month: int) -> list:
     """Best-effort fallback URLs when the WP API does not list a period."""
     pub_month = period_month + 1 if period_month < 12 else 1
@@ -408,6 +444,11 @@ def crawl_period(period_year: int, period_month: int, articles: dict) -> bool:
     candidates = []
     if articles.get(PERIOD):
         candidates.append(articles[PERIOD])
+    # Publication-window lookup before the guessed slugs: it survives NSO
+    # renaming its months, which the guesses do not.
+    by_window = find_article_by_window(period_year, period_month)
+    if by_window and by_window not in candidates:
+        candidates.append(by_window)
     candidates += construct_article_urls(period_year, period_month)
 
     html, used_url = None, None
