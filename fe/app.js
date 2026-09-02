@@ -1342,8 +1342,21 @@
                 // Sections other than gold-silver never auto-load once hidden — their
                 // IntersectionObserver in initScrollSections() cannot fire on a
                 // display:none element. loadChartsForSection is idempotent
-                // (guarded by loadedSections), so calling it here is always safe.
-                loadChartsForSection(chart.section);
+                // (guarded by loadedSections), so calling it here is always safe —
+                // EXCEPT for 'macro'. loadChartsForSection hardcodes
+                // loadMacroCharts(20) (annual); ovLoadDetailData below calls
+                // loadMacroCharts(chart.detailPeriod), which for CPI is now '1'
+                // (monthly). Both fetch AND render CPI/GDP/Trade into the same
+                // canvases, so calling both races two different periods against
+                // each other — and on a direct deep link, unhiding the macro
+                // section a few lines up makes it already-intersecting by the
+                // time initScrollSections()'s IntersectionObserver initializes on
+                // DOMContentLoaded, so that observer ALSO fires
+                // loadChartsForSection('macro') independently of the call below —
+                // marking the section pre-loaded (rather than only skipping the
+                // explicit call here) is what stops both paths.
+                if (chart.section === 'macro') loadedSections.macro = true;
+                else loadChartsForSection(chart.section);
                 ovLoadDetailData(chart);
 
                 if (chart.scrollAnchor) {
