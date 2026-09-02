@@ -108,12 +108,17 @@
             id: 'cpi', section: 'macro', family: 'macro', domCardId: 'cpi',
             i18nKey: 'ovCpi',
             title: 'CPI Việt Nam', source: 'GSO', unit: '%/năm', unitKey: 'unitPctYear',
-            detailPeriod: '20',
-            // cpi_annual.json is a bare array of {period, yoy_pct, months} records —
-            // not the {dates:[…], <series>:[…]} shape every other file uses.
-            // `period` here is a year string ("2002"), not a full ISO date.
-            mini: { file: 'data/cpi_annual.json', recordsMode: true,
-                    dateField: 'period', series: 'yoy_pct',
+            // Detail view opens on the monthly toggle (years=1 in loadMacroCharts,
+            // wired to the "Tháng" filter button) rather than the 20-year annual
+            // default every other macro chart uses — CPI's own reporting cadence
+            // is monthly, so that is the more informative first view.
+            detailPeriod: '1',
+            // cpi_monthly.json is a bare array of {period, mom_pct, yoy_pct} records —
+            // not the {dates:[…], <series>:[…]} shape every other file uses. `period`
+            // here is "YYYY-MM". `limit: 12` keeps the glanceable tile to the last
+            // year; the detail chart still offers the full Tháng/Năm toggle.
+            mini: { file: 'data/cpi_monthly.json', recordsMode: true,
+                    dateField: 'period', series: 'yoy_pct', limit: 12,
                     scale: 1, decimals: 2, color: '#FFA726' }
         },
         {
@@ -234,6 +239,10 @@
                 if (v === null || v === undefined) continue;
                 pairs.push({ date: normalizeDate(rec[cfg.dateField]), value: v / (cfg.scale || 1) });
             }
+            // Overview tile shows a recent window, not the whole file — cpi_monthly.json
+            // carries 24 months so the default landing view isn't scanning two years at a
+            // glance. The full-size detail chart is unaffected; it reads its own files.
+            if (cfg.limit) pairs = pairs.slice(-cfg.limit);
         } else {
             const dates = payload.dates || [];
             const values = payload[cfg.series];
