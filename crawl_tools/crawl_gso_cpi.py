@@ -288,6 +288,12 @@ def layer1_structured(text_content: str, period: str) -> dict:
         # CPI yoy
         'cpi_yoy_pct': [
             r'(?:cpi|tiêu dùng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với cùng kỳ',
+            # NSO sometimes leads with the comparison instead of the subject:
+            # "So với cùng kỳ năm trước, CPI tháng Mười Hai tăng 3,48%." — the
+            # December 2025 bulletin phrases it this way, and the pattern above
+            # requires "cpi"/"tiêu dùng" to come BEFORE "cùng kỳ", so it matched
+            # nothing and the row was stored with cpi_yoy_pct NULL.
+            r'so với cùng kỳ năm trước,\s*cpi[^\n]*?(tăng|giảm)\s+([\d,\.]+)%',
         ],
         # Gold mom
         'gold_mom_pct': [
