@@ -172,6 +172,38 @@ REPORT_SEARCH = ("https://www.nso.gov.vn/wp-json/wp/v2/posts?search="
                  + "&per_page=30&_fields=link,date,title,content")
 
 
+
+def find_article_by_window(year: int, month: int) -> "Optional[dict]":
+    """Find the month's bulletin by WHEN NSO published it.
+
+    fetch_gso_html() below only ever returns the NEWEST bulletin, so this
+    crawler could only ever populate the single most recent month no matter
+    which period it was asked about. Verified reliable back to 2020-01; posts
+    before that share bulk-republish timestamps from a 2019 site migration
+    that do not reflect their actual reporting period, so this is not used
+    before 2020.
+    """
+    start = f"{year}-{month:02d}-25"
+    ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
+    end = f"{ny}-{nm:02d}-20"
+    url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
+           f"?after={start}T00:00:00&before={end}T23:59:59"
+           f"&per_page=100&_fields=link,date,content,title")
+    try:
+        resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+        if resp.status_code != 200:
+            return None
+        posts = [p for p in resp.json() if REPORT_SLUG in p.get('link', '')]
+        if not posts:
+            return None
+        posts.sort(key=lambda p: p.get('date', ''))
+        print(f"  Found by window: {posts[0]['link']}")
+        return posts[0]
+    except Exception as e:
+        print(f"  Window search error: {e}")
+        return None
+
+
 def fetch_gso_html() -> "Optional[str]":
     """Return the BODY html of the newest NSO monthly bulletin.
 
@@ -218,6 +250,34 @@ def upsert_records(records: list[dict], crawl_time: datetime):
         conn.commit()
     return len(records)
 
+
+
+def crawl_period(year: int, month: int) -> bool:
+    """Fetch + extract + upsert ONE month. Returns True on success."""
+    period = f"{year:04d}-{month:02d}"
+    print(f"\n--- {period} ---")
+
+    post = find_article_by_window(year, month)
+    if not post:
+        print(f"  No article found for {period}")
+        return False
+    html = (post.get('content', {}) or {}).get('rendered', '')
+    if not html:
+        print(f"  Article has no body for {period}")
+        return False
+
+    records = layer1_structured(html, period)
+    if len(records) < 2:
+        records = layer2_heuristic(html, period)
+    if len(records) < 2:
+        records = layer3_llm(html, period)
+    if not records:
+        print(f"  Nothing extracted for {period}")
+        return False
+
+    n = upsert_records(records, datetime.now())
+    print(f"  Upserted {n} IIP records for {period}")
+    return True
 
 def main():
     ensure_table()

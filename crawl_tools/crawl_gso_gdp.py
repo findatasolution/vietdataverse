@@ -150,6 +150,41 @@ REPORT_SEARCH = ("https://www.nso.gov.vn/wp-json/wp/v2/posts?search="
                  + "&per_page=30&_fields=link,date,title,content")
 
 
+
+def find_article_by_window(year: int, quarter: int) -> "Optional[str]":
+    """Find the bulletin closing quarter Q by WHEN NSO published it, not by
+    assuming fetch_gso_html() will always be called for the CURRENT quarter.
+
+    Verified reliable back to 2020-01 (spot-checked against several years);
+    posts before that share bulk-republish timestamps from a 2019 site
+    migration that do not reflect their actual reporting period, so a window
+    search there can silently match the wrong year. Not used before 2020.
+    """
+    end_month = quarter * 3
+    start = f"{year}-{end_month:02d}-25"
+    ny, nm = (year + 1, 1) if end_month == 12 else (year, end_month + 1)
+    end = f"{ny}-{nm:02d}-20"
+    url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
+           f"?after={start}T00:00:00&before={end}T23:59:59"
+           f"&per_page=100&_fields=link,date,content,title")
+    try:
+        resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+        if resp.status_code != 200:
+            return None
+        posts = [p for p in resp.json()
+                 if any(sl in p.get('link', '') for sl in REPORT_SLUG_ANY)]
+        if not posts:
+            return None
+        posts.sort(key=lambda p: p.get('date', ''))
+        quarterly = [p for p in posts if 'tinh-hinh-kinh-te-xa-hoi-quy-' in p.get('link', '')]
+        best = (quarterly or posts)[0]
+        print(f"  Found by window: {best['link']}")
+        return best
+    except Exception as e:
+        print(f"  Window search error: {e}")
+        return None
+
+
 def fetch_gso_html(search_url: str = "", keywords=None) -> "Optional[str]":
     """Return the BODY html of the newest NSO monthly bulletin.
 
@@ -234,6 +269,39 @@ def upsert_records(records: list[dict], crawl_time: datetime):
         conn.commit()
     return len(records)
 
+
+
+def crawl_period(year: int, quarter: int) -> bool:
+    """Fetch + extract + upsert ONE quarter. Returns True on success.
+
+    Lets the crawler target a specific historical quarter instead of always
+    reading whatever fetch_gso_html() currently returns (the newest bulletin),
+    which is what left this table able to hold only the single most recent
+    quarter no matter when it ran.
+    """
+    global TARGET_YEAR, TARGET_QUARTER
+    TARGET_YEAR, TARGET_QUARTER = year, quarter
+    print(f"\n--- {year}Q{quarter} ---")
+
+    post = find_article_by_window(year, quarter)
+    if not post:
+        print(f"  No article found for {year}Q{quarter}")
+        return False
+    html = (post.get('content', {}) or {}).get('rendered', '')
+    if not html:
+        print(f"  Article has no body for {year}Q{quarter}")
+        return False
+
+    records = layer1_structured(html, year, quarter)
+    if len(records) < 2 and GEMINI_API_KEY:
+        records = layer3_llm(html, year, quarter)
+    if not records:
+        print(f"  Nothing extracted for {year}Q{quarter}")
+        return False
+
+    upsert_records(records, datetime.now())
+    print(f"  Upserted {len(records)} GDP records for {year}Q{quarter}")
+    return True
 
 def main():
     ensure_table()

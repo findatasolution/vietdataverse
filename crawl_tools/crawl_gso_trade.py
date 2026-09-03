@@ -160,6 +160,32 @@ REPORT_SEARCH = ("https://www.nso.gov.vn/wp-json/wp/v2/posts?search="
                  + "&per_page=30&_fields=link,date,title,content")
 
 
+
+def find_article_by_window(year: int, month: int) -> "Optional[dict]":
+    """Find the month's bulletin by WHEN NSO published it — see the identical
+    function in crawl_gso_industry.py for why fetch_gso_html() alone cannot
+    target a specific historical month. Not used before 2020 (see there)."""
+    start = f"{year}-{month:02d}-25"
+    ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
+    end = f"{ny}-{nm:02d}-20"
+    url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
+           f"?after={start}T00:00:00&before={end}T23:59:59"
+           f"&per_page=100&_fields=link,date,content,title")
+    try:
+        resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+        if resp.status_code != 200:
+            return None
+        posts = [p for p in resp.json() if REPORT_SLUG in p.get('link', '')]
+        if not posts:
+            return None
+        posts.sort(key=lambda p: p.get('date', ''))
+        print(f"  Found by window: {posts[0]['link']}")
+        return posts[0]
+    except Exception as e:
+        print(f"  Window search error: {e}")
+        return None
+
+
 def fetch_gso_html() -> "Optional[str]":
     """Return the BODY html of the newest NSO monthly bulletin.
 
@@ -214,6 +240,33 @@ def upsert_record(rec: dict, crawl_time: datetime):
         })
         conn.commit()
 
+
+
+def crawl_period(year: int, month: int) -> bool:
+    """Fetch + extract + upsert ONE month. Returns True on success."""
+    period = f"{year:04d}-{month:02d}"
+    print(f"\n--- {period} ---")
+
+    post = find_article_by_window(year, month)
+    if not post:
+        print(f"  No article found for {period}")
+        return False
+    html = (post.get('content', {}) or {}).get('rendered', '')
+    if not html:
+        print(f"  Article has no body for {period}")
+        return False
+
+    rec = layer1_structured(html, period)
+    if not rec:
+        rec = layer3_llm(html, period)
+    if not rec:
+        print(f"  Nothing extracted for {period}")
+        return False
+
+    upsert_record(rec, datetime.now())
+    print(f"  Upserted trade data for {period}: export={rec.get('export_billion_usd')}, "
+          f"import={rec.get('import_billion_usd')} B USD")
+    return True
 
 def main():
     ensure_table()
