@@ -1,1 +1,1 @@
-{"generated_at":"2026-09-02T20:16:54.069514","data":{"bank":"SBV","currency":"USD","period":"7d","count":3,"dates":["2026-08-26","2026-08-27","2026-08-28"],"usd_vnd_rate":[25611.0,25611.0,25610.0],"buy_cash":[null,null,null],"sell_rate":[null,null,null]}}
+{"generated_at":"2026-09-03T02:02:18.663231","data":{"bank":"SBV","currency":"USD","period":"7d","count":2,"dates":["2026-08-27","2026-08-28"],"usd_vnd_rate":[25611.0,25610.0],"buy_cash":[null,null],"sell_rate":[null,null]}}
