@@ -72,31 +72,87 @@ def _safe_float(s) -> "Optional[float]":
         return None
 
 
-def layer1_structured(html: str, period: str) -> "Optional[dict]":
-    """Parse trade data from standard table."""
-    soup = BeautifulSoup(html, 'html.parser')
-    export_val = None
-    import_val = None
-    yoy_export = None
-    yoy_import = None
+VN_MONTH_NAMES = {
+    1: 'một', 2: 'hai', 3: 'ba', 4: 'tư', 5: 'năm', 6: 'sáu',
+    7: 'bảy', 8: 'tám', 9: 'chín', 10: 'mười', 11: 'mười một', 12: 'mười hai',
+}
+ROMAN_QUARTER = {1: 'i', 2: 'ii', 3: 'iii', 4: 'iv'}
 
-    for table in soup.find_all('table'):
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = [c.get_text(strip=True) for c in row.find_all(['th', 'td'])]
-            if not cells:
-                continue
-            label = cells[0].lower()
-            if 'xuất khẩu' in label or 'export' in label:
-                nums = [_safe_float(c) for c in cells[1:] if _safe_float(c) is not None]
-                if nums:
-                    export_val = nums[0]
-                    yoy_export = nums[1] if len(nums) > 1 else None
-            elif 'nhập khẩu' in label or 'import' in label:
-                nums = [_safe_float(c) for c in cells[1:] if _safe_float(c) is not None]
-                if nums:
-                    import_val = nums[0]
-                    yoy_import = nums[1] if len(nums) > 1 else None
+
+def _text_after_keyword(text, keyword_variants, year, month, span=220):
+    """Return the text starting at a keyword mention that also names this
+    exact month, up to `span` characters, or None.
+
+    Two prior versions of this both grabbed the wrong number:
+      - a fixed character radius around the keyword picked up a NEIGHBOURING
+        month's or a cumulative total's figure sitting nearby;
+      - splitting on '.' and taking the whole "sentence" still failed once,
+        because NSO's prose sometimes chains two distinct clauses with an
+        en-dash and no period ("...đạt 110,52 tỷ USD, chiếm 89,9% – Nhập khẩu
+        hàng hóa: Kim ngạch nhập khẩu hàng hóa tháng Ba đạt 47,11 tỷ USD..."),
+        so the "sentence" contained TWO tỷ-USD figures and the first (an
+        unrelated export sub-category, not the import total) matched.
+    Slicing forward FROM the keyword's own position — not from the start of
+    whatever punctuation-delimited chunk contains it — is what guarantees the
+    number found is the one actually attached to that keyword mention.
+    """
+    # NSO writes "month/year" four different ways across bulletins:
+    # "8/2023", "08/2023", "tháng 8 năm 2023" (no slash), or the bare
+    # Vietnamese month name with no digit at all ("tháng Bảy"). All four are
+    # accepted; none alone covers every year seen in this backfill.
+    digit_tokens = (f'{month}/{year}', f'{month:02d}/{year}',
+                     f'tháng {month} năm {year}', f'tháng {month:02d} năm {year}')
+    name_token = f'tháng {VN_MONTH_NAMES[month]}'
+    low = text.lower()
+    for kw in keyword_variants:
+        start = 0
+        while True:
+            i = low.find(kw, start)
+            if i < 0:
+                break
+            window = text[i:i + span]
+            wlow = window.lower()
+            if any(tok in wlow for tok in digit_tokens) or name_token in wlow:
+                return window
+            start = i + len(kw)
+    return None
+
+
+def layer1_structured(html: str, period: str) -> "Optional[dict]":
+    """Parse trade data from prose text — NSO's monthly bulletins do not use
+    <table> markup for this figure (verified back to 2020); the previous
+    table-only parser matched nothing for any bulletin before ~2023 and every
+    period silently fell through to the rate-limited Gemini layer."""
+    text = re.sub(r'\s+', ' ', BeautifulSoup(html, 'html.parser').get_text(' ', strip=True))
+    year, month = (int(x) for x in period.split('-'))
+
+    def parse(window):
+        if not window:
+            return None, None
+        vm = re.search(r'([\d]+(?:[,\.]\d+)?)\s*t[ỷy]\s*USD', window, re.IGNORECASE)
+        if not vm:
+            return None, None
+        value = _safe_float(vm.group(1))
+        ym = re.search(r'(t[ăa]ng|gi[ảa]m)\s+([\d]+(?:[,\.]\d+)?)%\s*so v[ớo]i c[ùu]ng k[ỳy]',
+                        window, re.IGNORECASE)
+        yoy = None
+        if ym:
+            sign = -1 if ym.group(1).lower() == 'giảm' else 1
+            yoy = sign * _safe_float(ym.group(2))
+        return value, yoy
+
+    # NSO also reverses this phrase's word order in some bulletins ("Kim
+    # ngạch hàng hóa xuất khẩu tháng 2/2020 ước tính đạt..." vs the more
+    # common "kim ngạch xuất khẩu hàng hóa") — 2020-02 has both forms in the
+    # same article, one stating the 2-month cumulative and the other the
+    # standalone month; missing the reversed form meant only the cumulative
+    # sentence was ever seen, and it has no per-month token to match on.
+    export_win = _text_after_keyword(
+        text, ['kim ngạch xuất khẩu hàng hóa', 'kim ngạch hàng hóa xuất khẩu'], year, month)
+    import_win = _text_after_keyword(
+        text, ['kim ngạch nhập khẩu hàng hóa', 'kim ngạch hàng hóa nhập khẩu'], year, month)
+    export_val, yoy_export = parse(export_win)
+    import_val, yoy_import = parse(import_win)
 
     if export_val is not None or import_val is not None:
         balance = (export_val - import_val) if (export_val and import_val) else None
@@ -110,7 +166,6 @@ def layer1_structured(html: str, period: str) -> "Optional[dict]":
             'yoy_import_pct': yoy_import,
         }
     return None
-
 
 def layer3_llm(html: str, period: str) -> "Optional[dict]":
     if not GEMINI_API_KEY:
@@ -166,8 +221,17 @@ def find_article_by_window(year: int, month: int) -> "Optional[dict]":
     function in crawl_gso_industry.py for why fetch_gso_html() alone cannot
     target a specific historical month. Not used before 2020 (see there)."""
     start = f"{year}-{month:02d}-25"
-    ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
-    end = f"{ny}-{nm:02d}-20"
+    # The bulletin closing a quarter (Mar/Jun/Sep/Dec) bundles a full
+    # quarter's extra tables and publishes noticeably later than a plain
+    # month's report — see crawl_gso_industry.py's find_article_by_window for
+    # the Sept-2020 case (didn't appear until Nov 2) that motivated this.
+    is_quarter_close = month in (3, 6, 9, 12)
+    if month >= 11:
+        ny, nm = year + 1, month - 10
+    else:
+        ny, nm = year, month + 2
+    end_day = 10 if is_quarter_close else 20
+    end = f"{ny}-{nm:02d}-{end_day:02d}"
     url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
            f"?after={start}T00:00:00&before={end}T23:59:59"
            f"&per_page=100&_fields=link,date,content,title")
@@ -175,10 +239,20 @@ def find_article_by_window(year: int, month: int) -> "Optional[dict]":
         resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
         if resp.status_code != 200:
             return None
-        posts = [p for p in resp.json() if REPORT_SLUG in p.get('link', '')]
+        # See crawl_gso_industry.py's find_article_by_window: a stray
+        # 2019-republish hit can land inside a post-2020 window too, not just
+        # before 2020, so the slug filter alone is not enough — the target
+        # year must also appear in the post's own URL.
+        posts = [p for p in resp.json()
+                 if REPORT_SLUG in p.get('link', '') and str(year) in p.get('link', '').rstrip('/').rsplit('/', 1)[-1]]
         if not posts:
             return None
         posts.sort(key=lambda p: p.get('date', ''))
+        if is_quarter_close:
+            q = month // 3
+            quarterly = [p for p in posts if f'quy-{ROMAN_QUARTER[q]}' in p.get('link', '').lower()]
+            if quarterly:
+                posts = quarterly
         print(f"  Found by window: {posts[0]['link']}")
         return posts[0]
     except Exception as e:

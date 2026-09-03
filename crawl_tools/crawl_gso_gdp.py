@@ -81,29 +81,78 @@ def _safe_float(s) -> "Optional[float]":
         return None
 
 
+ROMAN_QUARTER = {1: 'I', 2: 'II', 3: 'III', 4: 'IV'}
+
+# Sector breakdown always follows the headline total, in this fixed order,
+# each as "khu vực <name> tăng/giảm N%". Matched only inside the window right
+# after the total figure (see layer1_structured) so a same-named phrase
+# elsewhere in the bulletin (e.g. a year-to-date recap later in the article)
+# can't be picked up instead.
+GDP_SECTOR_PATTERNS = (
+    ('agriculture', r'nông,?\s*lâm nghiệp và thủy sản\s+(t[ăa]ng|gi[ảa]m)\s+([\d]+(?:[,\.]\d+)?)%'),
+    ('industry', r'công nghiệp và xây dựng\s+(t[ăa]ng|gi[ảa]m)\s+([\d]+(?:[,\.]\d+)?)%'),
+    ('services', r'dịch vụ\s+(t[ăa]ng|gi[ảa]m)\s+([\d]+(?:[,\.]\d+)?)%'),
+)
+
+
+def _signed_pct(sign_word: str, num_str: str) -> "Optional[float]":
+    sign = -1 if sign_word.lower() == 'giảm' else 1
+    val = _safe_float(num_str)
+    return None if val is None else sign * val
+
+
 def layer1_structured(html: str, year: int, quarter: int) -> list[dict]:
-    records = []
-    soup = BeautifulSoup(html, 'html.parser')
-    for table in soup.find_all('table'):
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = [c.get_text(strip=True) for c in row.find_all(['th', 'td'])]
-            if not cells:
-                continue
-            sector_vn = cells[0]
-            matched = None
-            for vn, en in GDP_SECTORS.items():
-                if vn in sector_vn:
-                    matched = en
-                    break
-            if not matched:
-                continue
-            nums = [_safe_float(c) for c in cells[1:] if _safe_float(c) is not None]
-            records.append({
-                'year': year, 'quarter': quarter, 'sector': matched,
-                'gdp_billion_vnd': nums[0] if nums else None,
-                'growth_yoy_pct': nums[1] if len(nums) > 1 else None,
-            })
+    """Parse GDP from prose text — NSO's quarterly bulletin never puts this
+    figure in a <table> (verified 2020Q1/2022Q3/2023Q2/2026Q1, all 0 matches
+    with the table parser this replaced); every quarter was silently falling
+    through to the rate-limited Gemini layer, which is how a wrong LLM-guessed
+    industry figure (1.56%, actual source text says 1.13%) reached
+    vn_gso_gdp_quarterly for 2023Q2 undetected — nothing had verified anything
+    but the headline total.
+
+    The bulletin always opens its GDP paragraph with the fixed phrase
+    "Tổng sản phẩm trong nước (GDP) quý X/YYYY ước tính tăng N% so với cùng kỳ
+    năm trước", so the total is anchored on the literal "quý {roman}/{year}"
+    token. Sector growth (agriculture/industry/services) is searched for only
+    in the text immediately following that anchor — never guessed, and left
+    absent (not a record) if a sector isn't found there, rather than reusing
+    a number from elsewhere in the bulletin.
+    """
+    text = re.sub(r'\s+', ' ', BeautifulSoup(html, 'html.parser').get_text(' ', strip=True))
+    roman = ROMAN_QUARTER[quarter]
+
+    anchor = re.search(r'quý\s+' + re.escape(roman) + r'/' + str(year), text, re.IGNORECASE)
+    if not anchor:
+        return []
+
+    # The headline sentence isn't always "tăng N%" back to back — NSO
+    # sometimes inserts a qualifier ("tăng khá cao ở mức 13,67%", 2022Q3),
+    # which broke an earlier version requiring tăng/giảm immediately before
+    # the number and made it grab an unrelated later figure ("tiêu dùng cuối
+    # cùng tăng 10,08%", a GDP-by-expenditure sub-line) instead. The number
+    # sitting between the quarter anchor and the sentence's own first "so với
+    # cùng kỳ" is always exactly the headline growth rate, regardless of
+    # what qualifier words sit between "tăng"/"giảm" and the digits.
+    head = text[anchor.end():anchor.end() + 250]
+    cmp_idx = head.lower().find('so với cùng kỳ')
+    if cmp_idx < 0:
+        return []
+    segment = head[:cmp_idx]
+    num_m = re.search(r'([\d]+(?:[,\.]\d+)?)%', segment)
+    if not num_m:
+        return []
+    sign = -1 if 'giảm' in segment[:num_m.start()].lower() else 1
+    total_yoy = sign * _safe_float(num_m.group(1))
+    records = [{'year': year, 'quarter': quarter, 'sector': 'total',
+                'gdp_billion_vnd': None, 'growth_yoy_pct': total_yoy}]
+
+    window = text[anchor.end() + cmp_idx:anchor.end() + cmp_idx + 500]
+    for sector, pattern in GDP_SECTOR_PATTERNS:
+        sm = re.search(pattern, window, re.IGNORECASE)
+        if sm:
+            records.append({'year': year, 'quarter': quarter, 'sector': sector,
+                             'gdp_billion_vnd': None,
+                             'growth_yoy_pct': _signed_pct(sm.group(1), sm.group(2))})
     return records
 
 
@@ -171,8 +220,13 @@ def find_article_by_window(year: int, quarter: int) -> "Optional[str]":
         resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
         if resp.status_code != 200:
             return None
+        # See crawl_gso_industry.py's find_article_by_window: a stray
+        # 2019-republish hit can land inside a post-2020 window too, not just
+        # before 2020, so the slug filter alone is not enough — the target
+        # year must also appear in the post's own URL.
         posts = [p for p in resp.json()
-                 if any(sl in p.get('link', '') for sl in REPORT_SLUG_ANY)]
+                 if any(sl in p.get('link', '') for sl in REPORT_SLUG_ANY)
+                 and str(year) in p.get('link', '').rstrip('/').rsplit('/', 1)[-1]]
         if not posts:
             return None
         posts.sort(key=lambda p: p.get('date', ''))
@@ -293,7 +347,7 @@ def crawl_period(year: int, quarter: int) -> bool:
         return False
 
     records = layer1_structured(html, year, quarter)
-    if len(records) < 2 and GEMINI_API_KEY:
+    if not records and GEMINI_API_KEY:
         records = layer3_llm(html, year, quarter)
     if not records:
         print(f"  Nothing extracted for {year}Q{quarter}")
@@ -315,7 +369,7 @@ def main():
     records = layer1_structured(html, TARGET_YEAR, TARGET_QUARTER)
     print(f"Layer 1: {len(records)} records")
 
-    if len(records) < 2:
+    if not records:
         records = layer3_llm(html, TARGET_YEAR, TARGET_QUARTER)
         print(f"Layer 3 LLM: {len(records)} records")
 

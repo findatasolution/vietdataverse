@@ -194,7 +194,12 @@ def find_article_by_window(period_year: int, period_month: int) -> "Optional[str
         resp = requests.get(url, headers=HEADERS, timeout=30, verify=NSO_VERIFY)
         if resp.status_code != 200:
             return None
-        hits = [x for x in resp.json() if 'chi-so-gia-tieu-dung' in x.get('link', '')]
+        # See crawl_gso_industry.py's find_article_by_window: a stray
+        # 2019-republish hit can land inside a post-2020 window too, not just
+        # before 2020, so the slug filter alone is not enough — the target
+        # year must also appear in the post's own URL.
+        hits = [x for x in resp.json()
+                if 'chi-so-gia-tieu-dung' in x.get('link', '') and str(period_year) in x.get('link', '').rstrip('/').rsplit('/', 1)[-1]]
         if not hits:
             return None
         hits.sort(key=lambda x: x.get('date', ''))

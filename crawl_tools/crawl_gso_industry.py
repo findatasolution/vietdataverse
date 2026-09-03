@@ -89,27 +89,86 @@ def _safe_float(s) -> "Optional[float]":
         return None
 
 
-def layer1_structured(html: str, period: str) -> list[dict]:
-    records = []
-    soup = BeautifulSoup(html, 'html.parser')
-    for table in soup.find_all('table'):
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = [c.get_text(strip=True) for c in row.find_all(['th', 'td'])]
-            if not cells:
-                continue
-            sector_name = cells[0]
-            if not any(kw in sector_name for kw in ['ngành', 'công nghiệp', 'khai', 'chế biến', 'điện', 'nước']):
-                continue
-            nums = [_safe_float(c) for c in cells[1:] if _safe_float(c) is not None]
-            records.append({
-                'period': period,
-                'sector_name': sector_name[:200],
-                'iip_index': nums[0] if nums else None,
-                'iip_yoy_pct': nums[1] if len(nums) > 1 else None,
-            })
-    return records
+VN_MONTH_NAMES = {
+    1: 'một', 2: 'hai', 3: 'ba', 4: 'tư', 5: 'năm', 6: 'sáu',
+    7: 'bảy', 8: 'tám', 9: 'chín', 10: 'mười', 11: 'mười một', 12: 'mười hai',
+}
+ROMAN_QUARTER = {1: 'i', 2: 'ii', 3: 'iii', 4: 'iv'}
 
+
+def _find_yoy_sentence(text, keywords, tokens):
+    """First sentence containing a keyword AND one of `tokens` (case-insensitive)."""
+    for kw in keywords:
+        for sentence in text.split('.'):
+            low = sentence.lower()
+            if kw in low and any(tok in low for tok in tokens):
+                return sentence
+    return None
+
+
+def _extract_yoy(sentence):
+    if not sentence:
+        return None
+    m = re.search(r'(t[ăa]ng|gi[ảa]m)\s+([\d]+(?:[,\.]\d+)?)%\s*so v[ớo]i c[ùu]ng k[ỳy]',
+                   sentence, re.IGNORECASE)
+    if not m:
+        return None
+    sign = -1 if m.group(1).lower() == 'giảm' else 1
+    return sign * _safe_float(m.group(2))
+
+
+def layer1_structured(html: str, period: str) -> list[dict]:
+    """Parse IIP from prose text.
+
+    The table-based version this replaced matched nothing for any bulletin
+    before ~2023 — NSO's monthly bulletins state this figure in a sentence,
+    not a <table> (verified back to 2020), so every historical period fell
+    straight through to the rate-limited Gemini layer.
+
+    The sentence must name the TARGET period, not just contain the keyword:
+    the bulletin states both last month's and this month's figures in
+    adjacent sentences. NSO writes the month three different ways depending
+    on the article and the year — "tháng 01/2022", "tháng Mười Một" (no
+    digit form at all), or, for the four months that close a quarter (Mar,
+    Jun, Sep, Dec), it sometimes gives only the QUARTER figure ("quý III/2021
+    giảm 3,5%") with no standalone month figure published at all. All three
+    are tried, quarter last since it is the least precise match for "this
+    month" — see the note this backfill adds to CLAUDE.md.
+    """
+    text = re.sub(r'\s+', ' ', BeautifulSoup(html, 'html.parser').get_text(' ', strip=True))
+    year, month = (int(x) for x in period.split('-'))
+    # Three phrasings found in the wild: "toàn ngành công nghiệp" (most
+    # years), bare "công nghiệp" (some monthly bulletins), and "ngành công
+    # nghiệp" without "toàn" (seen from 2024-08 onward) — missing the third
+    # form silently dropped 2024-08/10/11 to the rate-limited LLM layer.
+    keywords = ('chỉ số sản xuất toàn ngành công nghiệp',
+                'chỉ số sản xuất ngành công nghiệp',
+                'chỉ số sản xuất công nghiệp')
+
+    digit_tokens = (f'{month}/{year}'.lower(), f'{month:02d}/{year}'.lower())
+    sentence = _find_yoy_sentence(text, keywords, digit_tokens)
+
+    if sentence is None:
+        name_token = f'tháng {VN_MONTH_NAMES[month]}'
+        sentence = _find_yoy_sentence(text, keywords, (name_token,))
+
+    is_quarter_figure = False
+    if sentence is None and month in (3, 6, 9, 12):
+        q = month // 3
+        q_tokens = (f'quý {ROMAN_QUARTER[q]}/{year}'.lower(),)
+        sentence = _find_yoy_sentence(text, keywords, q_tokens)
+        is_quarter_figure = sentence is not None
+
+    yoy = _extract_yoy(sentence)
+    if yoy is None:
+        return []
+
+    return [{
+        'period': period,
+        'sector_name': 'Toàn ngành công nghiệp' + (' (số quý)' if is_quarter_figure else ''),
+        'iip_index': None,
+        'iip_yoy_pct': yoy,
+    }]
 
 def layer2_heuristic(html: str, period: str) -> list[dict]:
     records = []
@@ -184,8 +243,19 @@ def find_article_by_window(year: int, month: int) -> "Optional[dict]":
     before 2020.
     """
     start = f"{year}-{month:02d}-25"
-    ny, nm = (year + 1, 1) if month == 12 else (year, month + 1)
-    end = f"{ny}-{nm:02d}-20"
+    # The bulletin closing a quarter (Mar/Jun/Sep/Dec) bundles a full
+    # quarter's worth of extra tables and is published noticeably later than
+    # a plain month's report — the Sept-2020 one didn't appear until Nov 2,
+    # 13 days past the day-20-of-next-month cutoff that works for every other
+    # month, so a window ending there returned "no article found" for every
+    # quarter-closing month tested.
+    is_quarter_close = month in (3, 6, 9, 12)
+    if month >= 11:
+        ny, nm = year + 1, month - 10
+    else:
+        ny, nm = year, month + 2
+    end_day = 10 if is_quarter_close else 20
+    end = f"{ny}-{nm:02d}-{end_day:02d}"
     url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
            f"?after={start}T00:00:00&before={end}T23:59:59"
            f"&per_page=100&_fields=link,date,content,title")
@@ -193,10 +263,26 @@ def find_article_by_window(year: int, month: int) -> "Optional[dict]":
         resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
         if resp.status_code != 200:
             return None
-        posts = [p for p in resp.json() if REPORT_SLUG in p.get('link', '')]
+        # A 2020-11 window once matched a slug from 2004 — the 2019
+        # bulk-republish contamination this docstring already warns about
+        # (pre-2020 windows) can leak a stray hit into a post-2020 window too,
+        # since republish timestamps aren't confined to one date. Requiring
+        # the target year to appear in the post's own URL is what actually
+        # rules that out; the slug filter alone does not.
+        posts = [p for p in resp.json()
+                 if REPORT_SLUG in p.get('link', '') and str(year) in p.get('link', '').rstrip('/').rsplit('/', 1)[-1]]
         if not posts:
             return None
         posts.sort(key=lambda p: p.get('date', ''))
+        # A widened window can also catch the FOLLOWING month's ordinary
+        # report; when this month closes a quarter, prefer whichever match
+        # actually carries the quarter marker in its slug (the report this
+        # function is looking for always does).
+        if is_quarter_close:
+            q = month // 3
+            quarterly = [p for p in posts if f'quy-{ROMAN_QUARTER[q]}' in p.get('link', '').lower()]
+            if quarterly:
+                posts = quarterly
         print(f"  Found by window: {posts[0]['link']}")
         return posts[0]
     except Exception as e:
@@ -252,10 +338,59 @@ def upsert_records(records: list[dict], crawl_time: datetime):
 
 
 
+def find_iip_dedicated_articles(year: int, month: int) -> list[dict]:
+    """List candidate 'Chỉ số sản xuất công nghiệp tháng X năm Y' articles —
+    a dedicated per-month IIP-only post NSO publishes separately from the
+    general socio-economic bulletin, sometimes within the reporting month
+    itself (as an estimate). This is the ONLY place a quarter-closing month
+    (Mar/Jun/Sep/Dec) states a standalone IIP figure at all: the general
+    bulletin for those months states "Giá trị tăng thêm toàn ngành công
+    nghiệp" instead — a different metric — so relying on the general
+    bulletin alone left every quarter-closing month with no IIP row.
+
+    Slug wording varies by year ("thang-6-nam-2023", zero-padded
+    "thang-01-nam-2021", a quarter-close "thang-9-va-9-thang-nam-2020"
+    cumulative form, even an "inforgraphic-" typo prefix some years), so
+    candidates are filtered only by keyword + target year in the slug;
+    layer1_structured's own month/year token check is what actually confirms
+    a given candidate is about the right period, so a loose slug filter here
+    cannot silently accept the wrong month.
+    """
+    start = f"{year}-{month:02d}-15"
+    ny, nm = (year + 1, 2) if month >= 11 else (year, month + 2)
+    end = f"{ny}-{nm:02d}-15"
+    url = (f"https://www.nso.gov.vn/wp-json/wp/v2/posts"
+           f"?after={start}T00:00:00&before={end}T23:59:59"
+           f"&per_page=100&_fields=link,date,content,title")
+    try:
+        resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
+        if resp.status_code != 200:
+            return []
+        posts = [p for p in resp.json()
+                 if 'chi-so-san-xuat-cong-nghiep' in p.get('link', '').lower()
+                 and str(year) in p.get('link', '').rstrip('/').rsplit('/', 1)[-1]]
+        posts.sort(key=lambda p: p.get('date', ''))
+        return posts
+    except Exception as e:
+        print(f"  Dedicated-article search error: {e}")
+        return []
+
+
 def crawl_period(year: int, month: int) -> bool:
     """Fetch + extract + upsert ONE month. Returns True on success."""
     period = f"{year:04d}-{month:02d}"
     print(f"\n--- {period} ---")
+
+    for post in find_iip_dedicated_articles(year, month):
+        html = (post.get('content', {}) or {}).get('rendered', '')
+        if not html:
+            continue
+        records = layer1_structured(html, period)
+        if records:
+            print(f"  Found dedicated IIP article: {post['link']}")
+            n = upsert_records(records, datetime.now())
+            print(f"  Upserted {n} IIP records for {period}")
+            return True
 
     post = find_article_by_window(year, month)
     if not post:
@@ -267,9 +402,9 @@ def crawl_period(year: int, month: int) -> bool:
         return False
 
     records = layer1_structured(html, period)
-    if len(records) < 2:
+    if not records:
         records = layer2_heuristic(html, period)
-    if len(records) < 2:
+    if not records:
         records = layer3_llm(html, period)
     if not records:
         print(f"  Nothing extracted for {period}")
@@ -291,11 +426,11 @@ def main():
     records = layer1_structured(html, PERIOD)
     print(f"Layer 1: {len(records)} records")
 
-    if len(records) < 2:
+    if not records:
         records = layer2_heuristic(html, PERIOD)
         print(f"Layer 2: {len(records)} records")
 
-    if len(records) < 2:
+    if not records:
         records = layer3_llm(html, PERIOD)
         print(f"Layer 3 LLM: {len(records)} records")
 
