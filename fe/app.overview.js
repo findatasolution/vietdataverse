@@ -135,6 +135,20 @@
             mini: { live: 'gdp', decimals: 2, color: '#26A69A' }
         },
         {
+            id: 'trade', section: 'macro', family: 'macro', domCardId: 'trade',
+            i18nKey: 'ovTrade',
+            title: 'Cán cân thương mại', source: 'GSO', unit: 'tỷ USD',
+            detailPeriod: '20',
+            // trade_monthly.json is a bare array of {period, export_billion_usd,
+            // import_billion_usd, trade_balance, …} records, period = "YYYY-MM".
+            // Mini-tile plots trade_balance (dương = xuất siêu, âm = nhập siêu) —
+            // the single figure that summarizes the pair; the detail chart draws
+            // exports/imports/balance as three separate lines.
+            mini: { file: 'data/trade_monthly.json', recordsMode: true,
+                    dateField: 'period', series: 'trade_balance', limit: 24,
+                    scale: 1, decimals: 1, color: '#26A69A' }
+        },
+        {
             id: 'vnindex', section: 'stock', family: 'stock', domCardId: 'vnindex',
             i18nKey: 'ovVnindex',
             title: 'VN-Index', source: 'HSX', unit: 'điểm', unitKey: 'unitPoint',

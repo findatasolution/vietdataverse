@@ -30,9 +30,9 @@ def main():
     ids = re.findall(r"id: '(\w+)'", overview_js)
     reg_ids = [i for i in ids if i in (
         'gold', 'silver', 'termdepo', 'interbank', 'policy',
-        'fxrate', 'global', 'cpi', 'gdp', 'vnindex')]
-    if len(reg_ids) != 10:
-        fail(f'CHART_REGISTRY: expected 10 entries, found {len(reg_ids)}: {reg_ids}')
+        'fxrate', 'global', 'cpi', 'gdp', 'trade', 'vnindex')]
+    if len(reg_ids) != 11:
+        fail(f'CHART_REGISTRY: expected 11 entries, found {len(reg_ids)}: {reg_ids}')
     if len(set(reg_ids)) != len(reg_ids):
         fail(f'CHART_REGISTRY: duplicate ids present: {reg_ids}')
 
@@ -67,7 +67,7 @@ def main():
             if not isinstance(payload.get(m_series.group(1)), list):
                 fail(f'{cid}: field "{m_series.group(1)}" missing/not a list in data/{f}')
 
-    # ── HTML: exactly one visible overview root + detail bar + 9 chart-cards
+    # ── HTML: exactly one visible overview root + detail bar + 10 chart-cards
     #    tagged with data-chart-id (interbank/policy share one) ───────────
     if html.count('id="data-charts"') != 1:
         fail('index.html: expected exactly one #data-charts element')
@@ -75,10 +75,10 @@ def main():
         fail('index.html: expected exactly one #ov-detail-bar element')
 
     dom_ids = re.findall(r'data-chart-id="(\w+)"', html)
-    # data-chart-id appears on: 9 .chart-card wrappers + 10 mini-tile <button>
-    # markup is JS-generated so won't be in the static HTML — only the 9 cards.
+    # data-chart-id appears on: 10 .chart-card wrappers + 11 mini-tile <button>
+    # markup is JS-generated so won't be in the static HTML — only the 10 cards.
     if sorted(dom_ids) != sorted(['gold', 'silver', 'termdepo', 'interbank',
-                                  'fxrate', 'global', 'cpi', 'gdp', 'vnindex']):
+                                  'fxrate', 'global', 'cpi', 'gdp', 'trade', 'vnindex']):
         fail(f'index.html: chart-card data-chart-id set is wrong: {sorted(dom_ids)}')
 
     if html.count('id="sbv-policy-anchor"') != 1:
