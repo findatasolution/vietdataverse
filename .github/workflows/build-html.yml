@@ -5,11 +5,22 @@ on:
     paths:
       - 'fe/partials/**'
       - 'fe/build.py'
+      # build.py's per-file content hash (see fe/build.py) only lands in
+      # index.html on a rebuild — a CSS/JS-only push that doesn't also
+      # touch a partial used to skip this workflow entirely, so the stale
+      # ?v=... query string in index.html kept browsers on cached assets
+      # after a real deploy.
+      - 'fe/style.css'
+      - 'fe/app.js'
+      - 'fe/app.overview.js'
     branches: [main]
   pull_request:
     paths:
       - 'fe/partials/**'
       - 'fe/build.py'
+      - 'fe/style.css'
+      - 'fe/app.js'
+      - 'fe/app.overview.js'
 
 jobs:
   build:
