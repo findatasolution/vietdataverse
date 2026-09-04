@@ -1,5 +1,20 @@
 name: GSO Macro Data Crawl (Monthly/Quarterly)
 
+# Runs over SSH on the prod box (BKHOST, Vietnam-datacenter IP), not on a
+# GitHub-hosted runner. nso.gov.vn resets connections from foreign/EU
+# datacenter IPs — verified this hits GitHub Actions runners AND a Hetzner
+# (Germany) box equally, so no GitHub-runner-side fix (retry, proxy secrets,
+# etc.) can work here. The prod box's own IP is not blocked (verified
+# directly), so crawling from there is the fix, not a workaround.
+#
+# Runs out of ~/vdv-crawler — a SEPARATE clone from the app's ~/vietdataverse
+# deploy directory, deliberately. deploy.yml does `git reset --hard` in
+# ~/vietdataverse on every push; sharing that directory here would race it
+# (two concurrent `git reset --hard` on the same working tree). Deps live in
+# a dedicated venv (~/vdv-crawler/.crawler-venv, not the box Python) —
+# mirrors the reasoning in DEPLOY.md / CLAUDE.md's "Box-side crawl fallback"
+# section for why crawler deps get their own venv instead of fighting the
+# box's system Python version.
 on:
   schedule:
     # Monthly CPI/PPI/Trade/IIP: 28th of each month at 02:00 UTC (9AM VN)
@@ -12,66 +27,60 @@ on:
 jobs:
   crawl-gso-monthly:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Skip if deploy secrets not configured
+        id: guard
+        run: echo "ready=${{ secrets.DEPLOY_HOST != '' }}" >> "$GITHUB_OUTPUT"
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: pip install -r crawl_tools/requirements.txt
-
-    - name: Crawl GSO CPI & PPI
-      env:
-        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
-        HELPER_DB: ${{ secrets.HELPER_DB }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: python crawl_tools/crawl_gso_cpi.py
-
-    - name: Crawl GSO Trade (Import/Export)
-      env:
-        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
-        HELPER_DB: ${{ secrets.HELPER_DB }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: python crawl_tools/crawl_gso_trade.py
-
-    - name: Crawl GSO Industry (IIP)
-      env:
-        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
-        HELPER_DB: ${{ secrets.HELPER_DB }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: python crawl_tools/crawl_gso_industry.py
-
-    - name: Show results
-      if: always()
-      run: echo "GSO monthly crawl completed at $(date)"
+      - name: Crawl CPI + Trade + IIP over SSH on the VN box
+        if: steps.guard.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+          HELPER_DB: ${{ secrets.HELPER_DB }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          envs: CRAWLING_BOT_DB,HELPER_DB,GEMINI_API_KEY
+          script: |
+            set -euo pipefail
+            cd ~/vdv-crawler
+            git fetch --quiet origin main
+            git reset --hard origin/main
+            .crawler-venv/bin/pip install -q -r crawl_tools/requirements.txt
+            .crawler-venv/bin/python3 crawl_tools/crawl_gso_cpi.py
+            .crawler-venv/bin/python3 crawl_tools/crawl_gso_trade.py
+            .crawler-venv/bin/python3 crawl_tools/crawl_gso_industry.py
+            echo "GSO monthly crawl completed at $(date)"
 
   crawl-gso-gdp:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Skip if deploy secrets not configured
+        id: guard
+        run: echo "ready=${{ secrets.DEPLOY_HOST != '' }}" >> "$GITHUB_OUTPUT"
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: pip install -r crawl_tools/requirements.txt
-
-    - name: Crawl GSO GDP
-      env:
-        CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
-        HELPER_DB: ${{ secrets.HELPER_DB }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: python crawl_tools/crawl_gso_gdp.py
-
-    - name: Show results
-      if: always()
-      run: echo "GSO GDP crawl completed at $(date)"
+      - name: Crawl GDP over SSH on the VN box
+        if: steps.guard.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          CRAWLING_BOT_DB: ${{ secrets.CRAWLING_BOT_DB }}
+          HELPER_DB: ${{ secrets.HELPER_DB }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          envs: CRAWLING_BOT_DB,HELPER_DB,GEMINI_API_KEY
+          script: |
+            set -euo pipefail
+            cd ~/vdv-crawler
+            git fetch --quiet origin main
+            git reset --hard origin/main
+            .crawler-venv/bin/pip install -q -r crawl_tools/requirements.txt
+            .crawler-venv/bin/python3 crawl_tools/crawl_gso_gdp.py
+            echo "GSO GDP crawl completed at $(date)"
