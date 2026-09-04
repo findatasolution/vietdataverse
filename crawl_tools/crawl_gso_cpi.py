@@ -14,7 +14,11 @@ Schedule: Monthly 7th–9th at 09:00 VN (02:00 UTC)
 
 import sys
 import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+# Only rewrap stdout when run as a script — as an import (e.g. this module's
+# own test suite) it fights pytest's own stdout capture and crashes the
+# whole session with "I/O operation on closed file" once the test run ends.
+if __name__ == '__main__':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 import os
 import re
@@ -282,33 +286,80 @@ def layer1_structured(text_content: str, period: str) -> dict:
     Example: "CPI tháng 02/2026 tăng 1,14% so với tháng trước"
     """
     result = {}
-    text_lower = text_content.lower()
+
+    # Real bug, found 2026-09 (2026-07 and 2026-08 both stored cpi_yoy_pct
+    # 4.45% — different months, same wrong number; separately confirmed
+    # gold_mom_pct/usd_mom_pct also silently wrong on other periods).
+    #
+    # Two things had to both be fixed, and fixing only one at a time kept
+    # reintroducing the other bug (tried and reverted: joining adjacent
+    # lines — NSO fragments one sentence into anywhere from 2 to 5+ short
+    # lines depending on the bulletin, so no fixed join depth is reliable;
+    # a bounded character window after each anchor occurrence — "cpi"/
+    # "tiêu dùng"/"vàng" are common enough words that an unrelated nearby
+    # "%" occasionally won the match):
+    #
+    # 1. get_text(separator='\n') puts NSO's bolded subheading on its own
+    #    line, separate from the sentence with the actual figures — so any
+    #    pattern requiring the anchor and the number on the same line fails,
+    #    and falls through to a later occurrence of the anchor word instead
+    #    (which is how "CPI" inside "Bình quân tám tháng…, CPI tăng 4,45%…"
+    #    got matched instead of the month's own 4,89%).
+    # 2. The page's own title lists all three indices together ("...tiêu
+    #    dùng (CPI), chỉ số giá vàng và chỉ số giá đô la Mỹ..."), so once \n
+    #    boundaries are removed to fix (1), a loose anchor like "vàng" can
+    #    run forward from the title straight into CPI's own figure instead
+    #    of gold's.
+    #
+    # Fix: anchor on "<subject> (CPI) tháng" / "giá vàng tháng" / "giá đô la
+    # (mỹ) tháng" instead of the bare subject word — every real content
+    # sentence starts this way ("chỉ số giá tiêu dùng (CPI) tháng Tám tăng…"
+    # / "giá vàng tháng Tám giảm…"). This isn't quite enough on its own,
+    # though: the combined title's OWN closing clause is "...và chỉ số giá
+    # đô la Mỹ tháng Tám và 8 tháng năm 2026" — literally "đô la Mỹ tháng
+    # Tám", matching usd_mom_pct's anchor too. So the title line is also
+    # dropped outright (it's the only line naming all three indices
+    # together; genuine content sentences only ever discuss one). Both
+    # steps combined make the anchor specific enough to flatten the WHOLE
+    # remaining document safely: no more line-boundary fragility, and no
+    # more cross-section contamination from the title.
+    content_lines = [
+        l for l in text_content.split('\n')
+        if not ('tiêu dùng' in l.lower() and 'vàng' in l.lower()
+                 and 'đô la' in l.lower())
+    ]
+    flat = re.sub(r'\s+', ' ', ' '.join(content_lines))
+    YTD_MARKERS = ('bình quân', 'tính chung')
+    text_lower = '. '.join(
+        s for s in flat.split('.')
+        if not any(m in s.lower() for m in YTD_MARKERS)
+    ).lower()
 
     patterns = {
-        # CPI mom
         'cpi_mom_pct': [
-            r'(?:cpi|chỉ số giá tiêu dùng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
-            r'(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước[^\n]*?(?:cpi|tiêu dùng)',
+            r'tiêu dùng\s*\(cpi\)\s*tháng[^.]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
         ],
-        # CPI yoy
         'cpi_yoy_pct': [
-            r'(?:cpi|tiêu dùng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với cùng kỳ',
+            # Wider than the other patterns' [^.]*? on purpose: yoy% is
+            # sometimes in the SAME sentence as mom% ("...4,89% so với
+            # cùng kỳ năm trước." — August's bulletin), sometimes in a
+            # second sentence after it ("...so với tháng trước [...]. CPI
+            # tháng Năm [...] tăng 3,24% so với cùng kỳ năm trước." — May
+            # 2025's; a single-sentence bound missed this and is the
+            # confirmed root cause of that period's wrong stored value).
+            # 300 chars comfortably covers both without reaching the next
+            # index's heading (already isolated by the anchor + YTD-drop
+            # above, so nothing else nearby says "so với cùng kỳ").
+            r'tiêu dùng\s*\(cpi\)\s*tháng.{0,300}?(tăng|giảm)\s+([\d,\.]+)%\s*so với cùng kỳ',
             # NSO sometimes leads with the comparison instead of the subject:
-            # "So với cùng kỳ năm trước, CPI tháng Mười Hai tăng 3,48%." — the
-            # December 2025 bulletin phrases it this way, and the pattern above
-            # requires "cpi"/"tiêu dùng" to come BEFORE "cùng kỳ", so it matched
-            # nothing and the row was stored with cpi_yoy_pct NULL.
-            r'so với cùng kỳ năm trước,\s*cpi[^\n]*?(tăng|giảm)\s+([\d,\.]+)%',
+            # "So với cùng kỳ năm trước, CPI tháng Mười Hai tăng 3,48%."
+            r'so với cùng kỳ năm trước,\s*cpi[^.]*?(tăng|giảm)\s+([\d,\.]+)%',
         ],
-        # Gold mom
         'gold_mom_pct': [
-            r'(?:giá vàng|vàng)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
-            r'chỉ số giá vàng[^\n]*?(tăng|giảm)\s+([\d,\.]+)%',
+            r'giá vàng\s*tháng[^.]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
         ],
-        # USD mom
         'usd_mom_pct': [
-            r'(?:đô la|đô la mỹ|usd)[^\n]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
-            r'chỉ số giá đô la[^\n]*?(tăng|giảm)\s+([\d,\.]+)%',
+            r'giá đô la(?:\s*mỹ)?\s*tháng[^.]*?(tăng|giảm)\s+([\d,\.]+)%\s*so với tháng trước',
         ],
     }
 
@@ -316,16 +367,11 @@ def layer1_structured(text_content: str, period: str) -> dict:
         for pat in pats:
             m = re.search(pat, text_lower, re.IGNORECASE)
             if m:
-                # The direction word is captured immediately before the number.
-                #
-                # It used to be inferred by scanning the whole matched span for
-                # "giảm", but these patterns run from "CPI" all the way to
-                # "so với cùng kỳ", so a sentence like
-                #   "CPI tháng Bảy giảm 0,12% so với tháng trước; … và tăng
-                #    4,45% so với cùng kỳ năm trước"
-                # put the month-on-month "giảm" inside the year-on-year match and
-                # flipped its sign. July and June 2026 were stored as -4.45 and
-                # -4.69 when the source said +4.45 and +4.69.
+                # The direction word is captured immediately before the
+                # number, not inferred from the whole matched span — a
+                # sentence can mix directions ("giảm 0,12% so với tháng
+                # trước; … tăng 4,45% so với cùng kỳ") and scanning the span
+                # for "giảm" would misattribute one field's sign to another.
                 direction, raw = m.group(1), m.group(2)
                 val = float(raw.replace(',', '.'))
                 if direction == 'giảm':

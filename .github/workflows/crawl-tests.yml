@@ -1,0 +1,35 @@
+name: Crawler Unit Tests
+
+# CLAUDE.md's own "Gold & silver validation" section notes test_gold_validation.py
+# existed but "CI does not run it yet" — true of every crawl_tools/test_*.py file,
+# which is exactly how the 2026-09 CPI extraction bug (see BACKLOG.md and
+# test_gso_cpi_extraction.py) went unnoticed for months: a regression test existed
+# in spirit (the pattern comments documented past fixes) but nothing ran it on
+# every change. This workflow is the fix for that gap, not for any one crawler.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'crawl_tools/**'
+  pull_request:
+    paths:
+      - 'crawl_tools/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r crawl_tools/requirements.txt
+          pip install pytest
+
+      - name: Run crawl_tools test suite
+        run: python -m pytest crawl_tools/ -v
