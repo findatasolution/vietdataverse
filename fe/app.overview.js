@@ -124,12 +124,14 @@
         {
             id: 'gdp', section: 'macro', family: 'macro', domCardId: 'gdp',
             i18nKey: 'ovGdp',
-            title: 'Tăng trưởng GDP', source: 'World Bank', unit: '%/năm', unitKey: 'unitPctYear',
+            title: 'Tăng trưởng GDP', source: 'GSO', unit: '%YoY/quý', unitKey: 'unitPctYear',
             detailPeriod: '20',
-            // No static file exists for GDP (unlike CPI/gold/silver/…) — the full
-            // detail view fetches it live from the World Bank API. `live: 'gdp'`
-            // routes through window.loadGdpSeries(), a thin export added in
-            // app.js that shares the SAME cache the detail view uses.
+            // Static file gdp_quarterly.json exists (like CPI) but `live: 'gdp'`
+            // still routes through window.loadGdpSeries() rather than a plain
+            // `file:` entry — that function already tries the static file first
+            // and falls back to the live API, and reusing it here means the
+            // overview tile and the full detail view share the SAME cache
+            // (opening the detail after the tile doesn't re-fetch).
             mini: { live: 'gdp', decimals: 2, color: '#26A69A' }
         },
         {
@@ -198,8 +200,15 @@
             if (typeof window.loadGdpSeries !== 'function') {
                 throw new Error('loadGdpSeries not loaded yet');
             }
-            const raw = await window.loadGdpSeries(); // [{date, value}, …]
-            return raw.map(d => ({ date: normalizeDate(d.date), value: d.value }));
+            // [{year, quarter, sector, growth_yoy_pct}, …] — source:
+            // vn_gso_gdp_quarterly (nso.gov.vn). Only 'total' plotted here;
+            // quarter mapped to its end month so date-fns parses it correctly.
+            const raw = await window.loadGdpSeries();
+            const qEndMonth = { 1: '03', 2: '06', 3: '09', 4: '12' };
+            return raw
+                .filter(d => d.sector === 'total' && d.growth_yoy_pct != null)
+                .sort((a, b) => a.year - b.year || a.quarter - b.quarter)
+                .map(d => ({ date: `${d.year}-${qEndMonth[d.quarter]}-01`, value: d.growth_yoy_pct }));
         }
     };
 

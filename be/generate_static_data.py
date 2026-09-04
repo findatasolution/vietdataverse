@@ -555,6 +555,56 @@ def generate_cpi_data():
         print(f"  CPI generation failed: {e}")
 
 
+def generate_gdp_data():
+    """
+    GDP tĩnh từ vn_gso_gdp_quarterly → gdp_quarterly.json. Same reasoning as
+    CPI: FE reads this file first so the chart works for anonymous visitors
+    without hitting /api/v1/macro/gdp's auth gate.
+    """
+    print("\n--- Generating GDP Data ---")
+    try:
+        with engine_crawl.connect() as conn:
+            rows = conn.execute(text("""
+                SELECT year, quarter, sector, gdp_billion_vnd, growth_yoy_pct
+                FROM vn_gso_gdp_quarterly
+                ORDER BY year, quarter, sector
+            """)).fetchall()
+            data = [{
+                "year": r[0], "quarter": r[1], "sector": r[2],
+                "gdp_billion_vnd": r[3], "growth_yoy_pct": r[4],
+            } for r in rows]
+        save_json('gdp_quarterly.json', data)
+    except Exception as e:
+        print(f"  GDP generation failed: {e}")
+
+
+def generate_trade_data():
+    """
+    Trade tĩnh từ vn_gso_trade_monthly → trade_monthly.json. Same reasoning
+    as CPI/GDP — anonymous-visitor fallback ahead of the gated live API.
+    """
+    print("\n--- Generating Trade Data ---")
+    try:
+        with engine_crawl.connect() as conn:
+            rows = conn.execute(text("""
+                SELECT period, export_billion_usd, import_billion_usd,
+                       trade_balance, yoy_export_pct, yoy_import_pct
+                FROM vn_gso_trade_monthly
+                ORDER BY period
+            """)).fetchall()
+            data = [{
+                "period": r[0],
+                "export_billion_usd": r[1],
+                "import_billion_usd": r[2],
+                "trade_balance": r[3],
+                "yoy_export_pct": r[4],
+                "yoy_import_pct": r[5],
+            } for r in rows]
+        save_json('trade_monthly.json', data)
+    except Exception as e:
+        print(f"  Trade generation failed: {e}")
+
+
 def generate_manifest():
     """Generate manifest file listing all available static data."""
     print("\n--- Generating Manifest ---")
@@ -588,6 +638,8 @@ def main():
         generate_global_data()
         generate_market_pulse_data()
         generate_cpi_data()
+        generate_gdp_data()
+        generate_trade_data()
         generate_manifest()
 
         print("\n" + "=" * 60)

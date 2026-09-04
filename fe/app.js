@@ -3904,12 +3904,11 @@
         })();
 
         /* =========================================================
-           MACRO CHARTS (GSO/NSO internal API + World Bank Open Data)
-           CPI source: vn_gso_cpi_monthly (nso.gov.vn) via /api/v1/macro/cpi
-           GDP/Trade source: World Bank Open Data
+           MACRO CHARTS — CPI + GDP + Trade, all sourced from GSO/NSO
+           (vn_gso_cpi_monthly / vn_gso_gdp_quarterly / vn_gso_trade_monthly)
+           via /api/v1/macro/*, static JSON first for anonymous visitors.
         ========================================================= */
         (function () {
-            const WB_BASE = 'https://api.worldbank.org/v2/country/VN/indicator';
             const GOLD = '#2f5fde';
             const RED  = '#EF5350';
             const BLUE = '#42A5F5';
@@ -3919,22 +3918,6 @@
 
             let _macroPeriod = 20; // default 20 years
             let _cpiChart = null, _gdpChart = null, _tradeChart = null;
-
-            // ── Fetch one World Bank indicator
-            async function wbFetch(indicator, years = 40) {
-                const url = `${WB_BASE}/${indicator}?format=json&per_page=${years}&mrv=${years}`;
-                const r = await fetch(url);
-                if (!r.ok) throw new Error(`WB ${indicator} ${r.status}`);
-                const json = await r.json();
-                return (json[1] || [])
-                    .filter(d => d.value != null)
-                    .sort((a, b) => a.date.localeCompare(b.date));
-            }
-
-            // ── Slice to last N years (0 = all)
-            function sliceYears(data, n) {
-                return n > 0 ? data.slice(-n) : data;
-            }
 
             // ── Common chart defaults
             function baseConfig(type, labels, datasets) {
@@ -3955,6 +3938,42 @@
                         }
                     }
                 };
+            }
+
+            // ── Fetch GDP from internal GSO API (static file first, same as CPI)
+            async function gdpFetch() {
+                try {
+                    const sr = await fetch('./data/gdp_quarterly.json');
+                    if (sr.ok) {
+                        const sj = await sr.json();
+                        const arr = sj.data || [];
+                        if (arr.length) return arr;
+                    }
+                } catch (_) { /* rơi xuống live API */ }
+
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || '/api/v1';
+                const r = await fetch(`${base}/macro/gdp`, { headers: await _authHeaders() });
+                if (!r.ok) throw new Error(`GDP API ${r.status}`);
+                const json = await r.json();
+                return json.data || [];
+            }
+
+            // ── Fetch Trade from internal GSO API (static file first, same as CPI)
+            async function tradeFetch() {
+                try {
+                    const sr = await fetch('./data/trade_monthly.json');
+                    if (sr.ok) {
+                        const sj = await sr.json();
+                        const arr = sj.data || [];
+                        if (arr.length) return arr;
+                    }
+                } catch (_) { /* rơi xuống live API */ }
+
+                const base = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || '/api/v1';
+                const r = await fetch(`${base}/macro/trade?months=60`, { headers: await _authHeaders() });
+                if (!r.ok) throw new Error(`Trade API ${r.status}`);
+                const json = await r.json();
+                return json.data || [];
             }
 
             // ── Fetch CPI from internal GSO API
@@ -4025,17 +4044,24 @@
                 _cpiChart = new Chart(canvas.getContext('2d'), cfg);
             }
 
-            // ── GDP bar chart
-            function renderGdp(raw, years) {
-                const data = sliceYears(raw, years);
-                const labels = data.map(d => d.date);
-                const values = data.map(d => +d.value.toFixed(2));
+            // ── GDP line chart — quarterly % YoY, source: vn_gso_gdp_quarterly (nso.gov.vn)
+            // raw: [{year, quarter, sector, gdp_billion_vnd, growth_yoy_pct}, …], any order.
+            // Only the 'total' sector is plotted here; agriculture/industry/services
+            // exist in the same payload for a future breakdown view but aren't drawn
+            // yet — no filter buttons on this card, so the whole history is shown
+            // (the `years` param CPI's period picker passes doesn't apply to GDP).
+            function renderGdp(raw) {
+                const totals = (raw || [])
+                    .filter(d => d.sector === 'total' && d.growth_yoy_pct != null)
+                    .sort((a, b) => a.year - b.year || a.quarter - b.quarter);
+                const labels = totals.map(d => `Q${d.quarter}/${d.year}`);
+                const values = totals.map(d => +d.growth_yoy_pct.toFixed(2));
 
                 const canvas = document.getElementById('macroGdpChart');
                 if (!canvas) return;
                 if (_gdpChart) _gdpChart.destroy();
                 const cfg = baseConfig('line', labels, [{
-                    label: 'GDP tăng trưởng %/năm',
+                    label: 'GDP tăng trưởng %YoY/quý (nguồn: GSO)',
                     data: values,
                     borderColor: TEAL,
                     backgroundColor: 'rgba(38, 166, 154, 0.08)',
@@ -4052,27 +4078,23 @@
             }
 
             // ── Trade line chart (exports + imports in billion USD)
-            function renderTrade(expRaw, impRaw, years) {
-                const expData = sliceYears(expRaw, years);
-                const impData = sliceYears(impRaw, years);
-                // Align by year
-                const years_set = new Set([...expData.map(d => d.date), ...impData.map(d => d.date)]);
-                const labels = [...years_set].sort();
-                const expMap = Object.fromEntries(expData.map(d => [d.date, d.value / 1e9]));
-                const impMap = Object.fromEntries(impData.map(d => [d.date, d.value / 1e9]));
-                const exports_ = labels.map(y => expMap[y] != null ? +expMap[y].toFixed(1) : null);
-                const imports_ = labels.map(y => impMap[y] != null ? +impMap[y].toFixed(1) : null);
-                const balance = labels.map((y, i) =>
-                    expMap[y] != null && impMap[y] != null
-                        ? +((expMap[y] - impMap[y]) / 1e9).toFixed(1) : null
-                );
+            // raw: [{period, export_billion_usd, import_billion_usd, trade_balance, …}, …]
+            // Values already in billion USD and trade_balance pre-computed by the
+            // backend query — no per-year aggregation needed (source is monthly,
+            // not annual like the old World Bank series).
+            function renderTrade(raw) {
+                const rows = (raw || []).slice().sort((a, b) => a.period.localeCompare(b.period));
+                const labels = rows.map(d => d.period);
+                const exports_ = rows.map(d => d.export_billion_usd != null ? +d.export_billion_usd.toFixed(1) : null);
+                const imports_ = rows.map(d => d.import_billion_usd != null ? +d.import_billion_usd.toFixed(1) : null);
+                const balance = rows.map(d => d.trade_balance != null ? +d.trade_balance.toFixed(1) : null);
 
                 const canvas = document.getElementById('macroTradeChart');
                 if (!canvas) return;
                 if (_tradeChart) _tradeChart.destroy();
                 const cfg = baseConfig('line', labels, [
-                    { label: 'Xuất khẩu (tỷ USD)', data: exports_, borderColor: GOLD, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
-                    { label: 'Nhập khẩu (tỷ USD)', data: imports_, borderColor: BLUE, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
+                    { label: 'Xuất khẩu (tỷ USD, nguồn: GSO)', data: exports_, borderColor: GOLD, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
+                    { label: 'Nhập khẩu (tỷ USD, nguồn: GSO)', data: imports_, borderColor: BLUE, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, pointHoverRadius: 4 },
                     { label: 'Cán cân TM (tỷ USD)', data: balance, borderColor: TEAL, backgroundColor: 'transparent', tension: 0.3, borderDash: [4,3], pointRadius: 0, pointHoverRadius: 4 }
                 ]);
                 cfg.options.scales.y.title = { display: true, text: 'tỷ USD', color: '#87867f', font: { size: 10 } };
@@ -4082,16 +4104,16 @@
             // ── Cached raw data
             // CPI: cached per view type (annual vs monthly)
             let _rawCpiAnnual = null, _rawCpiMonthly = null;
-            let _rawGdp = null, _rawExp = null, _rawImp = null;
+            let _rawGdp = null, _rawTrade = null;
 
-            // GDP has no static JSON (unlike CPI, gold, silver, …) — it is fetched
-            // live from the World Bank API by wbFetch(), private to this IIFE. The
-            // overview's GDP mini-tile needs that same series, so this thin export
-            // reuses wbFetch and writes into the SAME _rawGdp the full detail view
+            // GDP source: vn_gso_gdp_quarterly (nso.gov.vn), via gdpFetch() — static
+            // file first, live API fallback (same pattern as CPI). The overview's
+            // GDP mini-tile needs that same series, so this thin export reuses
+            // gdpFetch() and writes into the SAME _rawGdp the full detail view
             // reads — opening the GDP detail after viewing the overview tile does
-            // not re-fetch. Returns [{date, value}, …], sorted ascending.
+            // not re-fetch. Returns [{year, quarter, sector, growth_yoy_pct}, …].
             window.loadGdpSeries = async function () {
-                if (!_rawGdp) _rawGdp = await wbFetch('NY.GDP.MKTP.KD.ZG', 40);
+                if (!_rawGdp) _rawGdp = await gdpFetch();
                 return _rawGdp;
             };
 
@@ -4105,11 +4127,12 @@
                 // CPI: always fetch fresh when view changes (monthly vs annual)
                 const cpiCache = isMonthly ? _rawCpiMonthly : _rawCpiAnnual;
 
-                // GDP/Trade: cache across period switches (WB data is annual, sliced client-side)
-                if (cpiCache && _rawGdp && _rawExp && _rawImp) {
+                // GDP/Trade: no period picker on those cards, so once fetched they
+                // don't need to change when the CPI filter changes — just re-render.
+                if (cpiCache && _rawGdp && _rawTrade) {
                     renderCpi(cpiCache, years);
-                    renderGdp(_rawGdp, years);
-                    renderTrade(_rawExp, _rawImp, years);
+                    renderGdp(_rawGdp);
+                    renderTrade(_rawTrade);
                     return;
                 }
 
@@ -4124,17 +4147,16 @@
                     if (isMonthly) _rawCpiMonthly = cpiData;
                     else           _rawCpiAnnual  = cpiData;
 
-                    if (!_rawGdp) {
-                        [_rawGdp, _rawExp, _rawImp] = await Promise.all([
-                            wbFetch('NY.GDP.MKTP.KD.ZG', 40),
-                            wbFetch('NE.EXP.GNFS.CD', 40),
-                            wbFetch('NE.IMP.GNFS.CD', 40)
+                    if (!_rawGdp || !_rawTrade) {
+                        [_rawGdp, _rawTrade] = await Promise.all([
+                            _rawGdp || gdpFetch(),
+                            tradeFetch()
                         ]);
                     }
 
                     renderCpi(cpiData, years);
-                    renderGdp(_rawGdp, years);
-                    renderTrade(_rawExp, _rawImp, years);
+                    renderGdp(_rawGdp);
+                    renderTrade(_rawTrade);
                 } catch (e) {
                     console.error('[macro] fetch failed:', e);
                 } finally {
@@ -4149,8 +4171,8 @@
             window.downloadMacroCSV = function (type) {
                 const configs = {
                     cpi:   { header: 'Year,CPI Inflation (%/year)',    file: 'vietdataverse_vn_cpi_annual' },
-                    gdp:   { header: 'Year,GDP Growth (%/year)',        file: 'vietdataverse_vn_gdp_growth' },
-                    trade: { header: 'Year,Exports (billion USD),Imports (billion USD),Trade Balance (billion USD)', file: 'vietdataverse_vn_trade' }
+                    gdp:   { header: 'Quarter,GDP Growth (%YoY)',       file: 'vietdataverse_vn_gdp_growth' },
+                    trade: { header: 'Month,Exports (billion USD),Imports (billion USD),Trade Balance (billion USD)', file: 'vietdataverse_vn_trade' }
                 };
                 const cfg = configs[type];
                 if (!cfg) return;
@@ -4175,18 +4197,27 @@
                     csv = cfg.header + '\n' + cpiRaw.filter(d => _passes(d.period)).map(d => `${d.period},${(+d.yoy_pct).toFixed(2)}`).join('\n');
                 } else if (type === 'gdp') {
                     if (!_rawGdp) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
-                    csv = cfg.header + '\n' + _rawGdp.filter(d => _passes(d.date)).map(d => `${d.date},${d.value.toFixed(2)}`).join('\n');
+                    // Quarter → end-of-quarter month, so the existing YYYY-MM cutoff
+                    // logic in _passes applies without a separate quarterly branch.
+                    const qEndMonth = { 1: '03', 2: '06', 3: '09', 4: '12' };
+                    csv = cfg.header + '\n' + _rawGdp
+                        .filter(d => d.sector === 'total' && d.growth_yoy_pct != null)
+                        .filter(d => _passes(`${d.year}-${qEndMonth[d.quarter]}`))
+                        .sort((a, b) => a.year - b.year || a.quarter - b.quarter)
+                        .map(d => `Q${d.quarter}/${d.year},${(+d.growth_yoy_pct).toFixed(2)}`)
+                        .join('\n');
                 } else if (type === 'trade') {
-                    if (!_rawExp || !_rawImp) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
-                    const expMap = Object.fromEntries(_rawExp.map(d => [d.date, d.value / 1e9]));
-                    const impMap = Object.fromEntries(_rawImp.map(d => [d.date, d.value / 1e9]));
-                    const years = [...new Set([..._rawExp.map(d => d.date), ..._rawImp.map(d => d.date)])].filter(_passes).sort();
-                    csv = cfg.header + '\n' + years.map(y => {
-                        const exp = expMap[y] != null ? expMap[y].toFixed(1) : '';
-                        const imp = impMap[y] != null ? impMap[y].toFixed(1) : '';
-                        const bal = expMap[y] != null && impMap[y] != null ? (expMap[y] - impMap[y]).toFixed(1) : '';
-                        return `${y},${exp},${imp},${bal}`;
-                    }).join('\n');
+                    if (!_rawTrade) { alert('Vui lòng mở tab Vĩ Mô để tải dữ liệu trước.'); return; }
+                    csv = cfg.header + '\n' + _rawTrade
+                        .filter(d => _passes(d.period))
+                        .sort((a, b) => a.period.localeCompare(b.period))
+                        .map(d => {
+                            const exp = d.export_billion_usd != null ? d.export_billion_usd.toFixed(1) : '';
+                            const imp = d.import_billion_usd != null ? d.import_billion_usd.toFixed(1) : '';
+                            const bal = d.trade_balance != null ? d.trade_balance.toFixed(1) : '';
+                            return `${d.period},${exp},${imp},${bal}`;
+                        })
+                        .join('\n');
                 }
 
                 const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });

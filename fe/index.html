@@ -1107,15 +1107,15 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">GSO | World Bank</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">Tổng cục Thống kê (GSO/NSO)</a></small>
                         </div>
 
                         <!-- GDP -->
                         <div class="chart-card" data-chart-id="gdp">
                             <div class="chart-header">
                                 <h3 class="chart-title">
-                                    Tăng trưởng GDP Việt Nam (%/năm)
-                                    <span class="chart-info-icon" data-tooltip="Tốc độ tăng trưởng GDP thực tế hàng năm (constant prices). Nguồn: World Bank Open Data.">ⓘ</span>
+                                    Tăng trưởng GDP Việt Nam (% YoY theo quý)
+                                    <span class="chart-info-icon" data-tooltip="Tốc độ tăng trưởng GDP thực tế so với cùng kỳ năm trước, theo quý. Nguồn: Tổng cục Thống kê (GSO/NSO).">ⓘ</span>
                                 </h3>
                                 <div class="chart-filters">
                                     <button class="filter-btn" onclick="downloadMacroCSV('gdp')" title="Tải CSV"><i class="fas fa-download"></i></button>
@@ -1133,11 +1133,37 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" rel="noopener">World Bank Open Data</a></small>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">Tổng cục Thống kê (GSO/NSO)</a></small>
+                        </div>
+
+                        <!-- Trade (Xuất nhập khẩu) -->
+                        <div class="chart-card" data-chart-id="trade">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    Xuất nhập khẩu hàng hoá Việt Nam (tỷ USD/tháng)
+                                    <span class="chart-info-icon" data-tooltip="Kim ngạch xuất khẩu, nhập khẩu và cán cân thương mại hàng tháng. Nguồn: Tổng cục Thống kê (GSO/NSO).">ⓘ</span>
+                                </h3>
+                                <div class="chart-filters">
+                                    <button class="filter-btn" onclick="downloadMacroCSV('trade')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="macroTradeChart"></canvas>
+                                <div class="chart-loading" id="macroTradeLoading">
+                                    <div class="chart-skeleton"><div class="skeleton-bars">
+                                        <div class="skeleton skeleton-bar" style="height:60%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:75%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:55%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:85%"></div>
+                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.nso.gov.vn/" target="_blank" rel="noopener">Tổng cục Thống kê (GSO/NSO)</a></small>
                         </div>
 
                         <p style="font-size:0.72rem;color:var(--text-tertiary);margin:0.5rem 1rem 1.5rem;text-align:right;">
-                            <span data-i18n="macroNotePrefix">Note:</span> <a href="https://data.worldbank.org/country/VN" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> <span data-i18n="macroNoteSuffix">Cập nhật hàng tháng (chưa chính thức)</span>
+                            <span data-i18n="macroNotePrefix">Note:</span> <a href="https://www.nso.gov.vn/" target="_blank" style="color:var(--gold-primary);text-decoration:none;">GSO Vietnam</a> <span data-i18n="macroNoteSuffix">Cập nhật hàng tháng (chưa chính thức)</span>
                         </p>
                     </div>
 

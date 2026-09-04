@@ -306,7 +306,7 @@ async def get_macro_cpi(
                         for r in rows]
 
         return _json_response({
-            "success": True, "view": view, "source": "GSO/NSO vn_gso_cpi_monthly",
+            "success": True, "view": view, "source": "www.nso.gov.vn",
             "count": len(data), "data": data,
         })
     except Exception as e:
@@ -357,14 +357,17 @@ async def get_macro_gdp(
     request: Request,
     _auth: None = Depends(authenticate_user_optional),
 ):
-    """Vietnam GDP quarterly data — free access."""
+    """Vietnam GDP quarterly data — free access. Source: nso.gov.vn."""
     try:
         with get_engine_crawl().connect() as conn:
+            # LIMIT 200: up to 4 sector rows/quarter, so this covers ~50
+            # quarters of history — the full backfilled range (2020-current)
+            # plus headroom, not just the last ~10 quarters (40).
             rows = conn.execute(text("""
                 SELECT year, quarter, sector, gdp_billion_vnd, growth_yoy_pct
                 FROM vn_gso_gdp_quarterly
-                ORDER BY year DESC, quarter DESC, sector
-                LIMIT 40
+                ORDER BY year, quarter, sector
+                LIMIT 200
             """)).fetchall()
 
         data = [{
@@ -372,7 +375,10 @@ async def get_macro_gdp(
             "gdp_billion_vnd": r[3], "growth_yoy_pct": r[4],
         } for r in rows]
 
-        return _json_response({"success": True, "count": len(data), "data": data})
+        return _json_response({
+            "success": True, "source": "www.nso.gov.vn",
+            "count": len(data), "data": data,
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch GDP: {e}")
 
@@ -387,7 +393,7 @@ async def get_macro_trade(
     months: int = Query(default=12, ge=1, le=60),
     _auth: None = Depends(authenticate_user_optional),
 ):
-    """Vietnam monthly import/export data — free access."""
+    """Vietnam monthly import/export data — free access. Source: nso.gov.vn."""
     try:
         with get_engine_crawl().connect() as conn:
             rows = conn.execute(text("""
@@ -407,7 +413,10 @@ async def get_macro_trade(
             "yoy_import_pct": r[5],
         } for r in reversed(rows)]
 
-        return _json_response({"success": True, "count": len(data), "data": data})
+        return _json_response({
+            "success": True, "source": "www.nso.gov.vn",
+            "count": len(data), "data": data,
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch trade data: {e}")
 

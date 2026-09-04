@@ -56,9 +56,16 @@ def ensure_table():
                 top_export_markets JSONB,
                 yoy_export_pct FLOAT,
                 yoy_import_pct FLOAT,
-                crawl_time TIMESTAMP NOT NULL
+                crawl_time TIMESTAMP NOT NULL,
+                source TEXT NOT NULL DEFAULT 'nso.gov.vn'
             )
         """))
+        # ALTER for tables created before the source column existed — see
+        # crawl_gso_gdp.py's ensure_table() for why this is required, not
+        # cosmetic (NSO's reuse condition is attribution to www.nso.gov.vn).
+        conn.execute(text(
+            "ALTER TABLE vn_gso_trade_monthly ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'nso.gov.vn'"
+        ))
         conn.commit()
     print("Table vn_gso_trade_monthly ready.")
 

@@ -65,9 +65,16 @@ def ensure_table():
                 gdp_billion_vnd FLOAT,
                 growth_yoy_pct FLOAT,
                 crawl_time TIMESTAMP NOT NULL,
+                source TEXT NOT NULL DEFAULT 'nso.gov.vn',
                 UNIQUE (year, quarter, sector)
             )
         """))
+        # ALTER for tables created before the source column existed — NSO
+        # requires attribution ("ghi rõ nguồn ... www.nso.gov.vn") when its
+        # published data is reused; this was missing on this table.
+        conn.execute(text(
+            "ALTER TABLE vn_gso_gdp_quarterly ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'nso.gov.vn'"
+        ))
         conn.commit()
     print("Table vn_gso_gdp_quarterly ready.")
 
