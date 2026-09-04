@@ -2278,38 +2278,35 @@ html {
         gap: 4px;
     }
 
+    /* Icon-only — a first pass kept a short label ("Data"/"Market"/"Pulse")
+       next to the icon, but the pill still wasn't wide enough for it and
+       ellipsis-truncated to "D…"/"Mar…"/"Pu…", which reads worse than no
+       text at all. Sized/shaped to match the login circle right next to it
+       for one consistent icon-button family across the whole cluster. */
     .workspace-tab {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 6px 9px;
-        border-radius: 20px;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 50%;
         border-bottom: none;
         margin-bottom: 0;
-        font-size: 0.75rem;
-        font-weight: 400;
         color: var(--olive-gray);
         background: transparent;
         border: 1px solid var(--border-cream);
-        flex: 0 1 auto;
-        min-width: 0;
-        white-space: nowrap;
+        flex: 0 0 auto;
     }
 
     .workspace-tab .tab-icon {
         display: inline-block;
-        font-size: 0.75rem;
-        flex-shrink: 0;
+        font-size: 0.9375rem;
     }
 
-    .workspace-tab .tab-label-full {
-        display: none;
-    }
-
+    .workspace-tab .tab-label-full,
     .workspace-tab .tab-label-short {
-        display: inline;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        display: none;
     }
 
     .workspace-tab.active {
