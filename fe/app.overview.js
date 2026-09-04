@@ -107,7 +107,7 @@
         {
             id: 'cpi', section: 'macro', family: 'macro', domCardId: 'cpi',
             i18nKey: 'ovCpi',
-            title: 'CPI Việt Nam', source: 'GSO', unit: '%/năm', unitKey: 'unitPctYear',
+            title: 'CPI Việt Nam', source: 'GSO', sourceFull: 'Tổng cục Thống kê — www.nso.gov.vn', unit: '%/năm', unitKey: 'unitPctYear',
             // Detail view opens on the monthly toggle (years=1 in loadMacroCharts,
             // wired to the "Tháng" filter button) rather than the 20-year annual
             // default every other macro chart uses — CPI's own reporting cadence
@@ -124,7 +124,7 @@
         {
             id: 'gdp', section: 'macro', family: 'macro', domCardId: 'gdp',
             i18nKey: 'ovGdp',
-            title: 'Tăng trưởng GDP', source: 'GSO', unit: '%YoY/quý', unitKey: 'unitPctYear',
+            title: 'Tăng trưởng GDP', source: 'GSO', sourceFull: 'Tổng cục Thống kê — www.nso.gov.vn', unit: '%YoY/quý', unitKey: 'unitPctYear',
             detailPeriod: '20',
             // Static file gdp_quarterly.json exists (like CPI) but `live: 'gdp'`
             // still routes through window.loadGdpSeries() rather than a plain
@@ -137,7 +137,7 @@
         {
             id: 'trade', section: 'macro', family: 'macro', domCardId: 'trade',
             i18nKey: 'ovTrade',
-            title: 'Cán cân thương mại', source: 'GSO', unit: 'tỷ USD',
+            title: 'Cán cân thương mại', source: 'GSO', sourceFull: 'Tổng cục Thống kê — www.nso.gov.vn', unit: 'tỷ USD',
             detailPeriod: '20',
             // trade_monthly.json is a bare array of {period, export_billion_usd,
             // import_billion_usd, trade_balance, …} records, period = "YYYY-MM".
@@ -291,7 +291,7 @@
                     aria-label="${T('ovOpen', 'Mở')} ${T(chart.i18nKey, chart.title)}">
               <span class="ov-tile-head">
                 <span class="ov-tile-title" data-i18n="${chart.i18nKey}">${T(chart.i18nKey, chart.title)}</span>
-                <span class="ov-tile-src">${chart.source}</span>
+                <span class="ov-tile-src" title="${chart.sourceFull || chart.source}">${chart.source}</span>
               </span>
               <span class="ov-tile-value" data-role="value">—</span>
               <span class="ov-tile-delta" data-role="delta"></span>
