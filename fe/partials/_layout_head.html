@@ -431,9 +431,9 @@
                     <span class="app-brand-name">Viet Dataverse</span>
                 </div>
                 <nav class="workspace-nav" role="tablist" aria-label="Workspace">
-                    <button class="workspace-tab active" data-workspace="data" role="tab" aria-selected="true">Open Data</button>
-                    <button class="workspace-tab" data-workspace="km" role="tab" aria-selected="false">Agent Market</button>
-                    <button class="workspace-tab" data-workspace="pulse" role="tab" aria-selected="false">1s Pulse</button>
+                    <button class="workspace-tab active" data-workspace="data" role="tab" aria-selected="true"><i class="fas fa-chart-line tab-icon" aria-hidden="true"></i><span class="tab-label-full">Open Data</span><span class="tab-label-short">Data</span></button>
+                    <button class="workspace-tab" data-workspace="km" role="tab" aria-selected="false"><i class="fas fa-store tab-icon" aria-hidden="true"></i><span class="tab-label-full">Agent Market</span><span class="tab-label-short">Market</span></button>
+                    <button class="workspace-tab" data-workspace="pulse" role="tab" aria-selected="false"><i class="fas fa-bolt tab-icon" aria-hidden="true"></i><span class="tab-label-full">1s Pulse</span><span class="tab-label-short">Pulse</span></button>
                 </nav>
             </div>
             <div class="app-topbar-right">
@@ -476,6 +476,7 @@
                 <!-- Login button (shown when not authenticated) -->
                 <a href="#" class="header-link" id="login-link" onclick="event.preventDefault(); login();">
                     <button class="header-btn primary">
+                        <i class="fas fa-right-to-bracket header-btn-icon" aria-hidden="true"></i>
                         <span data-i18n="loginBtn">Đăng nhập</span>
                     </button>
                 </a>
