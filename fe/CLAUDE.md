@@ -72,9 +72,9 @@ Example: fix gold chart markup in data portal tab.
    - Runs `python fe/build.py`
    - Commits `fe/index.html` with message `build: regenerate fe/index.html [skip ci]`
    - Pushes to branch
-5. Deploy: `deploy-hetzner.yml` pushes to the Hetzner box, which serves
-   `fe/index.html` through FastAPI behind Caddy. **Not GitHub Pages** — see the
-   note in the root `CLAUDE.md`.
+5. Deploy: `deploy.yml` pushes to the prod box (BKHOST VPS since 2026-09-04,
+   was Hetzner before), which serves `fe/index.html` through FastAPI behind
+   Caddy. **Not GitHub Pages** — see the note in the root `CLAUDE.md`.
 
 ### Adding a new section
 

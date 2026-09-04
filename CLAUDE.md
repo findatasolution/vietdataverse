@@ -168,24 +168,26 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 
 ## GitHub Actions Workflows
 
-`.github/workflows/` — one workflow per crawl source (`{asset}-crawl.yml`), plus `build-html.yml` (regenerates `fe/index.html` on `fe/partials/` change), `generate-static-data.yml`, `data-quality-check.yml`, `market-pulse.yml`, `deploy-hetzner.yml` (auto-deploy to prod), and `uptime-check.yml`.
+`.github/workflows/` — one workflow per crawl source (`{asset}-crawl.yml`), plus `build-html.yml` (regenerates `fe/index.html` on `fe/partials/` change), `generate-static-data.yml`, `data-quality-check.yml`, `market-pulse.yml`, `deploy.yml` (auto-deploy to prod), and `uptime-check.yml`.
 
-`uptime-check.yml` runs daily at 11:00 VN and is the **only** production alerting we have: it probes prod from outside the box (root page + body size, `www`, `api`, anonymous `/gold` still 401, the three SEO root files, and cert expiry with a 14-day warning). A failure turns the workflow red and GitHub emails the repo owner. It must stay off-box — an on-box cron dies with the box it watches. Added after a 31h TLS outage went unnoticed (`DEPLOY_HETZNER.md`).
+`uptime-check.yml` runs daily at 11:00 VN and is the **only** production alerting we have: it probes prod from outside the box (root page + body size, `www`, `api`, anonymous `/gold` still 401, the three SEO root files, and cert expiry with a 14-day warning). A failure turns the workflow red and GitHub emails the repo owner. It must stay off-box — an on-box cron dies with the box it watches. Added after a 31h TLS outage went unnoticed (`DEPLOY.md`).
 
 Cron in VN time (UTC+7): `'7 1 * * *'` = 08:07 VN. Standard steps: checkout → setup-python → `pip install -r crawl_tools/requirements.txt` → `python crawl_tools/crawl_{source}.py` with DB env from secrets.
 
 **Never schedule a crawl on `:00` or `:30`.** GitHub runs scheduled workflows at low priority on shared runners and delays or drops them under load, and the round minutes are the congested slots. Measured 2026-08-09 on the old `'30 1'` + `'30 2-9'` gold/silver schedule: the 01:30 UTC primary slot *never fired at all* (first run of the day landed 03:04–04:38 UTC), only 4–8 of the 9 declared runs materialised, and the runs that did fire started **32 min late on average, 58 max**. Result: the day's gold data reached the DB at 10:00–12:40 VN instead of 08:30 VN, every day, with GitHub healthy. Daily crawlers now sit on distinct odd minutes so they neither hit a congested slot nor collide with each other: gold/silver `7`, termdepo `13`, exchange-rate `17`, SBV `23`, VN30 ratios `27`.
 
-### Box-side crawl fallback (`deploy/crawl-fallback.*`)
+### Box-side crawl fallback (`deploy/crawl-fallback.*`) — INACTIVE since 2026-09-04
 
-Odd minutes reduce the delay but cannot eliminate it — scheduled runs stay best-effort. A systemd timer on the Hetzner box fires at **01:45 and 03:00 UTC** (08:45 / 10:00 VN) and crawls gold/silver **only if that day's rows are still missing**, bounding lateness independently of GitHub. It is a net, not a replacement: Actions remains the primary path and the timer is a no-op on a healthy day.
+**Not currently running.** Prod moved off the Hetzner box (deleted 2026-09-04, see "Where production actually serves from" below) to a BKHOST VPS, and this systemd timer was never re-provisioned on the new box. Actions remains the crawl path and is unaffected — this was only ever a secondary safety net for gold/silver lateness, not a required dependency — but re-read this section and re-run the install steps in `DEPLOY.md` before assuming it's protecting anything.
+
+Design, kept for reference / re-provisioning: odd minutes reduce GitHub's scheduling delay but cannot eliminate it — scheduled runs stay best-effort. A systemd timer on the box fired at **01:45 and 03:00 UTC** (08:45 / 10:00 VN) and crawled gold/silver **only if that day's rows are still missing**, bounding lateness independently of GitHub. It was a net, not a replacement: Actions stayed the primary path and the timer was a no-op on a healthy day.
 
 Two things to preserve when touching it:
 
 - **Success is judged by re-probing the DB, never by the crawler's exit code.** `crawl_gold_silver.py` exits 1 whenever its Yahoo Finance section fails, and Yahoo blocks index tickers from datacenter IPs — which the box has. A non-zero exit there is expected and does not mean the domestic crawl failed.
 - **It runs in `python:3.11-slim` (`deploy/crawler.Dockerfile`), not on the box Python.** The box ships Python 3.14 with no `python3-venv`, while `crawl_tools/requirements.txt` pins 3.11-era versions. The image installs only the subset `crawl_gold_silver.py` imports, version-pinned by passing `crawl_tools/requirements.txt` to pip as a *constraint* file, so it stays in lockstep with CI without a duplicate dependency list. The repo is bind-mounted at `/repo`, so deploys refresh crawler code without an image rebuild.
 
-Install/verify steps are in `DEPLOY_HETZNER.md`. This does **not** change the rule that `uptime-check.yml` must stay off-box — a watchdog cannot live on the machine it watches, whereas a crawler net legitimately can.
+Install/verify steps are in `DEPLOY.md`. This does **not** change the rule that `uptime-check.yml` must stay off-box — a watchdog cannot live on the machine it watches, whereas a crawler net legitimately can.
 
 ## Backend (FastAPI)
 
@@ -250,7 +252,9 @@ Response shape:
 
 ### Where production actually serves from
 
-**FastAPI + Caddy on the Hetzner box, and nowhere else.** `https://vietdataverse.online/` answers with `server: uvicorn`, `via: Caddy`, and 307-redirects to `/fe/`.
+**FastAPI + Caddy on a BKHOST VPS (`103.130.215.180`, Vietnam), and nowhere else.** `https://vietdataverse.online/` answers with `server: uvicorn`, `via: Caddy`, and 307-redirects to `/fe/`.
+
+**Migrated 2026-09-04 from the Hetzner box (`62.238.25.95`, Germany) — that server has been deleted.** Root cause: `nso.gov.vn` (the GSO crawlers' source) resets connections from foreign/EU datacenter IPs, and this affected Hetzner itself, not just GitHub Actions runners — no box hosted in an EU/US datacenter can reach it. A VN-datacenter VPS was the only fix that didn't also require standing up separate proxy infrastructure. `mythreel.studio`, which previously shared the Hetzner box (own containers, own Postgres job-queue, its own real data on Neon/R2 — nothing box-local was lost), was discontinued in the same move; the new box runs VDV standalone with its own Caddy (`docker-compose.override.yml` on the box, not committed to git — see `deploy/vietdataverse.caddy` for the routing rules it replicates). Deploy secrets are `DEPLOY_HOST/USER/PORT/APP_DIR/SSH_KEY` (renamed from `HETZNER_*`; a fresh `vdv-github-deploy-bkhost` ed25519 key was issued, the old Hetzner key is no longer valid since the box is gone). The box-side crawl fallback for gold/silver was **not** re-provisioned on the new box — see the GitHub Actions Workflows section above.
 
 GitHub Pages is **also enabled** on this repo (source: `main` branch, root path) and builds on every push, but it is a stale orphan, not a deploy target:
 

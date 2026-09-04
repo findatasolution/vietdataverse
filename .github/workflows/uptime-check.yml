@@ -4,7 +4,7 @@ name: Uptime Check
 # supposed to watch. A GitHub runner is an outside vantage point, so it also
 # catches DNS, Caddy and TLS failures — not just "is uvicorn alive".
 #
-# The 2026-07-27 outage (31h of ERR_SSL_PROTOCOL_ERROR, see DEPLOY_HETZNER.md)
+# The 2026-07-27 outage (31h of ERR_SSL_PROTOCOL_ERROR, see DEPLOY.md)
 # would have been caught by check 1 the next morning: curl without -k fails
 # with exit 35 when the server presents no usable certificate.
 #
@@ -47,7 +47,7 @@ jobs:
             if [ $rc -ne 0 ]; then
               fail "$label: curl exit $rc — $(tr '\n' ' ' < "$ERRLOG" | cut -c1-200)"
               case $rc in
-                35) fail "  exit 35 = TLS handshake refused / no certificate served. Suspect the SHARED Caddy stack, not this repo — DEPLOY_HETZNER.md §0.1" ;;
+                35) fail "  exit 35 = TLS handshake refused / no certificate served. Suspect the SHARED Caddy stack, not this repo — DEPLOY.md §0.1" ;;
                 60) fail "  exit 60 = certificate expired or untrusted. Caddy renewal is failing." ;;
                 6)  fail "  exit 6 = DNS does not resolve. Check the Cloudflare A records." ;;
                 7|28) fail "  exit $rc = cannot connect / timed out. Suspect the box or its firewall." ;;
@@ -106,7 +106,7 @@ jobs:
 
           note ""
           if [ $FAILED -ne 0 ]; then
-            note "PROD CHECK FAILED — runbook: DEPLOY_HETZNER.md"
+            note "PROD CHECK FAILED — runbook: DEPLOY.md"
             note "If TLS broke but https://mythreel.studio is still 200, the TLS layer is"
             note "fine and our site block is missing from the shared Caddy config. Verify:"
             note "  docker exec automated_video-caddy-1 curl -s localhost:2019/config/apps/http/servers | grep -c vietdataverse"
