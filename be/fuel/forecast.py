@@ -1,10 +1,23 @@
 """Fuel price forecast generator — cycle points to forecast rows.
 
-This module implements:
-1. build_cycle_points: Converts published cycles + Brent daily data into CyclePoint observations
-2. make_forecast_rows: Generates forecast rows from calibrated models
-3. load_silver/write_forecasts: DB integration (not pure)
-4. main: Orchestrator
+structural-v1 (Brent/RBOB-proxied Nghị định 80 formula) was removed 2026-09-10 —
+it lost to random-walk in backtest (see calibration.py docstring), so it was never
+honest to use it to generate the live `fuel_forecast` rows either, even though it
+was the only model actually wired into this file before this rewrite.
+
+This file now generates delta-world-v1 forecasts. That model needs a Δworld input,
+and the real one (next cycle's MOPS average) isn't known ahead of the MOIT
+announcement without a licensed Platts feed (see BACKLOG.md — not pursued yet, no
+free public access exists per S&P Global's own API accreditation requirement).
+Rather than resurrect the Brent proxy that already failed once, forecasts here are
+**world-conditional scenarios**, not point predictions: "if world price does X,
+retail does k·X" for three illustrative Δworld draws (low/base/high) sized from
+the historical cycle-to-cycle volatility of world_avg itself, under a random-walk
+assumption on world price (spread grows with sqrt(horizon), same logic as an
+ordinary random-walk forecast fan — see Hyndman & Athanasopoulos, "Forecasting:
+Principles and Practice", ch. on prediction intervals). This is deliberately less
+impressive-looking than a single point forecast, but it is the honest thing this
+data supports without a paid feed.
 
 Pure functions (testable without DB):
 - build_cycle_points
@@ -15,257 +28,186 @@ DB functions:
 - write_forecasts
 - main
 """
+import math
 import sys
 from pathlib import Path
 from datetime import datetime, date, timedelta
 from dotenv import load_dotenv
 import os
 import json
-from decimal import Decimal
 
 # Allow running as a plain script (python3 be/fuel/forecast.py) — put repo root on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from sqlalchemy import text
 
-from be.fuel.calibration import (
-    CyclePoint,
-    fit_calibration,
-    predict_world,
-    predict_retail,
-    STANDARD_PARAMS,
-)
-from be.fuel.world_model import brent_window_avg, daily_log_return_sigma, fan_bands
-from be.fuel.formula import base_price_vnd_per_liter
+from be.fuel.calibration import CyclePoint, fit_passthrough, predict_retail_from_world_delta
 
-MODEL_VERSION = "structural-v1"
-METHODOLOGY_VERSION = "nd80-linear-2026.07"
-FX_DEFAULT = 26000.0
-CYCLE_DAYS = 7
+MODEL_VERSION = "delta-world-v1"
+METHODOLOGY_VERSION = "delta-passthrough-2026.09"
+CYCLE_DAYS = 7  # fallback only when <2 cycles are available to measure a real gap from
 DISCLAIMER = (
-    "Uoc tinh theo mo hinh phuc vu lap ngan sach; gia chinh thuc do "
-    "Bo Cong Thuong cong bo; khong phai khuyen nghi dau tu."
+    "World-conditional scenario, not a point forecast: assumes a Delta world price "
+    "move, does not predict what that move will be (no licensed real-time MOPS/"
+    "Platts feed). Uoc tinh phuc vu lap ngan sach; gia chinh thuc do Bo Cong Thuong "
+    "cong bo; khong phai khuyen nghi dau tu."
 )
 
 
-def build_cycle_points(cycles: list[dict], brent_daily: list[tuple[date, float]]) -> dict[str, list[CyclePoint]]:
-    """PURE. Build CyclePoint observations from published cycles and Brent daily prices.
-
-    For each fuel, processes cycles in period order. The first cycle per fuel is used only
-    as a previous-boundary reference; cycles 2+ become CyclePoints if their window has
-    Brent data. Each cycle's window is (previous cycle period + 1 day) .. (current cycle period).
+def build_cycle_points(cycles: list[dict]) -> dict[str, list[CyclePoint]]:
+    """PURE. Build CyclePoint observations from published cycles.
 
     Args:
         cycles: List of dicts with keys: period, fuel, world_avg_price, retail_price.
-                Must be sorted by period (ascending).
-        brent_daily: List of (date, close_price) tuples, sorted by date.
+                Must be sorted by period (ascending) — see load_silver.
 
     Returns:
-        Dict {fuel: [CyclePoint, ...]} where each fuel's points are in period order.
-        Fuels with <2 cycles are excluded (no points generated).
+        Dict {fuel: [CyclePoint, ...]}. Fuels with <2 cycles are excluded (need at
+        least one delta).
     """
-    # Group cycles by fuel, sorted by period
-    by_fuel = {}
+    by_fuel: dict[str, list[dict]] = {}
     for cycle in cycles:
-        fuel = cycle["fuel"]
-        if fuel not in by_fuel:
-            by_fuel[fuel] = []
-        by_fuel[fuel].append(cycle)
+        by_fuel.setdefault(cycle["fuel"], []).append(cycle)
 
     for fuel in by_fuel:
         by_fuel[fuel].sort(key=lambda c: c["period"])
 
-    # For each fuel, build CyclePoints
     result = {}
     for fuel, fuel_cycles in by_fuel.items():
         if len(fuel_cycles) < 2:
-            continue  # Skip fuels with <2 cycles (no point to generate)
-
-        points = []
-        for i in range(1, len(fuel_cycles)):
-            prev_period = fuel_cycles[i - 1]["period"]
-            curr_cycle = fuel_cycles[i]
-            curr_period = curr_cycle["period"]
-
-            # Window: (prev_period + 1 day) .. (curr_period)
-            window_start = prev_period + timedelta(days=1)
-            window_end = curr_period
-
-            # Try to compute brent_avg for this window
-            try:
-                brent_avg = brent_window_avg(brent_daily, window_start, window_end, rw_fill=None)
-            except ValueError:
-                # No Brent data in window; skip this cycle
-                continue
-
-            point = CyclePoint(
-                period=curr_period,
+            continue
+        result[fuel] = [
+            CyclePoint(
+                period=c["period"],
                 fuel=fuel,
-                world_avg=float(curr_cycle["world_avg_price"]),
-                retail=float(curr_cycle["retail_price"]),
-                brent_avg=brent_avg,
+                world_avg=float(c["world_avg_price"]),
+                retail=float(c["retail_price"]),
             )
-            points.append(point)
-
-        if points:
-            result[fuel] = points
-
+            for c in fuel_cycles
+        ]
     return result
+
+
+def _population_std(xs: list[float]) -> float:
+    n = len(xs)
+    mean = sum(xs) / n
+    return math.sqrt(sum((x - mean) ** 2 for x in xs) / n)
+
+
+def _median(xs: list[float]) -> float:
+    s = sorted(xs)
+    n = len(s)
+    mid = n // 2
+    return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2
+
+
+def _estimate_cycle_days(points: list[CyclePoint], window: int = 6) -> int:
+    """Median gap (days) between the last `window` cycles. The real MOIT cadence
+    has moved between ~7 and ~14 days over this dataset's history (see CLAUDE.md
+    "Fuel (domestic) crawl") — CYCLE_DAYS used to be a hardcoded 7, which silently
+    mislabeled target_cycle dates by ~2x once the cadence shifted. Recent-windowed
+    median instead of a fixed constant self-corrects when cadence shifts again."""
+    recent = points[-(window + 1):]
+    gaps = [(recent[i + 1].period - recent[i].period).days for i in range(len(recent) - 1)]
+    return round(_median(gaps)) if gaps else CYCLE_DAYS
 
 
 def make_forecast_rows(
     points_by_fuel: dict[str, list[CyclePoint]],
-    brent_daily: list[tuple[date, float]],
     run_ts: datetime,
-    fx: float = FX_DEFAULT,
     horizons: int = 4,
+    z: float = 1.28,
 ) -> list[dict]:
-    """PURE. Generate forecast rows from calibrated models.
+    """PURE. Generate world-conditional scenario forecast rows.
 
-    For each fuel with >=4 points, fits a calibration and generates forecast rows for
-    horizons 1..horizons. For each horizon, computes three scenarios (low/base/high)
-    using Brent fan bands.
+    For each fuel with >=4 points, fits k (delta pass-through) on ALL available
+    points (not a train/test split — this is the deployed model, not a backtest;
+    see backtest.py for out-of-sample validation) and generates 3 world-price
+    scenarios (low/base/high) per horizon:
+        Δworld_scenario = {-1, 0, +1} * z * sigma_world * sqrt(horizon)
+    where sigma_world is the population std-dev of historical cycle-to-cycle
+    Δworld_avg (random-walk-on-world assumption — spread grows with sqrt(h)).
+    point = predict_retail_from_world_delta(last.retail, k, 0, Δworld_scenario).
 
-    Args:
-        points_by_fuel: Dict {fuel: [CyclePoint, ...]} (same as output from build_cycle_points).
-        brent_daily: List of (date, close_price) tuples, sorted by date.
-        run_ts: Forecast run timestamp (datetime, UTC).
-        fx: USD/VND exchange rate (default 26000.0).
-        horizons: Number of horizons to forecast (default 4).
+    lo/hi per horizon = min/max across the 3 scenario points (NOT further widened
+    by the pass-through residual std — that uncertainty is reported separately in
+    `breakdown.resid_std` for transparency, not folded into lo/hi, since lo/hi
+    here already represents "what if world moves this much", a different question
+    than "how much does the formula itself scatter around a known Δworld").
 
     Returns:
-        List of dicts, each with keys:
-        - run_ts, fuel, target_cycle, horizon, scenario
-        - point, lo, hi (VND/L, rounded to int)
-        - breakdown (dict with brent_avg, world_hat, formula_vnd, calibration, fx, disclaimer)
-        - model_version, methodology_version
-        Total rows = sum(1 for fuel with >=4 points) * horizons * 3 scenarios.
+        List of dicts, each with keys: run_ts, fuel, target_cycle, horizon,
+        scenario, point, lo, hi, breakdown, model_version, methodology_version.
     """
     rows = []
 
-    if not brent_daily or not points_by_fuel:
-        return rows
-
-    # Get last observed Brent close
-    sorted_daily = sorted(brent_daily, key=lambda x: x[0])
-    last_brent_date = sorted_daily[-1][0]
-    last_close = sorted_daily[-1][1]
-
-    # Compute Brent volatility (can raise ValueError if <3 observations)
-    try:
-        sigma = daily_log_return_sigma(brent_daily)
-    except ValueError:
-        sigma = 0.0  # Fallback to zero volatility if insufficient data
-
-    # For each fuel with >=4 points
     for fuel, points in points_by_fuel.items():
         if len(points) < 4:
-            continue  # Skip fuels with insufficient data
+            continue
 
-        # Fit calibration
         try:
-            cal = fit_calibration(points, fx)
+            k = fit_passthrough(points)
         except ValueError:
-            continue  # Skip if calibration fails
+            continue
 
-        # Last cycle period (latest point)
-        last_cycle = points[-1].period
+        world_deltas = [points[j].world_avg - points[j - 1].world_avg for j in range(1, len(points))]
+        retail_deltas = [points[j].retail - points[j - 1].retail for j in range(1, len(points))]
+        resids = [retail_deltas[j] - k * world_deltas[j] for j in range(len(world_deltas))]
+        resid_std = _population_std(resids)
+        sigma_world = _population_std(world_deltas)
 
-        # Generate forecasts for each horizon
+        last = points[-1]
+        cycle_days = _estimate_cycle_days(points)
+
         for h in range(1, horizons + 1):
-            target_cycle = last_cycle + timedelta(days=h * CYCLE_DAYS)
+            target_cycle = last.period + timedelta(days=h * cycle_days)
+            world_shift = z * sigma_world * math.sqrt(h)
 
-            # Window for target cycle: (previous boundary + 1) .. (target_cycle)
-            # The "previous boundary" is the period before target_cycle, which is
-            # last_cycle + (h-1)*CYCLE_DAYS
-            if h == 1:
-                window_start = last_cycle + timedelta(days=1)
-            else:
-                window_start = last_cycle + timedelta(days=(h - 1) * CYCLE_DAYS + 1)
-            window_end = target_cycle
+            h_points = {}
+            for scenario_name, dworld in (("low", -world_shift), ("base", 0.0), ("high", world_shift)):
+                point = predict_retail_from_world_delta(last.retail, k, 0.0, dworld)
+                h_points[scenario_name] = round(point)
 
-            days_ahead = max(1, (target_cycle - last_brent_date).days)
+            lo, hi = min(h_points.values()), max(h_points.values())
 
-            # Compute fan bands (low, base, high) for Brent
-            low_b, base_b, high_b = fan_bands(last_close, sigma, days_ahead)
-
-            # For each scenario, compute forecast
-            for scenario_name, brent_scen in [
-                ("low", low_b),
-                ("base", base_b),
-                ("high", high_b),
-            ]:
-                # Compute Brent average for this scenario window
-                try:
-                    brent_avg_scen = brent_window_avg(brent_daily, window_start, window_end, rw_fill=brent_scen)
-                except ValueError:
-                    # If window is entirely in the future, use rw_fill for entire window
-                    brent_avg_scen = brent_scen
-
-                # Predict retail price
-                retail_hat = predict_retail(cal, brent_avg_scen, fx)
-                world_hat = predict_world(cal, brent_avg_scen)
-
-                # Compute formula (for breakdown transparency)
-                formula_vnd = base_price_vnd_per_liter(world_hat, fx, STANDARD_PARAMS[fuel])
-
-                # Build breakdown
-                breakdown = {
-                    "brent_avg": round(brent_avg_scen, 2),
-                    "world_hat": round(world_hat, 2),
-                    "formula_vnd": round(formula_vnd, 0),
-                    "calibration": {
-                        "alpha": round(cal.alpha, 2),
-                        "beta": round(cal.beta, 4),
-                        "a": round(cal.a, 2),
-                        "b": round(cal.b, 4),
-                    },
-                    "fx": fx,
-                    "disclaimer": DISCLAIMER,
-                }
-
-                row = {
+            for scenario_name, point in h_points.items():
+                rows.append({
                     "run_ts": run_ts,
                     "fuel": fuel,
                     "target_cycle": target_cycle,
                     "horizon": h,
                     "scenario": scenario_name,
-                    "point": round(retail_hat),
-                    "lo": None,  # Will be set after all three scenarios
-                    "hi": None,
-                    "breakdown": breakdown,
+                    "point": point,
+                    "lo": lo,
+                    "hi": hi,
+                    "breakdown": {
+                        "k_vnd_per_usd_bbl": round(k, 2),
+                        "assumed_world_delta_usd_bbl": round(
+                            {"low": -world_shift, "base": 0.0, "high": world_shift}[scenario_name], 2
+                        ),
+                        "resid_std_vnd_l": round(resid_std, 1),
+                        "sigma_world_usd_bbl": round(sigma_world, 3),
+                        "cycle_days_used": cycle_days,
+                        "last_known_cycle": last.period.isoformat(),
+                        "last_known_retail": last.retail,
+                        "disclaimer": DISCLAIMER,
+                    },
                     "model_version": MODEL_VERSION,
                     "methodology_version": METHODOLOGY_VERSION,
-                }
-                rows.append(row)
-
-        # Now set lo/hi for each horizon (same lo/hi for all three scenarios of one horizon)
-        for h in range(1, horizons + 1):
-            h_rows = [r for r in rows if r["fuel"] == fuel and r["horizon"] == h]
-            if h_rows:
-                points_vals = [r["point"] for r in h_rows]
-                lo = min(points_vals)
-                hi = max(points_vals)
-                for r in h_rows:
-                    r["lo"] = lo
-                    r["hi"] = hi
+                })
 
     return rows
 
 
-def load_silver(engine) -> tuple[list[dict], list[tuple[date, float]]]:
-    """Load Silver layer: fuel_price_cycle and fuel_world_daily.
+def load_silver(engine) -> list[dict]:
+    """Load Silver layer: fuel_price_cycle.
 
     Returns:
-        (cycles, brent_daily) where:
-        - cycles: List of dicts with period, fuel, world_avg_price, retail_price (sorted by period, fuel).
-        - brent_daily: List of (date, close) tuples for instrument='BRENT' (sorted by date).
+        List of dicts with period, fuel, world_avg_price, retail_price (sorted by
+        period, fuel).
     """
     cycles = []
-    brent_daily = []
-
     with engine.connect() as conn:
-        # Load cycles
         result = conn.execute(
             text(
                 """
@@ -282,42 +224,16 @@ def load_silver(engine) -> tuple[list[dict], list[tuple[date, float]]]:
                 "world_avg_price": float(row[2]),
                 "retail_price": float(row[3]),
             })
-
-        # Load Brent daily
-        result = conn.execute(
-            text(
-                """
-                SELECT period, close
-                FROM fuel_world_daily
-                WHERE instrument = 'BRENT'
-                ORDER BY period
-                """
-            )
-        )
-        for row in result:
-            brent_daily.append((row[0], float(row[1])))
-
-    return cycles, brent_daily
+    return cycles
 
 
 def write_forecasts(engine, rows: list[dict]) -> int:
-    """Write forecast rows to fuel_forecast table with upsert.
-
-    Uses INSERT with ON CONFLICT (run_ts, fuel, target_cycle, scenario) DO UPDATE.
-
-    Args:
-        engine: SQLAlchemy engine.
-        rows: List of forecast row dicts.
-
-    Returns:
-        Number of rows written.
-    """
+    """Write forecast rows to fuel_forecast table with upsert."""
     if not rows:
         return 0
 
     with engine.connect() as conn:
         for row in rows:
-            # Convert breakdown dict to JSON string
             breakdown_json = json.dumps(row["breakdown"])
 
             stmt = text(
@@ -361,7 +277,6 @@ def write_forecasts(engine, rows: list[dict]) -> int:
 
 def main():
     """Main orchestrator: load env, DB, Silver layer, generate and write forecasts."""
-    # Load .env from repo root
     dotenv_path = Path(__file__).resolve().parent.parent.parent / ".env"
     load_dotenv(dotenv_path=dotenv_path)
 
@@ -369,40 +284,33 @@ def main():
     if not db_url:
         sys.exit("FUEL_FORECAST_DB not set in environment")
 
-    # Import SQLAlchemy here to avoid issues if not in all environments
     from sqlalchemy import create_engine
 
     engine = create_engine(db_url)
 
-    # Load Silver data
     try:
-        cycles, brent_daily = load_silver(engine)
+        cycles = load_silver(engine)
     except Exception as e:
         sys.exit(f"Failed to load Silver data: {e}")
 
-    if not cycles or not brent_daily:
+    if not cycles:
         print("No data found in Silver layer; skipping forecast generation")
         return
 
-    # Build cycle points
-    points_by_fuel = build_cycle_points(cycles, brent_daily)
+    points_by_fuel = build_cycle_points(cycles)
 
-    # Generate forecasts
     run_ts = datetime.utcnow()
-    rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=FX_DEFAULT, horizons=4)
+    rows = make_forecast_rows(points_by_fuel, run_ts, horizons=4)
 
     if not rows:
         print("No forecast rows generated")
         return
 
-    # Write to Gold layer
     count = write_forecasts(engine, rows)
 
-    # Print summary
     print(f"Forecast generation complete: {count} rows written")
     print(f"Run timestamp: {run_ts}")
 
-    # Summary by fuel
     fuels = set(r["fuel"] for r in rows)
     for fuel in sorted(fuels):
         fuel_rows = [r for r in rows if r["fuel"] == fuel]

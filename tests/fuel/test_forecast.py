@@ -1,8 +1,9 @@
-"""Test suite for be.fuel.forecast — cycle-point builder and forecast generator.
+"""Test suite for be.fuel.forecast — cycle-point builder and world-conditional
+scenario forecast generator.
 
-Tests focus on the two PURE functions (no DB I/O):
-1. build_cycle_points: converts cycles + brent_daily into CyclePoint observations
-2. make_forecast_rows: generates forecast rows from calibrated models
+structural-v1's Brent-fed make_forecast_rows was removed 2026-09-10; forecasts are
+now delta-world-v1 scenarios with no Brent/RBOB dependency (see forecast.py
+docstring for why).
 """
 import pytest
 from datetime import date, datetime, timedelta
@@ -18,333 +19,154 @@ from be.fuel.calibration import CyclePoint
 
 
 class TestBuildCyclePoints:
-    """Test build_cycle_points function."""
-
-    def test_basic_two_cycles_creates_one_point(self):
-        """Two cycles for one fuel create one CyclePoint (first used as boundary, second as point)."""
+    def test_basic_two_cycles_creates_two_points(self):
+        """Two cycles for one fuel create two CyclePoints (no boundary cycle needed
+        now — the delta model uses consecutive points directly, unlike the removed
+        Brent-window approach)."""
         cycles = [
             {"period": date(2026, 1, 1), "fuel": "RON95", "world_avg_price": 70.0, "retail_price": 18000.0},
             {"period": date(2026, 1, 8), "fuel": "RON95", "world_avg_price": 75.0, "retail_price": 18500.0},
         ]
-        # Window for cycle 2: 2026-01-02 to 2026-01-08 (from prev+1 to current)
-        # Brent data: 72 for the window to get clean average
-        brent_daily = [
-            (date(2026, 1, 2), 72.0),
-            (date(2026, 1, 3), 72.0),
-            (date(2026, 1, 4), 72.0),
-            (date(2026, 1, 5), 72.0),
-            (date(2026, 1, 6), 72.0),
-            (date(2026, 1, 7), 72.0),
-            (date(2026, 1, 8), 72.0),
-        ]
-        points_by_fuel = build_cycle_points(cycles, brent_daily)
+        points_by_fuel = build_cycle_points(cycles)
         assert "RON95" in points_by_fuel
-        assert len(points_by_fuel["RON95"]) == 1
-        point = points_by_fuel["RON95"][0]
-        assert point.period == date(2026, 1, 8)
-        assert point.fuel == "RON95"
-        assert point.world_avg == 75.0
-        assert point.retail == 18500.0
-        assert abs(point.brent_avg - 72.0) < 0.01
-
-    def test_three_cycles_creates_two_points(self):
-        """Three cycles create two CyclePoints (first as boundary, second and third as points)."""
-        cycles = [
-            {"period": date(2026, 1, 1), "fuel": "RON95", "world_avg_price": 70.0, "retail_price": 18000.0},
-            {"period": date(2026, 1, 8), "fuel": "RON95", "world_avg_price": 75.0, "retail_price": 18500.0},
-            {"period": date(2026, 1, 15), "fuel": "RON95", "world_avg_price": 80.0, "retail_price": 19000.0},
-        ]
-        # Window 1: 2026-01-02 to 2026-01-08 → Brent 72
-        # Window 2: 2026-01-09 to 2026-01-15 → Brent 76
-        brent_daily = [
-            (date(2026, 1, 2), 72.0),
-            (date(2026, 1, 3), 72.0),
-            (date(2026, 1, 4), 72.0),
-            (date(2026, 1, 5), 72.0),
-            (date(2026, 1, 6), 72.0),
-            (date(2026, 1, 7), 72.0),
-            (date(2026, 1, 8), 72.0),
-            (date(2026, 1, 9), 76.0),
-            (date(2026, 1, 10), 76.0),
-            (date(2026, 1, 11), 76.0),
-            (date(2026, 1, 12), 76.0),
-            (date(2026, 1, 13), 76.0),
-            (date(2026, 1, 14), 76.0),
-            (date(2026, 1, 15), 76.0),
-        ]
-        points_by_fuel = build_cycle_points(cycles, brent_daily)
         assert len(points_by_fuel["RON95"]) == 2
-        # First point: window 2026-01-02 to 2026-01-08, brent_avg 72
-        assert points_by_fuel["RON95"][0].period == date(2026, 1, 8)
-        assert abs(points_by_fuel["RON95"][0].brent_avg - 72.0) < 0.01
-        # Second point: window 2026-01-09 to 2026-01-15, brent_avg 76
-        assert points_by_fuel["RON95"][1].period == date(2026, 1, 15)
-        assert abs(points_by_fuel["RON95"][1].brent_avg - 76.0) < 0.01
+        assert points_by_fuel["RON95"][0].period == date(2026, 1, 1)
+        assert points_by_fuel["RON95"][1].period == date(2026, 1, 8)
+        assert points_by_fuel["RON95"][1].world_avg == 75.0
+        assert points_by_fuel["RON95"][1].retail == 18500.0
 
-    def test_missing_brent_data_skips_cycle(self):
-        """If a cycle window has no Brent data, that cycle is skipped."""
+    def test_single_cycle_excluded(self):
+        """A fuel with only 1 cycle has no delta and is excluded."""
         cycles = [
             {"period": date(2026, 1, 1), "fuel": "RON95", "world_avg_price": 70.0, "retail_price": 18000.0},
-            {"period": date(2026, 1, 8), "fuel": "RON95", "world_avg_price": 75.0, "retail_price": 18500.0},
-            {"period": date(2026, 1, 15), "fuel": "RON95", "world_avg_price": 80.0, "retail_price": 19000.0},
         ]
-        # Window 1: 2026-01-02 to 2026-01-08 → has Brent data (72)
-        # Window 2: 2026-01-09 to 2026-01-15 → NO Brent data in this range
-        # Window 3: 2026-01-16+ → has Brent data (76)
-        brent_daily = [
-            (date(2026, 1, 2), 72.0),
-            (date(2026, 1, 3), 72.0),
-            (date(2026, 1, 4), 72.0),
-            (date(2026, 1, 5), 72.0),
-            (date(2026, 1, 6), 72.0),
-            (date(2026, 1, 7), 72.0),
-            (date(2026, 1, 8), 72.0),
-            # Gap in Jan 9-15: no data in second window
-            (date(2026, 1, 16), 76.0),
-            (date(2026, 1, 17), 76.0),
-            (date(2026, 1, 18), 76.0),
-            (date(2026, 1, 19), 76.0),
-            (date(2026, 1, 20), 76.0),
-            (date(2026, 1, 21), 76.0),
-            (date(2026, 1, 22), 76.0),
-        ]
-        points_by_fuel = build_cycle_points(cycles, brent_daily)
-        # Only two points should be created:
-        # - Cycle 1 (01-08): window 01-02 to 01-08 has data → point created
-        # - Cycle 2 (01-15): window 01-09 to 01-15 has NO data → SKIP
-        # - Cycle 3 (01-22): would be next, but we only have 3 cycles
-        assert len(points_by_fuel["RON95"]) == 1
-        assert points_by_fuel["RON95"][0].period == date(2026, 1, 8)
+        points_by_fuel = build_cycle_points(cycles)
+        assert "RON95" not in points_by_fuel
 
-    def test_multiple_fuels(self):
-        """Multiple fuels are tracked separately."""
+    def test_multiple_fuels_tracked_separately(self):
         cycles = [
             {"period": date(2026, 1, 1), "fuel": "RON95", "world_avg_price": 70.0, "retail_price": 18000.0},
             {"period": date(2026, 1, 8), "fuel": "RON95", "world_avg_price": 75.0, "retail_price": 18500.0},
             {"period": date(2026, 1, 1), "fuel": "E5RON92", "world_avg_price": 68.0, "retail_price": 17500.0},
             {"period": date(2026, 1, 8), "fuel": "E5RON92", "world_avg_price": 72.0, "retail_price": 18000.0},
         ]
-        brent_daily = [
-            (date(2026, 1, 1), 68.0),
-            (date(2026, 1, 2), 68.0),
-            (date(2026, 1, 3), 68.0),
-            (date(2026, 1, 4), 68.0),
-            (date(2026, 1, 5), 68.0),
-            (date(2026, 1, 6), 68.0),
-            (date(2026, 1, 7), 68.0),
-            (date(2026, 1, 8), 72.0),
-            (date(2026, 1, 9), 72.0),
-            (date(2026, 1, 10), 72.0),
-            (date(2026, 1, 11), 72.0),
-            (date(2026, 1, 12), 72.0),
-            (date(2026, 1, 13), 72.0),
-            (date(2026, 1, 14), 72.0),
-            (date(2026, 1, 15), 72.0),
-        ]
-        points_by_fuel = build_cycle_points(cycles, brent_daily)
+        points_by_fuel = build_cycle_points(cycles)
         assert set(points_by_fuel.keys()) == {"RON95", "E5RON92"}
-        assert len(points_by_fuel["RON95"]) == 1
-        assert len(points_by_fuel["E5RON92"]) == 1
-        assert points_by_fuel["RON95"][0].fuel == "RON95"
-        assert points_by_fuel["E5RON92"][0].fuel == "E5RON92"
+        assert len(points_by_fuel["RON95"]) == 2
+        assert len(points_by_fuel["E5RON92"]) == 2
+
+    def test_points_sorted_by_period(self):
+        """Cycles given out of order are sorted before building points."""
+        cycles = [
+            {"period": date(2026, 1, 8), "fuel": "RON95", "world_avg_price": 75.0, "retail_price": 18500.0},
+            {"period": date(2026, 1, 1), "fuel": "RON95", "world_avg_price": 70.0, "retail_price": 18000.0},
+        ]
+        points_by_fuel = build_cycle_points(cycles)
+        periods = [p.period for p in points_by_fuel["RON95"]]
+        assert periods == sorted(periods)
+
+
+def _points(fuel, worlds, retails, start=date(2026, 1, 1), step_days=7):
+    return [
+        CyclePoint(period=date.fromordinal(start.toordinal() + i * step_days),
+                   fuel=fuel, world_avg=w, retail=r)
+        for i, (w, r) in enumerate(zip(worlds, retails))
+    ]
 
 
 class TestMakeForecastRows:
-    """Test make_forecast_rows function."""
-
     def test_basic_forecast_structure(self):
-        """make_forecast_rows generates rows with correct structure."""
-        # Synthetic 5 cycles for RON95: world = 5 + 0.9*brent, retail = 500 + 0.8*formula
-        # Using simple linear model to generate deterministic data
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-            CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-            CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-            CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-        ]
+        points = _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
+                         [18000.0, 18500.0, 19000.0, 19500.0, 20000.0])
         points_by_fuel = {"RON95": points}
-
-        # Brent daily with constant close (sigma=0)
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
-
         run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=4)
+        rows = make_forecast_rows(points_by_fuel, run_ts, horizons=4)
 
-        # Should have 5 fuels * 4 horizons * 3 scenarios (only RON95 has >=4 points)
+        # 1 fuel * 4 horizons * 3 scenarios
         assert len(rows) == 1 * 4 * 3
 
-        # Check structure of first row
-        first_row = rows[0]
-        assert first_row["run_ts"] == run_ts
-        assert first_row["fuel"] == "RON95"
-        assert first_row["horizon"] == 1
-        assert first_row["scenario"] in ["low", "base", "high"]
-        assert isinstance(first_row["point"], (int, float))
-        assert isinstance(first_row["lo"], (int, float))
-        assert isinstance(first_row["hi"], (int, float))
-        assert isinstance(first_row["breakdown"], dict)
-        assert first_row["model_version"] == MODEL_VERSION
-        assert first_row["methodology_version"] == METHODOLOGY_VERSION
+        row = rows[0]
+        assert row["run_ts"] == run_ts
+        assert row["fuel"] == "RON95"
+        assert row["scenario"] in ("low", "base", "high")
+        assert isinstance(row["point"], int)
+        assert isinstance(row["lo"], int)
+        assert isinstance(row["hi"], int)
+        assert row["model_version"] == MODEL_VERSION
+        assert row["methodology_version"] == METHODOLOGY_VERSION
 
-    def test_horizons_increment_correctly(self):
-        """Target cycles increment by CYCLE_DAYS for each horizon."""
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-            CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-            CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-            CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-        ]
-        points_by_fuel = {"RON95": points}
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
+    def test_base_scenario_equals_last_retail_no_change(self):
+        """base scenario assumes zero Δworld → point == last known retail."""
+        points = _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
+                         [18000.0, 18500.0, 19000.0, 19500.0, 20000.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=1)
+        base_row = next(r for r in rows if r["scenario"] == "base")
+        assert base_row["point"] == 20000
 
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=4)
+    def test_low_high_symmetric_around_base(self):
+        points = _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
+                         [18000.0, 18500.0, 19000.0, 19500.0, 20000.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=1)
+        by_scenario = {r["scenario"]: r["point"] for r in rows}
+        base = by_scenario["base"]
+        assert (by_scenario["high"] - base) == (base - by_scenario["low"])
 
-        # Filter rows by scenario to check horizon progression
-        base_rows = [r for r in rows if r["scenario"] == "base"]
-        assert len(base_rows) == 4
+    def test_horizon_target_cycle_increments(self):
+        points = _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
+                         [18000.0, 18500.0, 19000.0, 19500.0, 20000.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=3)
+        base_rows = sorted((r for r in rows if r["scenario"] == "base"), key=lambda r: r["horizon"])
+        last_period = points[-1].period
+        for h, row in enumerate(base_rows, start=1):
+            assert row["horizon"] == h
+            assert row["target_cycle"] == last_period + timedelta(days=h * CYCLE_DAYS)
 
-        for i, row in enumerate(base_rows, start=1):
-            assert row["horizon"] == i
-            expected_target = date(2026, 2, 5) + timedelta(days=i * CYCLE_DAYS)
-            assert row["target_cycle"] == expected_target
-
-    def test_zero_sigma_all_scenarios_equal(self):
-        """With sigma=0 (no volatility), all three scenarios have identical point values."""
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-            CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-            CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-            CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-        ]
-        points_by_fuel = {"RON95": points}
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
-
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=2)
-
-        # Group by horizon
-        for h in [1, 2]:
+    def test_scenario_spread_grows_with_horizon(self):
+        """world_shift scales with sqrt(h), so horizon 4's spread > horizon 1's."""
+        points = _points("RON95", [67.0, 72.0, 68.0, 80.0, 74.0, 90.0],
+                         [18000.0, 18500.0, 18200.0, 19500.0, 18900.0, 20500.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=4)
+        spread_by_h = {}
+        for h in (1, 4):
             h_rows = [r for r in rows if r["horizon"] == h]
-            points_by_scenario = {r["scenario"]: r["point"] for r in h_rows}
-            # All scenarios should have identical point
-            assert len(set(points_by_scenario.values())) == 1
-
-    def test_lo_hi_bounds_with_zero_sigma(self):
-        """With sigma=0, lo==hi==point (no fan bounds)."""
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-            CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-            CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-            CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-        ]
-        points_by_fuel = {"RON95": points}
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
-
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=1)
-
-        row = rows[0]  # Any scenario row since they're all identical
-        assert row["lo"] == row["point"]
-        assert row["hi"] == row["point"]
+            spread_by_h[h] = h_rows[0]["hi"] - h_rows[0]["lo"]
+        assert spread_by_h[4] > spread_by_h[1]
 
     def test_breakdown_includes_required_keys(self):
-        """breakdown dict includes brent_avg, world_hat, formula_vnd, calibration, fx, disclaimer."""
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-            CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-            CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-            CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-        ]
-        points_by_fuel = {"RON95": points}
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
-
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=1)
-
+        points = _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
+                         [18000.0, 18500.0, 19000.0, 19500.0, 20000.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=1)
         breakdown = rows[0]["breakdown"]
-        assert "brent_avg" in breakdown
-        assert "world_hat" in breakdown
-        assert "formula_vnd" in breakdown
-        assert "calibration" in breakdown
-        assert "fx" in breakdown
-        assert "disclaimer" in breakdown
+        for key in ("k_vnd_per_usd_bbl", "assumed_world_delta_usd_bbl", "resid_std_vnd_l",
+                    "sigma_world_usd_bbl", "last_known_cycle", "last_known_retail", "disclaimer"):
+            assert key in breakdown
         assert breakdown["disclaimer"] == DISCLAIMER
-        assert breakdown["fx"] == 26000.0
 
     def test_fewer_than_4_points_skipped(self):
-        """A fuel with <4 points is skipped."""
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-        ]
-        points_by_fuel = {"RON95": points}
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
-
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=1)
-
-        # No rows for RON95 since it has only 2 points
+        points = _points("RON95", [67.0, 72.0], [18000.0, 18500.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=1)
         assert len(rows) == 0
 
-    def test_multiple_fuels_with_mixed_point_counts(self):
-        """Only fuels with >=4 points generate forecast rows."""
+    def test_zero_world_variance_skipped(self):
+        """fit_passthrough raises on zero Δworld variance → fuel silently skipped,
+        not a crash."""
+        points = _points("RON95", [70.0, 70.0, 70.0, 70.0, 70.0],
+                         [18000.0, 18100.0, 18000.0, 18100.0, 18000.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=1)
+        assert rows == []
+
+    def test_multiple_fuels_mixed_point_counts(self):
         points_by_fuel = {
-            "RON95": [
-                CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-                CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-                CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-                CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-                CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-            ],
-            "E5RON92": [  # Only 2 points, should be skipped
-                CyclePoint(date(2026, 1, 8), "E5RON92", 65.0, 17500.0, 66.0),
-                CyclePoint(date(2026, 1, 15), "E5RON92", 70.0, 18000.0, 70.0),
-            ],
-            "DO005S": [  # Exactly 4 points, should be included
-                CyclePoint(date(2026, 1, 8), "DO005S", 62.0, 17000.0, 63.0),
-                CyclePoint(date(2026, 1, 15), "DO005S", 67.0, 17500.0, 67.0),
-                CyclePoint(date(2026, 1, 22), "DO005S", 72.0, 18000.0, 70.0),
-                CyclePoint(date(2026, 1, 29), "DO005S", 76.0, 18500.0, 74.0),
-            ],
+            "RON95": _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
+                             [18000.0, 18500.0, 19000.0, 19500.0, 20000.0]),
+            "E5RON92": _points("E5RON92", [65.0, 70.0], [17500.0, 18000.0]),  # skipped, <4
+            "DO005S": _points("DO005S", [62.0, 67.0, 72.0, 76.0],
+                              [17000.0, 17500.0, 18000.0, 18500.0]),
         }
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
-
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=2)
-
-        # RON95: 5 points, 2 horizons, 3 scenarios = 6 rows
-        # E5RON92: 2 points, skipped = 0 rows
-        # DO005S: 4 points, 2 horizons, 3 scenarios = 6 rows
-        assert len(rows) == 12
-
-        fuels_in_rows = set(r["fuel"] for r in rows)
+        rows = make_forecast_rows(points_by_fuel, datetime(2026, 2, 6), horizons=2)
+        fuels_in_rows = {r["fuel"] for r in rows}
         assert fuels_in_rows == {"RON95", "DO005S"}
-        assert not any(r["fuel"] == "E5RON92" for r in rows)
 
-    def test_calibration_in_breakdown(self):
-        """Calibration parameters are included in breakdown."""
-        points = [
-            CyclePoint(date(2026, 1, 8), "RON95", 67.0, 18000.0, 68.0),
-            CyclePoint(date(2026, 1, 15), "RON95", 72.0, 18500.0, 72.0),
-            CyclePoint(date(2026, 1, 22), "RON95", 76.0, 19000.0, 75.0),
-            CyclePoint(date(2026, 1, 29), "RON95", 80.0, 19500.0, 78.0),
-            CyclePoint(date(2026, 2, 5), "RON95", 84.0, 20000.0, 82.0),
-        ]
-        points_by_fuel = {"RON95": points}
-        brent_daily = [(date(2026, 1, 1) + timedelta(days=i), 75.0) for i in range(50)]
 
-        run_ts = datetime(2026, 2, 6, 10, 0, 0)
-        rows = make_forecast_rows(points_by_fuel, brent_daily, run_ts, fx=26000.0, horizons=1)
-
-        cal_dict = rows[0]["breakdown"]["calibration"]
-        assert "alpha" in cal_dict
-        assert "beta" in cal_dict
-        assert "a" in cal_dict
-        assert "b" in cal_dict
-        assert all(isinstance(v, (int, float)) for v in cal_dict.values())
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

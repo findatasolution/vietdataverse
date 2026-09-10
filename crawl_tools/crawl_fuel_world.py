@@ -5,6 +5,13 @@ Free proxies for the MOPS reference window:
   diesel proxy) needs a LICENSED feed for the commercial product — see
   docs/research/2026-07-10-fuel-forecast-feasibility.md §2.3 — so it is a stub here.
 
+NOTE (2026-09-10): the fuel forecasting model no longer consumes fuel_world_daily —
+structural-v1 (the Brent/RBOB-proxy model) was removed for losing to random-walk;
+see CLAUDE.md "Fuel forecast model — structural-v1 removed". This crawler keeps
+running as free world-oil-price context data, not as a model input. Do not wire
+Brent/RBOB back into be/fuel/forecast.py without a specific reason — it's exactly
+the proxy that failed.
+
 Pattern (CLAUDE.md): land raw first, validate before insert, ON CONFLICT UPSERT,
 explicit commit, sys.exit(1) on invalid data.
 """
