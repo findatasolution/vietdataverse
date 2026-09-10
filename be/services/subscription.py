@@ -3,12 +3,15 @@ be/services/credit.py's purchase_product(). New tables live in
 KNOWLEDGE_MARKET_DB (same DB as credit_balance/credit_ledger), so a
 subscription write and a wallet debit always share one transaction.
 """
+import logging
 from datetime import datetime, timedelta
 
 from sqlalchemy import text
 
 from core.engines import get_engine_knowledge
 from services.credit import InsufficientCredits
+
+logger = logging.getLogger(__name__)
 
 GRACE_PERIOD_DAYS = 3
 
@@ -122,6 +125,11 @@ def subscribe(user_id: int, product_code: str) -> dict:
                 VALUES (:u, :p, 'active', :pe) RETURNING id
             """), {"u": user_id, "p": product_code, "pe": period_end}).scalar()
 
+        # Second-granularity idem_key: a real collision would require two
+        # subscribe() calls for the same (user, product) within the same
+        # wall-clock second, but the `existing[1] in ("active", "past_due")`
+        # guard above (taken under the same row lock) already rejects the
+        # second call with ValueError before it reaches this INSERT.
         idem_key = f"subscription:{sub_id}:{int(now.timestamp())}"
         conn.execute(text("""
             INSERT INTO credit_ledger (user_id, amount, kind, ref_type, ref_id, idem_key, note)
@@ -201,9 +209,81 @@ def list_subscription_history(user_id: int, limit: int = 50, offset: int = 0) ->
     } for r in rows]
 
 
+def _process_subscription(engine, sub_id: int, now: datetime) -> str | None:
+    """Process one subscription's billing decision inside its own transaction.
+    Returns the action taken ('charge', 'mark_past_due', 'cancel') or None for
+    a noop / missing row. Raises on error (e.g. product deactivated while
+    subscribers remain on it) — the caller isolates failures per-subscription
+    so one stuck row can't block the rest of a run_billing_cycle() pass."""
+    with engine.begin() as conn:
+        sub = conn.execute(text("""
+            SELECT id, user_id, product_code, status, current_period_end, grace_until
+            FROM platform_subscriptions WHERE id = :id FOR UPDATE
+        """), {"id": sub_id}).first()
+        if not sub:
+            return None
+        _, user_id, product_code, status, period_end, grace_until = sub
+        product = _get_product(conn, product_code)
+
+        balance_row = conn.execute(text(
+            "SELECT balance FROM credit_balance WHERE user_id = :u FOR UPDATE"
+        ), {"u": user_id}).first()
+        balance = balance_row[0] if balance_row else 0
+
+        decision = _decide_renewal(
+            status=status, current_period_end=period_end, grace_until=grace_until,
+            balance=balance, price=product["price_credits"],
+            billing_period_days=product["billing_period_days"], now=now,
+        )
+
+        if decision["action"] == "noop":
+            return None
+
+        if decision["action"] == "charge":
+            price = product["price_credits"]
+            idem_key = f"subscription:{sub_id}:renew:{int(now.timestamp())}"
+            conn.execute(text("""
+                INSERT INTO credit_ledger (user_id, amount, kind, ref_type, ref_id, idem_key, note)
+                VALUES (:u, :a, 'subscription_charge', 'subscription', :sid, :k, :n)
+            """), {"u": user_id, "a": -price, "sid": sub_id, "k": idem_key,
+                   "n": f"Renew {product_code}"})
+            conn.execute(text("""
+                UPDATE credit_balance SET balance = balance - :a, updated_at = NOW() WHERE user_id = :u
+            """), {"a": price, "u": user_id})
+            conn.execute(text("""
+                UPDATE platform_subscriptions
+                SET status = :st, current_period_end = :pe, grace_until = NULL
+                WHERE id = :id
+            """), {"st": decision["new_status"], "pe": decision["new_period_end"], "id": sub_id})
+            _write_event(conn, sub_id, decision["event"], amount_credits=price)
+            return "charge"
+
+        if decision["action"] == "mark_past_due":
+            conn.execute(text("""
+                UPDATE platform_subscriptions SET status = 'past_due', grace_until = :g
+                WHERE id = :id
+            """), {"g": decision["grace_until"], "id": sub_id})
+            _write_event(conn, sub_id, decision["event"])
+            return "mark_past_due"
+
+        if decision["action"] == "cancel":
+            conn.execute(text("""
+                UPDATE platform_subscriptions SET status = 'cancelled', cancelled_at = :now
+                WHERE id = :id
+            """), {"now": now, "id": sub_id})
+            _write_event(conn, sub_id, decision["event"], note=decision["note"])
+            return "cancel"
+
+        raise SubscriptionError(f"unknown _decide_renewal action: {decision['action']!r}")
+
+
 def run_billing_cycle(now: datetime | None = None) -> dict:
     """Called by the daily cron. One short transaction per subscription — a
-    stuck row must not block every other renewal."""
+    stuck row must not block every other renewal, so each subscription's
+    processing is isolated in its own try/except: a failure (e.g. a product
+    deactivated while subscribers remain on it) is logged and skipped rather
+    than aborting the whole run and leaving every later subscription in
+    due_ids unprocessed."""
     now = now or datetime.utcnow()
     engine = get_engine_knowledge()
     counts = {"renewed": 0, "past_due": 0, "cancelled": 0}
@@ -213,65 +293,16 @@ def run_billing_cycle(now: datetime | None = None) -> dict:
             SELECT id FROM platform_subscriptions WHERE status IN ('active', 'past_due')
         """)).fetchall()]
 
+    action_to_count = {"charge": "renewed", "mark_past_due": "past_due", "cancel": "cancelled"}
+
     for sub_id in due_ids:
-        with engine.begin() as conn:
-            sub = conn.execute(text("""
-                SELECT id, user_id, product_code, status, current_period_end, grace_until
-                FROM platform_subscriptions WHERE id = :id FOR UPDATE
-            """), {"id": sub_id}).first()
-            if not sub:
-                continue
-            _, user_id, product_code, status, period_end, grace_until = sub
-            product = _get_product(conn, product_code)
-
-            balance_row = conn.execute(text(
-                "SELECT balance FROM credit_balance WHERE user_id = :u FOR UPDATE"
-            ), {"u": user_id}).first()
-            balance = balance_row[0] if balance_row else 0
-
-            decision = _decide_renewal(
-                status=status, current_period_end=period_end, grace_until=grace_until,
-                balance=balance, price=product["price_credits"],
-                billing_period_days=product["billing_period_days"], now=now,
-            )
-
-            if decision["action"] == "noop":
-                continue
-
-            if decision["action"] == "charge":
-                price = product["price_credits"]
-                idem_key = f"subscription:{sub_id}:renew:{int(now.timestamp())}"
-                conn.execute(text("""
-                    INSERT INTO credit_ledger (user_id, amount, kind, ref_type, ref_id, idem_key, note)
-                    VALUES (:u, :a, 'subscription_charge', 'subscription', :sid, :k, :n)
-                """), {"u": user_id, "a": -price, "sid": sub_id, "k": idem_key,
-                       "n": f"Renew {product_code}"})
-                conn.execute(text("""
-                    UPDATE credit_balance SET balance = balance - :a, updated_at = NOW() WHERE user_id = :u
-                """), {"a": price, "u": user_id})
-                conn.execute(text("""
-                    UPDATE platform_subscriptions
-                    SET status = :st, current_period_end = :pe, grace_until = NULL
-                    WHERE id = :id
-                """), {"st": decision["new_status"], "pe": decision["new_period_end"], "id": sub_id})
-                _write_event(conn, sub_id, decision["event"], amount_credits=price)
-                counts["renewed"] += 1
-
-            elif decision["action"] == "mark_past_due":
-                conn.execute(text("""
-                    UPDATE platform_subscriptions SET status = 'past_due', grace_until = :g
-                    WHERE id = :id
-                """), {"g": decision["grace_until"], "id": sub_id})
-                _write_event(conn, sub_id, decision["event"])
-                counts["past_due"] += 1
-
-            elif decision["action"] == "cancel":
-                conn.execute(text("""
-                    UPDATE platform_subscriptions SET status = 'cancelled', cancelled_at = :now
-                    WHERE id = :id
-                """), {"now": now, "id": sub_id})
-                _write_event(conn, sub_id, decision["event"], note=decision["note"])
-                counts["cancelled"] += 1
+        try:
+            action = _process_subscription(engine, sub_id, now)
+        except Exception as e:
+            logger.error("billing cycle: subscription %s failed: %s", sub_id, e)
+            continue
+        if action in action_to_count:
+            counts[action_to_count[action]] += 1
 
     return counts
 

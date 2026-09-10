@@ -1,6 +1,5 @@
 """Pure-logic tests for the subscription billing state machine — no DB."""
 from datetime import datetime, timedelta
-import pytest
 from be.services.subscription import _decide_renewal
 
 
@@ -79,3 +78,88 @@ class TestDecideRenewalCancelled:
             balance=1000, price=60, billing_period_days=30, now=now,
         )
         assert result == {"action": "noop"}
+
+
+class _FakeRows:
+    """Mimics the small slice of a SQLAlchemy CursorResult run_billing_cycle
+    actually calls: .fetchall() returning [(id,), (id,), ...]."""
+    def __init__(self, rows):
+        self._rows = rows
+
+    def fetchall(self):
+        return self._rows
+
+
+class _FakeConnForDueIds:
+    """Fake connection used only for the initial due_ids SELECT in
+    run_billing_cycle — engine.connect() context manager."""
+    def __init__(self, due_ids):
+        self._due_ids = due_ids
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, *args, **kwargs):
+        return _FakeRows([(i,) for i in self._due_ids])
+
+
+class _FakeEngine:
+    """Only implements .connect() (used by run_billing_cycle to fetch due_ids).
+    _process_subscription is monkeypatched directly in the test below, so this
+    fake never needs to implement .begin()."""
+    def __init__(self, due_ids):
+        self._due_ids = due_ids
+
+    def connect(self):
+        return _FakeConnForDueIds(self._due_ids)
+
+
+class TestRunBillingCycleExceptionIsolation:
+    """run_billing_cycle's docstring promises one failing subscription can't
+    block the rest of a run — verified here without a real DB by monkeypatching
+    _process_subscription (the per-subscription transaction helper) to raise
+    for one id and succeed for the others, then asserting every id was still
+    attempted and the successful ones were still counted."""
+
+    def test_one_failing_subscription_does_not_block_others(self, monkeypatch):
+        import be.services.subscription as sub_mod
+
+        due_ids = [1, 2, 3]
+        attempted = []
+
+        def fake_process_subscription(engine, sub_id, now):
+            attempted.append(sub_id)
+            if sub_id == 2:
+                raise ValueError("Product not active: some-deactivated-product")
+            return "charge"
+
+        monkeypatch.setattr(sub_mod, "get_engine_knowledge", lambda: _FakeEngine(due_ids))
+        monkeypatch.setattr(sub_mod, "_process_subscription", fake_process_subscription)
+
+        result = sub_mod.run_billing_cycle(now=datetime(2026, 9, 10))
+
+        # All three ids were attempted — subscription 2's failure did not stop
+        # the loop from reaching subscription 3.
+        assert attempted == [1, 2, 3]
+        # The two subscriptions that didn't raise were still counted; the
+        # failing one contributed to no counter (it was skipped, not silently
+        # treated as any particular outcome).
+        assert result == {"renewed": 2, "past_due": 0, "cancelled": 0}
+
+    def test_all_failing_returns_zero_counts_without_raising(self, monkeypatch):
+        import be.services.subscription as sub_mod
+
+        due_ids = [10, 11]
+
+        def always_raise(engine, sub_id, now):
+            raise RuntimeError(f"boom on {sub_id}")
+
+        monkeypatch.setattr(sub_mod, "get_engine_knowledge", lambda: _FakeEngine(due_ids))
+        monkeypatch.setattr(sub_mod, "_process_subscription", always_raise)
+
+        # Must not raise — every failure is caught and logged, not propagated.
+        result = sub_mod.run_billing_cycle(now=datetime(2026, 9, 10))
+        assert result == {"renewed": 0, "past_due": 0, "cancelled": 0}
