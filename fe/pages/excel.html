@@ -72,44 +72,44 @@
 
   <nav class="doc-toc">
     <div class="doc-toc-inner">
-      <div class="doc-toc-label">Nội dung</div>
-      <a class="doc-toc-item" href="#overview">Bạn sẽ làm được gì</a>
-      <a class="doc-toc-item" href="#token">Bước 1 — Lấy API token</a>
-      <a class="doc-toc-item" href="#connect">Bước 2 — Kết nối Power Query</a>
-      <a class="doc-toc-item" href="#refresh">Bước 3 — Làm mới dữ liệu</a>
-      <a class="doc-toc-item" href="#datasets">Danh sách bộ dữ liệu</a>
-      <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
+      <div class="doc-toc-label" data-i18n="ex.toc.label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview" data-i18n="ex.toc.overview">Bạn sẽ làm được gì</a>
+      <a class="doc-toc-item" href="#token" data-i18n="ex.toc.token">Bước 1 — Lấy API token</a>
+      <a class="doc-toc-item" href="#connect" data-i18n="ex.toc.connect">Bước 2 — Kết nối Power Query</a>
+      <a class="doc-toc-item" href="#refresh" data-i18n="ex.toc.refresh">Bước 3 — Làm mới dữ liệu</a>
+      <a class="doc-toc-item" href="#datasets" data-i18n="ex.toc.datasets">Danh sách bộ dữ liệu</a>
+      <a class="doc-toc-item" href="#troubleshoot" data-i18n="ex.toc.troubleshoot">Lỗi thường gặp</a>
     </div>
   </nav>
 
   <main class="doc-content">
 
-    <h1>Lấy dữ liệu vào Excel (Power Query)</h1>
-    <p class="doc-lead">
+    <h1 data-i18n="ex.h1">Lấy dữ liệu vào Excel (Power Query)</h1>
+    <p class="doc-lead" data-i18n="ex.lead">
       Kéo dữ liệu tài chính Việt Nam — vàng, bạc, tỷ giá, lãi suất, CPI, dữ liệu toàn cầu — thẳng vào <strong>Microsoft Excel</strong>
       bằng <strong>Power Query</strong>, không cần code. Dữ liệu nạp thành Table và làm mới được bằng một nút bấm.
     </p>
 
     <section id="overview" class="doc-section">
-      <h2>Bạn sẽ làm được gì</h2>
-      <p>Excel có sẵn <strong>Power Query</strong> (Get &amp; Transform Data) — tương đương <code>IMPORTDATA</code> của Google Sheets nhưng mạnh hơn: đọc được cả CSV lẫn JSON, nạp vào Table, và làm mới tự động.</p>
-      <div class="doc-info">
+      <h2 data-i18n="ex.overview.h2">Bạn sẽ làm được gì</h2>
+      <p data-i18n="ex.overview.p">Excel có sẵn <strong>Power Query</strong> (Get &amp; Transform Data) — tương đương <code>IMPORTDATA</code> của Google Sheets nhưng mạnh hơn: đọc được cả CSV lẫn JSON, nạp vào Table, và làm mới tự động.</p>
+      <div class="doc-info" data-i18n="ex.overview.info">
         <strong>Không cần cài thêm gì.</strong> Power Query có sẵn trong Excel 2016 trở lên (Windows &amp; Mac) và Microsoft 365. Khác với Google Sheets, Excel <strong>không hiện cảnh báo "ứng dụng chưa xác minh"</strong>.
       </div>
     </section>
 
     <!-- STEP 1 -->
     <section id="token" class="doc-section">
-      <h2>Bước 1 — Lấy API token</h2>
-      <div class="doc-step">
+      <h2 data-i18n="ex.token.h2">Bước 1 — Lấy API token</h2>
+      <div class="doc-step" data-i18n="ex.token.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">Mở <a href="/pages/developer.html" style="color:var(--terracotta);"><strong>trang Developer</strong></a> rồi đăng nhập (đăng ký miễn phí nếu chưa có).</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.token.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">Tài khoản miễn phí được cấp ngay API key với hạn mức <strong>1.000 request/tháng</strong>.</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.token.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">Nhấn <strong>"Sao chép"</strong> để lấy key đầy đủ (~43 ký tự). Giữ key bí mật.</div>
       </div>
@@ -117,13 +117,13 @@
 
     <!-- STEP 2 -->
     <section id="connect" class="doc-section">
-      <h2>Bước 2 — Kết nối bằng Power Query</h2>
+      <h2 data-i18n="ex.connect.h2">Bước 2 — Kết nối bằng Power Query</h2>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.connect.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">Trong Excel: thẻ <strong>Data → Get Data → From Other Sources → From Web</strong> (hoặc <strong>Data → From Web</strong>).</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.connect.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">
           Dán URL của bộ dữ liệu (thay <code>YOUR_API_KEY</code> bằng token). Ví dụ giá vàng SJC 1 năm:
@@ -132,11 +132,11 @@
 
       <div class="url-box">https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1y&amp;page=1&amp;limit=500&amp;api_key=<span class="hl">YOUR_API_KEY</span></div>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.connect.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">Nếu Excel hỏi cách xác thực → chọn <strong>Anonymous</strong> → <strong>Connect</strong> (token đã nằm trên URL).</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.connect.step4">
         <div class="doc-step-num">4</div>
         <div class="doc-step-body">
           Cửa sổ Power Query mở ra:
@@ -146,35 +146,35 @@
           </ul>
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ex.connect.step5">
         <div class="doc-step-num">5</div>
         <div class="doc-step-body">Nhấn <strong>Close &amp; Load</strong> → dữ liệu đổ vào sheet thành một Table.</div>
       </div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="ex.connect.info">
         <strong>Mẹo:</strong> Tham số <code>&amp;page=1&amp;limit=500</code> giúp API trả về dạng <em>danh sách dòng</em> — Power Query expand thẳng thành bảng sạch.
       </div>
     </section>
 
     <!-- STEP 3 -->
     <section id="refresh" class="doc-section">
-      <h2>Bước 3 — Làm mới dữ liệu</h2>
-      <p>Cập nhật bất cứ lúc nào: <strong>Data → Refresh All</strong>. Tự động:</p>
-      <ol>
+      <h2 data-i18n="ex.refresh.h2">Bước 3 — Làm mới dữ liệu</h2>
+      <p data-i18n="ex.refresh.p">Cập nhật bất cứ lúc nào: <strong>Data → Refresh All</strong>. Tự động:</p>
+      <ol data-i18n="ex.refresh.ol">
         <li>Chuột phải vào Table → <strong>Table → External Data Properties</strong> (hoặc Data → Queries &amp; Connections → Properties).</li>
         <li>Tick <strong>"Refresh data when opening the file"</strong> và/hoặc <strong>"Refresh every N minutes"</strong>.</li>
       </ol>
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="ex.refresh.warn">
         Mỗi lần refresh = 1 request tính vào quota tháng. Đừng đặt refresh quá dày trên nhiều query cùng lúc.
       </div>
     </section>
 
     <!-- DATASETS -->
     <section id="datasets" class="doc-section">
-      <h2>Danh sách bộ dữ liệu</h2>
-      <p>Tất cả các bộ dữ liệu có trên trang chủ Viet Dataverse đều dùng được trong Excel. Ghép tham số vào URL: <code>?period=...&amp;page=1&amp;limit=500&amp;api_key=YOUR_API_KEY</code></p>
+      <h2 data-i18n="ex.datasets.h2">Danh sách bộ dữ liệu</h2>
+      <p data-i18n="ex.datasets.p">Tất cả các bộ dữ liệu có trên trang chủ Viet Dataverse đều dùng được trong Excel. Ghép tham số vào URL: <code>?period=...&amp;page=1&amp;limit=500&amp;api_key=YOUR_API_KEY</code></p>
 
-      <table class="gs-table">
+      <table class="gs-table" data-i18n="ex.datasets.table">
         <thead><tr><th>Bộ dữ liệu</th><th>Endpoint</th><th>Tham số chính</th><th>Cột trả về</th></tr></thead>
         <tbody>
           <tr>
@@ -222,33 +222,35 @@
         </tbody>
       </table>
 
-      <p style="margin-top:14px;"><code>period</code> nhận: <code>7d</code> · <code>1m</code> · <code>1y</code> · <code>all</code>. Ví dụ lấy <strong>lãi suất tiết kiệm 1 năm</strong>:</p>
+      <p style="margin-top:14px;" data-i18n="ex.datasets.example"><code>period</code> nhận: <code>7d</code> · <code>1m</code> · <code>1y</code> · <code>all</code>. Ví dụ lấy <strong>lãi suất tiết kiệm 1 năm</strong>:</p>
       <div class="url-box">https://api.vietdataverse.online/api/v1/termdepo?period=1y&amp;page=1&amp;limit=500&amp;api_key=YOUR_API_KEY</div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="ex.datasets.info">
         Danh sách endpoint đầy đủ (kèm VN30, news…) xem ở <a href="api-docs.html" style="color:var(--terracotta);">API Reference</a>.
       </div>
     </section>
 
     <!-- TROUBLESHOOT -->
     <section id="troubleshoot" class="doc-section">
-      <h2>Lỗi thường gặp</h2>
+      <h2 data-i18n="ex.trouble.h2">Lỗi thường gặp</h2>
 
-      <h3>Báo lỗi 401 / "Access to the resource is forbidden"</h3>
-      <p>Token sai hoặc đã bị thu hồi. Lấy lại key mới nhất ở <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a> (mỗi lần "Generate New Key" sẽ thu hồi key cũ).</p>
+      <h3 data-i18n="ex.trouble.q1">Báo lỗi 401 / "Access to the resource is forbidden"</h3>
+      <p data-i18n="ex.trouble.a1">Token sai hoặc đã bị thu hồi. Lấy lại key mới nhất ở <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a> (mỗi lần "Generate New Key" sẽ thu hồi key cũ).</p>
 
-      <h3>Power Query hỏi đăng nhập (Organizational / Windows…)</h3>
-      <p>Chọn <strong>Anonymous</strong>. Token đã đi trên URL nên không cần xác thực kiểu khác.</p>
+      <h3 data-i18n="ex.trouble.q2">Power Query hỏi đăng nhập (Organizational / Windows…)</h3>
+      <p data-i18n="ex.trouble.a2">Chọn <strong>Anonymous</strong>. Token đã đi trên URL nên không cần xác thực kiểu khác.</p>
 
-      <h3>Dữ liệu JSON nằm trong 1 cột <code>data</code></h3>
-      <p>Đúng quy trình — click <strong>To Table</strong> rồi nhấn nút mở rộng (↔) ở header để tách cột. Hoặc thêm <code>&amp;page=1&amp;limit=500</code> để API trả dạng danh sách dòng cho dễ expand.</p>
+      <h3 data-i18n="ex.trouble.q3">Dữ liệu JSON nằm trong 1 cột <code>data</code></h3>
+      <p data-i18n="ex.trouble.a3">Đúng quy trình — click <strong>To Table</strong> rồi nhấn nút mở rộng (↔) ở header để tách cột. Hoặc thêm <code>&amp;page=1&amp;limit=500</code> để API trả dạng danh sách dòng cho dễ expand.</p>
 
-      <p style="margin-top:24px;">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> · Xem thêm <a href="google-sheets.html" style="color:var(--terracotta);">hướng dẫn Google Sheets</a>.</p>
+      <p style="margin-top:24px;" data-i18n="ex.trouble.contact">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> · Xem thêm <a href="google-sheets.html" style="color:var(--terracotta);">hướng dẫn Google Sheets</a>.</p>
     </section>
 
   </main>
 </div>
 
+<script src="docs-i18n-data/excel.js"></script>
+<script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>
 <script>
 (function(){

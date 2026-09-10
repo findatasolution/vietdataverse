@@ -4693,12 +4693,36 @@ html {
 .docs-topbar-section-link { text-decoration: none; color: var(--olive-gray); }
 .docs-topbar-section-link:hover { color: var(--near-black); }
 .docs-topbar-search {
-  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  margin-left: auto; position: relative; display: flex; align-items: center; gap: 8px;
   background: var(--warm-sand); border: 1px solid var(--border-warm); border-radius: 8px;
-  padding: 5px 12px; cursor: pointer;
+  padding: 5px 12px; width: 220px;
 }
-.docs-topbar-search span { font-size: 0.8125rem; color: var(--stone-gray); }
-.docs-topbar-search kbd { font-size: 0.6875rem; color: var(--stone-gray); background: var(--border-cream); padding: 1px 5px; border-radius: 4px; }
+.docs-topbar-search input {
+  flex: 1; min-width: 0; border: none; background: none; outline: none;
+  font-family: inherit; font-size: 0.8125rem; color: var(--near-black);
+}
+.docs-topbar-search input::placeholder { color: var(--stone-gray); }
+.docs-topbar-search kbd { font-size: 0.6875rem; color: var(--stone-gray); background: var(--border-cream); padding: 1px 5px; border-radius: 4px; flex-shrink: 0; }
+.docs-search-results {
+  position: absolute; top: calc(100% + 8px); right: 0; width: 320px; max-height: 360px;
+  overflow-y: auto; background: var(--ivory); border: 1px solid var(--border-warm);
+  border-radius: 10px; box-shadow: rgba(20,20,19,0.12) 0px 8px 24px; z-index: 50;
+  padding: 6px;
+}
+.docs-search-result {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 6px;
+  text-decoration: none; cursor: pointer;
+}
+.docs-search-result:hover, .docs-search-result:focus { background: var(--warm-sand); }
+.docs-search-result-heading { font-size: 0.8125rem; color: var(--near-black); font-weight: 500; }
+.docs-search-result-page { font-size: 0.6875rem; color: var(--stone-gray); }
+.docs-search-empty { padding: 12px 10px; font-size: 0.8125rem; color: var(--stone-gray); }
+.docs-lang-toggle {
+  flex-shrink: 0; font-family: inherit; font-size: 0.75rem; font-weight: 500;
+  color: var(--olive-gray); background: var(--warm-sand); border: 1px solid var(--border-warm);
+  border-radius: 8px; padding: 5px 10px; cursor: pointer; letter-spacing: 0.02em;
+}
+.docs-lang-toggle:hover { color: var(--near-black); background: var(--border-warm); }
 
 /* ── Docs Sidebar (shared across doc pages — injected by docs-sidebar.js) ── */
 .docs-sidebar {

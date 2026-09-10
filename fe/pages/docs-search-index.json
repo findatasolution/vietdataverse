@@ -1,0 +1,789 @@
+[
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "API Reference",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Lấy dữ liệu vào Google Sheets",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Google Sheets — hàm VDV (Apps Script)",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Lấy dữ liệu vào Excel (Power Query)",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Seller Guide",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Buyer Guide",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Tạo Knowledge Pack",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Điều khoản dịch vụ",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Chính sách bảo mật",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "DMCA / Takedown",
+    "anchor": null
+  },
+  {
+    "page": "docs.html",
+    "pageTitle": "Tổng quan",
+    "heading": "Tổng quan",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Cài đặt API trong 4 bước",
+    "anchor": "setup"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Đăng ký tài khoản & lấy API key",
+    "anchor": "setup"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Gọi thử ngay trên trình duyệt (không cần code)",
+    "anchor": "setup"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Tích hợp vào code của bạn",
+    "anchor": "setup"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Đọc kết quả & kiểm tra quota",
+    "anchor": "setup"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Ví dụ thực tế",
+    "anchor": "samples"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Dùng dữ liệu trong Google Sheets",
+    "anchor": "sheets"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Authentication",
+    "anchor": "auth"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Quota & Giới hạn",
+    "anchor": "quota"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "Mã lỗi",
+    "anchor": "errors"
+  },
+  {
+    "page": "api-docs.html",
+    "pageTitle": "API Reference",
+    "heading": "API Reference",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Bạn sẽ làm được gì",
+    "anchor": "overview"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Bước 1 — Lấy API token",
+    "anchor": "token"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Bước 2 — Viết công thức trong Google Sheets",
+    "anchor": "formula"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Bước 3 — Đổi loại vàng & khoảng thời gian",
+    "anchor": "customize"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Không chỉ có vàng — các bộ dữ liệu khác",
+    "anchor": "datasets"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Bước 4 — Cập nhật dữ liệu",
+    "anchor": "refresh"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Lỗi thường gặp",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Ô hiện #ERROR! hoặc \"Could not fetch url\"",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Ô hiện một dòng chữ {\"success\": false ... 401}",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Ô hiện lỗi liên quan đến 429 / hết quota",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Dữ liệu không tự cập nhật",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Google Sheets",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Khi nào nên dùng cách này?",
+    "anchor": "why"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Lưu ý về cảnh báo \"ứng dụng chưa xác minh\"",
+    "anchor": "warning"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Bước 1 — Dán script vào Apps Script",
+    "anchor": "install"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Bước 2 — Nhập key & cấp quyền (qua cảnh báo Google)",
+    "anchor": "authorize"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Bước 3 — Dùng hàm",
+    "anchor": "use"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Lỗi thường gặp",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "#ERROR! Chưa có API key",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Viet Dataverse lỗi 401",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Ô vẫn #ERROR sau khi nhập key",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Dữ liệu không tự cập nhật",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "google-sheets-appscript.html",
+    "pageTitle": "Sheets — hàm VDV",
+    "heading": "Sheets — hàm VDV",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Bạn sẽ làm được gì",
+    "anchor": "overview"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Bước 1 — Lấy API token",
+    "anchor": "token"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Bước 2 — Kết nối bằng Power Query",
+    "anchor": "connect"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Bước 3 — Làm mới dữ liệu",
+    "anchor": "refresh"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Danh sách bộ dữ liệu",
+    "anchor": "datasets"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Lỗi thường gặp",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Báo lỗi 401 / \"Access to the resource is forbidden\"",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Power Query hỏi đăng nhập (Organizational / Windows…)",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Dữ liệu JSON nằm trong 1 cột data",
+    "anchor": "troubleshoot"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Excel (Power Query)",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Tổng quan flow",
+    "anchor": "overview"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Bước 1 — Đăng ký Seller",
+    "anchor": "register"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Bước 2 — Upload sản phẩm",
+    "anchor": "upload"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Bước 3 — Pricing & Payout",
+    "anchor": "payout"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Lưu ý quan trọng",
+    "anchor": "important"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "FAQ",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Tôi có thể chỉnh sửa sản phẩm sau khi đăng?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Có thể xóa sản phẩm không?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Buyer report tôi thì sao?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Khi nào nhận được payout?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Chuẩn cấu trúc Knowledge Pack",
+    "anchor": "pack-spec"
+  },
+  {
+    "page": "guide-seller.html",
+    "pageTitle": "Seller Guide",
+    "heading": "Seller Guide",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Tổng quan flow",
+    "anchor": "overview"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Bước 1 — Browse & Tìm sản phẩm",
+    "anchor": "browse"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Bước 2 — Nạp Credits (cho sản phẩm trả phí)",
+    "anchor": "credits"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Bước 3 — Mua sản phẩm",
+    "anchor": "purchase"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Bước 4 — Dùng file trong AI Agent",
+    "anchor": "use"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Thư viện cá nhân (My Library)",
+    "anchor": "library"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Báo cáo vi phạm",
+    "anchor": "report"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "FAQ",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Có hoàn tiền không?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Mua 1 lần được tải bao nhiêu lần?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Sản phẩm cập nhật version mới, tôi có được không?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Credits có hết hạn không?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Tôi có thể bán lại file đã mua không?",
+    "anchor": "faq"
+  },
+  {
+    "page": "guide-buyer.html",
+    "pageTitle": "Buyer Guide",
+    "heading": "Buyer Guide",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Tổng quan: Knowledge Pack là gì?",
+    "anchor": "overview"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Tại sao cần chuẩn cấu trúc?",
+    "anchor": "overview"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "3 loại pack",
+    "anchor": "types"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Loại 1: Knowledge Document (.md)",
+    "anchor": "type-knowledge"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Cấu trúc skeleton",
+    "anchor": "type-knowledge"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Ví dụ thực tế — rút gọn từ pack \"Vietnam Gold Market Playbook\"",
+    "anchor": "type-knowledge"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Loại 2: Agent Blueprint (.yaml / .json)",
+    "anchor": "type-agent"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Cấu trúc skeleton",
+    "anchor": "type-agent"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Ví dụ thực tế — Credit Scoring Support Agent (rút gọn)",
+    "anchor": "type-agent"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Loại 3: Dataset Pack (.csv / .json)",
+    "anchor": "type-dataset"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Required fields",
+    "anchor": "type-dataset"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Ví dụ CSV (CPI series)",
+    "anchor": "type-dataset"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Cấu trúc bắt buộc (7 phần)",
+    "anchor": "structure"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Nội dung bị cấm (auto-reject)",
+    "anchor": "structure"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Checklist trước khi submit",
+    "anchor": "checklist"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Điều khoản & Disclaimer tự động",
+    "anchor": "disclaimer"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Cách upload",
+    "anchor": "upload"
+  },
+  {
+    "page": "knowledge-pack-spec.html",
+    "pageTitle": "Tạo Knowledge Pack",
+    "heading": "Tạo Knowledge Pack",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "terms.html",
+    "pageTitle": "Điều khoản dịch vụ",
+    "heading": "Về Viet Dataverse",
+    "anchor": "about"
+  },
+  {
+    "page": "terms.html",
+    "pageTitle": "Điều khoản dịch vụ",
+    "heading": "Về nguồn dữ liệu & phương pháp thu thập",
+    "anchor": "sources"
+  },
+  {
+    "page": "terms.html",
+    "pageTitle": "Điều khoản dịch vụ",
+    "heading": "Điều khoản sử dụng",
+    "anchor": "terms"
+  },
+  {
+    "page": "terms.html",
+    "pageTitle": "Điều khoản dịch vụ",
+    "heading": "Điều khoản dịch vụ",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "privacy.html",
+    "pageTitle": "Chính sách bảo mật",
+    "heading": "1. Thông tin chúng tôi thu thập",
+    "anchor": "collect"
+  },
+  {
+    "page": "privacy.html",
+    "pageTitle": "Chính sách bảo mật",
+    "heading": "2. Sử dụng Cookie",
+    "anchor": "cookie"
+  },
+  {
+    "page": "privacy.html",
+    "pageTitle": "Chính sách bảo mật",
+    "heading": "3. Bảo mật dữ liệu",
+    "anchor": "security"
+  },
+  {
+    "page": "privacy.html",
+    "pageTitle": "Chính sách bảo mật",
+    "heading": "4. Liên hệ về quyền riêng tư",
+    "anchor": "contact"
+  },
+  {
+    "page": "privacy.html",
+    "pageTitle": "Chính sách bảo mật",
+    "heading": "Chính sách bảo mật",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "takedown.html",
+    "pageTitle": "DMCA / Takedown",
+    "heading": "Giới thiệu",
+    "anchor": "intro"
+  },
+  {
+    "page": "takedown.html",
+    "pageTitle": "DMCA / Takedown",
+    "heading": "Form khiếu nại",
+    "anchor": "form"
+  },
+  {
+    "page": "takedown.html",
+    "pageTitle": "DMCA / Takedown",
+    "heading": "Đã gửi thành công",
+    "anchor": "takedown-success"
+  },
+  {
+    "page": "takedown.html",
+    "pageTitle": "DMCA / Takedown",
+    "heading": "DMCA / Takedown",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Chúng tôi là ai?",
+    "anchor": "who"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Tại sao tin dữ liệu của chúng tôi?",
+    "anchor": "authority"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Tại sao tin AI của chúng tôi?",
+    "anchor": "trust-ai"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Vision & Mission",
+    "anchor": "vision-mission"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Tại sao xây dựng Viet Dataverse?",
+    "anchor": "why"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Disclaimer",
+    "anchor": "disclaimer"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Viet Dataverse hôm nay",
+    "anchor": "social-proof"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Liên hệ",
+    "anchor": "contact"
+  },
+  {
+    "page": "about-us.html",
+    "pageTitle": "Giới thiệu",
+    "heading": "Giới thiệu",
+    "anchor": null,
+    "isPage": true
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Cookie là gì?",
+    "anchor": "what"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Cookie và storage chúng tôi sử dụng",
+    "anchor": "types"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Quản lý cookie",
+    "anchor": "manage"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Xoá cookie qua trình duyệt",
+    "anchor": "manage"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Tắt Google Analytics",
+    "anchor": "manage"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Xoá localStorage",
+    "anchor": "manage"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Cập nhật chính sách",
+    "anchor": "updates"
+  },
+  {
+    "page": "cookie-policy.html",
+    "pageTitle": "Cookie Policy",
+    "heading": "Cookie Policy",
+    "anchor": null,
+    "isPage": true
+  }
+]

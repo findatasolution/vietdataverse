@@ -12,6 +12,19 @@
   <meta property="og:title" content="Mua Knowledge Pack & Skill cho AI Agent — Dùng Ngay">
   <meta property="og:description" content="Mua & dùng knowledge pack, skill tài chính cho AI agent. Developer, AI builder, fintech tích hợp vào agent (Claude/GPT) trong vài phút.">
   <meta property="og:url" content="https://vietdataverse.online/pages/guide-buyer.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Mua knowledge pack trên Viet Dataverse có hoàn tiền không?", "acceptedAnswer": {"@type": "Answer", "text": "Có. Trong 1 giờ sau khi mua và chưa tải file, click \"Huỷ giao dịch\" trong My Library để hoàn credits. Sau khi tải, không hoàn tiền."}},
+      {"@type": "Question", "name": "Mua 1 lần được tải bao nhiêu lần?", "acceptedAnswer": {"@type": "Answer", "text": "Unlimited trong 30 ngày. Sau 30 ngày, file vẫn thuộc về bạn nhưng cần liên hệ admin để re-issue download link."}},
+      {"@type": "Question", "name": "Sản phẩm cập nhật version mới, tôi có được tải bản mới không?", "acceptedAnswer": {"@type": "Answer", "text": "Buyer đã mua được update miễn phí trong cùng major version (ví dụ v1.0 → v1.5 free). Major upgrade (v1 → v2) được giảm 50%."}},
+      {"@type": "Question", "name": "Credits trong ví Viet Dataverse có hết hạn không?", "acceptedAnswer": {"@type": "Answer", "text": "Không. Credits trong wallet vĩnh viễn, không hết hạn."}},
+      {"@type": "Question", "name": "Tôi có thể bán lại file knowledge pack đã mua không?", "acceptedAnswer": {"@type": "Answer", "text": "Không. License chỉ cho 1 user dùng, vi phạm sẽ bị ban tài khoản."}}
+    ]
+  }
+  </script>
   <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
   <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,14 +45,14 @@
   <!-- TOC sidebar -->
   <nav class="doc-toc">
     <div class="doc-toc-inner">
-      <div class="doc-toc-label">Nội dung</div>
-      <a class="doc-toc-item" href="#overview">Tổng quan flow</a>
-      <a class="doc-toc-item" href="#browse">Browse &amp; Tìm sản phẩm</a>
-      <a class="doc-toc-item" href="#credits">Nạp Credits</a>
-      <a class="doc-toc-item" href="#purchase">Mua sản phẩm</a>
-      <a class="doc-toc-item" href="#use">Dùng trong AI Agent</a>
-      <a class="doc-toc-item" href="#library">Thư viện cá nhân</a>
-      <a class="doc-toc-item" href="#report">Báo cáo vi phạm</a>
+      <div class="doc-toc-label" data-i18n="gb.toc.label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview" data-i18n="gb.toc.overview">Tổng quan flow</a>
+      <a class="doc-toc-item" href="#browse" data-i18n="gb.toc.browse">Browse &amp; Tìm sản phẩm</a>
+      <a class="doc-toc-item" href="#credits" data-i18n="gb.toc.credits">Nạp Credits</a>
+      <a class="doc-toc-item" href="#purchase" data-i18n="gb.toc.purchase">Mua sản phẩm</a>
+      <a class="doc-toc-item" href="#use" data-i18n="gb.toc.use">Dùng trong AI Agent</a>
+      <a class="doc-toc-item" href="#library" data-i18n="gb.toc.library">Thư viện cá nhân</a>
+      <a class="doc-toc-item" href="#report" data-i18n="gb.toc.report">Báo cáo vi phạm</a>
       <a class="doc-toc-item" href="#faq">FAQ</a>
     </div>
   </nav>
@@ -47,28 +60,28 @@
   <!-- Main content -->
   <main class="doc-content">
 
-    <h1>Hướng dẫn Buyer — Mua &amp; Tải Knowledge Product</h1>
-    <p class="doc-lead">Sử dụng file agent-ready trong AI project của bạn. Browse marketplace, xem preview, mua (free hoặc paid), tải file, dùng trong AI agent.</p>
+    <h1 data-i18n="gb.h1">Hướng dẫn Buyer — Mua &amp; Tải Knowledge Product</h1>
+    <p class="doc-lead" data-i18n="gb.lead">Sử dụng file agent-ready trong AI project của bạn. Browse marketplace, xem preview, mua (free hoặc paid), tải file, dùng trong AI agent.</p>
 
     <!-- OVERVIEW -->
     <section id="overview" class="doc-section">
-      <h2>Tổng quan flow</h2>
-      <p>Browse marketplace → Xem preview → Mua (free hoặc paid) → Tải file → Dùng trong AI agent.</p>
+      <h2 data-i18n="gb.overview.h2">Tổng quan flow</h2>
+      <p data-i18n="gb.overview.p">Browse marketplace → Xem preview → Mua (free hoặc paid) → Tải file → Dùng trong AI agent.</p>
     </section>
 
     <!-- BROWSE -->
     <section id="browse" class="doc-section">
-      <h2>Bước 1 — Browse &amp; Tìm sản phẩm</h2>
+      <h2 data-i18n="gb.browse.h2">Bước 1 — Browse &amp; Tìm sản phẩm</h2>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.browse.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">Mở tab <strong>Knowledge Market</strong> trên Viet Dataverse.</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.browse.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">Filter theo <strong>category</strong>: Kế toán, Trading, Vĩ mô, Chính sách, Sentiment, Rủi ro, ESG, Crypto.</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.browse.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">
           <p style="margin:0 0 8px;">Click card sản phẩm → xem chi tiết:</p>
@@ -82,24 +95,24 @@
         </div>
       </div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="gb.browse.info">
         <strong>Tip:</strong> Sản phẩm có badge <strong>"VD Official"</strong> = nội dung do team Viet Dataverse curate, chất lượng cao.
       </div>
     </section>
 
     <!-- CREDITS -->
     <section id="credits" class="doc-section">
-      <h2>Bước 2 — Nạp Credits (cho sản phẩm trả phí)</h2>
+      <h2 data-i18n="gb.credits.h2">Bước 2 — Nạp Credits (cho sản phẩm trả phí)</h2>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.credits.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">Click nút <strong>"Wallet"</strong> (header bar, hiển thị số credits hiện có).</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.credits.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">Click <strong>"Nạp credits"</strong>.</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.credits.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">
           <p style="margin:0 0 8px;">Nhập số tiền (VND) muốn nạp:</p>
@@ -109,25 +122,25 @@
           </ul>
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.credits.step4">
         <div class="doc-step-num">4</div>
         <div class="doc-step-body">Thanh toán qua <strong>PayOS</strong> (VietQR, banking app).</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.credits.step5">
         <div class="doc-step-num">5</div>
         <div class="doc-step-body">Credits sẽ tự động cộng vào tài khoản trong vòng 1–2 phút sau khi thanh toán xong.</div>
       </div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="gb.credits.info">
         <strong>Sản phẩm Free:</strong> Bạn không cần nạp credits cho sản phẩm <strong>"Miễn phí"</strong> — click "Tải miễn phí" là xong.
       </div>
     </section>
 
     <!-- PURCHASE -->
     <section id="purchase" class="doc-section">
-      <h2>Bước 3 — Mua sản phẩm</h2>
+      <h2 data-i18n="gb.purchase.h2">Bước 3 — Mua sản phẩm</h2>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.purchase.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">
           <p style="margin:0 0 8px;">Trong product detail modal, click button:</p>
@@ -137,33 +150,33 @@
           </ul>
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.purchase.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">Modal "Mua thành công" hiện ra với <strong>license key</strong> + hướng dẫn tiếp theo.</div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="gb.purchase.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">Click <strong>"Tải file ngay"</strong> → browser tự download file về máy.</div>
       </div>
 
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="gb.purchase.warn">
         <strong>Lưu license key lại</strong> (copy bằng nút "Copy"). Bạn có thể re-download file trong <strong>30 ngày</strong> bằng license key này.
       </div>
     </section>
 
     <!-- USE -->
     <section id="use" class="doc-section">
-      <h2>Bước 4 — Dùng file trong AI Agent</h2>
+      <h2 data-i18n="gb.use.h2">Bước 4 — Dùng file trong AI Agent</h2>
 
-      <p>File đã download tùy format:</p>
-      <ul>
+      <p data-i18n="gb.use.p1">File đã download tùy format:</p>
+      <ul data-i18n="gb.use.list">
         <li><code>.md</code> — Markdown, paste vào system prompt hoặc include vào RAG pipeline</li>
         <li><code>.json</code> — Schema/data structure, load bằng <code>json.loads()</code> trong Python</li>
         <li><code>.yaml</code> — Config/rules, load bằng <code>yaml.safe_load()</code></li>
         <li><code>.csv</code> — Dataset, load bằng <code>pandas.read_csv()</code></li>
       </ul>
 
-      <p>Ví dụ trong LangChain agent:</p>
+      <p data-i18n="gb.use.p2">Ví dụ trong LangChain agent:</p>
       <pre><code>from langchain.prompts import PromptTemplate
 import json
 
@@ -184,49 +197,51 @@ Categorize this transaction: {transaction}
 
     <!-- LIBRARY -->
     <section id="library" class="doc-section">
-      <h2>Thư viện cá nhân (My Library)</h2>
-      <p>Tất cả sản phẩm đã mua sẽ hiển thị trong <strong>"Thư viện"</strong>. Click sản phẩm → re-download bằng license key (trong 30 ngày).</p>
+      <h2 data-i18n="gb.library.h2">Thư viện cá nhân (My Library)</h2>
+      <p data-i18n="gb.library.p">Tất cả sản phẩm đã mua sẽ hiển thị trong <strong>"Thư viện"</strong>. Click sản phẩm → re-download bằng license key (trong 30 ngày).</p>
     </section>
 
     <!-- REPORT -->
     <section id="report" class="doc-section">
-      <h2>Báo cáo vi phạm</h2>
+      <h2 data-i18n="gb.report.h2">Báo cáo vi phạm</h2>
 
-      <p>Nếu phát hiện sản phẩm vi phạm bản quyền, chứa PII, hoặc spam:</p>
-      <ol>
+      <p data-i18n="gb.report.p1">Nếu phát hiện sản phẩm vi phạm bản quyền, chứa PII, hoặc spam:</p>
+      <ol data-i18n="gb.report.ol">
         <li>Click product detail → button <strong>"Báo cáo vi phạm"</strong></li>
         <li>Chọn lý do + mô tả chi tiết</li>
         <li>Sản phẩm có ≥ 3 báo cáo độc lập sẽ tự động ẩn</li>
       </ol>
 
-      <p>Báo cáo bản quyền chính thức (DMCA): <a href="takedown.html" style="color:var(--terracotta);">Trang báo cáo vi phạm bản quyền</a></p>
+      <p data-i18n="gb.report.p2">Báo cáo bản quyền chính thức (DMCA): <a href="takedown.html" style="color:var(--terracotta);">Trang báo cáo vi phạm bản quyền</a></p>
     </section>
 
     <!-- FAQ -->
     <section id="faq" class="doc-section">
       <h2>FAQ</h2>
 
-      <h3>Có hoàn tiền không?</h3>
-      <p>Có. Trong <strong>1 giờ</strong> sau khi mua VÀ chưa tải file → click "Huỷ giao dịch" trong My Library để hoàn credits. Sau khi tải, không hoàn tiền.</p>
+      <h3 data-i18n="gb.faq.q1">Có hoàn tiền không?</h3>
+      <p data-i18n="gb.faq.a1">Có. Trong <strong>1 giờ</strong> sau khi mua VÀ chưa tải file → click "Huỷ giao dịch" trong My Library để hoàn credits. Sau khi tải, không hoàn tiền.</p>
 
-      <h3>Mua 1 lần được tải bao nhiêu lần?</h3>
-      <p>Unlimited trong 30 ngày. Sau 30 ngày, file vẫn thuộc về bạn nhưng cần contact admin để re-issue download link.</p>
+      <h3 data-i18n="gb.faq.q2">Mua 1 lần được tải bao nhiêu lần?</h3>
+      <p data-i18n="gb.faq.a2">Unlimited trong 30 ngày. Sau 30 ngày, file vẫn thuộc về bạn nhưng cần contact admin để re-issue download link.</p>
 
-      <h3>Sản phẩm cập nhật version mới, tôi có được không?</h3>
-      <p>Buyer đã mua được update miễn phí trong cùng <strong>major version</strong> (vd v1.0 → v1.5 free). Major upgrade (v1 → v2) được giảm 50%.</p>
+      <h3 data-i18n="gb.faq.q3">Sản phẩm cập nhật version mới, tôi có được không?</h3>
+      <p data-i18n="gb.faq.a3">Buyer đã mua được update miễn phí trong cùng <strong>major version</strong> (vd v1.0 → v1.5 free). Major upgrade (v1 → v2) được giảm 50%.</p>
 
-      <h3>Credits có hết hạn không?</h3>
-      <p>Không. Credits trong wallet vĩnh viễn.</p>
+      <h3 data-i18n="gb.faq.q4">Credits có hết hạn không?</h3>
+      <p data-i18n="gb.faq.a4">Không. Credits trong wallet vĩnh viễn.</p>
 
-      <h3>Tôi có thể bán lại file đã mua không?</h3>
-      <p>Không. License chỉ cho 1 user dùng. Vi phạm sẽ bị ban tài khoản.</p>
+      <h3 data-i18n="gb.faq.q5">Tôi có thể bán lại file đã mua không?</h3>
+      <p data-i18n="gb.faq.a5">Không. License chỉ cho 1 user dùng. Vi phạm sẽ bị ban tài khoản.</p>
 
-      <p style="margin-top:24px;">Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a></p>
+      <p style="margin-top:24px;" data-i18n="gb.faq.contact">Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a></p>
     </section>
 
   </main>
 </div>
 
+<script src="docs-i18n-data/guide-buyer.js"></script>
+<script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>
 <script>
 (function(){

@@ -1,0 +1,63 @@
+window.DOCS_I18N_EN = {
+  "ghs.toc.label": "Contents",
+  "ghs.toc.overview": "What you'll get",
+  "ghs.toc.token": "Step 1 — Get an API token",
+  "ghs.toc.formula": "Step 2 — Write the formula",
+  "ghs.toc.customize": "Step 3 — Change type &amp; time range",
+  "ghs.toc.datasets": "Other datasets",
+  "ghs.toc.refresh": "Step 4 — Refresh the data",
+  "ghs.toc.troubleshoot": "Common issues",
+
+  "ghs.h1": "Pull data into Google Sheets",
+  "ghs.lead": "\n      Pull Vietnamese gold prices straight into a Google Sheets spreadsheet with <strong>a single formula</strong> —\n      no coding needed. Data refreshes automatically every time you reopen the file.\n    ",
+
+  "ghs.overview.h2": "What you'll get",
+  "ghs.overview.p": "\n        After this guide, your spreadsheet cell will automatically show a daily gold price table\n        (date · buy price · sell price), pulled directly from the Viet Dataverse servers.\n      ",
+  "ghs.overview.info": "\n        <strong>You'll need:</strong> a Google account (to use Google Sheets) and a Viet Dataverse <strong>API token</strong> — get one in Step 1 below.\n      ",
+  "ghs.overview.warn": "\n        <strong>Note:</strong> the IMPORTDATA formula currently supports <strong>gold price data</strong>.\n        Other datasets (silver, FX, interest rates…) are being added — in the meantime you can use them via the\n        <a href=\"api-docs.html\" style=\"color:var(--terracotta);\">regular API</a>.\n      ",
+
+  "ghs.token.h2": "Step 1 — Get an API token",
+  "ghs.token.p": "An API token (also called an API key) is a string that proves you're allowed to pull data.",
+  "ghs.token.step1": "\n        <a class=\"login-link\" href=\"#\" style=\"color:var(--terracotta);\">Log in</a> and open the <a href=\"/pages/developer.html\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--terracotta);\"><strong>Developer page</strong></a> to get a key.\n      ",
+  "ghs.token.step2": "\n        Free accounts get an API key instantly, with a limit of <strong>1,000 requests/month</strong> — no plan purchase needed.\n      ",
+  "ghs.token.step3": "\n        Click <strong>\"Create API key\"</strong>. The full key appears <strong>right after creation</strong> — a string of ~43 characters (letters, digits, <code>-</code> and <code>_</code>), for example:\n        <pre><code>Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</code></pre>\n      ",
+  "ghs.token.step4": "\n        Click the <strong>Copy</strong> icon to copy the token. Paste it somewhere safe for now — you'll use it in Step 2.\n      ",
+  "ghs.token.warn1": "\n        <strong>Keep your token secret.</strong> Anyone with the token can pull data against your quota.\n        Don't share a Google Sheets file containing your token with strangers, and never post it online.\n      ",
+  "ghs.token.warn2": "\n        <strong>Don't click \"Generate New Key\" after pasting your token into Sheets.</strong> Creating a new key\n        <strong>immediately revokes the old one</strong> — the token in Sheets will stop working (a \"Could not fetch url\" error).\n        If you need to copy your current key again, click the <strong>\"Copy\"</strong> button on the key's card (it copies the full key, not a shortened version).\n      ",
+
+  "ghs.formula.h2": "Step 2 — Write the formula in Google Sheets",
+  "ghs.formula.step1": "\n        Open <a href=\"https://sheets.google.com\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--terracotta);\">Google Sheets</a> and create a blank spreadsheet.\n      ",
+  "ghs.formula.step2": "\n        <strong>Paste your token into cell <code>B1</code> once.</strong> This way you <strong>never have to retype the token</strong>\n        in each formula — every formula just references cell B1. (Cell A1 is labeled \"api_key\" for reference.)\n      ",
+  "ghs.formula.step3": "\n        Click cell <strong>A4</strong> (or any empty cell) and paste the formula below. The token is pulled from cell B1 via <code>&amp;$B$1</code> — no need to type it:\n      ",
+  "ghs.formula.callout": "\n        <span>⚡</span>\n        <span>Want a much shorter formula like <code>=VDV_GOLD(\"SJC\",\"1m\")</code> (enter the token once via a menu)? See\n        <a href=\"google-sheets-appscript.html\" style=\"color:var(--terracotta);font-weight:500;\">Quick setup with Apps Script</a> — the trade-off is clicking through one Google warning.</span>\n      ",
+  "ghs.formula.step4": "\n        Press <strong>Enter</strong>. After 1–2 seconds, the last month of SJC gold prices fills in the cells below:\n        <pre><code>date         buy_price    sell_price\n2026-05-16   11850000     12050000\n2026-05-17   11870000     12070000\n...</code></pre>\n      ",
+  "ghs.formula.info": "\n        <strong>Why is the token in the URL?</strong> Google's <code>IMPORTDATA</code> function can't send\n        \"headers\" the way code can, so Viet Dataverse lets you pass the token via the <code>api_key=</code> parameter right in the URL.\n      ",
+
+  "ghs.customize.h2": "Step 3 — Change gold type &amp; time range",
+  "ghs.customize.p": "You only need to edit 2 parts of the URL: <code>type</code> (gold type) and <code>period</code> (time range).",
+  "ghs.customize.table": "\n        <thead><tr><th>Parameter</th><th>Value</th><th>Meaning</th></tr></thead>\n        <tbody>\n          <tr><td><code>type</code></td><td><code>SJC</code></td><td>SJC gold bar</td></tr>\n          <tr><td></td><td><code>DOJI HN</code></td><td>DOJI Hanoi</td></tr>\n          <tr><td></td><td><code>PNJ</code></td><td>PNJ gold</td></tr>\n          <tr><td></td><td><code>BTMC</code></td><td>Bao Tin Minh Chau</td></tr>\n          <tr><td><code>period</code></td><td><code>7d</code></td><td>Last 7 days</td></tr>\n          <tr><td></td><td><code>1m</code></td><td>Last month</td></tr>\n          <tr><td></td><td><code>1y</code></td><td>Last year</td></tr>\n          <tr><td></td><td><code>all</code></td><td>Full history</td></tr>\n        </tbody>\n      ",
+  "ghs.customize.example": "Example — get <strong>1 year of DOJI Hanoi</strong> gold prices (token still pulled from cell B1, no retyping):",
+  "ghs.customize.info": "\n        <strong>Pulling 20 values?</strong> Copy the formula and only change <code>type</code>/<code>period</code> — the <code>&amp;$B$1</code> part stays the same in every cell.\n        To rotate your key later, just edit <strong>cell B1</strong> — every formula updates automatically.\n      ",
+
+  "ghs.datasets.h2": "Not just gold — other datasets",
+  "ghs.datasets.p": "Viet Dataverse provides every dataset on the homepage. Full list of datasets &amp; endpoints:",
+  "ghs.datasets.table": "\n        <thead><tr><th>Dataset</th><th>Endpoint</th><th>Main parameters</th></tr></thead>\n        <tbody>\n          <tr><td>Gold price</td><td><code>/api/v1/gold</code></td><td><code>type</code> (SJC·DOJI HN·PNJ·BTMC), <code>period</code></td></tr>\n          <tr><td>Silver price</td><td><code>/api/v1/silver</code></td><td><code>period</code></td></tr>\n          <tr><td>FX rate (VCB)</td><td><code>/api/v1/sbv-rate</code></td><td><code>bank</code>=VCB, <code>currency</code> (USD·EUR·JPY…), <code>period</code></td></tr>\n          <tr><td>Interbank rate (SBV)</td><td><code>/api/v1/sbv-interbank</code></td><td><code>period</code></td></tr>\n          <tr><td>Deposit rates</td><td><code>/api/v1/termdepo</code></td><td><code>period</code></td></tr>\n          <tr><td>CPI / Inflation</td><td><code>/api/v1/macro/cpi</code></td><td><code>period</code></td></tr>\n          <tr><td>Global data (gold·silver·Nasdaq)</td><td><code>/api/v1/global-macro</code></td><td><code>period</code></td></tr>\n        </tbody>\n      ",
+  "ghs.datasets.warn": "\n        <strong>Note for Google Sheets:</strong> <code>IMPORTDATA</code> only reads <strong>CSV</strong>, currently available for <strong>gold prices</strong>.\n        The other datasets (silver, FX, rates, CPI…) already work <strong>right now in Excel via Power Query</strong>\n        (see the <a href=\"excel.html\" style=\"color:var(--terracotta);\">Excel guide</a>) or via the <a href=\"api-docs.html\" style=\"color:var(--terracotta);\">API</a>.\n        We're adding CSV support so IMPORTDATA works for every dataset.\n      ",
+
+  "ghs.refresh.h2": "Step 4 — Refresh the data",
+  "ghs.refresh.p1": "Google Sheets automatically refreshes IMPORTDATA data <strong>roughly every hour</strong>, and every time you reopen the file.",
+  "ghs.refresh.p2": "To refresh immediately:",
+  "ghs.refresh.ol": "\n        <li>Delete the cell with the formula and paste it back in (the fastest way), or</li>\n        <li>Go to <strong>File → Spreadsheet settings → Calculation</strong> → set \"Recalculation\" to <em>\"On change and every minute\"</em>.</li>\n      ",
+  "ghs.refresh.warn": "\n        <strong>Don't refresh too aggressively.</strong> Each refresh = 1 request against your monthly quota. Refreshing every minute across many cells can burn through your calls quickly.\n      ",
+
+  "ghs.trouble.h2": "Common issues",
+  "ghs.trouble.q1": "Cell shows <code>#ERROR!</code> or \"Could not fetch url\"",
+  "ghs.trouble.a1": "Usually caused by a missing <code>format=csv</code> in the URL, or a wrong token. Check: the URL must include <code>&amp;format=csv&amp;api_key=...</code> and the token must still be valid.",
+  "ghs.trouble.q2": "Cell shows a line like <code>{\"success\": false ... 401}</code>",
+  "ghs.trouble.a2": "The token is invalid or has been revoked. Go to the <a href=\"/pages/developer.html\" style=\"color:var(--terracotta);\">Developer page</a> to check or recreate it.",
+  "ghs.trouble.q3": "Cell shows an error related to <code>429</code> / quota exceeded",
+  "ghs.trouble.a3": "You've used up your calls for the month. Wait until next month (quota resets on the 1st).",
+  "ghs.trouble.q4": "Data doesn't refresh automatically",
+  "ghs.trouble.a4": "This is how Google Sheets works (it refreshes roughly every ~1 hour). See Step 4 to refresh manually.",
+  "ghs.trouble.contact": "Need help? Email <a href=\"mailto:findatasolution@gmail.com\" style=\"color:var(--terracotta);\">findatasolution@gmail.com</a> or see the <a href=\"api-docs.html\" style=\"color:var(--terracotta);\">API Reference</a>."
+};

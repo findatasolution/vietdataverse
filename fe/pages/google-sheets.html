@@ -80,37 +80,37 @@
   <!-- TOC sidebar -->
   <nav class="doc-toc">
     <div class="doc-toc-inner">
-      <div class="doc-toc-label">Nội dung</div>
-      <a class="doc-toc-item" href="#overview">Bạn sẽ làm được gì</a>
-      <a class="doc-toc-item" href="#token">Bước 1 — Lấy API token</a>
-      <a class="doc-toc-item" href="#formula">Bước 2 — Viết công thức</a>
-      <a class="doc-toc-item" href="#customize">Bước 3 — Đổi loại &amp; thời gian</a>
-      <a class="doc-toc-item" href="#datasets">Các bộ dữ liệu khác</a>
-      <a class="doc-toc-item" href="#refresh">Bước 4 — Cập nhật dữ liệu</a>
-      <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
+      <div class="doc-toc-label" data-i18n="ghs.toc.label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview" data-i18n="ghs.toc.overview">Bạn sẽ làm được gì</a>
+      <a class="doc-toc-item" href="#token" data-i18n="ghs.toc.token">Bước 1 — Lấy API token</a>
+      <a class="doc-toc-item" href="#formula" data-i18n="ghs.toc.formula">Bước 2 — Viết công thức</a>
+      <a class="doc-toc-item" href="#customize" data-i18n="ghs.toc.customize">Bước 3 — Đổi loại &amp; thời gian</a>
+      <a class="doc-toc-item" href="#datasets" data-i18n="ghs.toc.datasets">Các bộ dữ liệu khác</a>
+      <a class="doc-toc-item" href="#refresh" data-i18n="ghs.toc.refresh">Bước 4 — Cập nhật dữ liệu</a>
+      <a class="doc-toc-item" href="#troubleshoot" data-i18n="ghs.toc.troubleshoot">Lỗi thường gặp</a>
     </div>
   </nav>
 
   <!-- Main content -->
   <main class="doc-content">
 
-    <h1>Lấy dữ liệu vào Google Sheets</h1>
-    <p class="doc-lead">
+    <h1 data-i18n="ghs.h1">Lấy dữ liệu vào Google Sheets</h1>
+    <p class="doc-lead" data-i18n="ghs.lead">
       Kéo giá vàng Việt Nam thẳng vào bảng tính Google Sheets bằng <strong>một công thức duy nhất</strong> —
       không cần biết lập trình. Dữ liệu tự cập nhật mỗi khi bạn mở lại file.
     </p>
 
     <!-- OVERVIEW -->
     <section id="overview" class="doc-section">
-      <h2>Bạn sẽ làm được gì</h2>
-      <p>
+      <h2 data-i18n="ghs.overview.h2">Bạn sẽ làm được gì</h2>
+      <p data-i18n="ghs.overview.p">
         Sau hướng dẫn này, ô bảng tính của bạn sẽ tự động hiển thị bảng giá vàng theo ngày
         (ngày · giá mua · giá bán), kéo trực tiếp từ máy chủ Viet Dataverse.
       </p>
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="ghs.overview.info">
         <strong>Cần chuẩn bị:</strong> 1 tài khoản Google (để dùng Google Sheets) và 1 <strong>API token</strong> của Viet Dataverse — lấy ở Bước 1 ngay bên dưới.
       </div>
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="ghs.overview.warn">
         <strong>Lưu ý:</strong> hiện công thức IMPORTDATA hỗ trợ sẵn <strong>dữ liệu giá vàng</strong>.
         Các bộ dữ liệu khác (bạc, tỷ giá, lãi suất…) đang được bổ sung — trong lúc chờ, bạn có thể dùng chúng qua
         <a href="api-docs.html" style="color:var(--terracotta);">API thông thường</a>.
@@ -119,40 +119,40 @@
 
     <!-- STEP 1: TOKEN -->
     <section id="token" class="doc-section">
-      <h2>Bước 1 — Lấy API token</h2>
-      <p>API token (còn gọi là API key) là chuỗi ký tự dùng để xác nhận bạn có quyền lấy dữ liệu.</p>
+      <h2 data-i18n="ghs.token.h2">Bước 1 — Lấy API token</h2>
+      <p data-i18n="ghs.token.p">API token (còn gọi là API key) là chuỗi ký tự dùng để xác nhận bạn có quyền lấy dữ liệu.</p>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.token.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">
           <a class="login-link" href="#" style="color:var(--terracotta);">Đăng nhập</a> và mở <a href="/pages/developer.html" target="_blank" rel="noopener" style="color:var(--terracotta);"><strong>trang Developer</strong></a> để lấy key.
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.token.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">
           Tài khoản miễn phí được cấp ngay API key với hạn mức <strong>1.000 request/tháng</strong> — không cần mua gói.
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.token.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">
           Nhấn nút <strong>"Tạo API key"</strong>. Key đầy đủ sẽ hiện <strong>ngay sau khi tạo</strong> — đây là chuỗi ~43 ký tự (chữ, số, <code>-</code> và <code>_</code>), ví dụ:
           <pre><code>Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</code></pre>
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.token.step4">
         <div class="doc-step-num">4</div>
         <div class="doc-step-body">
           Nhấn biểu tượng <strong>Copy</strong> để sao chép token. Dán tạm vào một nơi an toàn — bạn sẽ dùng nó ở Bước 2.
         </div>
       </div>
 
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="ghs.token.warn1">
         <strong>Giữ token bí mật.</strong> Bất kỳ ai có token đều có thể gọi dữ liệu bằng quota của bạn.
         Không chia sẻ file Google Sheets chứa token cho người lạ, không đăng token lên mạng.
       </div>
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="ghs.token.warn2">
         <strong>Đừng bấm "Generate New Key" sau khi đã dán token vào Sheets.</strong> Mỗi lần tạo key mới sẽ
         <strong>thu hồi key cũ ngay lập tức</strong> — token trong Sheets sẽ ngừng hoạt động (lỗi "Could not fetch url").
         Nếu cần copy lại key đang dùng, bấm nút <strong>"Sao chép"</strong> trên thẻ key (nó copy key đầy đủ, không phải bản rút gọn).
@@ -161,22 +161,22 @@
 
     <!-- STEP 2: FORMULA -->
     <section id="formula" class="doc-section">
-      <h2>Bước 2 — Viết công thức trong Google Sheets</h2>
+      <h2 data-i18n="ghs.formula.h2">Bước 2 — Viết công thức trong Google Sheets</h2>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.formula.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">
           Mở <a href="https://sheets.google.com" target="_blank" rel="noopener" style="color:var(--terracotta);">Google Sheets</a> và tạo một bảng tính trống.
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.formula.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">
           <strong>Dán token vào ô <code>B1</code> một lần duy nhất.</strong> Cách này giúp bạn <strong>không phải gõ lại token</strong>
           ở mỗi công thức — mọi công thức sẽ tham chiếu tới ô B1. (Ô A1 ghi nhãn "api_key" cho dễ nhớ.)
         </div>
       </div>
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.formula.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">
           Click ô <strong>A4</strong> (hoặc ô trống bất kỳ) rồi dán công thức bên dưới. Token được lấy từ ô B1 qua <code>&amp;$B$1</code>, không cần gõ token:
@@ -185,13 +185,13 @@
 
       <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key="&amp;<span class="hl">$B$1</span>)</div>
 
-      <div class="callout" style="display:flex;gap:10px;align-items:flex-start;background:rgba(201,100,66,.06);border:1px solid rgba(201,100,66,.16);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--olive-gray);line-height:1.6;margin:12px 0;">
+      <div class="callout" style="display:flex;gap:10px;align-items:flex-start;background:rgba(201,100,66,.06);border:1px solid rgba(201,100,66,.16);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--olive-gray);line-height:1.6;margin:12px 0;" data-i18n="ghs.formula.callout">
         <span>⚡</span>
         <span>Muốn công thức cực gọn kiểu <code>=VDV_GOLD("SJC","1m")</code> (token nhập 1 lần qua menu)? Xem
         <a href="google-sheets-appscript.html" style="color:var(--terracotta);font-weight:500;">Kết nối nhanh bằng Apps Script</a> — đánh đổi là phải bấm qua một cảnh báo của Google 1 lần.</span>
       </div>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="ghs.formula.step4">
         <div class="doc-step-num">4</div>
         <div class="doc-step-body">
           Nhấn <strong>Enter</strong>. Sau 1–2 giây, bảng giá vàng SJC 1 tháng gần nhất sẽ tự điền xuống các ô bên dưới:
@@ -202,7 +202,7 @@
         </div>
       </div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="ghs.formula.info">
         <strong>Vì sao token nằm trên đường link?</strong> Hàm <code>IMPORTDATA</code> của Google không gửi được
         "header" như khi lập trình, nên Viet Dataverse cho phép truyền token qua tham số <code>api_key=</code> ngay trên URL.
       </div>
@@ -210,10 +210,10 @@
 
     <!-- STEP 3: CUSTOMIZE -->
     <section id="customize" class="doc-section">
-      <h2>Bước 3 — Đổi loại vàng &amp; khoảng thời gian</h2>
-      <p>Bạn chỉ cần sửa 2 phần trong đường link: <code>type</code> (loại vàng) và <code>period</code> (khoảng thời gian).</p>
+      <h2 data-i18n="ghs.customize.h2">Bước 3 — Đổi loại vàng &amp; khoảng thời gian</h2>
+      <p data-i18n="ghs.customize.p">Bạn chỉ cần sửa 2 phần trong đường link: <code>type</code> (loại vàng) và <code>period</code> (khoảng thời gian).</p>
 
-      <table class="gs-table">
+      <table class="gs-table" data-i18n="ghs.customize.table">
         <thead><tr><th>Tham số</th><th>Giá trị</th><th>Ý nghĩa</th></tr></thead>
         <tbody>
           <tr><td><code>type</code></td><td><code>SJC</code></td><td>Vàng miếng SJC</td></tr>
@@ -227,10 +227,10 @@
         </tbody>
       </table>
 
-      <p style="margin-top:16px;">Ví dụ — lấy giá vàng <strong>DOJI Hà Nội trong 1 năm</strong> (token vẫn lấy từ ô B1, không gõ lại):</p>
+      <p style="margin-top:16px;" data-i18n="ghs.customize.example">Ví dụ — lấy giá vàng <strong>DOJI Hà Nội trong 1 năm</strong> (token vẫn lấy từ ô B1, không gõ lại):</p>
       <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=<span class="hl">DOJI HN</span>&amp;period=<span class="hl">1y</span>&amp;format=csv&amp;api_key="&amp;$B$1)</div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="ghs.customize.info">
         <strong>Gọi 20 giá trị?</strong> Copy công thức, chỉ đổi <code>type</code>/<code>period</code> — phần <code>&amp;$B$1</code> giữ nguyên ở mọi ô.
         Đổi key sau này chỉ cần sửa <strong>ô B1</strong>, tất cả công thức tự cập nhật.
       </div>
@@ -238,10 +238,10 @@
 
     <!-- DATASETS -->
     <section id="datasets" class="doc-section">
-      <h2>Không chỉ có vàng — các bộ dữ liệu khác</h2>
-      <p>Viet Dataverse cung cấp toàn bộ dữ liệu có trên trang chủ. Đầy đủ các bộ dữ liệu &amp; endpoint:</p>
+      <h2 data-i18n="ghs.datasets.h2">Không chỉ có vàng — các bộ dữ liệu khác</h2>
+      <p data-i18n="ghs.datasets.p">Viet Dataverse cung cấp toàn bộ dữ liệu có trên trang chủ. Đầy đủ các bộ dữ liệu &amp; endpoint:</p>
 
-      <table class="gs-table">
+      <table class="gs-table" data-i18n="ghs.datasets.table">
         <thead><tr><th>Bộ dữ liệu</th><th>Endpoint</th><th>Tham số chính</th></tr></thead>
         <tbody>
           <tr><td>Giá vàng</td><td><code>/api/v1/gold</code></td><td><code>type</code> (SJC·DOJI HN·PNJ·BTMC), <code>period</code></td></tr>
@@ -254,7 +254,7 @@
         </tbody>
       </table>
 
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="ghs.datasets.warn">
         <strong>Lưu ý cho Google Sheets:</strong> hàm <code>IMPORTDATA</code> chỉ đọc được <strong>CSV</strong>, hiện có sẵn cho <strong>giá vàng</strong>.
         Các bộ còn lại (bạc, tỷ giá, lãi suất, CPI…) dùng được <strong>ngay trong Excel qua Power Query</strong>
         (xem <a href="excel.html" style="color:var(--terracotta);">hướng dẫn Excel</a>) hoặc qua <a href="api-docs.html" style="color:var(--terracotta);">API</a>.
@@ -264,40 +264,42 @@
 
     <!-- STEP 4: REFRESH -->
     <section id="refresh" class="doc-section">
-      <h2>Bước 4 — Cập nhật dữ liệu</h2>
-      <p>Google Sheets tự động làm mới dữ liệu IMPORTDATA <strong>khoảng mỗi giờ</strong>, và mỗi khi bạn mở lại file.</p>
-      <p>Muốn làm mới ngay lập tức:</p>
-      <ol>
+      <h2 data-i18n="ghs.refresh.h2">Bước 4 — Cập nhật dữ liệu</h2>
+      <p data-i18n="ghs.refresh.p1">Google Sheets tự động làm mới dữ liệu IMPORTDATA <strong>khoảng mỗi giờ</strong>, và mỗi khi bạn mở lại file.</p>
+      <p data-i18n="ghs.refresh.p2">Muốn làm mới ngay lập tức:</p>
+      <ol data-i18n="ghs.refresh.ol">
         <li>Xoá ô chứa công thức rồi dán lại công thức (cách nhanh nhất), hoặc</li>
         <li>Vào <strong>File → Cài đặt bảng tính (Settings) → Tính toán (Calculation)</strong> → đặt "Tính lại khi" thành <em>"Khi thay đổi và mỗi phút"</em>.</li>
       </ol>
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="ghs.refresh.warn">
         <strong>Đừng đặt làm mới quá dày.</strong> Mỗi lần làm mới = 1 request tính vào quota tháng của bạn. Làm mới mỗi phút trên nhiều ô có thể nhanh chóng dùng hết lượt gọi.
       </div>
     </section>
 
     <!-- TROUBLESHOOT -->
     <section id="troubleshoot" class="doc-section">
-      <h2>Lỗi thường gặp</h2>
+      <h2 data-i18n="ghs.trouble.h2">Lỗi thường gặp</h2>
 
-      <h3>Ô hiện <code>#ERROR!</code> hoặc "Could not fetch url"</h3>
-      <p>Thường do thiếu <code>format=csv</code> trong link, hoặc token sai. Kiểm tra: đường link phải có đủ <code>&amp;format=csv&amp;api_key=...</code> và token còn hiệu lực.</p>
+      <h3 data-i18n="ghs.trouble.q1">Ô hiện <code>#ERROR!</code> hoặc "Could not fetch url"</h3>
+      <p data-i18n="ghs.trouble.a1">Thường do thiếu <code>format=csv</code> trong link, hoặc token sai. Kiểm tra: đường link phải có đủ <code>&amp;format=csv&amp;api_key=...</code> và token còn hiệu lực.</p>
 
-      <h3>Ô hiện một dòng chữ <code>{"success": false ... 401}</code></h3>
-      <p>Token không hợp lệ hoặc đã bị thu hồi. Vào <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a> để kiểm tra/tạo lại token.</p>
+      <h3 data-i18n="ghs.trouble.q2">Ô hiện một dòng chữ <code>{"success": false ... 401}</code></h3>
+      <p data-i18n="ghs.trouble.a2">Token không hợp lệ hoặc đã bị thu hồi. Vào <a href="/pages/developer.html" style="color:var(--terracotta);">trang Developer</a> để kiểm tra/tạo lại token.</p>
 
-      <h3>Ô hiện lỗi liên quan đến <code>429</code> / hết quota</h3>
-      <p>Bạn đã dùng hết lượt gọi trong tháng. Chờ sang đầu tháng (quota reset ngày 1).</p>
+      <h3 data-i18n="ghs.trouble.q3">Ô hiện lỗi liên quan đến <code>429</code> / hết quota</h3>
+      <p data-i18n="ghs.trouble.a3">Bạn đã dùng hết lượt gọi trong tháng. Chờ sang đầu tháng (quota reset ngày 1).</p>
 
-      <h3>Dữ liệu không tự cập nhật</h3>
-      <p>Đây là cơ chế của Google (làm mới mỗi ~1 giờ). Xem lại Bước 4 để làm mới thủ công.</p>
+      <h3 data-i18n="ghs.trouble.q4">Dữ liệu không tự cập nhật</h3>
+      <p data-i18n="ghs.trouble.a4">Đây là cơ chế của Google (làm mới mỗi ~1 giờ). Xem lại Bước 4 để làm mới thủ công.</p>
 
-      <p style="margin-top:24px;">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> hoặc xem thêm <a href="api-docs.html" style="color:var(--terracotta);">API Reference</a>.</p>
+      <p style="margin-top:24px;" data-i18n="ghs.trouble.contact">Cần hỗ trợ? Email <a href="mailto:findatasolution@gmail.com" style="color:var(--terracotta);">findatasolution@gmail.com</a> hoặc xem thêm <a href="api-docs.html" style="color:var(--terracotta);">API Reference</a>.</p>
     </section>
 
   </main>
 </div>
 
+<script src="docs-i18n-data/google-sheets.js"></script>
+<script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>
 <script>
 // Link "Đăng nhập" → gọi Auth0 login() trực tiếp (quay lại trang này sau khi đăng nhập).

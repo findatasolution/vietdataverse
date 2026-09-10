@@ -36,10 +36,11 @@
         ? '<span class="docs-topbar-sep">/</span>'
           + '<span class="docs-topbar-section">' + pageTitle + '</span>'
         : '')
-    + '<div class="docs-topbar-search">'
+    + '<div class="docs-topbar-search" id="docs-search-box">'
     +   '<svg width="14" height="14" fill="none" stroke="#87867f" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-    +   '<span>Tìm kiếm tài liệu...</span>'
+    +   '<input id="docs-search-input" type="text" placeholder="Tìm kiếm tài liệu..." autocomplete="off" spellcheck="false">'
     +   '<kbd>⌘K</kbd>'
+    +   '<div class="docs-search-results" id="docs-search-results" hidden></div>'
     + '</div>';
 
   // Re-attach preserved controls into topbar right side
@@ -53,6 +54,21 @@
   }
 
   document.body.insertBefore(newTopbar, document.body.firstChild);
+
+  // En/Vi toggle — only rendered on pages that ship an EN dictionary
+  // (window.DOCS_I18N_EN, set by docs-i18n-data/<page>.js loaded before this
+  // file). Most docs pages are Vietnamese-only; showing a toggle that does
+  // nothing there would be worse than not showing one.
+  if (window.DOCS_I18N_EN && window.DocsI18N) {
+    var langBtn = document.createElement('button');
+    langBtn.type = 'button';
+    langBtn.id = 'docs-lang-toggle';
+    langBtn.className = 'docs-lang-toggle';
+    langBtn.textContent = window.DocsI18N.currentLang() === 'en' ? 'VI' : 'EN';
+    langBtn.title = 'Switch language / Đổi ngôn ngữ';
+    langBtn.addEventListener('click', function () { window.DocsI18N.toggleLang(); });
+    newTopbar.appendChild(langBtn);
+  }
 
   // 2. Hide existing page-section .doc-toc (site sidebar replaces it)
   var pageToc = shell.querySelector('.doc-toc');
@@ -138,4 +154,88 @@
     });
     document.addEventListener('click', function(){ menu.classList.remove('open'); });
   }
+
+  // 6. Search — client-side, indexed from docs headings (docs-search-index.json,
+  //    built by build_search_index.py). No backend: fine for ~13 static pages.
+  var searchInput = document.getElementById('docs-search-input');
+  var searchResults = document.getElementById('docs-search-results');
+  var searchBox = document.getElementById('docs-search-box');
+  var searchIndex = null;
+  var searchIndexPromise = null;
+
+  function normalize(s) {
+    return (s || '')
+      .toString()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '') // strip combining diacritics (NFD doesn't decompose "đ")
+      .replace(/đ/g, 'd')
+      .toLowerCase();
+  }
+
+  function loadIndex() {
+    if (!searchIndexPromise) {
+      searchIndexPromise = fetch('docs-search-index.json')
+        .then(function(r){ return r.ok ? r.json() : []; })
+        .then(function(data){ searchIndex = data || []; return searchIndex; })
+        .catch(function(){ searchIndex = []; return searchIndex; });
+    }
+    return searchIndexPromise;
+  }
+
+  function renderResults(items, query) {
+    if (!items.length) {
+      searchResults.innerHTML = '<div class="docs-search-empty">Không tìm thấy kết quả cho "' + query + '"</div>';
+      searchResults.hidden = false;
+      return;
+    }
+    var html = '';
+    items.slice(0, 8).forEach(function(item){
+      var href = item.anchor ? (item.page + '#' + item.anchor) : item.page;
+      html += '<a class="docs-search-result" href="' + href + '">'
+        + '<span class="docs-search-result-heading">' + item.heading + '</span>'
+        + '<span class="docs-search-result-page">' + item.pageTitle + '</span>'
+        + '</a>';
+    });
+    searchResults.innerHTML = html;
+    searchResults.hidden = false;
+  }
+
+  function runSearch(query) {
+    var q = normalize(query.trim());
+    if (!q) { searchResults.hidden = true; searchResults.innerHTML = ''; return; }
+    loadIndex().then(function(index){
+      var matches = index.filter(function(item){
+        return normalize(item.heading).indexOf(q) !== -1 || normalize(item.pageTitle).indexOf(q) !== -1;
+      });
+      // rank: page-title matches first (broader intent), then heading matches
+      matches.sort(function(a, b){
+        var aPage = normalize(a.pageTitle).indexOf(q) !== -1 ? 0 : 1;
+        var bPage = normalize(b.pageTitle).indexOf(q) !== -1 ? 0 : 1;
+        return aPage - bPage;
+      });
+      renderResults(matches, query.trim());
+    });
+  }
+
+  if (searchInput && searchResults) {
+    searchInput.addEventListener('input', function(){ runSearch(searchInput.value); });
+    searchInput.addEventListener('focus', function(){ if (searchInput.value.trim()) runSearch(searchInput.value); });
+    searchInput.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') { searchResults.hidden = true; searchInput.blur(); }
+      if (e.key === 'Enter') {
+        var first = searchResults.querySelector('.docs-search-result');
+        if (first) { window.location.href = first.getAttribute('href'); }
+      }
+    });
+    if (searchBox) searchBox.addEventListener('click', function(e){ e.stopPropagation(); });
+    document.addEventListener('click', function(){ searchResults.hidden = true; });
+  }
+
+  document.addEventListener('keydown', function(e){
+    var isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+    if (isCmdK && searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+  });
 })();

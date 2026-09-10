@@ -32,65 +32,65 @@
   <!-- TOC sidebar -->
   <nav class="doc-toc">
     <div class="doc-toc-inner">
-      <div class="doc-toc-label">Nội dung</div>
-      <a class="doc-toc-item" href="#overview">Tổng quan</a>
-      <a class="doc-toc-item" href="#types">3 loại pack</a>
-      <a class="doc-toc-item" href="#type-knowledge">Loại 1: Knowledge Document</a>
-      <a class="doc-toc-item sub" href="#type-knowledge">Cấu trúc skeleton</a>
-      <a class="doc-toc-item sub" href="#type-knowledge">Ví dụ thực tế</a>
-      <a class="doc-toc-item" href="#type-agent">Loại 2: Agent Blueprint</a>
-      <a class="doc-toc-item sub" href="#type-agent">Cấu trúc YAML</a>
-      <a class="doc-toc-item sub" href="#type-agent">Ví dụ thực tế</a>
-      <a class="doc-toc-item" href="#type-dataset">Loại 3: Dataset Pack</a>
-      <a class="doc-toc-item" href="#structure">Cấu trúc bắt buộc</a>
-      <a class="doc-toc-item" href="#checklist">Checklist trước submit</a>
-      <a class="doc-toc-item" href="#disclaimer">Điều khoản tự động</a>
-      <a class="doc-toc-item" href="#upload">Cách upload</a>
+      <div class="doc-toc-label" data-i18n="kps.toc.label">Nội dung</div>
+      <a class="doc-toc-item" href="#overview" data-i18n="kps.toc.overview">Tổng quan</a>
+      <a class="doc-toc-item" href="#types" data-i18n="kps.toc.types">3 loại pack</a>
+      <a class="doc-toc-item" href="#type-knowledge" data-i18n="kps.toc.type1">Loại 1: Knowledge Document</a>
+      <a class="doc-toc-item sub" href="#type-knowledge" data-i18n="kps.toc.type1sub1">Cấu trúc skeleton</a>
+      <a class="doc-toc-item sub" href="#type-knowledge" data-i18n="kps.toc.example">Ví dụ thực tế</a>
+      <a class="doc-toc-item" href="#type-agent" data-i18n="kps.toc.type2">Loại 2: Agent Blueprint</a>
+      <a class="doc-toc-item sub" href="#type-agent" data-i18n="kps.toc.type2sub1">Cấu trúc YAML</a>
+      <a class="doc-toc-item sub" href="#type-agent" data-i18n="kps.toc.example">Ví dụ thực tế</a>
+      <a class="doc-toc-item" href="#type-dataset" data-i18n="kps.toc.type3">Loại 3: Dataset Pack</a>
+      <a class="doc-toc-item" href="#structure" data-i18n="kps.toc.structure">Cấu trúc bắt buộc</a>
+      <a class="doc-toc-item" href="#checklist" data-i18n="kps.toc.checklist">Checklist trước submit</a>
+      <a class="doc-toc-item" href="#disclaimer" data-i18n="kps.toc.disclaimer">Điều khoản tự động</a>
+      <a class="doc-toc-item" href="#upload" data-i18n="kps.toc.upload">Cách upload</a>
     </div>
   </nav>
 
   <!-- Main content -->
   <main class="doc-content">
 
-    <h1>Chuẩn cấu trúc Knowledge Pack</h1>
-    <p class="doc-lead">Hướng dẫn kỹ thuật cho Seller — định nghĩa cấu trúc, yêu cầu nội dung và quy trình kiểm tra tự động áp dụng khi upload sản phẩm lên Viet Dataverse.</p>
+    <h1 data-i18n="kps.h1">Chuẩn cấu trúc Knowledge Pack</h1>
+    <p class="doc-lead" data-i18n="kps.lead">Hướng dẫn kỹ thuật cho Seller — định nghĩa cấu trúc, yêu cầu nội dung và quy trình kiểm tra tự động áp dụng khi upload sản phẩm lên Viet Dataverse.</p>
 
     <!-- OVERVIEW -->
     <section id="overview" class="doc-section">
-      <h2>Tổng quan: Knowledge Pack là gì?</h2>
-      <p>Knowledge Pack là file chứa kiến thức chuyên biệt về thị trường tài chính Việt Nam, được đóng gói theo chuẩn để AI agent có thể load và sử dụng ngay mà không cần tiền xử lý thêm.</p>
-      <p>Khác với prompt thông thường, một Knowledge Pack có đầy đủ: cấu trúc rõ ràng, code snippet sẵn chạy được, prompt snippet định nghĩa hành vi agent, và tham chiếu nguồn dữ liệu thực tế từ Viet Dataverse API.</p>
+      <h2 data-i18n="kps.overview.h2">Tổng quan: Knowledge Pack là gì?</h2>
+      <p data-i18n="kps.overview.p1">Knowledge Pack là file chứa kiến thức chuyên biệt về thị trường tài chính Việt Nam, được đóng gói theo chuẩn để AI agent có thể load và sử dụng ngay mà không cần tiền xử lý thêm.</p>
+      <p data-i18n="kps.overview.p2">Khác với prompt thông thường, một Knowledge Pack có đầy đủ: cấu trúc rõ ràng, code snippet sẵn chạy được, prompt snippet định nghĩa hành vi agent, và tham chiếu nguồn dữ liệu thực tế từ Viet Dataverse API.</p>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="kps.overview.info">
         <strong>Tương thích với:</strong> Claude, GPT-4o, Cursor, n8n, Dify, LangChain, CrewAI — bất kỳ LLM pipeline nào hỗ trợ system context injection.
       </div>
 
-      <h3>Tại sao cần chuẩn cấu trúc?</h3>
-      <p>System kiểm tra tự động (auto-validator) chạy ngay khi Seller upload. Pack đạt chuẩn thì lên sàn ngay, không cần admin duyệt. Pack thiếu phần bắt buộc bị reject với thông báo chi tiết để sửa.</p>
+      <h3 data-i18n="kps.overview.h3">Tại sao cần chuẩn cấu trúc?</h3>
+      <p data-i18n="kps.overview.p3">System kiểm tra tự động (auto-validator) chạy ngay khi Seller upload. Pack đạt chuẩn thì lên sàn ngay, không cần admin duyệt. Pack thiếu phần bắt buộc bị reject với thông báo chi tiết để sửa.</p>
     </section>
 
     <!-- TYPES OVERVIEW -->
     <section id="types" class="doc-section">
-      <h2>3 loại pack</h2>
-      <p>Viet Dataverse hỗ trợ ba định dạng sản phẩm, mỗi loại phục vụ một use case khác nhau trong AI agent pipeline:</p>
+      <h2 data-i18n="kps.types.h2">3 loại pack</h2>
+      <p data-i18n="kps.types.p">Viet Dataverse hỗ trợ ba định dạng sản phẩm, mỗi loại phục vụ một use case khác nhau trong AI agent pipeline:</p>
 
       <div class="pack-type-grid">
 
-        <div class="pack-type-card">
+        <div class="pack-type-card" data-i18n="kps.types.card1">
           <span class="pack-type-badge type-knowledge">Knowledge Document</span>
           <h4>Tài liệu kiến thức</h4>
           <p>Chứa facts, data ranges, công thức tính, cơ chế thị trường VN. Agent load vào system context để reasoning. Phù hợp cho bất kỳ LLM nào.</p>
           <div class="pack-type-ext">Định dạng: <code>.md</code></div>
         </div>
 
-        <div class="pack-type-card">
+        <div class="pack-type-card" data-i18n="kps.types.card2">
           <span class="pack-type-badge type-agent">Agent Blueprint</span>
           <h4>Bản thiết kế Agent</h4>
           <p>Định nghĩa toàn bộ hành vi agent — tools, routing logic, system prompt, few-shot examples. Import trực tiếp vào LangChain, n8n, Dify như workflow definition.</p>
           <div class="pack-type-ext">Định dạng: <code>.yaml</code> / <code>.json</code></div>
         </div>
 
-        <div class="pack-type-card">
+        <div class="pack-type-card" data-i18n="kps.types.card3">
           <span class="pack-type-badge type-dataset">Dataset Pack</span>
           <h4>Bộ dữ liệu lịch sử</h4>
           <p>Bảng dữ liệu timeseries — lãi suất theo năm, CPI series, VN30 benchmark. Agent dùng cho RAG lookup, few-shot context, hoặc backtest pipeline.</p>
@@ -102,11 +102,11 @@
 
     <!-- TYPE: KNOWLEDGE DOCUMENT -->
     <section id="type-knowledge" class="doc-section">
-      <h2>Loại 1: Knowledge Document (.md)</h2>
-      <p>Knowledge Document là loại pack phổ biến nhất. File Markdown chứa kiến thức chuyên sâu về một chủ đề tài chính VN, cấu trúc theo 7 phần bắt buộc để developer và researcher đều dùng được ngay.</p>
+      <h2 data-i18n="kps.type1.h2">Loại 1: Knowledge Document (.md)</h2>
+      <p data-i18n="kps.type1.p">Knowledge Document là loại pack phổ biến nhất. File Markdown chứa kiến thức chuyên sâu về một chủ đề tài chính VN, cấu trúc theo 7 phần bắt buộc để developer và researcher đều dùng được ngay.</p>
 
-      <h3>Cấu trúc skeleton</h3>
-      <pre><code># [Tên chủ đề]
+      <h3 data-i18n="kps.type1.h3a">Cấu trúc skeleton</h3>
+      <pre data-i18n="kps.type1.skeleton"><code># [Tên chủ đề]
 **Dành cho:** [use case chính — 1 câu]
 **Tầm quan trọng:** [tại sao quan trọng với nền kinh tế VN — 1-2 câu]
 
@@ -179,8 +179,8 @@ GET https://api.vietdataverse.online/api/v1/[endpoint-2]
 # [Tên tổ chức]: https://[url]
 ```</code></pre>
 
-      <h3>Ví dụ thực tế — rút gọn từ pack "Vietnam Gold Market Playbook"</h3>
-      <pre><code># Thị trường Vàng Việt Nam — Cơ chế & Số liệu Chuyên sâu
+      <h3 data-i18n="kps.type1.h3b">Ví dụ thực tế — rút gọn từ pack "Vietnam Gold Market Playbook"</h3>
+      <pre data-i18n="kps.type1.example"><code># Thị trường Vàng Việt Nam — Cơ chế & Số liệu Chuyên sâu
 **Dành cho:** Agent phân tích giá vàng VN, nhà đầu tư cá nhân, nhà nghiên cứu kinh tế vĩ mô
 **Tầm quan trọng:** Vàng tại Việt Nam không chỉ là hàng hoá — đây là kênh trú ẩn chính khi đồng VND mất giá,
 với thị trường nội địa thường cách biệt đáng kể so với giá quốc tế do chính sách nhập khẩu hạn chế của SBV.
@@ -262,15 +262,15 @@ GET https://api.vietdataverse.online/api/v1/sbv-centralrate?currency=USD
 
     <!-- TYPE: AGENT BLUEPRINT -->
     <section id="type-agent" class="doc-section">
-      <h2>Loại 2: Agent Blueprint (.yaml / .json)</h2>
-      <p>Agent Blueprint là file YAML hoặc JSON định nghĩa toàn bộ hành vi của một AI agent chuyên biệt. Khác với Knowledge Document chỉ là reference material, Blueprint có thể import trực tiếp vào LangChain, n8n, Dify như một workflow definition — tools, routing logic, few-shot examples đều được khai báo sẵn.</p>
+      <h2 data-i18n="kps.type2.h2">Loại 2: Agent Blueprint (.yaml / .json)</h2>
+      <p data-i18n="kps.type2.p">Agent Blueprint là file YAML hoặc JSON định nghĩa toàn bộ hành vi của một AI agent chuyên biệt. Khác với Knowledge Document chỉ là reference material, Blueprint có thể import trực tiếp vào LangChain, n8n, Dify như một workflow definition — tools, routing logic, few-shot examples đều được khai báo sẵn.</p>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="kps.type2.info">
         <strong>Import được vào:</strong> LangChain (agent config), n8n (workflow JSON), Dify (agent YAML), Claude Tools, bất kỳ pipeline nào hỗ trợ YAML/JSON agent definition.
       </div>
 
-      <h3>Cấu trúc skeleton</h3>
-      <pre><code># VDV Agent Blueprint v1
+      <h3 data-i18n="kps.type2.h3a">Cấu trúc skeleton</h3>
+      <pre data-i18n="kps.type2.skeleton"><code># VDV Agent Blueprint v1
 meta:
   name: "Tên agent"
   version: "1.0"
@@ -319,8 +319,8 @@ disclaimer: |
   Agent này chỉ cung cấp thông tin tham khảo.
   Không chịu trách nhiệm về các quyết định đầu tư dựa trên thông tin từ agent.</code></pre>
 
-      <h3>Ví dụ thực tế — Credit Scoring Support Agent (rút gọn)</h3>
-      <pre><code># VDV Agent Blueprint v1
+      <h3 data-i18n="kps.type2.h3b">Ví dụ thực tế — Credit Scoring Support Agent (rút gọn)</h3>
+      <pre data-i18n="kps.type2.example"><code># VDV Agent Blueprint v1
 meta:
   name: "VN Credit Context Agent"
   version: "1.2"
@@ -387,11 +387,11 @@ disclaimer: |
 
     <!-- TYPE: DATASET -->
     <section id="type-dataset" class="doc-section">
-      <h2>Loại 3: Dataset Pack (.csv / .json)</h2>
-      <p>Dataset Pack là file dữ liệu lịch sử dạng bảng — timeseries về lãi suất, CPI, giá vàng, hoặc benchmark VN30. Agent dùng cho RAG lookup, few-shot context injection, hoặc backtesting pipeline.</p>
+      <h2 data-i18n="kps.type3.h2">Loại 3: Dataset Pack (.csv / .json)</h2>
+      <p data-i18n="kps.type3.p">Dataset Pack là file dữ liệu lịch sử dạng bảng — timeseries về lãi suất, CPI, giá vàng, hoặc benchmark VN30. Agent dùng cho RAG lookup, few-shot context injection, hoặc backtesting pipeline.</p>
 
-      <h3>Required fields</h3>
-      <table class="doc-table">
+      <h3 data-i18n="kps.type3.h3a">Required fields</h3>
+      <table class="doc-table" data-i18n="kps.type3.table">
         <thead>
           <tr><th>Field</th><th>Type</th><th>Mô tả</th><th>Ví dụ</th></tr>
         </thead>
@@ -403,7 +403,7 @@ disclaimer: |
         </tbody>
       </table>
 
-      <h3>Ví dụ CSV (CPI series)</h3>
+      <h3 data-i18n="kps.type3.h3b">Ví dụ CSV (CPI series)</h3>
       <pre><code>period,value,source,unit,indicator
 2024-01,3.37,GSO,% YoY,CPI
 2024-02,3.98,GSO,% YoY,CPI
@@ -416,21 +416,21 @@ disclaimer: |
 2024-09,2.63,GSO,% YoY,CPI
 2024-10,2.89,GSO,% YoY,CPI</code></pre>
 
-      <div class="doc-tip">
+      <div class="doc-tip" data-i18n="kps.type3.tip">
         Dataset Pack không cần "7 phần bắt buộc" như Knowledge Document. Chỉ cần đủ 4 required fields, file có ít nhất 12 rows, và có file <code>README.md</code> hoặc field <code>description</code> trong JSON metadata.
       </div>
     </section>
 
     <!-- STRUCTURE TABLE -->
     <section id="structure" class="doc-section">
-      <h2>Cấu trúc bắt buộc (7 phần)</h2>
-      <p>Áp dụng cho Knowledge Document (<code>.md</code>). Auto-validator kiểm tra tất cả 7 phần theo thứ tự khi upload.</p>
+      <h2 data-i18n="kps.structure.h2">Cấu trúc bắt buộc (7 phần)</h2>
+      <p data-i18n="kps.structure.p">Áp dụng cho Knowledge Document (<code>.md</code>). Auto-validator kiểm tra tất cả 7 phần theo thứ tự khi upload.</p>
 
-      <div class="doc-warn">
+      <div class="doc-warn" data-i18n="kps.structure.warn">
         System tự động reject pack thiếu phần bắt buộc. Bạn sẽ nhận thông báo chi tiết check nào fail và cách khắc phục — không cần liên hệ admin.
       </div>
 
-      <table class="doc-table">
+      <table class="doc-table" data-i18n="kps.structure.table">
         <thead>
           <tr>
             <th>#</th>
@@ -493,8 +493,8 @@ disclaimer: |
         </tbody>
       </table>
 
-      <h3>Nội dung bị cấm (auto-reject)</h3>
-      <table class="doc-table">
+      <h3 data-i18n="kps.structure.h3banned">Nội dung bị cấm (auto-reject)</h3>
+      <table class="doc-table" data-i18n="kps.structure.bannedtable">
         <thead>
           <tr><th>Bị cấm</th><th>Lý do</th></tr>
         </thead>
@@ -511,10 +511,10 @@ disclaimer: |
 
     <!-- CHECKLIST -->
     <section id="checklist" class="doc-section">
-      <h2>Checklist trước khi submit</h2>
-      <p>Tự kiểm tra trước khi upload để tránh bị reject:</p>
+      <h2 data-i18n="kps.checklist.h2">Checklist trước khi submit</h2>
+      <p data-i18n="kps.checklist.p">Tự kiểm tra trước khi upload để tránh bị reject:</p>
 
-      <ul class="doc-checklist">
+      <ul class="doc-checklist" data-i18n="kps.checklist.list">
         <li>Header có <code>**Dành cho:**</code> và <code>**Tầm quan trọng:**</code> trong 5 dòng đầu</li>
         <li>Mục <code>## Cách dùng pack này</code> có đủ 2 sub-section (Developer + Researcher)</li>
         <li>Code Python trong phần Developer có ít nhất 10 dòng và chạy được</li>
@@ -532,10 +532,10 @@ disclaimer: |
 
     <!-- DISCLAIMER -->
     <section id="disclaimer" class="doc-section">
-      <h2>Điều khoản &amp; Disclaimer tự động</h2>
-      <p>Seller <strong>không cần viết disclaimer</strong> vào file. Platform tự động inject đoạn sau vào cuối mỗi pack khi lưu vào hệ thống:</p>
+      <h2 data-i18n="kps.disclaimer.h2">Điều khoản &amp; Disclaimer tự động</h2>
+      <p data-i18n="kps.disclaimer.p1">Seller <strong>không cần viết disclaimer</strong> vào file. Platform tự động inject đoạn sau vào cuối mỗi pack khi lưu vào hệ thống:</p>
 
-      <div style="background:var(--parchment);border:1px solid var(--border-cream);border-left:3px solid var(--terracotta);border-radius:0 8px 8px 0;padding:16px 20px;margin:16px 0;">
+      <div style="background:var(--parchment);border:1px solid var(--border-cream);border-left:3px solid var(--terracotta);border-radius:0 8px 8px 0;padding:16px 20px;margin:16px 0;" data-i18n="kps.disclaimer.box">
         <p style="margin:0 0 8px;font-size:0.8125rem;color:var(--stone-gray);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Nội dung được inject tự động</p>
         <pre style="margin:0;background:none;padding:0;font-size:0.8125rem;color:var(--olive-gray);line-height:1.65;white-space:pre-wrap;font-family:monospace;">---
 ## Điều khoản sử dụng
@@ -552,47 +552,49 @@ bao gồm nhưng không giới hạn ở các quyết định đầu tư, tài c
 *Phiên bản: được tạo tự động bởi Viet Dataverse Platform.*</pre>
       </div>
 
-      <div class="doc-info">
+      <div class="doc-info" data-i18n="kps.disclaimer.info">
         Disclaimer được inject ở server-side khi lưu file, không phải lúc upload. File gốc của Seller giữ nguyên nội dung. Buyer nhận file đã có disclaimer khi download.
       </div>
     </section>
 
     <!-- UPLOAD -->
     <section id="upload" class="doc-section">
-      <h2>Cách upload</h2>
-      <p>Quy trình upload 3 bước — không có admin review, pack lên sàn ngay khi pass validator:</p>
+      <h2 data-i18n="kps.upload.h2">Cách upload</h2>
+      <p data-i18n="kps.upload.p">Quy trình upload 3 bước — không có admin review, pack lên sàn ngay khi pass validator:</p>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="kps.upload.step1">
         <div class="doc-step-num">1</div>
         <div class="doc-step-body">
           <strong>Upload file</strong> — Vào Seller Dashboard, click "Upload sản phẩm mới", điền form (tiêu đề, mô tả, giá, category) và chọn file. Click "Upload".
         </div>
       </div>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="kps.upload.step2">
         <div class="doc-step-num">2</div>
         <div class="doc-step-body">
           <strong>Auto validate</strong> — System chạy 4 bước kiểm tra trong vài giây: kiểm tra mã độc, parse định dạng, kiểm tra cấu trúc 7 phần, quét PII và secrets. Nếu fail, modal hiển thị check nào fail và hướng dẫn sửa.
         </div>
       </div>
 
-      <div class="doc-step">
+      <div class="doc-step" data-i18n="kps.upload.step3">
         <div class="doc-step-num">3</div>
         <div class="doc-step-body">
           <strong>Live ngay</strong> — Pass tất cả checks, sản phẩm lên sàn ngay với status "Published". Không cần chờ admin duyệt. Buyer có thể xem preview và mua trong vài phút.
         </div>
       </div>
 
-      <div class="doc-tip">
+      <div class="doc-tip" data-i18n="kps.upload.tip">
         Xem các pack mẫu VD Official (packs 01–13) trong Knowledge Market để tham khảo ví dụ thực tế đã được publish và đạt chuẩn validator.
       </div>
 
-      <p>Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a> hoặc xem <a href="guide-seller.html" style="color:var(--terracotta);">Hướng dẫn Seller</a> để biết thêm về quy trình đăng ký và payout.</p>
+      <p data-i18n="kps.upload.contact">Cần hỗ trợ? Email <a href="mailto:support@vietdataverse.online" style="color:var(--terracotta);">support@vietdataverse.online</a> hoặc xem <a href="guide-seller.html" style="color:var(--terracotta);">Hướng dẫn Seller</a> để biết thêm về quy trình đăng ký và payout.</p>
     </section>
 
   </main>
 </div>
 
+<script src="docs-i18n-data/knowledge-pack-spec.js"></script>
+<script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>
 <script>
 (function(){

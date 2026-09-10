@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Reference | Viet Dataverse</title>
     <meta name="description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, VN30 stocks, CPI, GDP.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vietdataverse.online/pages/api-docs.html">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="API Reference | Viet Dataverse">
+    <meta property="og:description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, VN30 stocks, CPI, GDP.">
+    <meta property="og:url" content="https://vietdataverse.online/pages/api-docs.html">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "Cài đặt API Viet Dataverse trong 4 bước",
+      "description": "Hướng dẫn từng bước lấy API key và gọi dữ liệu tài chính Việt Nam (giá vàng, lãi suất, tỷ giá...) từ Viet Dataverse API.",
+      "inLanguage": "vi-VN",
+      "totalTime": "PT5M",
+      "step": [
+        {"@type": "HowToStep", "name": "Đăng ký tài khoản & lấy API key", "text": "Đăng nhập và mở trang Developer để lấy API key. Tài khoản miễn phí được cấp ngay hạn mức 1.000 request/tháng.", "url": "https://vietdataverse.online/pages/developer.html"},
+        {"@type": "HowToStep", "name": "Gọi thử ngay trên trình duyệt", "text": "Dán URL dạng https://api.vietdataverse.online/api/v1/gold?type=SJC&period=1m&api_key=YOUR_API_KEY vào thanh địa chỉ trình duyệt để kiểm tra key hoạt động."},
+        {"@type": "HowToStep", "name": "Tích hợp vào code", "text": "Gọi API bằng cURL, Python hoặc JavaScript, đặt key trong header X-API-Key thay vì trên URL."},
+        {"@type": "HowToStep", "name": "Đọc kết quả & kiểm tra quota", "text": "Response trả về JSON có success/data; header X-RateLimit-Remaining cho biết số lượt gọi còn lại trong tháng."}
+      ]
+    }
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -289,15 +311,20 @@
         /* ── Section helpers ───────────────────────── */
         .docs-section { margin-bottom: 64px; }
         .section-title {
+            /* Matches .doc-content h2 in style.css so headings look identical
+               across all docs pages (api-docs.html used to run 1.5rem/no
+               border/tight margin here — a visible mismatch vs guide-buyer.html
+               etc., which use plain <h2> and inherit .doc-content h2 directly). */
             font-family: 'Lora', Georgia, serif;
-            font-size: 1.5rem; font-weight: 500;
-            color: var(--text-primary); margin: 0 0 8px; padding-top: 4px;
-            letter-spacing: -.01em;
+            font-size: 1.375rem; font-weight: 500;
+            color: var(--near-black, var(--text-primary)); margin: 48px 0 16px; padding-top: 8px;
+            border-bottom: 1px solid var(--border-cream); padding-bottom: 10px;
             /* Override global .section-title (style.css) which is flex-centered */
             display: block; text-align: left; justify-content: flex-start;
         }
+        .docs-section:first-of-type .section-title { margin-top: 0; }
         .section-sub {
-            font-size: 14px; color: var(--text-secondary);
+            font-size: 0.9375rem; color: var(--olive-gray, var(--text-secondary));
             margin: 0 0 24px; line-height: 1.65; text-align: left;
         }
 
@@ -332,40 +359,40 @@
     <!-- Sticky TOC sidebar -->
     <nav class="doc-toc">
         <div class="doc-toc-inner">
-            <div class="doc-toc-label">Bắt đầu</div>
-            <a class="doc-toc-item" href="#setup">Cài đặt API (4 bước)</a>
-            <a class="doc-toc-item" href="#samples">Ví dụ thực tế</a>
-            <a class="doc-toc-item" href="#sheets">Dùng với Google Sheets</a>
-            <a class="doc-toc-item" href="#auth">Xác thực (API key)</a>
-            <a class="doc-toc-item" href="#quota">Quota &amp; Giới hạn</a>
-            <a class="doc-toc-item" href="#errors">Mã lỗi</a>
-            <div class="doc-toc-label" style="margin-top:16px;">Endpoints</div>
-            <a class="doc-toc-item" href="#commodity">Hàng hoá</a>
-            <a class="doc-toc-item" href="#rates">Lãi suất &amp; Tỷ giá</a>
-            <a class="doc-toc-item" href="#macro">Vĩ mô</a>
-            <a class="doc-toc-item" href="#vn30">VN30 Cổ phiếu</a>
-            <a class="doc-toc-item" href="#analysis">Rủi ro biến động giá</a>
-            <a class="doc-toc-item" href="#news">Tin tức thị trường</a>
+            <div class="doc-toc-label" data-i18n="ad.toc.start">Bắt đầu</div>
+            <a class="doc-toc-item" href="#setup" data-i18n="ad.toc.setup">Cài đặt API (4 bước)</a>
+            <a class="doc-toc-item" href="#samples" data-i18n="ad.toc.samples">Ví dụ thực tế</a>
+            <a class="doc-toc-item" href="#sheets" data-i18n="ad.toc.sheets">Dùng với Google Sheets</a>
+            <a class="doc-toc-item" href="#auth" data-i18n="ad.toc.auth">Xác thực (API key)</a>
+            <a class="doc-toc-item" href="#quota" data-i18n="ad.toc.quota">Quota &amp; Giới hạn</a>
+            <a class="doc-toc-item" href="#errors" data-i18n="ad.toc.errors">Mã lỗi</a>
+            <div class="doc-toc-label" style="margin-top:16px;" data-i18n="ad.toc.endpoints">Endpoints</div>
+            <a class="doc-toc-item" href="#commodity" data-i18n="ad.toc.commodity">Hàng hoá</a>
+            <a class="doc-toc-item" href="#rates" data-i18n="ad.toc.rates">Lãi suất &amp; Tỷ giá</a>
+            <a class="doc-toc-item" href="#macro" data-i18n="ad.toc.macro">Vĩ mô</a>
+            <a class="doc-toc-item" href="#vn30" data-i18n="ad.toc.vn30">VN30 Cổ phiếu</a>
+            <a class="doc-toc-item" href="#analysis" data-i18n="ad.toc.analysis">Rủi ro biến động giá</a>
+            <a class="doc-toc-item" href="#news" data-i18n="ad.toc.news">Tin tức thị trường</a>
         </div>
     </nav>
 
     <main class="doc-content">
 
-        <h1>Dữ liệu tài chính Việt Nam qua một API đơn giản</h1>
-        <p class="doc-lead">
+        <h1 data-i18n="ad.h1">Dữ liệu tài chính Việt Nam qua một API đơn giản</h1>
+        <p class="doc-lead" data-i18n="ad.lead">
             Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
             Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
         </p>
 
         <!-- SETUP — step by step install guide -->
         <section class="docs-section doc-section" id="setup">
-            <h2 class="section-title">Cài đặt API trong 4 bước</h2>
-            <p class="section-sub">Làm theo thứ tự từ trên xuống — sau bước 4 bạn đã pull được dữ liệu thật vào code của mình.</p>
+            <h2 class="section-title" data-i18n="ad.setup.title">Cài đặt API trong 4 bước</h2>
+            <p class="section-sub" data-i18n="ad.setup.sub">Làm theo thứ tự từ trên xuống — sau bước 4 bạn đã pull được dữ liệu thật vào code của mình.</p>
 
             <div class="setup-steps">
 
                 <!-- Step 1 -->
-                <div class="setup-step">
+                <div class="setup-step" data-i18n="ad.step1">
                     <h3>Đăng ký tài khoản &amp; lấy API key</h3>
                     <p>API key là "chìa khoá" để gọi dữ liệu. Mỗi request đều cần key này.</p>
                     <ul>
@@ -380,7 +407,7 @@
                 </div>
 
                 <!-- Step 2 -->
-                <div class="setup-step">
+                <div class="setup-step" data-i18n="ad.step2">
                     <h3>Gọi thử ngay trên trình duyệt (không cần code)</h3>
                     <p>Cách nhanh nhất để kiểm tra key hoạt động: dán URL sau vào thanh địa chỉ trình duyệt, thay <code class="kbd">YOUR_API_KEY</code> bằng key của bạn:</p>
                     <div class="code-block">https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;api_key=YOUR_API_KEY</div>
@@ -388,7 +415,7 @@
                 </div>
 
                 <!-- Step 3 -->
-                <div class="setup-step">
+                <div class="setup-step" data-i18n="ad.step3">
                     <h3>Tích hợp vào code của bạn</h3>
                     <p>Khi gọi từ code, nên đặt key trong header <code class="kbd">X-API-Key</code> thay vì trên URL (an toàn hơn). Chọn ngôn ngữ:</p>
                     <div class="code-tabs">
@@ -418,7 +445,7 @@ console.log(data);</div>
                 </div>
 
                 <!-- Step 4 -->
-                <div class="setup-step">
+                <div class="setup-step" data-i18n="ad.step4">
                     <h3>Đọc kết quả &amp; kiểm tra quota</h3>
                     <p>Mọi response thành công đều có dạng:</p>
                     <div class="code-block">{
@@ -436,12 +463,12 @@ console.log(data);</div>
 
         <!-- Samples / use cases -->
         <section class="docs-section doc-section" id="samples">
-            <h2 class="section-title">Ví dụ thực tế</h2>
-            <p class="section-sub">Chọn use-case phù hợp — code sẵn sàng copy &amp; chạy.</p>
+            <h2 class="section-title" data-i18n="ad.samples.title">Ví dụ thực tế</h2>
+            <p class="section-sub" data-i18n="ad.samples.sub">Chọn use-case phù hợp — code sẵn sàng copy &amp; chạy.</p>
 
             <div style="display:grid;gap:10px;margin-bottom:8px;">
 
-                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;" data-i18n="ad.faq1">
                     <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
                         Tôi muốn pull giá vàng SJC vào Python mỗi ngày
                         <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">commodity</span>
@@ -463,7 +490,7 @@ print(df[["period", "buy_price", "sell_price"]].tail(5))</div>
                     </div>
                 </details>
 
-                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;" data-i18n="ad.faq2">
                     <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
                         Tôi muốn theo dõi tỷ giá USD/VND của VCB hàng ngày
                         <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">rates</span>
@@ -482,7 +509,7 @@ for row in r.json()["data"][-5:]:
                     </div>
                 </details>
 
-                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;" data-i18n="ad.faq3">
                     <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
                         Tôi muốn so sánh lãi suất tiết kiệm ngân hàng theo kỳ hạn
                         <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">rates</span>
@@ -505,7 +532,7 @@ print(f"  12 tháng: {latest.get('term_12m', '-')}%")</div>
                     </div>
                 </details>
 
-                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;" data-i18n="ad.faq4">
                     <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
                         Tôi muốn lấy CPI Việt Nam cho AI agent
                         <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">macro</span>
@@ -528,7 +555,7 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
                     </div>
                 </details>
 
-                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;">
+                <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;" data-i18n="ad.faq5">
                     <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
                         Tôi muốn nhập dữ liệu thẳng vào Excel — không cần code
                         <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">excel add-in</span>
@@ -549,22 +576,22 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
 
         <!-- Google Sheets teaser -->
         <section class="docs-section doc-section" id="sheets">
-            <h2 class="section-title">Dùng dữ liệu trong Google Sheets</h2>
-            <p class="section-sub">Không cần code — kéo giá vàng thẳng vào bảng tính bằng một công thức (các bộ dữ liệu khác đang được bổ sung).</p>
-            <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin:0 0 14px;">
+            <h2 class="section-title" data-i18n="ad.sheets.title">Dùng dữ liệu trong Google Sheets</h2>
+            <p class="section-sub" data-i18n="ad.sheets.sub">Không cần code — kéo giá vàng thẳng vào bảng tính bằng một công thức (các bộ dữ liệu khác đang được bổ sung).</p>
+            <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin:0 0 14px;" data-i18n="ad.sheets.p">
                 Google Sheets có hàm <code class="kbd">IMPORTDATA()</code> đọc trực tiếp dữ liệu CSV từ API.
                 Vì hàm này không gửi được header, Viet Dataverse cho phép truyền API key ngay trên đường link qua tham số <code class="kbd">api_key</code>:
             </p>
             <div class="code-block">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=SJC&amp;period=1m&amp;format=csv&amp;api_key=YOUR_API_KEY")</div>
-            <a class="btn-primary" href="/pages/google-sheets.html">Xem hướng dẫn từng bước cho Google Sheets →</a>
+            <a class="btn-primary" href="/pages/google-sheets.html" data-i18n="ad.sheets.cta">Xem hướng dẫn từng bước cho Google Sheets →</a>
         </section>
 
         <!-- Authentication -->
         <section class="docs-section doc-section" id="auth">
-            <h2 class="section-title">Authentication</h2>
-            <p class="section-sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key miễn phí tạo ở trang Developer.</p>
+            <h2 class="section-title" data-i18n="ad.auth.title">Authentication</h2>
+            <p class="section-sub" data-i18n="ad.auth.sub">Mọi request cần header <code style="color:var(--text-primary)">X-API-Key</code> với key miễn phí tạo ở trang Developer.</p>
             <div class="code-block">X-API-Key: Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</div>
-            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;" data-i18n="ad.auth.p">
                 Lấy API key miễn phí tại <a class="dev-link" href="/pages/developer.html" style="color:var(--terracotta)">trang Developer</a> sau khi đăng nhập.
                 Key được liên kết với tài khoản — không chia sẻ key để tránh bị tính quota.
             </p>
@@ -572,16 +599,16 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
 
         <!-- Quota -->
         <section class="docs-section doc-section" id="quota">
-            <h2 class="section-title">Quota &amp; Giới hạn</h2>
-            <p class="section-sub">Quota reset vào ngày 1 hàng tháng (múi giờ Asia/Ho_Chi_Minh). Burst limit bảo vệ hệ thống.</p>
+            <h2 class="section-title" data-i18n="ad.quota.title">Quota &amp; Giới hạn</h2>
+            <p class="section-sub" data-i18n="ad.quota.sub">Quota reset vào ngày 1 hàng tháng (múi giờ Asia/Ho_Chi_Minh). Burst limit bảo vệ hệ thống.</p>
             <div class="quota-grid">
                 <div class="quota-card">
-                    <div class="quota-plan">Tài khoản miễn phí</div>
+                    <div class="quota-plan" data-i18n="ad.quota.plan">Tài khoản miễn phí</div>
                     <div class="quota-num">1,000</div>
-                    <div class="quota-desc">requests/tháng · reset ngày 1 hàng tháng</div>
+                    <div class="quota-desc" data-i18n="ad.quota.desc">requests/tháng · reset ngày 1 hàng tháng</div>
                 </div>
             </div>
-            <p style="font-size:13px;color:var(--text-secondary);">
+            <p style="font-size:13px;color:var(--text-secondary);" data-i18n="ad.quota.p">
                 Header phản hồi: <code style="color:var(--text-primary)">X-RateLimit-Limit</code>,
                 <code style="color:var(--text-primary)">X-RateLimit-Remaining</code>,
                 <code style="color:var(--text-primary)">X-RateLimit-Reset</code> (ISO 8601).
@@ -590,8 +617,8 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
 
         <!-- Error codes -->
         <section class="docs-section doc-section" id="errors">
-            <h2 class="section-title">Mã lỗi</h2>
-            <table class="error-table">
+            <h2 class="section-title" data-i18n="ad.errors.title">Mã lỗi</h2>
+            <table class="error-table" data-i18n="ad.errors.table">
                 <thead><tr><th>HTTP</th><th>Ý nghĩa</th><th>Cách xử lý</th></tr></thead>
                 <tbody>
                     <tr><td class="error-code error-401">401</td><td>API key không hợp lệ hoặc đã bị thu hồi</td><td>Kiểm tra key tại trang Developer</td></tr>
@@ -632,7 +659,7 @@ function toggleEndpoint(header) {
     body.classList.toggle('open');
 }
 
-const GROUP_LABELS = {
+const GROUP_LABELS_VI = {
     commodity: 'Hàng hoá',
     rates:     'Lãi suất & Tỷ giá',
     macro:     'Vĩ mô Việt Nam',
@@ -640,6 +667,17 @@ const GROUP_LABELS = {
     analysis:  'Rủi ro biến động giá ngành',
     news:      'Tin tức thị trường',
 };
+const GROUP_LABELS_EN = {
+    commodity: 'Commodities',
+    rates:     'Rates & FX',
+    macro:     'Vietnam Macro',
+    vn30:      'VN30 Stocks',
+    analysis:  'Sector Volatility Risk',
+    news:      'Market News',
+};
+function currentGroupLabels() {
+    return (window.DocsI18N && window.DocsI18N.currentLang() === 'en') ? GROUP_LABELS_EN : GROUP_LABELS_VI;
+}
 
 const ENDPOINT_GROUPS = {
     commodity: ['/api/v1/gold', '/api/v1/gold/types', '/api/v1/silver'],
@@ -664,10 +702,14 @@ async function loadEndpoints() {
 
     const byPath = {};
     endpoints.forEach(ep => byPath[ep.path] = ep);
+    const isEn = window.DocsI18N && window.DocsI18N.currentLang() === 'en';
+    const groupLabels = currentGroupLabels();
+    const noParamsText = isEn ? 'No params' : 'Không có params';
+    const comingSoonText = isEn ? 'Coming soon — these endpoints are in development.' : 'Sắp ra mắt — các endpoint đang được phát triển.';
 
     let html = '';
     for (const [groupId, paths] of Object.entries(ENDPOINT_GROUPS)) {
-        html += `<div class="endpoint-group-title" id="${groupId}">${GROUP_LABELS[groupId]}</div>`;
+        html += `<div class="endpoint-group-title" id="${groupId}">${groupLabels[groupId]}</div>`;
         let groupHasEndpoints = false;
         let groupHtml = '';
         for (const path of paths) {
@@ -687,7 +729,7 @@ async function loadEndpoints() {
                         <span>${p.options ? p.options.join(' | ') : (p.example ? `e.g. ${p.example}` : '')}${p.default !== undefined ? ` (default: ${p.default})` : ''}</span>
                     </div>
                 `).join('')}
-            ` : '<div style="color:var(--text-tertiary);font-size:12px;">Không có params</div>';
+            ` : `<div style="color:var(--text-tertiary);font-size:12px;">${noParamsText}</div>`;
 
             groupHtml += `
             <div class="endpoint-row">
@@ -703,7 +745,7 @@ async function loadEndpoints() {
             </div>`;
         }
         if (!groupHasEndpoints) {
-            groupHtml = `<p style="font-size:13px;color:var(--text-tertiary);padding:8px 0 16px;font-style:italic;">Sắp ra mắt — các endpoint đang được phát triển.</p>`;
+            groupHtml = `<p style="font-size:13px;color:var(--text-tertiary);padding:8px 0 16px;font-style:italic;">${comingSoonText}</p>`;
         }
         html += groupHtml;
     }
@@ -746,8 +788,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDevLinks();
     setupLoginLinks();
 });
+window.addEventListener('docs-lang-changed', () => loadEndpoints());
 </script>
 
+<script src="docs-i18n-data/api-docs.js"></script>
+<script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>
 <script>
 (function(){

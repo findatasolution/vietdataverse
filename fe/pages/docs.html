@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Documentation — Viet Dataverse</title>
+  <meta name="description" content="Tài liệu Viet Dataverse: API Reference, kết nối Google Sheets/Excel, hướng dẫn mua/bán Knowledge Pack, và các trang pháp lý.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://vietdataverse.online/pages/docs.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Documentation — Viet Dataverse">
+  <meta property="og:description" content="Tài liệu Viet Dataverse: API Reference, kết nối Google Sheets/Excel, hướng dẫn mua/bán Knowledge Pack, và các trang pháp lý.">
+  <meta property="og:url" content="https://vietdataverse.online/pages/docs.html">
   <link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
   <link rel="stylesheet" href="../style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,54 +108,54 @@
 
     <!-- Hero -->
     <div class="docs-hero">
-      <h1>Tài liệu Viet Dataverse</h1>
-      <p>Hướng dẫn tích hợp API, tạo và mua Knowledge Pack, điều khoản sử dụng, và mọi thứ bạn cần để khai thác dữ liệu tài chính Việt Nam.</p>
+      <h1 data-i18n="docs.hero.h1">Tài liệu Viet Dataverse</h1>
+      <p data-i18n="docs.hero.p">Hướng dẫn tích hợp API, tạo và mua Knowledge Pack, điều khoản sử dụng, và mọi thứ bạn cần để khai thác dữ liệu tài chính Việt Nam.</p>
     </div>
 
     <!-- Section: API -->
-    <div class="docs-section-title">API &amp; Developer</div>
+    <div class="docs-section-title" data-i18n="docs.section.api">API &amp; Developer</div>
     <div class="docs-card-grid">
 
       <a class="docs-card" href="api-docs.html">
         <div class="docs-card-icon api">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </div>
-        <h3>API Reference</h3>
-        <p>Toàn bộ endpoints: gold, silver, FX rate, term deposit, VN30, CPI, global macro. Cú pháp, params, response format.</p>
-        <span class="docs-card-link">Xem tài liệu</span>
+        <h3 data-i18n="docs.card.api.h3">API Reference</h3>
+        <p data-i18n="docs.card.api.p">Toàn bộ endpoints: gold, silver, FX rate, term deposit, VN30, CPI, global macro. Cú pháp, params, response format.</p>
+        <span class="docs-card-link" data-i18n="docs.card.api.link">Xem tài liệu</span>
       </a>
 
       <a class="docs-card" href="google-sheets.html">
         <div class="docs-card-icon buyer">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 17v-6m3 6V7m3 10v-4M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
         </div>
-        <h3>Lấy dữ liệu vào Google Sheets</h3>
-        <p>Hướng dẫn từng bước: lấy API token và kéo giá vàng, dữ liệu thị trường vào Google Sheets bằng IMPORTDATA — không cần code.</p>
-        <span class="docs-card-link">Xem hướng dẫn</span>
+        <h3 data-i18n="docs.card.sheets.h3">Lấy dữ liệu vào Google Sheets</h3>
+        <p data-i18n="docs.card.sheets.p">Hướng dẫn từng bước: lấy API token và kéo giá vàng, dữ liệu thị trường vào Google Sheets bằng IMPORTDATA — không cần code.</p>
+        <span class="docs-card-link" data-i18n="docs.card.sheets.link">Xem hướng dẫn</span>
       </a>
 
       <a class="docs-card" href="google-sheets-appscript.html">
         <div class="docs-card-icon buyer">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
         </div>
-        <h3>Google Sheets — hàm VDV (Apps Script)</h3>
-        <p>Tạo hàm gọn <code>=VDV_GOLD("SJC","1m")</code>, token nhập 1 lần qua menu. Kèm cách xử lý cảnh báo "ứng dụng chưa xác minh" của Google.</p>
-        <span class="docs-card-link">Xem hướng dẫn</span>
+        <h3 data-i18n="docs.card.appscript.h3">Google Sheets — hàm VDV (Apps Script)</h3>
+        <p data-i18n="docs.card.appscript.p">Tạo hàm gọn <code>=VDV_GOLD("SJC","1m")</code>, token nhập 1 lần qua menu. Kèm cách xử lý cảnh báo "ứng dụng chưa xác minh" của Google.</p>
+        <span class="docs-card-link" data-i18n="docs.card.sheets.link">Xem hướng dẫn</span>
       </a>
 
       <a class="docs-card" href="excel.html">
         <div class="docs-card-icon buyer">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 3v18M3 9h18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
         </div>
-        <h3>Lấy dữ liệu vào Excel (Power Query)</h3>
-        <p>Kéo vàng, bạc, tỷ giá, lãi suất, CPI… vào Microsoft Excel bằng Power Query — không cần code, không cảnh báo Google.</p>
-        <span class="docs-card-link">Xem hướng dẫn</span>
+        <h3 data-i18n="docs.card.excel.h3">Lấy dữ liệu vào Excel (Power Query)</h3>
+        <p data-i18n="docs.card.excel.p">Kéo vàng, bạc, tỷ giá, lãi suất, CPI… vào Microsoft Excel bằng Power Query — không cần code, không cảnh báo Google.</p>
+        <span class="docs-card-link" data-i18n="docs.card.sheets.link">Xem hướng dẫn</span>
       </a>
 
     </div>
 
     <!-- Section: Guides -->
-    <div class="docs-section-title">Hướng dẫn sử dụng</div>
+    <div class="docs-section-title" data-i18n="docs.section.guides">Hướng dẫn sử dụng</div>
     <div class="docs-card-grid">
 
       <a class="docs-card" href="guide-seller.html">
@@ -156,8 +163,8 @@
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
         </div>
         <h3>Seller Guide</h3>
-        <p>Đăng ký seller, upload Knowledge Pack, quy trình tự kiểm tra, pricing, payout và các điều cần lưu ý.</p>
-        <span class="docs-card-link">Xem hướng dẫn</span>
+        <p data-i18n="docs.card.seller.p">Đăng ký seller, upload Knowledge Pack, quy trình tự kiểm tra, pricing, payout và các điều cần lưu ý.</p>
+        <span class="docs-card-link" data-i18n="docs.card.sheets.link">Xem hướng dẫn</span>
       </a>
 
       <a class="docs-card" href="guide-buyer.html">
@@ -165,23 +172,23 @@
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <h3>Buyer Guide</h3>
-        <p>Tìm kiếm và mua Knowledge Pack, nạp credits, quản lý thư viện, cách sử dụng pack với AI agent.</p>
-        <span class="docs-card-link">Xem hướng dẫn</span>
+        <p data-i18n="docs.card.buyer.p">Tìm kiếm và mua Knowledge Pack, nạp credits, quản lý thư viện, cách sử dụng pack với AI agent.</p>
+        <span class="docs-card-link" data-i18n="docs.card.sheets.link">Xem hướng dẫn</span>
       </a>
 
       <a class="docs-card" href="knowledge-pack-spec.html">
         <div class="docs-card-icon pack">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
         </div>
-        <h3>Tạo Knowledge Pack</h3>
-        <p>Chuẩn cấu trúc 7 phần bắt buộc, 3 loại pack (Knowledge Doc, Agent Blueprint, Dataset), checklist trước submit.</p>
-        <span class="docs-card-link">Xem chuẩn cấu trúc</span>
+        <h3 data-i18n="docs.card.pack.h3">Tạo Knowledge Pack</h3>
+        <p data-i18n="docs.card.pack.p">Chuẩn cấu trúc 7 phần bắt buộc, 3 loại pack (Knowledge Doc, Agent Blueprint, Dataset), checklist trước submit.</p>
+        <span class="docs-card-link" data-i18n="docs.card.pack.link">Xem chuẩn cấu trúc</span>
       </a>
 
     </div>
 
-    <!-- Section: Legal -->
-    <div class="docs-section-title">Pháp lý &amp; Chính sách</div>
+    <!-- Section: Legal (Vietnamese only — see BACKLOG.md I18N-01) -->
+    <div class="docs-section-title" data-i18n="docs.section.legal">Pháp lý &amp; Chính sách</div>
     <div class="docs-card-grid">
 
       <a class="docs-card" href="terms.html">
@@ -217,6 +224,8 @@
 
 </div>
 
+<script src="docs-i18n-data/docs.js"></script>
+<script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>
 
 </body>
