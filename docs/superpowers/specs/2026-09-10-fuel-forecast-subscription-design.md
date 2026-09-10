@@ -171,8 +171,12 @@ GET /api/v1/fuel-forecast/{fuel}   fuel in {RON95, E5RON92, DO005S}
     value, per the free-tier scope decision above).
   - `True` -> full response, all 3 scenarios, full breakdown.
 - No API-key metering (unlike gold/silver/etc. in `main.py`) — gating is by
-  subscription, not by key tier. Auth comes from the existing FE Bearer
-  session (`middleware.authenticate_user`), same as `wallet.py`.
+  subscription, not by key tier. Auth is **optional** here, unlike `wallet.py`
+  — the free tier must work for an anonymous visitor, so this endpoint uses
+  `middleware.authenticate_user_optional` (the `reports.py` pattern), not the
+  required-auth `authenticate_user` pattern the line above originally said.
+  Corrected 2026-09-10 during Task 4's review, which caught this line
+  contradicting the plan's own (correct) implementation.
 
 ## FE
 
