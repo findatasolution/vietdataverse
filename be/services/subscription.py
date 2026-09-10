@@ -1,0 +1,291 @@
+"""Platform subscription billing — atomic, idempotent, same pattern as
+be/services/credit.py's purchase_product(). New tables live in
+KNOWLEDGE_MARKET_DB (same DB as credit_balance/credit_ledger), so a
+subscription write and a wallet debit always share one transaction.
+"""
+from datetime import datetime, timedelta
+
+from sqlalchemy import text
+
+from core.engines import get_engine_knowledge
+from services.credit import InsufficientCredits
+
+GRACE_PERIOD_DAYS = 3
+
+
+class SubscriptionError(Exception):
+    pass
+
+
+def _decide_renewal(status: str, current_period_end: datetime, grace_until: datetime | None,
+                    balance: int, price: int, billing_period_days: int,
+                    now: datetime) -> dict:
+    """PURE. One decision for one subscription row during a billing-cycle pass.
+    See docs/superpowers/specs/2026-09-10-fuel-forecast-subscription-design.md
+    "run_billing_cycle" for the two-pass rationale (on-time renewal extends from
+    the existing anchor date; a late reactivation buys a fresh period from now)."""
+    if status == "cancelled":
+        return {"action": "noop"}
+
+    if status == "active":
+        if current_period_end > now:
+            return {"action": "noop"}
+        if balance >= price:
+            return {
+                "action": "charge",
+                "new_status": "active",
+                "new_period_end": current_period_end + timedelta(days=billing_period_days),
+                "event": "charged",
+            }
+        return {
+            "action": "mark_past_due",
+            "grace_until": now + timedelta(days=GRACE_PERIOD_DAYS),
+            "event": "charge_failed",
+        }
+
+    if status == "past_due":
+        if balance >= price:
+            return {
+                "action": "charge",
+                "new_status": "active",
+                "new_period_end": now + timedelta(days=billing_period_days),
+                "event": "reactivated",
+            }
+        if grace_until is not None and now > grace_until:
+            return {
+                "action": "cancel",
+                "event": "cancelled",
+                "note": "Grace period expired without sufficient balance",
+            }
+        return {"action": "noop"}
+
+    raise SubscriptionError(f"unknown subscription status: {status!r}")
+
+
+def _get_product(conn, product_code: str) -> dict:
+    row = conn.execute(text("""
+        SELECT price_credits, billing_period_days, active
+        FROM platform_products WHERE code = :c
+    """), {"c": product_code}).first()
+    if not row:
+        raise ValueError(f"Unknown product_code: {product_code}")
+    if not row[2]:
+        raise ValueError(f"Product not active: {product_code}")
+    return {"price_credits": row[0], "billing_period_days": row[1]}
+
+
+def _write_event(conn, subscription_id: int, event_type: str,
+                 amount_credits: int | None = None, note: str | None = None) -> None:
+    conn.execute(text("""
+        INSERT INTO platform_subscription_events (subscription_id, event_type, amount_credits, note)
+        VALUES (:sid, :et, :amt, :note)
+    """), {"sid": subscription_id, "et": event_type, "amt": amount_credits, "note": note})
+
+
+def subscribe(user_id: int, product_code: str) -> dict:
+    """Subscribe (or reactivate a cancelled subscription). Raises ValueError if
+    already active/past_due, or if the product doesn't exist/is inactive.
+    Raises InsufficientCredits if the wallet can't cover the first charge."""
+    engine = get_engine_knowledge()
+    with engine.begin() as conn:
+        product = _get_product(conn, product_code)
+        price = product["price_credits"]
+        period_days = product["billing_period_days"]
+
+        existing = conn.execute(text("""
+            SELECT id, status FROM platform_subscriptions
+            WHERE user_id = :u AND product_code = :p FOR UPDATE
+        """), {"u": user_id, "p": product_code}).first()
+        if existing and existing[1] in ("active", "past_due"):
+            raise ValueError(f"Already subscribed (status={existing[1]})")
+
+        balance_row = conn.execute(text(
+            "SELECT balance FROM credit_balance WHERE user_id = :u FOR UPDATE"
+        ), {"u": user_id}).first()
+        balance = balance_row[0] if balance_row else 0
+        if balance < price:
+            raise InsufficientCredits(f"Insufficient credits: need {price}, have {balance}")
+
+        now = datetime.utcnow()
+        period_end = now + timedelta(days=period_days)
+
+        if existing:
+            sub_id = existing[0]
+            conn.execute(text("""
+                UPDATE platform_subscriptions
+                SET status='active', current_period_end=:pe, grace_until=NULL, cancelled_at=NULL
+                WHERE id = :id
+            """), {"pe": period_end, "id": sub_id})
+        else:
+            sub_id = conn.execute(text("""
+                INSERT INTO platform_subscriptions (user_id, product_code, status, current_period_end)
+                VALUES (:u, :p, 'active', :pe) RETURNING id
+            """), {"u": user_id, "p": product_code, "pe": period_end}).scalar()
+
+        idem_key = f"subscription:{sub_id}:{int(now.timestamp())}"
+        conn.execute(text("""
+            INSERT INTO credit_ledger (user_id, amount, kind, ref_type, ref_id, idem_key, note)
+            VALUES (:u, :a, 'subscription_charge', 'subscription', :sid, :k, :n)
+        """), {"u": user_id, "a": -price, "sid": sub_id, "k": idem_key,
+               "n": f"Subscribe {product_code}"})
+        conn.execute(text("""
+            UPDATE credit_balance SET balance = balance - :a, updated_at = NOW() WHERE user_id = :u
+        """), {"a": price, "u": user_id})
+
+        _write_event(conn, sub_id, "created")
+        _write_event(conn, sub_id, "charged", amount_credits=price)
+
+        return {"subscription_id": sub_id, "current_period_end": period_end,
+                "balance_after": balance - price}
+
+
+def cancel_subscription(user_id: int, product_code: str) -> dict:
+    """Idempotent: cancelling an already-cancelled subscription is a no-op."""
+    engine = get_engine_knowledge()
+    with engine.begin() as conn:
+        row = conn.execute(text("""
+            SELECT id, status FROM platform_subscriptions
+            WHERE user_id = :u AND product_code = :p FOR UPDATE
+        """), {"u": user_id, "p": product_code}).first()
+        if not row:
+            raise ValueError("No subscription found")
+        sub_id, status = row
+        if status == "cancelled":
+            return {"status": "cancelled"}
+
+        conn.execute(text("""
+            UPDATE platform_subscriptions
+            SET status='cancelled', cancelled_at=NOW() WHERE id = :id
+        """), {"id": sub_id})
+        _write_event(conn, sub_id, "cancelled", note="Cancelled by user")
+        return {"status": "cancelled"}
+
+
+def get_subscription(user_id: int, product_code: str) -> dict | None:
+    engine = get_engine_knowledge()
+    with engine.connect() as conn:
+        row = conn.execute(text("""
+            SELECT id, status, current_period_end, grace_until, created_at, cancelled_at
+            FROM platform_subscriptions WHERE user_id = :u AND product_code = :p
+        """), {"u": user_id, "p": product_code}).first()
+    if not row:
+        return None
+    return {
+        "id": row[0], "status": row[1], "current_period_end": row[2],
+        "grace_until": row[3], "created_at": row[4], "cancelled_at": row[5],
+    }
+
+
+def has_active_subscription(user_id: int | None, product_code: str) -> bool:
+    if user_id is None:
+        return False
+    sub = get_subscription(user_id, product_code)
+    return bool(sub and sub["status"] == "active")
+
+
+def list_subscription_history(user_id: int, limit: int = 50, offset: int = 0) -> list[dict]:
+    engine = get_engine_knowledge()
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT e.id, e.event_type, e.amount_credits, e.note, e.created_at,
+                   s.product_code
+            FROM platform_subscription_events e
+            JOIN platform_subscriptions s ON s.id = e.subscription_id
+            WHERE s.user_id = :u
+            ORDER BY e.created_at DESC
+            LIMIT :lim OFFSET :off
+        """), {"u": user_id, "lim": limit, "off": offset}).fetchall()
+    return [{
+        "id": r[0], "event_type": r[1], "amount_credits": r[2], "note": r[3],
+        "created_at": r[4], "product_code": r[5],
+    } for r in rows]
+
+
+def run_billing_cycle(now: datetime | None = None) -> dict:
+    """Called by the daily cron. One short transaction per subscription — a
+    stuck row must not block every other renewal."""
+    now = now or datetime.utcnow()
+    engine = get_engine_knowledge()
+    counts = {"renewed": 0, "past_due": 0, "cancelled": 0}
+
+    with engine.connect() as conn:
+        due_ids = [r[0] for r in conn.execute(text("""
+            SELECT id FROM platform_subscriptions WHERE status IN ('active', 'past_due')
+        """)).fetchall()]
+
+    for sub_id in due_ids:
+        with engine.begin() as conn:
+            sub = conn.execute(text("""
+                SELECT id, user_id, product_code, status, current_period_end, grace_until
+                FROM platform_subscriptions WHERE id = :id FOR UPDATE
+            """), {"id": sub_id}).first()
+            if not sub:
+                continue
+            _, user_id, product_code, status, period_end, grace_until = sub
+            product = _get_product(conn, product_code)
+
+            balance_row = conn.execute(text(
+                "SELECT balance FROM credit_balance WHERE user_id = :u FOR UPDATE"
+            ), {"u": user_id}).first()
+            balance = balance_row[0] if balance_row else 0
+
+            decision = _decide_renewal(
+                status=status, current_period_end=period_end, grace_until=grace_until,
+                balance=balance, price=product["price_credits"],
+                billing_period_days=product["billing_period_days"], now=now,
+            )
+
+            if decision["action"] == "noop":
+                continue
+
+            if decision["action"] == "charge":
+                price = product["price_credits"]
+                idem_key = f"subscription:{sub_id}:renew:{int(now.timestamp())}"
+                conn.execute(text("""
+                    INSERT INTO credit_ledger (user_id, amount, kind, ref_type, ref_id, idem_key, note)
+                    VALUES (:u, :a, 'subscription_charge', 'subscription', :sid, :k, :n)
+                """), {"u": user_id, "a": -price, "sid": sub_id, "k": idem_key,
+                       "n": f"Renew {product_code}"})
+                conn.execute(text("""
+                    UPDATE credit_balance SET balance = balance - :a, updated_at = NOW() WHERE user_id = :u
+                """), {"a": price, "u": user_id})
+                conn.execute(text("""
+                    UPDATE platform_subscriptions
+                    SET status = :st, current_period_end = :pe, grace_until = NULL
+                    WHERE id = :id
+                """), {"st": decision["new_status"], "pe": decision["new_period_end"], "id": sub_id})
+                _write_event(conn, sub_id, decision["event"], amount_credits=price)
+                counts["renewed"] += 1
+
+            elif decision["action"] == "mark_past_due":
+                conn.execute(text("""
+                    UPDATE platform_subscriptions SET status = 'past_due', grace_until = :g
+                    WHERE id = :id
+                """), {"g": decision["grace_until"], "id": sub_id})
+                _write_event(conn, sub_id, decision["event"])
+                counts["past_due"] += 1
+
+            elif decision["action"] == "cancel":
+                conn.execute(text("""
+                    UPDATE platform_subscriptions SET status = 'cancelled', cancelled_at = :now
+                    WHERE id = :id
+                """), {"now": now, "id": sub_id})
+                _write_event(conn, sub_id, decision["event"], note=decision["note"])
+                counts["cancelled"] += 1
+
+    return counts
+
+
+if __name__ == "__main__":
+    import sys
+    from pathlib import Path
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+    if "--run-billing-cycle" in sys.argv:
+        result = run_billing_cycle()
+        print(f"Billing cycle complete: {result}")
+    else:
+        sys.exit("Usage: python be/services/subscription.py --run-billing-cycle")
