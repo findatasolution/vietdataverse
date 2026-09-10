@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Reference | Viet Dataverse</title>
-    <meta name="description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, VN30 stocks, CPI, GDP.">
+    <meta name="description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, CPI, GDP.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://vietdataverse.online/pages/api-docs.html">
     <meta property="og:type" content="article">
     <meta property="og:title" content="API Reference | Viet Dataverse">
-    <meta property="og:description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, VN30 stocks, CPI, GDP.">
+    <meta property="og:description" content="API documentation for Viet Dataverse financial data — gold, silver, interest rates, CPI, GDP.">
     <meta property="og:url" content="https://vietdataverse.online/pages/api-docs.html">
     <script type="application/ld+json">
     {
@@ -370,7 +370,6 @@
             <a class="doc-toc-item" href="#commodity" data-i18n="ad.toc.commodity">Hàng hoá</a>
             <a class="doc-toc-item" href="#rates" data-i18n="ad.toc.rates">Lãi suất &amp; Tỷ giá</a>
             <a class="doc-toc-item" href="#macro" data-i18n="ad.toc.macro">Vĩ mô</a>
-            <a class="doc-toc-item" href="#vn30" data-i18n="ad.toc.vn30">VN30 Cổ phiếu</a>
             <a class="doc-toc-item" href="#analysis" data-i18n="ad.toc.analysis">Rủi ro biến động giá</a>
             <a class="doc-toc-item" href="#news" data-i18n="ad.toc.news">Tin tức thị trường</a>
         </div>
@@ -380,7 +379,7 @@
 
         <h1 data-i18n="ad.h1">Dữ liệu tài chính Việt Nam qua một API đơn giản</h1>
         <p class="doc-lead" data-i18n="ad.lead">
-            Gold, silver, CPI, GDP, lãi suất, tỷ giá, VN30 — tất cả từ một endpoint.
+            Gold, silver, CPI, GDP, lãi suất, tỷ giá — tất cả từ một endpoint.
             Tích hợp trong vài phút với Python, JavaScript hoặc bất kỳ ngôn ngữ nào hỗ trợ HTTP.
         </p>
 
@@ -567,7 +566,7 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
                             <li>Excel → <strong>Insert → Get Add-ins → Upload My Add-in</strong> → chọn file vừa tải</li>
                             <li>Panel "Viet Dataverse" xuất hiện bên phải — nhập API key, chọn dữ liệu, nhấn <strong>Nhập vào Excel</strong></li>
                         </ol>
-                        <p style="font-size:12px;color:var(--text-tertiary);">Hỗ trợ: Vàng · Bạc · Tỷ giá · Lãi suất · CPI · VN30 OHLCV · Dữ liệu toàn cầu</p>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Hỗ trợ: Vàng · Bạc · Tỷ giá · Lãi suất · CPI · Dữ liệu toàn cầu</p>
                     </div>
                 </details>
 
@@ -663,7 +662,6 @@ const GROUP_LABELS_VI = {
     commodity: 'Hàng hoá',
     rates:     'Lãi suất & Tỷ giá',
     macro:     'Vĩ mô Việt Nam',
-    vn30:      'VN30 Cổ phiếu',
     analysis:  'Rủi ro biến động giá ngành',
     news:      'Tin tức thị trường',
 };
@@ -671,7 +669,6 @@ const GROUP_LABELS_EN = {
     commodity: 'Commodities',
     rates:     'Rates & FX',
     macro:     'Vietnam Macro',
-    vn30:      'VN30 Stocks',
     analysis:  'Sector Volatility Risk',
     news:      'Market News',
 };
@@ -683,10 +680,9 @@ const ENDPOINT_GROUPS = {
     commodity: ['/api/v1/gold', '/api/v1/gold/types', '/api/v1/silver'],
     rates:     ['/api/v1/sbv-interbank', '/api/v1/sbv-centralrate', '/api/v1/termdepo', '/api/v1/termdepo/banks'],
     macro:     ['/api/v1/macro/cpi', '/api/v1/macro/gdp', '/api/v1/macro/trade', '/api/v1/global-macro'],
-    vn30:      ['/api/v1/vn30/profile', '/api/v1/vn30/sector-summary',
-                '/api/v1/vn30/prices/{ticker}', '/api/v1/vn30/financials/{ticker}', '/api/v1/vn30/ratios/{ticker}'],
+    // vn30 group removed 2026-09-10 (REV-01) — see be/routers/vn30_data.py docstring.
     analysis:  ['/api/v1/gold-analysis', '/api/v1/market-pulse'],
-    news:      ['/api/v1/news/market', '/api/v1/news/commodity', '/api/v1/news/vn30/{ticker}'],
+    news:      ['/api/v1/news/market', '/api/v1/news/commodity'],
 };
 
 async function loadEndpoints() {

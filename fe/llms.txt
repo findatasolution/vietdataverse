@@ -1,8 +1,8 @@
 # Viet Dataverse
 
-> Nền tảng dữ liệu tài chính & vĩ mô Việt Nam: giá vàng, bạc, lãi suất tiết kiệm, tỷ giá USD/VND, CPI/lạm phát, chỉ số vĩ mô toàn cầu và dữ liệu doanh nghiệp VN30. Tải miễn phí qua REST API (JSON/CSV) và file tĩnh. Kèm chợ knowledge pack cho AI agent và dòng tin tâm lý thị trường 1 giây.
+> Nền tảng dữ liệu tài chính & vĩ mô Việt Nam: giá vàng, bạc, lãi suất tiết kiệm, tỷ giá USD/VND, CPI/lạm phát, chỉ số vĩ mô toàn cầu. Tải miễn phí qua REST API (JSON/CSV) và file tĩnh. Kèm chợ knowledge pack cho AI agent và dòng tin tâm lý thị trường 1 giây.
 
-> Vietnam financial & macroeconomic data platform: gold, silver, bank deposit rates, USD/VND FX, CPI/inflation, global macro indicators and VN30 corporate data. Free via REST API (JSON/CSV) and static files. Includes a knowledge-pack marketplace for AI agents and a 1-second market-sentiment feed.
+> Vietnam financial & macroeconomic data platform: gold, silver, bank deposit rates, USD/VND FX, CPI/inflation, global macro indicators. Free via REST API (JSON/CSV) and static files. Includes a knowledge-pack marketplace for AI agents and a 1-second market-sentiment feed.
 
 Truy cập API: header `X-API-Key: <key>` hoặc query `?api_key=<key>`. Gói free 1.000 request/tháng. Tham số chung: `?format=json|csv`, `&limit=`, `&page=`. Base URL: https://vietdataverse.online (API cùng origin; OpenAPI tại https://api.vietdataverse.online/docs). Hai endpoint `market-pulse` và `gold-analysis` mở công khai, không cần key.
 
@@ -14,7 +14,6 @@ Truy cập API: header `X-API-Key: <key>` hoặc query `?api_key=<key>`. Gói fr
 - [Tỷ giá / FX USD-VND — VCB & SBV (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/sbv-rate`, `GET /api/v1/sbv-centralrate`, `GET /api/v1/sbv-interbank` (free API key)
 - [CPI / lạm phát — GSO/NSO (monthly)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/macro/cpi` · cũng có `/api/v1/macro/gdp`, `/api/v1/macro/trade` (free API key)
 - [Vĩ mô toàn cầu / Global macro — Yahoo Finance (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/global-macro` · vàng, bạc, Nasdaq (free API key)
-- [VN30 doanh nghiệp / VN30 corporate (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/vn30/prices/{ticker}`, `/api/v1/vn30/financials/{ticker}`, `/api/v1/vn30/ratios/{ticker}`, `/api/v1/vn30/profile` (free API key)
 - [Phân tích vàng / Gold analysis (public)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/gold-analysis` · không cần key
 - [Tâm lý thị trường 1 giây / Market sentiment (public)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/market-pulse` · không cần key, `?lang=&limit=` (tối đa 50)
 

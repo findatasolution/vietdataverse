@@ -789,14 +789,8 @@
             window._prefetchPromises['sbv-1m'] = fetch('./data/sbv_1m.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .catch(e => { console.warn('[prefetch] sbv static failed:', e); return null; });
-            // Prefetch VN-Index for the billboard ticker
-            window._prefetchPromises['vnindex-7d'] = fetch('./data/vnindex_7d.json')
-                .then(r => r.ok ? r.json() : Promise.reject(r.status))
-                .catch(e => { console.warn('[prefetch] vnindex static failed:', e); return null; });
-            // Prefetch VN-Index 1y for the stock chart
-            window._prefetchPromises['vnindex-1y'] = fetch('./data/vnindex_1y.json')
-                .then(r => r.ok ? r.json() : Promise.reject(r.status))
-                .catch(e => { console.warn('[prefetch] vnindex 1y static failed:', e); return null; });
+            // VN-Index prefetches removed 2026-09-10 (REV-01) — vnindex_7d.json/
+            // vnindex_1y.json no longer generated, source was vnstock3.
             // Prefetch global markets (gold/silver/NASDAQ) — live endpoint requires
             // auth, and the 7d/1m static data is empty when the crawler is behind,
             // so 1y is the most reliable static source.
@@ -1288,11 +1282,11 @@
 
             // Runs the ONE existing load function for a chart's family. Every
             // family already destroys its previous Chart.js instance before
-            // creating a new one (chartInstances[x].destroy(), _cpiChart.destroy(),
-            // _vnindexChart.destroy(), …), so calling it again here is safe AND
-            // — importantly — creates the new instance sized against the
-            // container that is now visible, which sidesteps the classic Chart.js
-            // "canvas was display:none when first drawn" sizing bug for free.
+            // creating a new one (chartInstances[x].destroy(), _cpiChart.destroy(), …),
+            // so calling it again here is safe AND — importantly — creates the new
+            // instance sized against the container that is now visible, which
+            // sidesteps the classic Chart.js "canvas was display:none when first
+            // drawn" sizing bug for free.
             function ovLoadDetailData(chart) {
                 if (chart.family === 'dispatch') {
                     const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
@@ -1302,9 +1296,8 @@
                     loadPolicyRates();
                 } else if (chart.family === 'macro') {
                     loadMacroCharts(chart.detailPeriod === 'all' ? 0 : parseInt(chart.detailPeriod, 10));
-                } else if (chart.family === 'stock') {
-                    loadVnindexChart(chart.detailPeriod);
                 }
+                // 'stock' family (VN-Index) removed 2026-09-10 (REV-01).
             }
 
             function ovShowChartDetail(chartId) {
@@ -1695,9 +1688,8 @@
                 loadChartData('global', '1y');
             } else if (sectionKey === 'macro') {
                 loadMacroCharts(20);
-            } else if (sectionKey === 'stock') {
-                loadVnindexChart('1y');
             }
+            // 'stock' section (VN-Index) removed 2026-09-10 (REV-01) — see app.overview.js.
         }
 
         function initScrollSections() {
@@ -2085,30 +2077,9 @@
                     rows2csv = d => 'Date,Gold (USD/oz),Silver (USD/oz),NASDAQ\n' +
                         d.dates.map((dt,i) => `${dt},${d.gold_prices[i]??''},${d.silver_prices[i]??''},${d.nasdaq_prices[i]??''}`).join('\n');
 
-                } else if (datasetId === 'vn30-profile') {
-                    url = `${base}/vn30/download/profile`;
-                    filename = 'vn30_company_profile';
-                    rows2csv = d => 'Ticker,Company Name,Exchange,ICB Sector,ICB Industry,Market Cap (tỷ VND),Listed Date\n' +
-                        d.map(r => `${r.ticker},"${r.company_name ?? ''}",${r.exchange ?? ''},${r.icb_sector ?? ''},${r.icb_industry ?? ''},${r.market_cap_billion ?? ''},${r.listed_date ?? ''}`).join('\n');
-
-                } else if (datasetId === 'vn30-prices') {
-                    url = `${base}/vn30/download/prices?period=all`;
-                    filename = 'vn30_ohlcv_prices';
-                    rows2csv = d => 'Ticker,Date,Open,High,Low,Close,Volume,Value (VND)\n' +
-                        d.map(r => `${r.ticker},${r.date},${r.open??''},${r.high??''},${r.low??''},${r.close??''},${r.volume??''},${r.value??''}`).join('\n');
-
-                } else if (datasetId === 'vn30-financials') {
-                    url = `${base}/vn30/download/financials`;
-                    filename = 'vn30_income_statement';
-                    rows2csv = d => 'Ticker,Year,Quarter,Revenue (tỷ),Gross Profit (tỷ),EBIT (tỷ),Net Income (tỷ),EPS (VND)\n' +
-                        d.map(r => `${r.ticker},${r.year},Q${r.quarter},${r.revenue??''},${r.gross_profit??''},${r.ebit??''},${r.net_income??''},${r.eps??''}`).join('\n');
-
-                } else if (datasetId === 'vn30-ratios') {
-                    url = `${base}/vn30/download/ratios?period=all`;
-                    filename = 'vn30_financial_ratios';
-                    rows2csv = d => 'Ticker,Date,P/E,P/B,P/S,ROE(%),ROA(%),EPS,Dividend Yield(%),Market Cap (tỷ)\n' +
-                        d.map(r => `${r.ticker},${r.date},${r.pe??''},${r.pb??''},${r.ps??''},${r.roe??''},${r.roa??''},${r.eps??''},${r.dividend_yield??''},${r.market_cap_billion??''}`).join('\n');
-
+                // vn30-profile / vn30-prices / vn30-financials / vn30-ratios datasets
+                // removed 2026-09-10 (REV-01) — all four read from vnstock3-sourced
+                // tables via be/routers/vn30_data.py, which no longer exposes them.
                 } else {
                     throw new Error('Unknown dataset: ' + datasetId);
                 }
@@ -3065,41 +3036,9 @@
                 }
             })());
 
-            // VN-Index
-            tasks.push((async () => {
-                try {
-                    const staticR = await fetch('./data/vnindex_7d.json').catch(() => null);
-                    if (staticR && staticR.ok) {
-                        const sj = await staticR.json();
-                        const closes = sj && sj.data && sj.data.close ? sj.data.close : null;
-                        const dates = sj && sj.data && sj.data.dates ? sj.data.dates : null;
-                        const lc = lastChange(closes);
-                        if (lc) {
-                            const lastDate = dates ? dates[dates.length - 1] : null;
-                            setRow('mmVnindexValue', 'mmVnindexChange', lc.last, lc.delta, lc.pct, 2);
-                            setRow('moVnindexValue', 'moVnindexChange', lc.last, lc.delta, lc.pct, 2);
-                            setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', lc.last, lc.delta, lc.pct, 2, lastDate);
-                            drawSpark('tk-vni-spark', closes, lc.delta >= 0);
-                        }
-                    }
-                    const r = await fetchWithTimeout(`${base}/market/vnindex?period=7d`, {}, 15000);
-                    if (r.ok) {
-                        const json = await r.json();
-                        const closes = (json.data || []).map(d => d.close);
-                        const jsonDates = (json.data || []).map(d => d.date);
-                        const vnindex = lastChange(closes);
-                        if (vnindex) {
-                            setRow('mmVnindexValue', 'mmVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
-                            setRow('moVnindexValue', 'moVnindexChange', vnindex.last, vnindex.delta, vnindex.pct, 2);
-                            const lastDate = jsonDates.length ? jsonDates[jsonDates.length - 1] : null;
-                            setTicker('tk-vni-price', 'tk-vni-change', 'tk-vni-ts', vnindex.last, vnindex.delta, vnindex.pct, 2, lastDate);
-                            drawSpark('tk-vni-spark', closes, vnindex.delta >= 0);
-                        }
-                    }
-                } catch (e) {
-                    console.warn('[market-movement] vnindex failed:', e);
-                }
-            })());
+            // VN-Index task removed 2026-09-10 (REV-01) — vn_macro_vnindex_daily is
+            // vnstock3-sourced; moVnindexValue/moVnindexChange row now stays "—"
+            // (same as HNX-INDEX/UPCOM-INDEX below it, which already had no source).
 
             // Bạc (Phú Quý) — static 1m data
             tasks.push((async () => {
@@ -3272,128 +3211,10 @@
             });
         }
 
-        /* =========================================================
-           VNINDEX CHART
-        ========================================================= */
-        (function () {
-            const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || '/api/v1';
-            let _vnindexChart = null;
-            let _vnindexCache = {};
-
-            window.loadVnindexChart = async function (period) {
-                // Update active button
-                document.querySelectorAll('[data-vnindex-period]').forEach(b => {
-                    b.classList.toggle('active', b.dataset.vnindexPeriod === period);
-                });
-
-                if (_vnindexCache[period]) {
-                    renderVnindex(_vnindexCache[period]);
-                    return;
-                }
-
-                const loading = document.getElementById('vnindexLoading');
-                if (loading) loading.style.display = 'flex';
-
-                try {
-                    // Static-first: render immediately from prefetched data, then
-                    // refine with the live API (free endpoint, but may be slower).
-                    const prefetchKey = `vnindex-${period}`;
-                    if (window._prefetchPromises && window._prefetchPromises[prefetchKey]) {
-                        const sj = await window._prefetchPromises[prefetchKey];
-                        delete window._prefetchPromises[prefetchKey];
-                        const sData = sj && sj.data && sj.data.dates
-                            ? sj.data.dates.map((d, i) => ({ date: d, close: sj.data.close[i] }))
-                            : null;
-                        if (sData && sData.length) {
-                            _vnindexCache[period] = sData;
-                            renderVnindex(sData);
-                            if (loading) loading.style.display = 'none';
-                        }
-                    }
-
-                    const r = await fetch(`${API_BASE}/market/vnindex?period=${period}`);
-                    if (!r.ok) throw new Error(`VNIndex API ${r.status}`);
-                    const json = await r.json();
-                    const data = json.data || [];
-                    if (data.length) {
-                        _vnindexCache[period] = data;
-                        renderVnindex(data);
-                    }
-                } catch (e) {
-                    console.error('[vnindex] fetch failed:', e);
-                } finally {
-                    if (loading) loading.style.display = 'none';
-                }
-            };
-
-            function renderVnindex(data) {
-                const canvas = document.getElementById('vnindexChart');
-                if (!canvas) return;
-                if (_vnindexChart) _vnindexChart.destroy();
-
-                const labels = data.map(d => d.date);
-                const closes = data.map(d => d.close);
-                const first = closes[0] || 0;
-                const last  = closes[closes.length - 1] || 0;
-                const up    = last >= first;
-                const color = up ? '#4CAF50' : '#EF5350';
-
-                // The period buttons offer up to "3 năm"/"Tất cả", but the table only
-                // holds VN-Index from 2026-04-16, so every long period silently returned
-                // the same ~4 months while the active pill still claimed "1 năm". State
-                // the range actually plotted instead of letting the label overpromise.
-                const cov = document.getElementById('vnindexCoverage');
-                if (cov && labels.length) {
-                    const vn = iso => iso.split('-').reverse().join('/');
-                    cov.textContent = ` · Dữ liệu hiện có: ${vn(labels[0])} – ${vn(labels[labels.length - 1])}`;
-                }
-
-                _vnindexChart = new Chart(canvas.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels,
-                        datasets: [{
-                            label: 'VN-Index (điểm)',
-                            data: closes,
-                            borderColor: color,
-                            backgroundColor: up ? 'rgba(76,175,80,0.07)' : 'rgba(239,83,80,0.07)',
-                            borderWidth: 2,
-                            pointRadius: 0, pointHoverRadius: 4,
-                            tension: 0.3,
-                            // Truncated axis (prices are never near zero): an area fill would imply
-                            // magnitude measured from 0 and exaggerate every move.
-                            fill: false,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: { duration: 400 },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                mode: 'index', intersect: false,
-                                callbacks: {
-                                    label: ctx => `VN-Index: ${ctx.parsed.y?.toLocaleString('vi-VN')} điểm`
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { ticks: { color: '#87867f', font: { size: 11 }, maxTicksLimit: 10 }, grid: { display: false } },
-                            y: { ticks: { color: '#87867f', font: { size: 11 }, callback: formatNumVi }, grid: { display: false },
-                                 title: { display: true, text: 'điểm', color: '#87867f', font: { size: 10 } } }
-                        }
-                    }
-                });
-            }
-
-            // Period button handler
-            document.addEventListener('click', e => {
-                const btn = e.target.closest('[data-vnindex-period]');
-                if (!btn) return;
-                loadVnindexChart(btn.dataset.vnindexPeriod);
-            });
-        })();
+        // VN-Index chart (loadVnindexChart, renderVnindex) removed 2026-09-10
+        // (REV-01) — its only source, vn_macro_vnindex_daily, is vnstock3-sourced
+        // and the /api/v1/market/vnindex endpoint is gone. See BACKLOG.md for the
+        // follow-up research item on a clean replacement source.
 
         // SBV policy rates have their own horizon, separate from the interbank
         // selector above them (see loadPolicyRates).

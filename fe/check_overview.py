@@ -30,9 +30,12 @@ def main():
     ids = re.findall(r"id: '(\w+)'", overview_js)
     reg_ids = [i for i in ids if i in (
         'gold', 'silver', 'termdepo', 'interbank', 'policy',
-        'fxrate', 'global', 'cpi', 'gdp', 'trade', 'vnindex')]
-    if len(reg_ids) != 11:
-        fail(f'CHART_REGISTRY: expected 11 entries, found {len(reg_ids)}: {reg_ids}')
+        'fxrate', 'global', 'cpi', 'gdp', 'trade')]
+    # 'vnindex' removed 2026-09-10 (REV-01) — was vnstock3-sourced, no longer
+    # exposed on API/FE. 11 -> 10 registry entries (interbank/policy still
+    # share one DOM card, so this was "10 visible cards" even before).
+    if len(reg_ids) != 10:
+        fail(f'CHART_REGISTRY: expected 10 entries, found {len(reg_ids)}: {reg_ids}')
     if len(set(reg_ids)) != len(reg_ids):
         fail(f'CHART_REGISTRY: duplicate ids present: {reg_ids}')
 
@@ -75,18 +78,19 @@ def main():
         fail('index.html: expected exactly one #ov-detail-bar element')
 
     dom_ids = re.findall(r'data-chart-id="(\w+)"', html)
-    # data-chart-id appears on: 10 .chart-card wrappers + 11 mini-tile <button>
-    # markup is JS-generated so won't be in the static HTML — only the 10 cards.
+    # data-chart-id appears on: 9 .chart-card wrappers + 10 mini-tile <button>
+    # markup is JS-generated so won't be in the static HTML — only the 9 cards.
     if sorted(dom_ids) != sorted(['gold', 'silver', 'termdepo', 'interbank',
-                                  'fxrate', 'global', 'cpi', 'gdp', 'trade', 'vnindex']):
+                                  'fxrate', 'global', 'cpi', 'gdp', 'trade']):
         fail(f'index.html: chart-card data-chart-id set is wrong: {sorted(dom_ids)}')
 
     if html.count('id="sbv-policy-anchor"') != 1:
         fail('index.html: expected exactly one #sbv-policy-anchor (policy scroll target)')
 
-    # The 5 sections must start hidden in the STATIC markup — this is the
-    # safe-default the whole routing design leans on.
-    for sec in ['gold-silver', 'currency', 'global', 'macro', 'stock']:
+    # The 4 sections must start hidden in the STATIC markup — this is the
+    # safe-default the whole routing design leans on. ('stock' section removed
+    # 2026-09-10, REV-01 — its only chart, VN-Index, was vnstock3-sourced.)
+    for sec in ['gold-silver', 'currency', 'global', 'macro']:
         pat = f'class="chart-section-group ov-section-hidden" data-lazy-section="{sec}"'
         if pat not in html:
             fail(f'index.html: section "{sec}" is not statically hidden by default')

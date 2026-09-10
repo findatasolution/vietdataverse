@@ -63,7 +63,6 @@ function onDatatypeChange() {
         'silver':     'sub-silver',
         'sbv-rate':   'sub-sbvrate',
         'termdepo':   'sub-termdepo',
-        'vn30/ohlcv': 'sub-vn30',
         'global':     'sub-global',
     };
     if (map[val]) document.getElementById(map[val]).classList.remove('hidden');
@@ -99,9 +98,6 @@ async function _fetchData() {
     } else if (dtype === 'termdepo') {
         var term = document.getElementById('sel-term').value;
         if (term) params.set('term', term);
-    } else if (dtype === 'vn30/ohlcv') {
-        var ticker = document.getElementById('inp-ticker').value.trim().toUpperCase();
-        if (ticker) params.set('ticker', ticker);
     } else if (dtype === 'global') {
         var sym = document.getElementById('sel-global').value;
         params.set('symbol', sym);

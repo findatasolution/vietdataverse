@@ -35,7 +35,6 @@
       <option value="sbv-rate">💱 Tỷ giá USD/VND</option>
       <option value="termdepo">🏦 Lãi suất Tiết kiệm (ACB)</option>
       <option value="macro/cpi">📊 CPI Việt Nam</option>
-      <option value="vn30/ohlcv">📈 VN30 OHLCV</option>
       <option value="global">🌐 Dữ liệu Toàn cầu</option>
     </select>
 
@@ -71,10 +70,8 @@
       </select>
     </div>
 
-    <div id="sub-vn30" class="sub-opts hidden">
-      <label class="label">Mã cổ phiếu</label>
-      <input id="inp-ticker" type="text" class="inp" placeholder="VCB" value="VCB" style="text-transform:uppercase"/>
-    </div>
+    <!-- sub-vn30 (VN30 ticker picker) removed 2026-09-10 (REV-01) — vn30/ohlcv
+         endpoint gone, sourced from vnstock3. -->
 
     <div id="sub-global" class="sub-opts hidden">
       <label class="label">Symbol</label>

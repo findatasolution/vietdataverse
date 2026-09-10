@@ -26,18 +26,6 @@
                     <div class="ticker-strip">
                         <div class="ticker-card-sm">
                             <div class="ticker-top">
-                                <span class="ticker-name" data-i18n="tkVnindexName">Chứng khoán VN</span>
-                                <span class="ticker-badge">VN-INDEX</span>
-                            </div>
-                            <div class="ticker-price-row">
-                                <span class="ticker-price" id="tk-vni-price">—</span>
-                            </div>
-                            <div class="ticker-change neutral" id="tk-vni-change">—</div>
-                            <canvas class="ticker-spark" id="tk-vni-spark"></canvas>
-                            <div class="ticker-ts" id="tk-vni-ts"></div>
-                        </div>
-                        <div class="ticker-card-sm">
-                            <div class="ticker-top">
                                 <span class="ticker-name" data-i18n="tkGoldName">Vàng trong nước</span>
                                 <span class="ticker-badge">DOJI HN</span>
                             </div>
@@ -528,51 +516,23 @@
                         </p>
                     </div>
 
-                    <!-- ── Section: Chứng khoán ── -->
-                    <div class="chart-section-group ov-section-hidden" data-lazy-section="stock">
-                        <h2 class="chart-section-heading">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Chứng khoán</span>
-                        </h2>
-
-                        <div class="chart-card" data-chart-id="vnindex">
-                            <div class="chart-header">
-                                <h3 class="chart-title">
-                                    VN-Index
-                                    <span class="chart-info-icon" data-tooltip="Chỉ số VN-Index (điểm đóng cửa hàng ngày). Nguồn: vnstock3 / VCI, cập nhật sau 17:15 VN mỗi ngày giao dịch.">ⓘ</span>
-                                </h3>
-                                <div class="chart-filters">
-                                    <button class="filter-btn" data-vnindex-period="7d" data-i18n="period7d">7 ngày</button>
-                                    <button class="filter-btn" data-vnindex-period="1m" data-i18n="period1m">1 tháng</button>
-                                    <button class="filter-btn" data-vnindex-period="3m" data-i18n="period3m">3 tháng</button>
-                                    <button class="filter-btn active" data-vnindex-period="1y" data-i18n="period1y">1 năm</button>
-                                    <button class="filter-btn" data-vnindex-period="3y" data-i18n="period3y">3 năm</button>
-                                    <button class="filter-btn" data-vnindex-period="all" data-i18n="periodAll">Tất cả</button>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="vnindexChart"></canvas>
-                                <div class="chart-loading" id="vnindexLoading">
-                                    <div class="chart-skeleton"><div class="skeleton-bars">
-                                        <div class="skeleton skeleton-bar" style="height:50%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:70%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:90%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:65%"></div>
-                                        <div class="skeleton skeleton-bar" style="height:80%"></div>
-                                    </div></div>
-                                </div>
-                            </div>
-                            <small class="chart-source">Nguồn: <a href="https://www.hsx.vn/" target="_blank" rel="noopener">HSX</a> qua vnstock3/VCI · Cập nhật hàng ngày<span id="vnindexCoverage"></span></small>
-                        </div>
-                    </div>
+                    <!-- Section "Chứng khoán" (VN-Index) removed 2026-09-10 (REV-01) — its only
+                         chart read from vn_macro_vnindex_daily, sourced via vnstock3, which
+                         cannot be exposed on API/FE anymore. No clean replacement source found
+                         yet — see BACKLOG.md for the follow-up research item. Overview grid is
+                         9 tiles / 4 sections until a clean VN-Index source lands. -->
 
                     </div><!-- /.portal-main -->
 
-                    <!-- ── Sticky market-overview sidebar — spans all 5 sections ──
+                    <!-- ── Sticky market-overview sidebar — spans all 4 sections ──
                          Values populated in loadMarketMovement() (app.js). Rows with
-                         no crawl source yet (HNX-INDEX, UPCOM-INDEX, Dầu Brent, WTI)
+                         no crawl source yet (VN-INDEX, HNX-INDEX, UPCOM-INDEX, Dầu Brent, WTI)
                          render as "—" and stay that way until a crawler exists — see
-                         CLAUDE.md "Active sources" table before wiring these up. -->
+                         CLAUDE.md "Active sources" table before wiring these up.
+                         VN-INDEX moved into this no-source group 2026-09-10 (REV-01): its
+                         only prior source, vn_macro_vnindex_daily, is vnstock3-sourced and
+                         can no longer be exposed here — see BACKLOG.md for the follow-up
+                         research item on a clean replacement source. -->
                     <aside class="market-overview-panel" id="market-overview-panel">
                         <h4><i class="fas fa-chart-bar"></i> <span data-i18n="moTitle">Tổng quan thị trường</span></h4>
                         <table class="mo-table">

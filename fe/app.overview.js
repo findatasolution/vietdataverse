@@ -147,23 +147,19 @@
             mini: { file: 'data/trade_monthly.json', recordsMode: true,
                     dateField: 'period', series: 'trade_balance', limit: 24,
                     scale: 1, decimals: 1, color: '#26A69A' }
-        },
-        {
-            id: 'vnindex', section: 'stock', family: 'stock', domCardId: 'vnindex',
-            i18nKey: 'ovVnindex',
-            title: 'VN-Index', source: 'HSX', unit: 'điểm', unitKey: 'unitPoint',
-            detailPeriod: '1y',
-            mini: { file: 'data/vnindex_1y.json', series: 'close',
-                    scale: 1, decimals: 2, color: '#2f5fde', periodic: true }
         }
+        // 'vnindex' entry (section: 'stock') removed 2026-09-10 (REV-01) — its only
+        // source, vn_macro_vnindex_daily, is vnstock3-sourced and can't be exposed
+        // here anymore. No clean replacement found yet — see BACKLOG.md. The whole
+        // 'stock' section is gone with it since this was its only chart; re-add both
+        // together once a clean source exists.
     ];
 
     const SECTIONS = [
         { key: 'gold-silver', i18nKey: 'ovSecGoldSilver', label: 'Vàng & Bạc',          icon: 'fa-coins' },
         { key: 'currency', i18nKey: 'ovSecCurrency',    label: 'Tiền tệ VN',          icon: 'fa-landmark' },
         { key: 'global', i18nKey: 'ovSecGlobal',      label: 'Thị trường quốc tế',  icon: 'fa-globe' },
-        { key: 'macro', i18nKey: 'ovSecMacro',       label: 'Vĩ mô',               icon: 'fa-chart-area' },
-        { key: 'stock', i18nKey: 'ovSecStock',       label: 'Chứng khoán',         icon: 'fa-chart-line' }
+        { key: 'macro', i18nKey: 'ovSecMacro',       label: 'Vĩ mô',               icon: 'fa-chart-area' }
     ];
 
     const byId = id => CHART_REGISTRY.find(c => c.id === id) || null;
@@ -248,7 +244,7 @@
 
     /* Static JSON in fe/data/ comes in two incompatible shapes:
        - {dates:[…], <series>:[…]} — gold, silver, termdepo, interbank, policy,
-         fxrate, global, vnindex. Two parallel arrays, index-aligned.
+         fxrate, global. Two parallel arrays, index-aligned.
        - a bare array of records, e.g. cpi_annual.json:
          [{period:"2002", yoy_pct:4.04, months:1}, …]. Set `recordsMode: true`
          and `dateField` in the registry entry for this shape.
