@@ -14,6 +14,7 @@ from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 
+from core import ga4
 from core.engines import get_engine_user
 from middleware import authenticate_user
 from payment import SUBSCRIPTION_PLANS, _query_payos_order
@@ -525,12 +526,20 @@ async def admin_dashboard(
                     ],
                 }
 
+        website_traffic = None
+        if ga4.is_configured():
+            try:
+                website_traffic = ga4.get_traffic_summary(period)
+            except Exception:
+                website_traffic = {"error": "GA4 query failed"}
+
         return _json_response({
             "success": True,
             "period": {
                 "key": period,
                 "label": period_config["label"],
             },
+            "website_traffic": website_traffic,
             "revenue": {
                 "this_month": int(rev_this),
                 "last_month": int(rev_last),

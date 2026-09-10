@@ -240,6 +240,7 @@
         <div class="kpi-card"><div class="kpi-label">Request bị từ chối</div><div class="kpi-value" id="api-rejected">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Active subscribers</div><div class="kpi-value" id="active-subs">—</div><div class="kpi-sub" id="tier-breakdown"></div></div>
         <div class="kpi-card"><div class="kpi-label">Tổng users</div><div class="kpi-value" id="total-users">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Lượt truy cập web (GA4)</div><div class="kpi-value" id="ga4-pageviews">—</div><div class="kpi-sub" id="ga4-sub">—</div></div>
     </div>
 
     <!-- Experience feedback -->
@@ -492,6 +493,16 @@ async function loadDashboard(period = _reportPeriod) {
     document.getElementById('api-anonymous').textContent = (api.anonymous_or_invalid || 0).toLocaleString('vi-VN');
     document.getElementById('api-rejected').textContent = (api.rejected || 0).toLocaleString('vi-VN');
     renderFeedback(d.feedback);
+
+    const traffic = d.website_traffic;
+    if (traffic && !traffic.error) {
+        document.getElementById('ga4-pageviews').textContent = (traffic.pageviews || 0).toLocaleString('vi-VN');
+        document.getElementById('ga4-sub').textContent =
+            `${(traffic.active_users || 0).toLocaleString('vi-VN')} active users · ${(traffic.sessions || 0).toLocaleString('vi-VN')} sessions · ${(traffic.new_users || 0).toLocaleString('vi-VN')} mới`;
+    } else {
+        document.getElementById('ga4-pageviews').textContent = '—';
+        document.getElementById('ga4-sub').textContent = traffic ? 'Lỗi lấy dữ liệu GA4' : 'Chưa cấu hình GA4';
+    }
 }
 
 // ── Signup trend chart ──────────────────────────────────────────────────────
