@@ -332,51 +332,11 @@ async def list_endpoints():
                     {"name": "months", "type": "int", "default": 12, "max": 60},
                 ],
             },
-            # ── VN30 cổ phiếu ────────────────────────────────────────────
-            {
-                "path": "/api/v1/vn30/profile",
-                "method": "GET",
-                "access": "free",
-                "description": "Danh sách 30 công ty VN30 và phân loại ngành ICB",
-                "params": [],
-            },
-            {
-                "path": "/api/v1/vn30/sector-summary",
-                "method": "GET",
-                "access": "free",
-                "description": "Tổng hợp chỉ số tài chính theo ngành ICB",
-                "params": [],
-            },
-            {
-                "path": "/api/v1/vn30/prices/{ticker}",
-                "method": "GET",
-                "access": "premium_developer",
-                "description": "Lịch sử giá OHLCV theo mã cổ phiếu",
-                "params": [
-                    {"name": "ticker", "type": "path", "example": "VNM"},
-                    {"name": "period", "type": "string", "options": ["7d", "1m", "1y"], "default": "1m"},
-                ],
-            },
-            {
-                "path": "/api/v1/vn30/financials/{ticker}",
-                "method": "GET",
-                "access": "premium_developer",
-                "description": "Báo cáo tài chính hàng quý (KQKD, CĐKT, LCTT)",
-                "params": [
-                    {"name": "ticker",   "type": "path", "example": "VNM"},
-                    {"name": "quarters", "type": "int", "default": 8, "max": 20},
-                ],
-            },
-            {
-                "path": "/api/v1/vn30/ratios/{ticker}",
-                "method": "GET",
-                "access": "premium_developer",
-                "description": "Lịch sử tỷ số tài chính (P/E, P/B, ROE, ROA, EPS...)",
-                "params": [
-                    {"name": "ticker", "type": "path", "example": "VNM"},
-                    {"name": "period", "type": "string", "options": ["7d", "1m", "1y"], "default": "1m"},
-                ],
-            },
+            # VN30 endpoint group removed 2026-09-10 (REV-01) — every one of them
+            # read from a vnstock3-sourced table (vn30_company_profile,
+            # vn30_ohlcv_daily, vn30_income_stmt_quarterly, vn30_ratio_daily), which
+            # cannot be exposed on the public API. See be/routers/vn30_data.py's
+            # module docstring for the full context.
             # ── AI & Phân tích ───────────────────────────────────────────
             {
                 "path": "/api/v1/gold-analysis",

@@ -10,7 +10,11 @@ User routes (Bearer JWT, premium_developer only):
 Internal trigger (X-Internal-Secret header):
   POST   /api/v1/internal/webhooks/trigger  — fire event to all subscribers
 
-Supported events: gold, silver, sbv_rate, termdepo, cpi, global, vn30
+Supported events: gold, silver, sbv_rate, termdepo, cpi, global
+
+("vn30" removed 2026-09-10, REV-01 — was never actually wired to fire (no
+crawl_vn30_*.py script ever called the internal trigger), and its data can't be
+exposed to subscribers anymore anyway. See be/routers/vn30_data.py docstring.)
 """
 
 import hashlib
@@ -34,7 +38,7 @@ from middleware import authenticate_user
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-VALID_EVENTS = frozenset(["gold", "silver", "sbv_rate", "termdepo", "cpi", "global", "vn30"])
+VALID_EVENTS = frozenset(["gold", "silver", "sbv_rate", "termdepo", "cpi", "global"])
 _INTERNAL_SECRET = os.getenv("WEBHOOK_INTERNAL_SECRET", "")
 
 

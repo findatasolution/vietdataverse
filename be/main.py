@@ -45,7 +45,6 @@ METERED_PREFIXES = (
     "/api/v1/sbv-centralrate",
     "/api/v1/termdepo",        # termdepo + termdepo/banks
     "/api/v1/global",          # global + global-macro
-    "/api/v1/vn30",            # vn30 data
     "/api/v1/macro",           # macro (CPI/GDP/trade) — chart CPI công khai giờ
                                # đọc data/cpi_*.json nên gate live endpoint an toàn.
 )
