@@ -52,7 +52,17 @@ async def get_forecast(fuel: str, request: Request, _auth: None = Depends(authen
 
     user = getattr(request.state, "user", None)
     user_id = _resolve_user_id_optional(user.get("auth0_id")) if user else None
-    is_advanced = has_active_subscription(user_id, PRODUCT_CODE)
+    # Fail soft to the free tier, same as _resolve_user_id_optional above: a
+    # KNOWLEDGE_MARKET_DB hiccup (missing env var → RuntimeError, connect/pool
+    # error) must not 500 a page that anonymous visitors get a clean 200 on.
+    # Logged, not swallowed silently — a subscriber wrongly downgraded to free
+    # needs to be visible in the logs.
+    try:
+        is_advanced = has_active_subscription(user_id, PRODUCT_CODE)
+    except Exception:
+        logger.exception("fuel-forecast: subscription check failed for user_id=%s; "
+                         "falling back to free tier", user_id)
+        is_advanced = False
 
     engine = get_engine_fuel()
     with engine.connect() as conn:

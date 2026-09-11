@@ -209,7 +209,12 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 11V8a6 6 0 0 1 12 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="4" y="11" width="16" height="10" rx="2.5" stroke="#fff" stroke-width="2"/></svg>
         </div>
         <h3>Dải dự báo đầy đủ dành cho khách hàng B2B</h3>
-        <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo 4 kỳ tới (kèm hệ số k, R², độ lệch chuẩn residual) mở khoá sau khi đăng ký gói dữ liệu.</p>
+        <!-- Copy phải khớp đúng những gì backend thực sự gate (Task 4 free/advanced
+             split): dải kịch bản low/high + breakdown mô hình (hệ số k). R² và skill
+             vs random-walk KHÔNG nằm trong breakdown của be/fuel/forecast.py — chúng
+             là số liệu phân tích một lần, hiển thị công khai ngay trên trang này, nên
+             không được quảng cáo là nội dung trả phí. -->
+        <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá sau khi đăng ký gói dữ liệu.</p>
         <button class="unlock-btn" id="btn-subscribe-cta">Đăng ký gói B2B →</button>
         <div class="subscribe-msg" id="subscribe-msg" hidden></div>
       </div>
@@ -403,7 +408,9 @@
     var price = state.plan.price_credits;
     var days = state.plan.billing_period_days;
     btn.textContent = "Đăng ký gói B2B — " + price + " credit / " + days + " ngày →";
-    desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo 4 kỳ tới (kèm hệ số k, R², độ lệch chuẩn residual) mở khoá với gói " +
+    // Giữ đồng bộ với #lock-desc trong HTML tĩnh phía trên — chỉ nêu đúng phần
+    // backend thật sự gate (dải low/high + hệ số k), không nêu R²/skill.
+    desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá với gói " +
       price + " credit mỗi " + days + " ngày.";
   }
 

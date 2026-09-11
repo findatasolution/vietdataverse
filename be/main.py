@@ -52,6 +52,9 @@ METERED_PREFIXES = (
 TRACKED_PUBLIC_PREFIXES = (
     "/api/v1/gold-analysis",
     "/api/v1/market-pulse",
+    "/api/v1/fuel-forecast",   # công khai, KHÔNG metered (gating theo subscription
+                               # chứ không theo API-key tier) — nhưng vẫn log lời gọi
+                               # như gold-analysis/market-pulse.
 )
 
 

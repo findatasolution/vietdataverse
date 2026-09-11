@@ -185,10 +185,18 @@ def get_subscription(user_id: int, product_code: str) -> dict | None:
 
 
 def has_active_subscription(user_id: int | None, product_code: str) -> bool:
+    """Entitlement check. status='active' alone is NOT enough: run_billing_cycle
+    only flips an unpaid row to 'past_due' on its next daily pass, so between
+    current_period_end and that pass the row still reads 'active'. The period end
+    is the real boundary — without this check a single payment would grant
+    permanent access if the billing cron ever stopped running."""
     if user_id is None:
         return False
     sub = get_subscription(user_id, product_code)
-    return bool(sub and sub["status"] == "active")
+    if not sub or sub["status"] != "active":
+        return False
+    period_end = sub["current_period_end"]
+    return bool(period_end and period_end > datetime.utcnow())
 
 
 def list_subscription_history(user_id: int, limit: int = 50, offset: int = 0) -> list[dict]:
@@ -203,9 +211,15 @@ def list_subscription_history(user_id: int, limit: int = 50, offset: int = 0) ->
             ORDER BY e.created_at DESC
             LIMIT :lim OFFSET :off
         """), {"u": user_id, "lim": limit, "off": offset}).fetchall()
+    # created_at is a naive UTC timestamp in Postgres. Serialised with
+    # json.dumps(default=str) it came out as "2026-09-11 03:11:00.123456" —
+    # space-separated with no zone marker, which JS `new Date()` parses as LOCAL
+    # time (7h off for a VN user) and some browsers reject outright. Emit
+    # explicit ISO-8601 UTC instead.
     return [{
         "id": r[0], "event_type": r[1], "amount_credits": r[2], "note": r[3],
-        "created_at": r[4], "product_code": r[5],
+        "created_at": r[4].isoformat() + "Z" if r[4] is not None else None,
+        "product_code": r[5],
     } for r in rows]
 
 
@@ -289,9 +303,19 @@ def run_billing_cycle(now: datetime | None = None) -> dict:
     counts = {"renewed": 0, "past_due": 0, "cancelled": 0}
 
     with engine.connect() as conn:
+        # Only rows that can actually produce an action. An 'active' row whose
+        # period hasn't ended yet is a guaranteed _decide_renewal noop, so it is
+        # excluded here rather than loaded and discarded — this is the query
+        # idx_platform_subs_status (status, current_period_end) exists for.
+        # 'past_due' rows are always considered (their decision depends on
+        # balance and grace_until, not on current_period_end). `now` is bound
+        # from the caller's argument, not SQL NOW(), so run_billing_cycle stays
+        # testable with an injected clock.
         due_ids = [r[0] for r in conn.execute(text("""
-            SELECT id FROM platform_subscriptions WHERE status IN ('active', 'past_due')
-        """)).fetchall()]
+            SELECT id FROM platform_subscriptions
+            WHERE (status = 'active' AND current_period_end <= :now)
+               OR status = 'past_due'
+        """), {"now": now}).fetchall()]
 
     action_to_count = {"charge": "renewed", "mark_past_due": "past_due", "cancel": "cancelled"}
 

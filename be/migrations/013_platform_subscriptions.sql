@@ -35,6 +35,12 @@ CREATE TABLE IF NOT EXISTS platform_subscription_events (
 );
 CREATE INDEX IF NOT EXISTS idx_platform_sub_events_sub ON platform_subscription_events (subscription_id, created_at DESC);
 
+-- Seeded INACTIVE on purpose: selling this product is gated on the NĐ169 legal
+-- review, which hasn't happened yet. A fresh migration run (new environment)
+-- must not put it on sale by default — flip active=true manually once legal
+-- signs off. ON CONFLICT DO NOTHING is deliberate: the production row already
+-- exists and its active flag is operational state, not something a re-run of
+-- this migration should overwrite in either direction.
 INSERT INTO platform_products (code, name, price_credits, list_price_credits, billing_period_days, active)
-VALUES ('fuel-forecast-advanced', 'Fuel Forecast — Advanced', 60, 120, 30, true)
+VALUES ('fuel-forecast-advanced', 'Fuel Forecast — Advanced', 60, 120, 30, false)
 ON CONFLICT (code) DO NOTHING;
