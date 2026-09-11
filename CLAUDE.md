@@ -108,7 +108,7 @@ Backend dependencies: `pip install -r be/requirements.txt`. Crawlers: `pip insta
 | `USER_DB` | Users, payments, KM (sellers, products, wallet, library) | knowledge_* |
 | `KNOWLEDGE_MARKET_DB` | Knowledge Marketplace + wallet (separate Neon DB from `USER_DB`, despite the row above — `get_engine_knowledge()` in `be/core/engines.py`) | `knowledge_products`, `seller_earnings`, `credit_balance`, `credit_ledger`, `platform_products`, `platform_subscriptions`, `platform_subscription_events` |
 | `HELPER_DB` | Internal ops/DQ tables | — |
-| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; B2B, unreleased) | `fuel_price_cycle`, `fuel_world_daily`, `fuel_forecast`, `fuel_backtest` |
+| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; wallet-billed consumer subscription, not the originally-envisioned B2B corporate API — see "Platform subscriptions + Fuel Forecast gated API" below; gated endpoint and product page are live, but not yet open to real paying customers pending NĐ169 legal review) | `fuel_price_cycle`, `fuel_world_daily`, `fuel_forecast`, `fuel_backtest` |
 
 ### Table naming convention
 
@@ -419,10 +419,12 @@ subscription write and a wallet debit share one transaction.
 **`be/services/subscription.py`** — `subscribe()`, `cancel_subscription()`
 (no refund/proration — confirmed out of scope), `has_active_subscription()`
 (pure lookup, `user_id=None` short-circuits to `False`, used for gating),
-`list_subscription_history()`, `run_billing_cycle()`. The billing cycle runs
-two passes, each row locked independently rather than one big transaction
-(one stuck row must not block every other renewal): renewals due get charged
-and extended by `billing_period_days` from the existing `current_period_end`
+`list_subscription_history()`, `run_billing_cycle()`. The billing cycle fetches
+every `active`/`past_due` subscription id in one query, then processes each in
+its own short transaction (`_decide_renewal` branches per-row on its current
+`status`) rather than one big transaction — a stuck or failing row is caught,
+logged, and skipped, so it can't block every other renewal: renewals due get
+charged and extended by `billing_period_days` from the existing `current_period_end`
 (on-time renewal doesn't lose time); a failed renewal goes `past_due` with a
 **3-day grace period** (`GRACE_PERIOD_DAYS`), retried daily — if the balance
 recovers within the grace window the subscription reactivates from *now*
