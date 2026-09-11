@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dự báo giá xăng dầu | Viet Dataverse</title>
+<link rel="icon" type="image/png" sizes="32x32" href="https://ik.imagekit.io/o2u9hny2s/vietdataverse/favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/fe/auth.js" defer></script>
+<style>
+  :root{color-scheme:light}
+  body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}
+  img{max-width:100%}
+  [hidden]:not([hidden=until-found]){display:none!important}
+</style>
+<style>
+  :root{
+    --paper:#f6f8fc; --card:#ffffff; --card-2:#eef2fa;
+    --ink:#111826; --ink-soft:#495468; --ink-mute:#8590a3;
+    --border:#e1e7f2; --border-soft:#edf1f8;
+    --brand:#2f5fde; --brand-ink:#1e3fae; --brand-soft:#dce6fb; --brand-wash:#eef3fd;
+    --good:#1f9d63; --warn:#b4650a; --warn-bg:#fdf3e6;
+    --bad:#b53333; --bad-bg:#fbeaea;
+    --lock-bg: rgba(17,24,38,.72);
+    --shadow: 0 1px 2px rgba(20,30,55,.04), 0 8px 24px rgba(20,30,55,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0b0f17; --card:#121826; --card-2:#182136;
+      --ink:#eef1f8; --ink-soft:#aab4c8; --ink-mute:#727e93;
+      --border:#232d42; --border-soft:#1b2333;
+      --brand:#6f92f2; --brand-ink:#bcd0ff; --brand-soft:#233458; --brand-wash:#141c2e;
+      --good:#4cc98b; --warn:#e6a23c; --warn-bg:#2a2313;
+      --bad:#e05a5a; --bad-bg:#2c1616;
+      --lock-bg: rgba(6,9,15,.78);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0b0f17; --card:#121826; --card-2:#182136;
+    --ink:#eef1f8; --ink-soft:#aab4c8; --ink-mute:#727e93;
+    --border:#232d42; --border-soft:#1b2333;
+    --brand:#6f92f2; --brand-ink:#bcd0ff; --brand-soft:#233458; --brand-wash:#141c2e;
+    --good:#4cc98b; --warn:#e6a23c; --warn-bg:#2a2313;
+    --bad:#e05a5a; --bad-bg:#2c1616;
+    --lock-bg: rgba(6,9,15,.78);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Lora',Georgia,serif; text-wrap:balance; margin:0}
+  .num{font-variant-numeric:tabular-nums}
+
+  .shell{max-width:1080px; margin:0 auto; padding:28px 20px 64px; display:flex; flex-direction:column; gap:18px}
+
+  /* topbar */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .brand-mark{width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--brand),var(--brand-ink)); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Lora',serif; font-weight:600; font-size:15px; flex:none}
+  .brand-name{font-size:14.5px; font-weight:600; color:var(--ink)}
+  .brand-sub{font-size:11.5px; color:var(--ink-mute)}
+  .beta-badge{font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--brand-ink); background:var(--brand-wash); border:1px solid var(--brand-soft); padding:3px 9px; border-radius:20px}
+
+  .tier-pill{font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:20px; display:inline-flex; align-items:center; gap:6px}
+  .tier-pill.free{background:var(--card-2); color:var(--ink-soft); border:1px solid var(--border)}
+  .tier-pill.advanced{background:var(--brand-wash); color:var(--brand-ink); border:1px solid var(--brand-soft)}
+
+  h1.page-title{font-size:23px; font-weight:600; letter-spacing:-.01em}
+  .page-sub{font-size:13.5px; color:var(--ink-soft); max-width:62ch; line-height:1.55}
+
+  /* fuel tabs */
+  .fuel-tabs{display:flex; gap:6px; border-bottom:1px solid var(--border); padding-bottom:0}
+  .fuel-tab{
+    appearance:none; border:0; background:transparent; cursor:pointer; font:inherit;
+    font-size:13.5px; font-weight:600; color:var(--ink-mute); padding:9px 4px; margin-right:14px;
+    border-bottom:2px solid transparent; display:flex; align-items:baseline; gap:7px;
+  }
+  .fuel-tab .tag{font-size:10.5px; font-weight:500; color:var(--ink-mute); font-variant-numeric:tabular-nums}
+  .fuel-tab.active{color:var(--ink); border-bottom-color:var(--brand)}
+  .fuel-tab.active .tag{color:var(--brand-ink)}
+  .fuel-tab:hover{color:var(--ink)}
+  .fuel-tab:focus-visible{outline:2px solid var(--brand); outline-offset:2px; border-radius:4px}
+
+  /* chart card */
+  .chart-card{
+    position:relative; background:var(--card); border:1px solid var(--border); border-radius:16px;
+    box-shadow:var(--shadow); padding:22px 22px 14px;
+  }
+  .chart-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:6px; flex-wrap:wrap}
+  .chart-head h2{font-size:17px; font-weight:600}
+  .price-now{display:flex; align-items:baseline; gap:8px}
+  .price-now .v{font-size:22px; font-weight:700; font-family:'Inter',sans-serif}
+  .price-now .u{font-size:12px; color:var(--ink-mute)}
+  .legend-row{display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); margin:2px 0 8px}
+  .legend-row .key{display:flex; align-items:center; gap:6px}
+  .legend-row .swatch{width:14px; height:3px; border-radius:2px; flex:none}
+  .legend-row .swatch.dashed{background:none; border-top:2px dashed var(--brand); height:0}
+  .legend-row .swatch.band{height:9px; border-radius:2px; opacity:.5}
+
+  .chart-wrap{position:relative; height:340px}
+  canvas{max-width:100%}
+
+  .chart-foot{display:flex; justify-content:space-between; gap:12px; font-size:11.5px; color:var(--ink-mute); margin-top:10px; padding-top:10px; border-top:1px solid var(--border-soft); flex-wrap:wrap}
+
+  /* lock overlay */
+  .lock-overlay{
+    position:absolute; inset:0; border-radius:16px; z-index:5;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    background:var(--lock-bg); backdrop-filter: blur(3px) saturate(1.1);
+    -webkit-backdrop-filter: blur(3px) saturate(1.1);
+    color:#fff; padding:24px;
+  }
+  .lock-card{max-width:360px; display:flex; flex-direction:column; align-items:center; gap:10px}
+  .lock-icon{width:40px; height:40px; border-radius:11px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; margin-bottom:2px}
+  .lock-card h3{color:#fff; font-size:17px}
+  .lock-card p{margin:0; font-size:12.5px; color:rgba(255,255,255,.78); line-height:1.55}
+  .unlock-btn{
+    margin-top:6px; appearance:none; border:0; cursor:pointer; font:inherit; font-weight:600; font-size:13px;
+    background:#fff; color:var(--brand-ink); padding:10px 18px; border-radius:10px;
+  }
+  .unlock-btn:hover{background:var(--brand-soft)}
+  .unlock-btn:disabled{opacity:.6; cursor:default}
+
+  .subscribe-msg{font-size:12px; line-height:1.5; margin-top:4px; padding:8px 12px; border-radius:8px; max-width:320px}
+  .subscribe-msg.err{background:rgba(181,51,51,.18); color:#ffd9d9}
+  .subscribe-msg a{color:#fff; text-decoration:underline}
+
+  .blur-target{filter:blur(6px); user-select:none; pointer-events:none}
+
+  /* stat row */
+  .stat-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px}
+  .stat-tile{background:var(--card); border:1px solid var(--border); border-radius:13px; padding:14px 15px; display:flex; flex-direction:column; gap:4px}
+  .stat-tile .label{font-size:10.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-mute)}
+  .stat-tile .value{font-size:19px; font-weight:700; font-family:'Inter',sans-serif}
+  .stat-tile .sub{font-size:11.5px; color:var(--ink-soft)}
+  .stat-tile .sub.good{color:var(--good)}
+
+  /* methodology card */
+  .method-card{background:var(--card-2); border:1px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; gap:12px}
+  .method-card .ico{flex:none; width:26px; height:26px; border-radius:8px; background:var(--warn-bg); color:var(--warn); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700}
+  .method-card .body{font-size:12.5px; line-height:1.6; color:var(--ink-soft)}
+  .method-card .body b{color:var(--ink); font-weight:600}
+  .method-card .body ul{margin:6px 0 0; padding-left:18px}
+  .method-card .body li{margin-bottom:3px}
+
+  /* billing history card */
+  .billing-card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:20px 22px}
+  .billing-card h2{font-size:16px; font-weight:600; margin-bottom:12px}
+  .billing-row{display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--border-soft); font-size:13px}
+  .billing-row:first-of-type{border-top:none}
+  .billing-row .ev-label{font-weight:600; color:var(--ink)}
+  .billing-row .ev-note{font-size:11.5px; color:var(--ink-mute); margin-top:2px}
+  .billing-row .ev-when{color:var(--ink-mute); font-size:11.5px; white-space:nowrap}
+  .billing-row .ev-amount{font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--ink-soft); white-space:nowrap}
+  .billing-empty{font-size:12.5px; color:var(--ink-mute); padding:6px 0}
+
+  .fetch-error{font-size:12.5px; color:var(--bad); background:var(--bad-bg); border-radius:10px; padding:10px 14px}
+
+  .proto-note{font-size:11px; color:var(--ink-mute); text-align:center; padding-top:6px}
+  .proto-note b{color:var(--ink-soft)}
+
+  @media (max-width:640px){
+    .chart-wrap{height:280px}
+    .price-now .v{font-size:19px}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">V</div>
+      <div>
+        <div class="brand-name">Viet Dataverse</div>
+        <div class="brand-sub">Fuel Forecast — B2B data product</div>
+      </div>
+      <span class="beta-badge">Beta</span>
+    </div>
+    <span class="tier-pill free" id="tier-pill">Gói: Miễn phí</span>
+  </div>
+
+  <div>
+    <h1 class="page-title">Dự báo giá xăng dầu trong nước</h1>
+    <p class="page-sub">Mô hình <b>delta-world-v1</b>: giá bán lẻ kỳ tới = giá kỳ hiện tại + hệ số truyền dẫn (k) × mức thay đổi giá thế giới (MOPS). Không phải điểm dự báo đơn — dải thấp/cao thể hiện các kịch bản theo biến động giá thế giới, không phải mức độ chắc chắn tuyệt đối.</p>
+  </div>
+
+  <div class="fuel-tabs" role="tablist" aria-label="Chọn loại nhiên liệu" id="fuel-tabs">
+    <!-- filled by JS -->
+  </div>
+
+  <div id="fetch-error-box"></div>
+
+  <div class="chart-card">
+    <div class="lock-overlay" id="lock-overlay">
+      <div class="lock-card">
+        <div class="lock-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 11V8a6 6 0 0 1 12 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="4" y="11" width="16" height="10" rx="2.5" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+        <h3>Dải dự báo đầy đủ dành cho khách hàng B2B</h3>
+        <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo 4 kỳ tới (kèm hệ số k, R², độ lệch chuẩn residual) mở khoá sau khi đăng ký gói dữ liệu.</p>
+        <button class="unlock-btn" id="btn-subscribe-cta">Đăng ký gói B2B →</button>
+        <div class="subscribe-msg" id="subscribe-msg" hidden></div>
+      </div>
+    </div>
+
+    <div class="chart-head">
+      <div>
+        <h2 id="chart-title">RON95 — lịch sử &amp; dự báo</h2>
+        <div class="legend-row">
+          <span class="key"><span class="swatch" style="background:var(--ink-soft)"></span>Giá thực tế đã công bố</span>
+          <span class="key"><span class="swatch dashed"></span>Kịch bản cơ sở (world không đổi)</span>
+          <span class="key"><span class="swatch band" style="background:var(--brand)"></span>Dải low–high theo biến động world (~80%)</span>
+        </div>
+      </div>
+      <div class="price-now">
+        <span class="v num" id="price-now">—</span>
+        <span class="u" id="price-now-unit">đ/lít</span>
+      </div>
+    </div>
+
+    <div class="chart-wrap" id="chart-target">
+      <canvas id="fanChart"></canvas>
+    </div>
+
+    <div class="chart-foot">
+      <span id="foot-left">—</span>
+      <span id="foot-right">—</span>
+    </div>
+  </div>
+
+  <div class="stat-row" id="stat-row"></div>
+
+  <div class="method-card">
+    <div class="ico">!</div>
+    <div class="body">
+      <b>Đây là kịch bản điều kiện theo giá thế giới, không phải một con số dự báo chắc chắn.</b> Mô hình cần biết Δworld của kỳ tới để dự báo, nhưng giá MOPS thời gian thực chỉ có qua feed trả phí (S&amp;P Global Platts — đã khảo sát, không có bản miễn phí). Dải thấp/cao ở trên mô phỏng "nếu giá thế giới thay đổi trong biên độ lịch sử thì giá trong nước sẽ ra sao", không phải xác suất đã được hiệu chỉnh hoàn hảo.
+      <ul>
+        <li>Hệ số k có ý nghĩa thống kê mạnh (p&lt;0.0001) trên toàn bộ 3 loại nhiên liệu, kiểm chứng bằng permutation test (20.000 lần xáo trộn).</li>
+        <li>Residual còn tự tương quan âm — 2 kỳ tháng 3/2026 (can thiệp BOG) là nguồn gây lệch chính, chưa được model hoá riêng.</li>
+        <li>Không dự báo xa hơn ~1 tháng: dải tin cậy giãn theo căn bậc hai số kỳ, tới ~1 năm sẽ rộng gần bằng chính mức giá — không còn thông tin hữu ích.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="billing-card" id="billing-card" hidden>
+    <h2>Lịch sử thanh toán</h2>
+    <div id="billing-body"><div class="billing-empty">Đang tải…</div></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://127.0.0.1:8000'
+      : window.location.origin; // same-origin: FE + API on the same box (no api.* subdomain dependency)
+
+  var PRODUCT_CODE = "fuel-forecast-advanced";
+
+  var FUEL_LABEL = {RON95:"RON95", E5RON92:"E5RON92 (E5)", DO005S:"Diesel 0.05S"};
+  var FUEL_ORDER = ["RON95","E5RON92","DO005S"];
+
+  var EVENT_LABEL = {
+    created: "Đăng ký mới",
+    charged: "Gia hạn thành công",
+    charge_failed: "Không đủ số dư — vào grace period",
+    cancelled: "Huỷ",
+    reactivated: "Kích hoạt lại",
+  };
+
+  // state.data holds the raw {fuel, tier, history, forecast} response for the
+  // currently selected fuel; state.plan holds the public plan row (price,
+  // billing period) used to word the subscribe CTA.
+  var state = { fuel: "RON95", data: null, plan: null, subscribing: false };
+
+  var fmt = new Intl.NumberFormat("vi-VN");
+  function money(v){ return fmt.format(Math.round(v)); }
+
+  function buildFuelTabs(){
+    var wrap = document.getElementById("fuel-tabs");
+    wrap.innerHTML = "";
+    FUEL_ORDER.forEach(function(f){
+      var btn = document.createElement("button");
+      btn.className = "fuel-tab" + (f === state.fuel ? " active" : "");
+      btn.type = "button";
+      btn.setAttribute("role", "tab");
+      btn.innerHTML = FUEL_LABEL[f] + ' <span class="tag"></span>';
+      btn.addEventListener("click", function(){
+        if (f === state.fuel) return;
+        state.fuel = f;
+        loadFuel(f);
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  var chart = null;
+
+  function bandGradient(ctx, area, hex, alphaCenter, alphaEdge){
+    var g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+    g.addColorStop(0, hexA(hex, alphaEdge));
+    g.addColorStop(0.5, hexA(hex, alphaCenter));
+    g.addColorStop(1, hexA(hex, alphaEdge));
+    return g;
+  }
+  function hexA(hex, a){
+    var r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    return "rgba("+r+","+g+","+b+","+a+")";
+  }
+
+  var todayLinePlugin = {
+    id: "todayLine",
+    afterDatasetsDraw: function(c){
+      var idx = c.$todayIndex;
+      if (idx == null) return;
+      var xScale = c.scales.x, area = c.chartArea, ctx = c.ctx;
+      var x = xScale.getPixelForValue(idx);
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--ink-mute").trim() || "#8590a3";
+      ctx.setLineDash([4,4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, area.top);
+      ctx.lineTo(x, area.bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = "600 10.5px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Hôm nay", x, area.top - 6);
+      ctx.restore();
+    }
+  };
+
+  // ── Data fetch ──────────────────────────────────────────────────────────
+
+  function currentPageUrl(){
+    return window.location.pathname + window.location.search + window.location.hash;
+  }
+
+  // Only attach a Bearer token when a real session already exists.
+  // isAuthenticated() is a fast local cache check (no network round-trip);
+  // fetchWithAuth()'s getToken() call underneath, in contrast, always drives
+  // a real Auth0 request. Calling fetchWithAuth() unconditionally for an
+  // anonymous visitor was tried first and measured to hang for 10+ seconds on
+  // Auth0's silent-auth iframe before ever reaching the (public,
+  // optional-auth) forecast endpoint — every other page in fe/pages/ gates
+  // fetchWithAuth behind isAuthenticated() for exactly this reason, so this
+  // page does the same instead of calling it unconditionally.
+  async function authedFetch(url, options){
+    var authed = false;
+    try { authed = await isAuthenticated(); } catch (e) { authed = false; }
+    return authed ? window.fetchWithAuth(url, options) : fetch(url, options);
+  }
+
+  async function loadFuel(fuel){
+    clearFetchError();
+    try {
+      var res = await authedFetch(API_BASE + "/api/v1/fuel-forecast/" + fuel, { method: "GET" });
+      var json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error((json && json.detail) || ("HTTP " + res.status));
+      }
+      state.data = json.data;
+      render();
+    } catch (err) {
+      console.error("[fuel-forecast] load failed:", err);
+      showFetchError("Không tải được dữ liệu dự báo (" + (err && err.message ? err.message : "lỗi kết nối") + "). Thử tải lại trang.");
+    }
+  }
+
+  async function loadPlan(){
+    try {
+      var res = await fetch(API_BASE + "/api/v1/subscriptions/plans");
+      var json = await res.json();
+      if (json.success) {
+        state.plan = (json.data || []).filter(function(p){ return p.code === PRODUCT_CODE; })[0] || null;
+        applyPlanCopy();
+      }
+    } catch (err) {
+      console.warn("[fuel-forecast] could not load plan info:", err);
+    }
+  }
+
+  function applyPlanCopy(){
+    var btn = document.getElementById("btn-subscribe-cta");
+    var desc = document.getElementById("lock-desc");
+    if (!state.plan) return;
+    var price = state.plan.price_credits;
+    var days = state.plan.billing_period_days;
+    btn.textContent = "Đăng ký gói B2B — " + price + " credit / " + days + " ngày →";
+    desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo 4 kỳ tới (kèm hệ số k, R², độ lệch chuẩn residual) mở khoá với gói " +
+      price + " credit mỗi " + days + " ngày.";
+  }
+
+  async function checkBillingHistory(){
+    var authed = false;
+    try { authed = await isAuthenticated(); } catch (e) { authed = false; }
+    if (!authed) return;
+
+    try {
+      var meRes = await window.fetchWithAuth(API_BASE + "/api/v1/subscriptions/me", { method: "GET" });
+      if (!meRes.ok) return; // not authed server-side or transient error — no card
+      var meJson = await meRes.json();
+      var everSubscribed = meJson.success && Array.isArray(meJson.data) && meJson.data.length > 0;
+      if (!everSubscribed) return;
+
+      document.getElementById("billing-card").hidden = false;
+      var histRes = await window.fetchWithAuth(API_BASE + "/api/v1/subscriptions/history", { method: "GET" });
+      var histJson = await histRes.json();
+      renderBillingHistory(histRes.ok && histJson.success ? histJson.data : []);
+    } catch (err) {
+      console.warn("[fuel-forecast] billing history check failed:", err);
+    }
+  }
+
+  function renderBillingHistory(rows){
+    var body = document.getElementById("billing-body");
+    if (!rows || !rows.length) {
+      body.innerHTML = '<div class="billing-empty">Chưa có sự kiện thanh toán nào.</div>';
+      return;
+    }
+    body.innerHTML = rows.map(function(r){
+      var label = EVENT_LABEL[r.event_type] || r.event_type;
+      var when = fmtDateTime(r.created_at);
+      var amount = (r.amount_credits != null) ? ("-" + fmt.format(r.amount_credits) + " credit") : "";
+      var note = r.note ? '<div class="ev-note">' + escapeHtml(r.note) + '</div>' : "";
+      return '<div class="billing-row">' +
+        '<div><div class="ev-label">' + escapeHtml(label) + '</div>' + note + '</div>' +
+        '<div style="text-align:right"><div class="ev-when">' + when + '</div>' +
+        (amount ? '<div class="ev-amount">' + amount + '</div>' : '') + '</div>' +
+        '</div>';
+    }).join("");
+  }
+
+  function fmtDateTime(iso){
+    if (!iso) return "—";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso);
+    return d.toLocaleDateString("vi-VN", { day:"2-digit", month:"2-digit", year:"numeric" }) +
+      " " + d.toLocaleTimeString("vi-VN", { hour:"2-digit", minute:"2-digit" });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  // ── Subscribe flow ──────────────────────────────────────────────────────
+
+  function showSubscribeMsg(text, isError, linkHref, linkText){
+    var el = document.getElementById("subscribe-msg");
+    el.className = "subscribe-msg" + (isError ? " err" : "");
+    el.innerHTML = escapeHtml(text) + (linkHref ? ' <a href="' + linkHref + '">' + escapeHtml(linkText || "Xem chi tiết") + "</a>" : "");
+    el.hidden = false;
+  }
+  function clearSubscribeMsg(){
+    var el = document.getElementById("subscribe-msg");
+    el.hidden = true;
+    el.innerHTML = "";
+  }
+
+  function setSubscribeBusy(busy){
+    state.subscribing = busy;
+    var btn = document.getElementById("btn-subscribe-cta");
+    btn.disabled = busy;
+    if (busy) btn.dataset.prevText = btn.dataset.prevText || btn.textContent;
+    btn.textContent = busy ? "Đang xử lý…" : (btn.dataset.prevText || btn.textContent);
+  }
+
+  async function handleSubscribeClick(){
+    if (state.subscribing) return;
+    clearSubscribeMsg();
+
+    var authed = false;
+    try { authed = await isAuthenticated(); } catch (e) { authed = false; }
+    if (!authed) {
+      await login(currentPageUrl());
+      return;
+    }
+
+    setSubscribeBusy(true);
+    try {
+      var res = await window.fetchWithAuth(API_BASE + "/api/v1/subscriptions/subscribe", {
+        method: "POST",
+        body: JSON.stringify({ product_code: PRODUCT_CODE }),
+      });
+
+      if (res.status === 402) {
+        showSubscribeMsg("Số dư credit không đủ để đăng ký gói này. Vui lòng nạp thêm credit trong Ví.", true, "/fe/#km/wallet", "Nạp tiền vào Ví");
+        return;
+      }
+      var json = await res.json().catch(function(){ return {}; });
+      if (!res.ok) {
+        showSubscribeMsg("Đăng ký thất bại: " + (json.detail || ("HTTP " + res.status)), true);
+        return;
+      }
+
+      // Success — re-fetch the forecast (flips tier to "advanced") and the
+      // billing history card (this is now the user's first subscription event).
+      await loadFuel(state.fuel);
+      await checkBillingHistory();
+    } catch (err) {
+      console.error("[fuel-forecast] subscribe failed:", err);
+      showSubscribeMsg("Lỗi kết nối, vui lòng thử lại sau.", true);
+    } finally {
+      setSubscribeBusy(false);
+    }
+  }
+
+  document.getElementById("btn-subscribe-cta").addEventListener("click", handleSubscribeClick);
+
+  // ── Fetch-error banner (page-level, e.g. forecast endpoint unreachable) ──
+
+  function showFetchError(msg){
+    document.getElementById("fetch-error-box").innerHTML = '<div class="fetch-error">' + escapeHtml(msg) + '</div>';
+  }
+  function clearFetchError(){
+    document.getElementById("fetch-error-box").innerHTML = "";
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────
+  // This is the fan-chart builder from the approved prototype, adapted to
+  // read from the real fetch response (state.data) instead of a hardcoded
+  // DATA blob, and to drive the lock/blur purely from data.tier instead of a
+  // demo toggle.
+
+  function render(){
+    var d = state.data;
+    if (!d) return;
+
+    var isAdvanced = d.tier === "advanced";
+
+    // tabs active state
+    Array.prototype.forEach.call(document.querySelectorAll(".fuel-tab"), function(el,i){
+      el.classList.toggle("active", FUEL_ORDER[i]===state.fuel);
+    });
+
+    var tierPill = document.getElementById("tier-pill");
+    tierPill.textContent = isAdvanced ? "Gói: B2B đang hoạt động" : "Gói: Miễn phí";
+    tierPill.className = "tier-pill " + (isAdvanced ? "advanced" : "free");
+
+    document.getElementById("lock-overlay").style.display = isAdvanced ? "none" : "flex";
+    document.getElementById("chart-target").classList.toggle("blur-target", !isAdvanced);
+    document.getElementById("stat-row").classList.toggle("blur-target", !isAdvanced);
+    if (isAdvanced) clearSubscribeMsg();
+
+    var hist = (d.history || []).map(function(p){ return [p.period, p.retail_price]; });
+    hist = hist.filter(function(p){ return p[0] >= "2025-05-01"; }); // drop isolated 2024 anchor point, see caption
+    var fc = d.forecast || [];
+
+    if (!hist.length) {
+      showFetchError("Chưa có đủ dữ liệu lịch sử cho " + FUEL_LABEL[state.fuel] + ".");
+      if (chart) { chart.destroy(); chart = null; }
+      document.getElementById("stat-row").innerHTML = "";
+      return;
+    }
+
+    var lastRetail = hist[hist.length-1][1];
+    var lastDate = hist[hist.length-1][0];
+
+    document.getElementById("chart-title").textContent = FUEL_LABEL[state.fuel] + " — lịch sử & dự báo";
+    document.getElementById("price-now").textContent = money(lastRetail);
+    document.getElementById("price-now-unit").textContent = "đ/lít · kỳ " + toVN(lastDate);
+
+    // labels: history dates + horizon target dates
+    var horizons = [1,2,3,4];
+    var byH = {};
+    fc.forEach(function(row){
+      var h = row.horizon, scen = row.scenario, tc = row.target_cycle, pt = row.point;
+      byH[h] = byH[h] || {};
+      byH[h][scen] = pt;
+      byH[h].target = tc;
+    });
+    // Free-tier responses only carry the "base" scenario per horizon — fill
+    // in a horizon placeholder so labels still render even with no forecast
+    // rows at all yet (e.g. before the first forecast run for a fuel).
+    horizons.forEach(function(h){
+      byH[h] = byH[h] || { target: null };
+    });
+    var haveForecast = horizons.some(function(h){ return byH[h].target != null; });
+
+    var labels = hist.map(function(p){ return toVN(p[0]); });
+    var todayIndex = labels.length - 1;
+    if (haveForecast) {
+      horizons.forEach(function(h){ labels.push(byH[h].target ? toVN(byH[h].target) : ""); });
+    }
+
+    var histSeries = hist.map(function(p){ return p[1]; });
+    var baseSeries, lowSeries, highSeries;
+
+    if (haveForecast) {
+      horizons.forEach(function(){ histSeries.push(null); });
+      baseSeries = new Array(hist.length-1).fill(null).concat([lastRetail]);
+      lowSeries  = baseSeries.slice();
+      highSeries = baseSeries.slice();
+      horizons.forEach(function(h){
+        baseSeries.push(byH[h].base != null ? byH[h].base : null);
+        lowSeries.push(byH[h].low != null ? byH[h].low : null);
+        highSeries.push(byH[h].high != null ? byH[h].high : null);
+      });
+    } else {
+      baseSeries = new Array(hist.length).fill(null);
+      lowSeries = baseSeries.slice();
+      highSeries = baseSeries.slice();
+    }
+
+    var brand = cssVar("--brand");
+    var ink = cssVar("--ink-soft");
+
+    var datasets = [
+      {
+        label: "Giá thực tế",
+        data: histSeries,
+        borderColor: ink,
+        backgroundColor: ink,
+        borderWidth: 2,
+        pointRadius: function(c){ return c.dataIndex===todayIndex?4:2; },
+        pointBackgroundColor: ink,
+        pointBorderColor: cssVar("--card"),
+        pointBorderWidth: 1.5,
+        tension: 0,
+        spanGaps: false,
+        order: 1,
+      },
+      {
+        label: "Dải cao (kịch bản world tăng)",
+        data: highSeries,
+        borderColor: "transparent",
+        pointRadius: 0,
+        fill: "+1",
+        backgroundColor: function(c){
+          if (!c.chart.chartArea) return hexA(brand,.16);
+          return bandGradient(c.chart.ctx, c.chart.chartArea, brand, .30, .04);
+        },
+        tension: .15,
+        order: 3,
+      },
+      {
+        label: "Kịch bản cơ sở",
+        data: baseSeries,
+        borderColor: brand,
+        borderDash: [5,4],
+        borderWidth: 2,
+        pointRadius: function(c){ return c.dataIndex>=todayIndex ? 3 : 0; },
+        pointBackgroundColor: brand,
+        pointBorderColor: cssVar("--card"),
+        pointBorderWidth: 1.5,
+        fill: false,
+        tension: .15,
+        order: 2,
+      },
+      {
+        label: "Dải thấp (kịch bản world giảm)",
+        data: lowSeries,
+        borderColor: "transparent",
+        pointRadius: 0,
+        fill: false,
+        order: 4,
+      },
+    ];
+    // fill base->low band using the low dataset as boundary (index 3) referenced from base (index 2)
+    datasets[2].fill = {target:3, above:"transparent"};
+    // fix high band fill target explicitly to base line (index 2)
+    datasets[1].fill = {target:2, above:function(c){
+      if (!c.chart.chartArea) return hexA(brand,.16);
+      return bandGradient(c.chart.ctx, c.chart.chartArea, brand, .30, .04);
+    }};
+    datasets[3].backgroundColor = function(c){
+      if (!c.chart.chartArea) return hexA(brand,.16);
+      return bandGradient(c.chart.ctx, c.chart.chartArea, brand, .30, .04);
+    };
+    datasets[3].fill = {target:2, above: datasets[3].backgroundColor, below: datasets[3].backgroundColor};
+
+    // stat row + footnotes — populated before the Chart.js call so a chart
+    // render failure (e.g. CDN hiccup) never hides the rest of the page.
+    var baseRow1 = fc.filter(function(r){ return r.horizon===1 && r.scenario==="base"; })[0];
+    var breakdown1 = baseRow1 && baseRow1.breakdown;
+    var kVal = breakdown1 && breakdown1.k_vnd_per_usd_bbl;
+
+    var statRow = document.getElementById("stat-row");
+    // Real, one-time statistical-analysis numbers (permutation-tested skill
+    // vs. random-walk, and full-sample R²) — not part of the live API
+    // response; kept as static constants per the fuel-forecast statistical
+    // work referenced in the methodology card above.
+    var skillByFuel = {RON95:{skill:0.533,mae:653}, E5RON92:{skill:0.557,mae:539}, DO005S:{skill:0.784,mae:508}};
+    var r2ByFuel = {RON95:0.68, E5RON92:0.65, DO005S:0.96};
+    var sk = skillByFuel[state.fuel], r2 = r2ByFuel[state.fuel];
+    statRow.innerHTML = [
+      tile("Giá kỳ hiện tại", money(lastRetail)+" đ/l", "Công bố "+toVN(lastDate)),
+      tile("Hệ số truyền dẫn (k)", kVal != null ? kVal.toFixed(1) : "—", "VND/L trên mỗi USD/thùng, p<0.0001"),
+      tile("R² (full-sample)", r2.toFixed(2), r2<0.8 ? "2 kỳ can thiệp BOG kéo xuống — xem ghi chú" : "Ổn định qua permutation test"),
+      tile("Skill vs random-walk", "+"+(sk.skill*100).toFixed(0)+"%", "MAE "+sk.mae+" đ/l, out-of-sample"),
+    ].join("");
+    document.getElementById("foot-left").textContent = "Dữ liệu lịch sử từ 05/2025 (kỳ đầu 03/2024 bị bỏ do cách quãng 14 tháng, không nối liền được)";
+    document.getElementById("foot-right").textContent = "Nguồn world price: bản tin MOIT (MOPS thật) · Model: delta-world-v1";
+
+    var ctxEl = document.getElementById("fanChart");
+    if (chart) { chart.destroy(); chart = null; }
+    if (typeof Chart === "undefined") {
+      // ctxEl is null on a second call (e.g. switching fuel tabs after Chart.js
+      // already failed to load once) because the first call below replaced the
+      // canvas with this same fallback div, which has no id — guard so a
+      // repeated failure doesn't throw on ctxEl.replaceWith(...).
+      if (ctxEl) {
+        ctxEl.replaceWith(Object.assign(document.createElement("div"), {
+          style: "display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink-mute);font-size:12.5px",
+          textContent: "Không tải được thư viện biểu đồ (Chart.js) — dữ liệu số liệu vẫn hiển thị ở trên/dưới."
+        }));
+      }
+      return;
+    }
+    chart = new Chart(ctxEl, {
+      type: "line",
+      data: { labels: labels, datasets: datasets },
+      plugins: [todayLinePlugin],
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:"index", intersect:false },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            backgroundColor: cssVar("--ink"),
+            titleColor: cssVar("--paper"),
+            bodyColor: cssVar("--paper"),
+            padding:10, cornerRadius:8, displayColors:false,
+            callbacks:{
+              label: function(c){
+                if (c.raw==null) return null;
+                var name = c.dataset.label.indexOf("Dải")===0 ? null : c.dataset.label;
+                if (!name) return null;
+                return name + ": " + money(c.raw) + " đ/l";
+              }
+            }
+          }
+        },
+        scales:{
+          x:{ grid:{display:false}, ticks:{ color: cssVar("--ink-mute"), font:{size:10.5}, maxRotation:0, autoSkip:true, maxTicksLimit:9 } },
+          y:{
+            grid:{ color: cssVar("--border-soft") },
+            ticks:{ color: cssVar("--ink-mute"), font:{size:10.5}, callback:function(v){ return money(v); } }
+          }
+        }
+      }
+    });
+    chart.$todayIndex = todayIndex;
+    chart.update();
+  }
+
+  function tile(label, value, sub){
+    return '<div class="stat-tile"><div class="label">'+label+'</div><div class="value num">'+value+'</div><div class="sub">'+sub+'</div></div>';
+  }
+  function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+  function toVN(iso){
+    var p = String(iso).split("-");
+    return p[2]+"/"+p[1]+"/"+p[0].slice(2);
+  }
+
+  // auth.js is loaded with `defer` (see <head>) — per the HTML spec, deferred
+  // scripts execute in order after parsing completes, just before
+  // DOMContentLoaded fires. Kicking off the fetch/auth calls from
+  // DOMContentLoaded (rather than inline at parse time) guarantees
+  // fetchWithAuth/isAuthenticated/login already exist on window.
+  document.addEventListener("DOMContentLoaded", function(){
+    buildFuelTabs();
+    loadFuel(state.fuel);
+    loadPlan();
+    checkBillingHistory();
+  });
+  window.addEventListener("resize", function(){ if(chart) chart.resize(); });
+})();
+</script>
+
+</body>
+</html>
