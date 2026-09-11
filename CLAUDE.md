@@ -106,6 +106,7 @@ Backend dependencies: `pip install -r be/requirements.txt`. Crawlers: `pip insta
 | `CRAWLING_CORP_DB` | Corporate/equity data | `vn30_*` |
 | `GLOBAL_INDICATOR_DB` | Global macro (Yahoo Finance) | `global_macro` |
 | `USER_DB` | Users, payments, KM (sellers, products, wallet, library) | knowledge_* |
+| `KNOWLEDGE_MARKET_DB` | Knowledge Marketplace + wallet (separate Neon DB from `USER_DB`, despite the row above — `get_engine_knowledge()` in `be/core/engines.py`) | `knowledge_products`, `seller_earnings`, `credit_balance`, `credit_ledger`, `platform_products`, `platform_subscriptions`, `platform_subscription_events` |
 | `HELPER_DB` | Internal ops/DQ tables | — |
 | `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; B2B, unreleased) | `fuel_price_cycle`, `fuel_world_daily`, `fuel_forecast`, `fuel_backtest` |
 
@@ -374,11 +375,113 @@ Install/verify steps are in `DEPLOY.md`. This does **not** change the rule that 
 /api/v1/wallet/*             # credits, top-up, balance
 /api/v1/seller/*             # seller dashboard, listings
 /api/v1/reports/*, /takedown/*  # moderation/DMCA
+/api/v1/subscriptions/*      # platform (VDV-owned) subscriptions — wallet-billed
+/api/v1/fuel-forecast/{fuel} # Fuel Forecast product, gated by subscription
 ```
 
 Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated in `be/main.py`: anonymous or invalid credentials return `401`, while free and paid API keys and valid FE Bearer sessions are metered. Public `gold-analysis` / `market-pulse` calls and rejected metered calls are tracked without storing IP, token, raw API key, or user-agent. Admin performance reporting at `/pages/admin.html` supports `24h`, `7d`, and `YTD` periods.
 
 `/pages/admin.html` (Auth0 login + `is_admin`/`user_level='admin'`, backed by `/api/v1/admin/*` with `admin_audit_log`) is the **only** admin/reporting surface. The secret-link report `GET /api/v1/report?key=<REPORT_SECRET>` (`be/routers/report_dashboard.py`) was removed on 2026-08-06: it duplicated data the admin dashboard already showed, put a credential in the URL (Caddy access logs, browser history, `Referer`), had no per-person revocation or audit trail, and fell back to `WEBHOOK_INTERNAL_SECRET` — the same secret GitHub Actions sends on every crawl webhook. Do not reintroduce secret-in-URL admin surfaces; add new reporting as an `/api/v1/admin/*` endpoint plus a section in `admin.html`.
+
+### Platform subscriptions + Fuel Forecast gated API (2026-09-10)
+
+Generic wallet-billed subscription primitive for VDV-owned "platform" data
+products — deliberately separate from the Knowledge Market's seller-listing
+model (`knowledge_products`, 90/10 split via `seller_earnings`): a platform
+product has no seller and no one-time-purchase shape, so it gets its own
+tables instead of bending the marketplace schema. Design doc:
+`docs/superpowers/specs/2026-09-10-fuel-forecast-subscription-design.md`.
+
+**Tables — `KNOWLEDGE_MARKET_DB`, not `FUEL_FORECAST_DB`.** This is the one
+mix-up to watch: the *feature* being sold is fuel-price forecasting, but the
+*billing* rows live with the wallet, on the same DB as `credit_balance`/
+`credit_ledger` (`be/migrations/013_platform_subscriptions.sql`), so a
+subscription write and a wallet debit share one transaction.
+
+- `platform_products` — catalog, one row today: `fuel-forecast-advanced`,
+  `price_credits=60`, `list_price_credits=120` (struck-through "50% launch
+  discount" display), `billing_period_days=30`.
+- `platform_subscriptions` — one row per `(user_id, product_code)`
+  (`UNIQUE` constraint — re-subscribing after cancel reuses the row instead
+  of inserting a second one), `status` in `active`/`past_due`/`cancelled`,
+  `current_period_end`, `grace_until`.
+- `platform_subscription_events` — append-only log (`created`/`charged`/
+  `charge_failed`/`past_due`/`cancelled`/`reactivated`), the source for the
+  FE's billing-history card. Deliberately not derived from `credit_ledger`:
+  a failed/insufficient-balance renewal attempt is a real, user-relevant
+  event that never touches the ledger (no money moved), so it would be
+  invisible there.
+- Migration 014 (`014_credit_ledger_subscription_kind.sql`) widened
+  `credit_ledger`'s `CHECK` constraint to allow `kind='subscription_charge'`
+  — a pre-existing gap found while wiring the debit path, not part of the
+  original 013 migration.
+
+**`be/services/subscription.py`** — `subscribe()`, `cancel_subscription()`
+(no refund/proration — confirmed out of scope), `has_active_subscription()`
+(pure lookup, `user_id=None` short-circuits to `False`, used for gating),
+`list_subscription_history()`, `run_billing_cycle()`. The billing cycle runs
+two passes, each row locked independently rather than one big transaction
+(one stuck row must not block every other renewal): renewals due get charged
+and extended by `billing_period_days` from the existing `current_period_end`
+(on-time renewal doesn't lose time); a failed renewal goes `past_due` with a
+**3-day grace period** (`GRACE_PERIOD_DAYS`), retried daily — if the balance
+recovers within the grace window the subscription reactivates from *now*
+(a late payment buys a fresh 30 days, it does not backdate), and if grace
+expires still unpaid it's auto-cancelled. A shortfall that's still within
+grace is a silent no-op on retry (no repeated `charge_failed` spam — the
+first failure already recorded the start of it).
+
+**`be/routers/subscription.py`**, mounted at `/api/v1/subscriptions`:
+
+```
+GET  /api/v1/subscriptions/plans              — list platform_products (public)
+GET  /api/v1/subscriptions/me                 — current user's subscription rows (auth)
+POST /api/v1/subscriptions/subscribe {product_code} — subscribe (auth)
+POST /api/v1/subscriptions/cancel   {product_code} — cancel (auth)
+GET  /api/v1/subscriptions/history?limit&offset — event history, this user only (auth)
+```
+
+**`be/routers/fuel_forecast.py`**, mounted at `/api/v1/fuel-forecast`:
+
+```
+GET /api/v1/fuel-forecast/{fuel}   fuel in {RON95, E5RON92, DO005S}
+```
+
+Auth is **optional** here (`middleware.authenticate_user_optional`, the
+`reports.py` pattern) — unlike `wallet.py`/`subscription.py`'s required-auth
+endpoints, the free tier must work for an anonymous visitor.
+`has_active_subscription(user_id, 'fuel-forecast-advanced')` decides the
+response shape: without an active subscription, history + `base` scenario
+only, with `breakdown` stripped down to just the `disclaimer` field (no
+`k`/`resid_std`/`sigma_world` — that model detail is the paid value); with
+one, all three scenarios and the full breakdown. The response body itself
+carries a `tier: "free"|"advanced"` field, so the FE never needs a separate
+"am I subscribed" check to decide what to render.
+
+This endpoint reads only `fuel_price_cycle` and `fuel_forecast` (via
+`get_engine_fuel()`) — **`fuel_world_daily`/Brent-RBOB stay unused here too**,
+consistent with the "zero consumers" note in "Fuel forecast model" above;
+nothing in this feature reopens the Brent/RBOB proxy that `structural-v1`
+already showed doesn't work.
+
+**Daily billing cron**: `.github/workflows/subscription-billing.yml`,
+`'11 3 * * *'` (10:11 VN, an odd non-`:00`/`:30` minute per this repo's own
+GitHub Actions scheduling rule), runs
+`python be/services/subscription.py --run-billing-cycle`. **Not yet merged
+as of 2026-09-11** — blocked on the `KNOWLEDGE_MARKET_DB` GitHub repo secret
+not existing yet (`gh secret list` confirmed); until it's added and the
+workflow file committed, subscriptions do not auto-renew or auto-expire on
+their own — `subscribe`/`cancel` work, but nothing calls `run_billing_cycle`
+except a manual `workflow_dispatch` or local invocation.
+
+**`fe/pages/fuel-forecast.html`** — the product page: real
+`fetchWithAuth('/api/v1/fuel-forecast/{fuel}')` calls, a lock overlay for
+the free tier whose CTA posts to `/subscriptions/subscribe`, and a
+"Lịch sử thanh toán" card (shown once `GET /subscriptions/me` returns a row
+for this product) rendering `GET /subscriptions/history` with Vietnamese
+event labels: `created`→"Đăng ký mới", `charged`→"Gia hạn thành công",
+`charge_failed`→"Không đủ số dư — vào grace period", `cancelled`→"Huỷ",
+`reactivated`→"Kích hoạt lại".
 
 ### GA4 Reporting API (2026-09)
 
