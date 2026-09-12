@@ -1,7 +1,10 @@
 """
 Gold & Silver Price Crawler
-Runs daily, with hourly retries until all feeds are fresh
-- Domestic silver prices from giabac.vn
+Runs at 08:07 VN, then hourly 09:07-16:07 VN — every run upserts today's row for
+each domestic source/brand (see 2026-09-12 note inline), so the stored price
+tracks the latest intraday quote during business hours rather than freezing at
+the morning value.
+- Domestic silver prices from giabac.vn (+ phuquygroup.vn backup)
 - Domestic gold prices from 24h.com.vn
 - Global gold/silver/indices from Yahoo Finance, with FRED index fallback
 """
@@ -78,31 +81,28 @@ try:
     if buy_price and sell_price and silver_is_plausible('giabac.vn', buy_price, sell_price):
         crawl_time = datetime.now()
 
-        # Day-scoped dedup: 1 row per source per day (crawl runs once/day, hourly only on
-        # retry). Prevents duplicates when a failed run is retried later the same day.
+        # Always upsert — do NOT skip when today's row already exists. The domestic
+        # price on giabac.vn moves multiple times during the business day, and the
+        # 9:07-16:07 VN hourly reruns exist to keep today's row current, not just to
+        # retry a failed morning crawl. A prior "skip if exists" guard here froze the
+        # row at whichever value the first successful run of the day happened to see
+        # (often the ~08:07 opening quote) and never updated it again — on a day with
+        # a real afternoon move this made the chart visibly stale/wrong vs. the live
+        # source for hours. ON CONFLICT DO UPDATE below refreshes price + crawl_time
+        # on every successful run; the uq_vn_silver_date_source index still guarantees
+        # exactly one row per (date, source).
         with engine.connect() as conn:
-            result = conn.execute(
-                text("""SELECT COUNT(*) FROM vn_macro_silver_daily
-                        WHERE date = :date AND source = 'giabac.vn'"""),
-                {'date': date_str}
+            conn.execute(
+                text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
+                        VALUES (:date, :crawl_time, :buy_price, :sell_price, 'giabac.vn', 'commodity')
+                        ON CONFLICT (date, source) DO UPDATE SET
+                            buy_price  = EXCLUDED.buy_price,
+                            sell_price = EXCLUDED.sell_price,
+                            crawl_time = EXCLUDED.crawl_time"""),
+                {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price, 'sell_price': sell_price}
             )
-            exists = result.scalar() > 0
-
-        if exists:
-            print(f"  Silver (giabac.vn) for {date_str} already exists today — skip")
-        else:
-            with engine.connect() as conn:
-                conn.execute(
-                    text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
-                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'giabac.vn', 'commodity')
-                            ON CONFLICT (date, source) DO UPDATE SET
-                                buy_price  = EXCLUDED.buy_price,
-                                sell_price = EXCLUDED.sell_price,
-                                crawl_time = EXCLUDED.crawl_time"""),
-                    {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price, 'sell_price': sell_price}
-                )
-                conn.commit()
-            print(f"  Pushed silver (giabac.vn): Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
+            conn.commit()
+        print(f"  Pushed silver (giabac.vn): Buy {buy_price:,.0f} | Sell {sell_price:,.0f}")
     else:
         print(f"  No silver price found")
 
@@ -143,27 +143,20 @@ try:
     if buy_price_pq and sell_price_pq and silver_is_plausible('phuquygroup.vn', buy_price_pq, sell_price_pq):
         crawl_time = datetime.now()
 
+        # Always upsert — see the giabac.vn block above for why the old
+        # "skip if today's row exists" guard was removed.
         with engine.connect() as conn:
-            # Day-scoped dedup: 1 row per source per day.
-            result = conn.execute(
-                text("""SELECT COUNT(*) FROM vn_macro_silver_daily
-                        WHERE date = :date AND source = 'phuquygroup.vn'"""),
-                {'date': date_str}
+            conn.execute(
+                text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
+                        VALUES (:date, :crawl_time, :buy_price, :sell_price, 'phuquygroup.vn', 'commodity')
+                        ON CONFLICT (date, source) DO UPDATE SET
+                            buy_price  = EXCLUDED.buy_price,
+                            sell_price = EXCLUDED.sell_price,
+                            crawl_time = EXCLUDED.crawl_time"""),
+                {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price_pq, 'sell_price': sell_price_pq}
             )
-            if result.scalar() > 0:
-                print(f"  Silver (phuquygroup.vn) for {date_str} already exists today — skip")
-            else:
-                conn.execute(
-                    text("""INSERT INTO vn_macro_silver_daily (date, crawl_time, buy_price, sell_price, source, group_name)
-                            VALUES (:date, :crawl_time, :buy_price, :sell_price, 'phuquygroup.vn', 'commodity')
-                            ON CONFLICT (date, source) DO UPDATE SET
-                                buy_price  = EXCLUDED.buy_price,
-                                sell_price = EXCLUDED.sell_price,
-                                crawl_time = EXCLUDED.crawl_time"""),
-                    {'date': date_str, 'crawl_time': crawl_time, 'buy_price': buy_price_pq, 'sell_price': sell_price_pq}
-                )
-                conn.commit()
-                print(f"  Pushed backup silver: Buy {buy_price_pq:,.0f} | Sell {sell_price_pq:,.0f}")
+            conn.commit()
+            print(f"  Pushed backup silver: Buy {buy_price_pq:,.0f} | Sell {sell_price_pq:,.0f}")
     else:
         print(f"  No silver price found on phuquygroup.vn")
 
@@ -236,30 +229,21 @@ try:
             raise RuntimeError(f"All {len(gold_records)} gold records failed validation")
 
         inserted = 0
-        skipped = 0
 
+        # Always upsert every brand — do NOT skip when today's row already exists.
+        # 24h.com.vn's domestic gold quotes move multiple times during the business
+        # day; the 9:07-16:07 VN hourly reruns exist to keep today's row current,
+        # not just to retry a failed morning crawl. A prior "skip if exists" guard
+        # here froze each brand at whichever value the first successful run of the
+        # day happened to see (often the ~08:07 opening quote) and never updated it
+        # again — on a day with a real afternoon move this made the chart visibly
+        # stale/wrong vs. the live source for hours (reported 2026-09-12: DOJI HN
+        # sat at the 08:45 quote of 142.4M/145.4M all day while the source had moved
+        # to 143.0M/146.0M by 13:36). ON CONFLICT DO UPDATE refreshes price +
+        # crawl_time on every successful run; the uq_vn_gold_date_type index still
+        # guarantees exactly one row per (date, type).
         for record in valid_records:
             with engine.connect() as conn:
-                # Day-scoped dedup: 1 row per gold type per day.
-                result = conn.execute(
-                    text("""
-                        SELECT COUNT(*) FROM vn_macro_gold_daily
-                        WHERE date = :date
-                        AND type = :type
-                    """),
-                    {
-                        'date': record['date'],
-                        'type': record['type'],
-                    }
-                )
-
-                if result.scalar() > 0:
-                    skipped += 1
-                    continue
-
-                # ON CONFLICT backs the day-scoped guard above with the DB-level
-                # uq_vn_gold_date_type index, so two overlapping hourly retries can
-                # never write a second row for the same (date, type) again.
                 conn.execute(
                     text("""
                         INSERT INTO vn_macro_gold_daily (date, type, buy_price, sell_price, crawl_time, source, group_name)
@@ -274,7 +258,7 @@ try:
                 conn.commit()
                 inserted += 1
 
-        print(f"  Pushed {inserted} gold records, skipped {skipped}")
+        print(f"  Pushed {inserted} gold records")
         gold_failed = False  # today's gold is persisted (freshly inserted or already present)
     else:
         print(f"  No gold data found for {date_str}")

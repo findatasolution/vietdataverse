@@ -10,9 +10,10 @@ on:
     # late on average (max 58). See deploy/crawl-fallback.sh for the box-side net.
     # Primary daily run: 8:07 AM VN (1:07 AM UTC)
     - cron: '7 1 * * *'
-    # Hourly retry 9:07 AM–4:07 PM VN (2:07–9:07 AM UTC). The "skip if already
-    # crawled" guard below makes these no-ops once the day's data has landed, so
-    # they effectively retry hourly ONLY while today's gold/silver is still missing.
+    # Hourly reruns 9:07 AM–4:07 PM VN (2:07–9:07 AM UTC). These upsert today's row
+    # on every successful run (see crawl_gold_silver.py's 2026-09-12 note) so the
+    # stored domestic price tracks intraday moves during business hours instead of
+    # freezing at the 08:07 opening quote — not just a retry-on-failure mechanism.
     - cron: '7 2-9 * * *'
   workflow_dispatch:
     inputs:
