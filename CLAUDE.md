@@ -404,9 +404,12 @@ subscription write and a wallet debit share one transaction.
 - `platform_subscriptions` — one row per `(user_id, product_code)`
   (`UNIQUE` constraint — re-subscribing after cancel reuses the row instead
   of inserting a second one), `status` in `active`/`past_due`/`cancelled`,
-  `current_period_end`, `grace_until`.
+  `current_period_end`, `grace_until`, `cancel_at_period_end`
+  (migration 015, `NOT NULL DEFAULT false` — see the cancellation semantics
+  below).
 - `platform_subscription_events` — append-only log (`created`/`charged`/
-  `charge_failed`/`past_due`/`cancelled`/`reactivated`), the source for the
+  `charge_failed`/`past_due`/`cancel_scheduled`/`cancel_undone`/`cancelled`/
+  `reactivated`), the source for the
   FE's billing-history card. Deliberately not derived from `credit_ledger`:
   a failed/insufficient-balance renewal attempt is a real, user-relevant
   event that never touches the ledger (no money moved), so it would be
@@ -415,9 +418,30 @@ subscription write and a wallet debit share one transaction.
   `credit_ledger`'s `CHECK` constraint to allow `kind='subscription_charge'`
   — a pre-existing gap found while wiring the debit path, not part of the
   original 013 migration.
+- Migration 015 (`015_cancel_at_period_end.sql`, `run_015.py`) added
+  `platform_subscriptions.cancel_at_period_end`. Applied to the dev
+  `KNOWLEDGE_MARKET_DB` 2026-09-12.
 
-**`be/services/subscription.py`** — `subscribe()`, `cancel_subscription()`
-(no refund/proration — confirmed out of scope), `has_active_subscription()`
+**Cancellation takes effect at the end of the paid period, not immediately**
+(product decision, 2026-09-12). `cancel_subscription()` sets
+`cancel_at_period_end = true` and writes a `cancel_scheduled` event; `status`
+and `current_period_end` are untouched, so access continues normally and
+`has_active_subscription()` keeps returning `True` until the period really
+ends. `run_billing_cycle` then takes the new `expire` action at that point
+(`status='cancelled'`, event `cancelled`) instead of attempting a charge —
+and does so regardless of balance, so an empty wallet can't turn a requested
+cancellation into `past_due`. Still no proration and no refund, in either
+direction. The one case that cancels **immediately** is a subscription with
+no paid time left to honour (`past_due`, or `active` with a
+`current_period_end` already in the past): neither grants access today, and
+scheduling a `past_due` row would leave it eligible for the cron's
+reactivation charge — i.e. billing someone who just asked to stop.
+`POST /subscribe` doubles as the undo: on an active row that is scheduled to
+cancel it clears the flag, writes `cancel_undone` and **charges nothing**
+(that period is already paid for), returning `charged: false`.
+
+**`be/services/subscription.py`** — `subscribe()`, `cancel_subscription()`,
+`has_active_subscription()`
 (pure lookup, `user_id=None` short-circuits to `False`, used for gating),
 `list_subscription_history()`, `run_billing_cycle()`. The billing cycle fetches
 every `active`/`past_due` subscription id in one query, then processes each in
@@ -426,7 +450,8 @@ its own short transaction (`_decide_renewal` branches per-row on its current
 logged, and skipped, so it can't block every other renewal: renewals due get
 charged and extended by `billing_period_days` from the existing `current_period_end`
 (on-time renewal doesn't lose time); a failed renewal goes `past_due` with a
-**3-day grace period** (`GRACE_PERIOD_DAYS`), retried daily — if the balance
+**2-day grace period** (`GRACE_PERIOD_DAYS`, was 3 until 2026-09-12), retried
+daily — if the balance
 recovers within the grace window the subscription reactivates from *now*
 (a late payment buys a fresh 30 days, it does not backdate), and if grace
 expires still unpaid it's auto-cancelled. A shortfall that's still within
@@ -438,8 +463,8 @@ first failure already recorded the start of it).
 ```
 GET  /api/v1/subscriptions/plans              — list platform_products (public)
 GET  /api/v1/subscriptions/me                 — current user's subscription rows (auth)
-POST /api/v1/subscriptions/subscribe {product_code} — subscribe (auth)
-POST /api/v1/subscriptions/cancel   {product_code} — cancel (auth)
+POST /api/v1/subscriptions/subscribe {product_code} — subscribe / reactivate / undo a scheduled cancel (auth)
+POST /api/v1/subscriptions/cancel   {product_code} — schedule cancellation at period end (auth)
 GET  /api/v1/subscriptions/history?limit&offset — event history, this user only (auth)
 ```
 
@@ -482,8 +507,27 @@ the free tier whose CTA posts to `/subscriptions/subscribe`, and a
 "Lịch sử thanh toán" card (shown once `GET /subscriptions/me` returns a row
 for this product) rendering `GET /subscriptions/history` with Vietnamese
 event labels: `created`→"Đăng ký mới", `charged`→"Gia hạn thành công",
-`charge_failed`→"Không đủ số dư — vào grace period", `cancelled`→"Huỷ",
+`charge_failed`→"Không đủ số dư — vào grace period",
+`cancel_scheduled`→"Đã lên lịch huỷ (hết kỳ hiện tại)",
+`cancel_undone`→"Tiếp tục dùng — đã huỷ lịch huỷ", `cancelled`→"Huỷ",
 `reactivated`→"Kích hoạt lại".
+
+`GET /subscriptions/me` is fetched once into `state.sub` and drives two
+things, so exactly one call-to-action is on screen at a time:
+
+- **`#sub-bar`**, shown only while `status='active'` and the period is still
+  running — "tự động gia hạn ngày X" + a "Huỷ đăng ký" button, or, once
+  `cancel_at_period_end` is true, "Đã lên lịch huỷ — … tới hết ngày X" +
+  "Tiếp tục dùng" (which POSTs `/subscribe`, the no-charge undo).
+- **the lock overlay's copy**, which has three variants: never subscribed
+  (sell the plan), `past_due` (failed renewal — top up, auto-retry within 2
+  days, or retry now via `/subscribe`), and expired `active` (renew).
+
+Dates from `/me` arrive as `json.dumps(default=str)` output
+(`"2026-10-12 03:11:00.123456"` — naive, space-separated, no zone marker,
+unlike `/history`'s explicit ISO-8601 `…Z`), so the page reads the
+`YYYY-MM-DD` prefix as text rather than through `new Date()`, which would
+read it as local time and can shift the displayed day.
 
 ### GA4 Reporting API (2026-09)
 

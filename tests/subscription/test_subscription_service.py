@@ -13,6 +13,7 @@ class TestDecideRenewalActive:
         result = _decide_renewal(
             status="active", current_period_end=_dt(5, now), grace_until=None,
             balance=100, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result == {"action": "noop"}
 
@@ -22,6 +23,7 @@ class TestDecideRenewalActive:
         result = _decide_renewal(
             status="active", current_period_end=period_end, grace_until=None,
             balance=100, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result["action"] == "charge"
         assert result["new_status"] == "active"
@@ -33,10 +35,49 @@ class TestDecideRenewalActive:
         result = _decide_renewal(
             status="active", current_period_end=_dt(-1, now), grace_until=None,
             balance=10, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result["action"] == "mark_past_due"
-        assert result["grace_until"] == now + timedelta(days=3)
+        assert result["grace_until"] == now + timedelta(days=2)
         assert result["event"] == "charge_failed"
+
+    # ── cancel_at_period_end: the scheduled cancellation coming due ──────────
+
+    def test_active_not_due_with_cancel_scheduled_is_still_noop(self):
+        """Access continues until the period actually ends — the flag changes
+        nothing before current_period_end."""
+        now = datetime(2026, 9, 10)
+        result = _decide_renewal(
+            status="active", current_period_end=_dt(5, now), grace_until=None,
+            balance=100, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=True,
+        )
+        assert result == {"action": "noop"}
+
+    def test_active_due_with_cancel_scheduled_expires_without_charging(self):
+        now = datetime(2026, 9, 10)
+        result = _decide_renewal(
+            status="active", current_period_end=_dt(-1, now), grace_until=None,
+            balance=100, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=True,
+        )
+        assert result["action"] == "expire"
+        assert result["event"] == "cancelled"
+        assert "cancel" in result["note"].lower()
+        # No charge was even considered, despite a wallet that could pay.
+        assert "new_period_end" not in result
+
+    def test_active_due_with_cancel_scheduled_and_empty_wallet_still_expires(self):
+        """An empty wallet must not turn a requested cancellation into
+        past_due — the user asked to stop, not to be dunned."""
+        now = datetime(2026, 9, 10)
+        result = _decide_renewal(
+            status="active", current_period_end=_dt(-1, now), grace_until=None,
+            balance=0, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=True,
+        )
+        assert result["action"] == "expire"
+        assert result["event"] == "cancelled"
 
 
 class TestDecideRenewalPastDue:
@@ -45,6 +86,7 @@ class TestDecideRenewalPastDue:
         result = _decide_renewal(
             status="past_due", current_period_end=_dt(-5, now), grace_until=_dt(1, now),
             balance=100, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result["action"] == "charge"
         assert result["new_status"] == "active"
@@ -56,6 +98,7 @@ class TestDecideRenewalPastDue:
         result = _decide_renewal(
             status="past_due", current_period_end=_dt(-1, now), grace_until=_dt(1, now),
             balance=10, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result == {"action": "noop"}
 
@@ -64,10 +107,25 @@ class TestDecideRenewalPastDue:
         result = _decide_renewal(
             status="past_due", current_period_end=_dt(-4, now), grace_until=_dt(-1, now),
             balance=10, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result["action"] == "cancel"
         assert result["event"] == "cancelled"
         assert "grace" in result["note"].lower()
+
+    def test_past_due_ignores_cancel_at_period_end(self):
+        """The flag is only read on the active-and-due branch. cancel_subscription()
+        never schedules on a past_due row (it cancels outright, since there is no
+        paid period left), so this state is unreachable in practice — pinned here
+        so a future change to the past_due branch is a deliberate one."""
+        now = datetime(2026, 9, 10)
+        result = _decide_renewal(
+            status="past_due", current_period_end=_dt(-5, now), grace_until=_dt(1, now),
+            balance=100, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=True,
+        )
+        assert result["action"] == "charge"
+        assert result["event"] == "reactivated"
 
 
 class TestDecideRenewalCancelled:
@@ -76,6 +134,7 @@ class TestDecideRenewalCancelled:
         result = _decide_renewal(
             status="cancelled", current_period_end=_dt(-100, now), grace_until=None,
             balance=1000, price=60, billing_period_days=30, now=now,
+            cancel_at_period_end=False,
         )
         assert result == {"action": "noop"}
 

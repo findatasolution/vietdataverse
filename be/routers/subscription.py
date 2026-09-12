@@ -7,6 +7,13 @@ Endpoints:
   POST /api/v1/subscriptions/subscribe  (auth) body: {"product_code": str}
   POST /api/v1/subscriptions/cancel     (auth) body: {"product_code": str}
   GET  /api/v1/subscriptions/history?limit&offset (auth)
+
+Cancellation takes effect at the end of the paid period, so both /me and
+/cancel carry `cancel_at_period_end` + `current_period_end` — the FE needs
+them together to say "still usable until <date>". /me gets them from
+get_subscription(); /cancel from cancel_subscription()'s return value. POST
+/subscribe doubles as the undo ("keep my subscription") action: it returns
+`charged: false` when it only cleared a scheduled cancellation.
 """
 import json
 import logging

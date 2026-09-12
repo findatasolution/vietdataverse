@@ -13,7 +13,7 @@ from services.credit import InsufficientCredits
 
 logger = logging.getLogger(__name__)
 
-GRACE_PERIOD_DAYS = 3
+GRACE_PERIOD_DAYS = 2
 
 
 class SubscriptionError(Exception):
@@ -22,17 +22,36 @@ class SubscriptionError(Exception):
 
 def _decide_renewal(status: str, current_period_end: datetime, grace_until: datetime | None,
                     balance: int, price: int, billing_period_days: int,
-                    now: datetime) -> dict:
+                    now: datetime, cancel_at_period_end: bool) -> dict:
     """PURE. One decision for one subscription row during a billing-cycle pass.
     See docs/superpowers/specs/2026-09-10-fuel-forecast-subscription-design.md
     "run_billing_cycle" for the two-pass rationale (on-time renewal extends from
-    the existing anchor date; a late reactivation buys a fresh period from now)."""
+    the existing anchor date; a late reactivation buys a fresh period from now).
+
+    `cancel_at_period_end` is only consulted on the 'active'-and-due branch —
+    that is the exact moment a scheduled cancellation becomes due, and the whole
+    point of the flag is "don't charge for the next period". It is deliberately
+    NOT checked on the 'past_due' branch: a past_due row has no remaining paid
+    period, so cancel_subscription() cancels it outright rather than scheduling
+    (see that function), and a past_due row reactivated in time has the flag
+    cleared by whichever path reactivates it.
+
+    `cancel_at_period_end` has no default on purpose: forgetting to pass it
+    would otherwise silently charge a user who asked to cancel."""
     if status == "cancelled":
         return {"action": "noop"}
 
     if status == "active":
         if current_period_end > now:
             return {"action": "noop"}
+        if cancel_at_period_end:
+            # No charge attempted, and no mark_past_due even if the wallet is
+            # empty — the user asked to stop, so the period simply ends.
+            return {
+                "action": "expire",
+                "event": "cancelled",
+                "note": "Cancelled at period end as requested",
+            }
         if balance >= price:
             return {
                 "action": "charge",
@@ -86,9 +105,29 @@ def _write_event(conn, subscription_id: int, event_type: str,
 
 
 def subscribe(user_id: int, product_code: str) -> dict:
-    """Subscribe (or reactivate a cancelled subscription). Raises ValueError if
-    already active/past_due, or if the product doesn't exist/is inactive.
-    Raises InsufficientCredits if the wallet can't cover the first charge."""
+    """Subscribe, reactivate, or undo a scheduled cancellation.
+
+    Four cases, decided under the subscription row's own FOR UPDATE lock:
+
+    1. No row, or status='cancelled'  -> new paid period from now ('created' +
+       'charged').
+    2. status='active', period still running, cancel_at_period_end=false ->
+       ValueError; they are mid-period, there is nothing to buy.
+    3. status='active', period still running, cancel_at_period_end=true -> undo
+       the scheduled cancellation. NO CHARGE: the running period is already
+       paid for. Returns charged=False.
+    4. status='active' but current_period_end has already passed, or
+       status='past_due' -> reactivation: charge and start a fresh period from
+       now ('reactivated').
+
+    Case 4's active-and-expired half exists because run_billing_cycle may never
+    have run (the cron is not merged yet, see CLAUDE.md). Such a row reads
+    'active' in the DB while has_active_subscription() correctly reports no
+    entitlement — before this, subscribe() rejected it as "already subscribed"
+    and the user had no way out except a manual DB fix.
+
+    Raises InsufficientCredits if the wallet can't cover the charge (cases 1
+    and 4 only)."""
     engine = get_engine_knowledge()
     with engine.begin() as conn:
         product = _get_product(conn, product_code)
@@ -96,11 +135,40 @@ def subscribe(user_id: int, product_code: str) -> dict:
         period_days = product["billing_period_days"]
 
         existing = conn.execute(text("""
-            SELECT id, status FROM platform_subscriptions
+            SELECT id, status, current_period_end, cancel_at_period_end
+            FROM platform_subscriptions
             WHERE user_id = :u AND product_code = :p FOR UPDATE
         """), {"u": user_id, "p": product_code}).first()
-        if existing and existing[1] in ("active", "past_due"):
-            raise ValueError(f"Already subscribed (status={existing[1]})")
+
+        now = datetime.utcnow()
+
+        if existing:
+            sub_id, ex_status, ex_period_end, ex_cancel_at_end = existing
+            if ex_status == "active" and ex_period_end > now:
+                if not ex_cancel_at_end:
+                    raise ValueError(f"Already subscribed (status={ex_status})")
+                # Case 3 — "keep my subscription after all". Money must not
+                # move here: the period they are standing in is already paid.
+                conn.execute(text("""
+                    UPDATE platform_subscriptions SET cancel_at_period_end = false
+                    WHERE id = :id
+                """), {"id": sub_id})
+                _write_event(conn, sub_id, "cancel_undone",
+                             note="User resumed subscription before period end")
+                balance_row = conn.execute(text(
+                    "SELECT balance FROM credit_balance WHERE user_id = :u"
+                ), {"u": user_id}).first()
+                return {"subscription_id": sub_id, "status": "active",
+                        "current_period_end": ex_period_end,
+                        "cancel_at_period_end": False, "charged": False,
+                        "balance_after": balance_row[0] if balance_row else 0}
+            # Case 4: a cancelled row is a fresh signup ('created'); an expired
+            # 'active' or a 'past_due' row is a reactivation, labelled the same
+            # way run_billing_cycle labels its own past_due reactivation.
+            is_reactivation = ex_status in ("active", "past_due")
+        else:
+            sub_id = None
+            is_reactivation = False
 
         balance_row = conn.execute(text(
             "SELECT balance FROM credit_balance WHERE user_id = :u FOR UPDATE"
@@ -109,78 +177,121 @@ def subscribe(user_id: int, product_code: str) -> dict:
         if balance < price:
             raise InsufficientCredits(f"Insufficient credits: need {price}, have {balance}")
 
-        now = datetime.utcnow()
         period_end = now + timedelta(days=period_days)
 
-        if existing:
-            sub_id = existing[0]
+        if sub_id is not None:
+            # cancel_at_period_end is reset unconditionally: a fresh paid period
+            # must never silently inherit a cancellation the user scheduled
+            # against the previous one.
             conn.execute(text("""
                 UPDATE platform_subscriptions
-                SET status='active', current_period_end=:pe, grace_until=NULL, cancelled_at=NULL
+                SET status='active', current_period_end=:pe, grace_until=NULL,
+                    cancelled_at=NULL, cancel_at_period_end=false
                 WHERE id = :id
             """), {"pe": period_end, "id": sub_id})
         else:
             sub_id = conn.execute(text("""
-                INSERT INTO platform_subscriptions (user_id, product_code, status, current_period_end)
-                VALUES (:u, :p, 'active', :pe) RETURNING id
+                INSERT INTO platform_subscriptions (user_id, product_code, status,
+                                                    current_period_end, cancel_at_period_end)
+                VALUES (:u, :p, 'active', :pe, false) RETURNING id
             """), {"u": user_id, "p": product_code, "pe": period_end}).scalar()
 
         # Second-granularity idem_key: a real collision would require two
-        # subscribe() calls for the same (user, product) within the same
-        # wall-clock second, but the `existing[1] in ("active", "past_due")`
-        # guard above (taken under the same row lock) already rejects the
-        # second call with ValueError before it reaches this INSERT.
+        # charging subscribe() calls for the same (user, product) within the
+        # same wall-clock second. The row lock above serialises them, and the
+        # first one leaves the row active with current_period_end in the
+        # future — so the second is rejected by the case-2 guard (or turned
+        # into the no-charge case 3) before it ever reaches this INSERT.
         idem_key = f"subscription:{sub_id}:{int(now.timestamp())}"
         conn.execute(text("""
             INSERT INTO credit_ledger (user_id, amount, kind, ref_type, ref_id, idem_key, note)
             VALUES (:u, :a, 'subscription_charge', 'subscription', :sid, :k, :n)
         """), {"u": user_id, "a": -price, "sid": sub_id, "k": idem_key,
-               "n": f"Subscribe {product_code}"})
+               "n": f"{'Reactivate' if is_reactivation else 'Subscribe'} {product_code}"})
         conn.execute(text("""
             UPDATE credit_balance SET balance = balance - :a, updated_at = NOW() WHERE user_id = :u
         """), {"a": price, "u": user_id})
 
-        _write_event(conn, sub_id, "created")
-        _write_event(conn, sub_id, "charged", amount_credits=price)
+        if is_reactivation:
+            _write_event(conn, sub_id, "reactivated", amount_credits=price)
+        else:
+            _write_event(conn, sub_id, "created")
+            _write_event(conn, sub_id, "charged", amount_credits=price)
 
-        return {"subscription_id": sub_id, "current_period_end": period_end,
+        return {"subscription_id": sub_id, "status": "active",
+                "current_period_end": period_end,
+                "cancel_at_period_end": False, "charged": True,
                 "balance_after": balance - price}
 
 
 def cancel_subscription(user_id: int, product_code: str) -> dict:
-    """Idempotent: cancelling an already-cancelled subscription is a no-op."""
+    """Cancel at the end of the already-paid period — access continues until
+    current_period_end, and run_billing_cycle then expires the row instead of
+    renewing it. No proration, no refund (settled product decision).
+
+    The one case that still cancels *immediately* is a subscription with no
+    paid time left to honour: a 'past_due' row (its period already lapsed and
+    the renewal charge failed) or an 'active' row whose current_period_end has
+    already passed. Neither grants entitlement today — has_active_subscription()
+    returns False for both — so there is nothing to keep the user in, and
+    scheduling instead would leave a past_due row eligible for the cron's
+    reactivation charge, i.e. billing someone who just asked to stop.
+
+    Idempotent: cancelling an already-cancelled subscription is a no-op."""
     engine = get_engine_knowledge()
     with engine.begin() as conn:
         row = conn.execute(text("""
-            SELECT id, status FROM platform_subscriptions
+            SELECT id, status, current_period_end, cancel_at_period_end
+            FROM platform_subscriptions
             WHERE user_id = :u AND product_code = :p FOR UPDATE
         """), {"u": user_id, "p": product_code}).first()
         if not row:
             raise ValueError("No subscription found")
-        sub_id, status = row
+        sub_id, status, period_end, already_scheduled = row
         if status == "cancelled":
             return {"status": "cancelled"}
+
+        if status == "active" and period_end > datetime.utcnow():
+            if not already_scheduled:
+                conn.execute(text("""
+                    UPDATE platform_subscriptions SET cancel_at_period_end = true
+                    WHERE id = :id
+                """), {"id": sub_id})
+                # 'cancel_scheduled', not 'cancelled': the latter is reserved
+                # for the moment the subscription actually ends, written by
+                # run_billing_cycle's 'expire' action.
+                _write_event(conn, sub_id, "cancel_scheduled",
+                             note="User requested cancellation; effective at period end")
+            return {"status": "active", "cancel_at_period_end": True,
+                    "current_period_end": period_end}
 
         conn.execute(text("""
             UPDATE platform_subscriptions
             SET status='cancelled', cancelled_at=NOW() WHERE id = :id
         """), {"id": sub_id})
-        _write_event(conn, sub_id, "cancelled", note="Cancelled by user")
-        return {"status": "cancelled"}
+        _write_event(conn, sub_id, "cancelled",
+                     note="Cancelled by user (no paid period remaining)")
+        return {"status": "cancelled", "cancel_at_period_end": False,
+                "current_period_end": period_end}
 
 
 def get_subscription(user_id: int, product_code: str) -> dict | None:
     engine = get_engine_knowledge()
     with engine.connect() as conn:
         row = conn.execute(text("""
-            SELECT id, status, current_period_end, grace_until, created_at, cancelled_at
+            SELECT id, status, current_period_end, grace_until, created_at, cancelled_at,
+                   cancel_at_period_end, product_code
             FROM platform_subscriptions WHERE user_id = :u AND product_code = :p
         """), {"u": user_id, "p": product_code}).first()
     if not row:
         return None
+    # product_code is echoed back because GET /me returns a *list* of these and
+    # the rows were otherwise indistinguishable once more than one platform
+    # product exists.
     return {
         "id": row[0], "status": row[1], "current_period_end": row[2],
         "grace_until": row[3], "created_at": row[4], "cancelled_at": row[5],
+        "cancel_at_period_end": row[6], "product_code": row[7],
     }
 
 
@@ -225,18 +336,20 @@ def list_subscription_history(user_id: int, limit: int = 50, offset: int = 0) ->
 
 def _process_subscription(engine, sub_id: int, now: datetime) -> str | None:
     """Process one subscription's billing decision inside its own transaction.
-    Returns the action taken ('charge', 'mark_past_due', 'cancel') or None for
-    a noop / missing row. Raises on error (e.g. product deactivated while
-    subscribers remain on it) — the caller isolates failures per-subscription
-    so one stuck row can't block the rest of a run_billing_cycle() pass."""
+    Returns the action taken ('charge', 'mark_past_due', 'cancel', 'expire') or
+    None for a noop / missing row. Raises on error (e.g. product deactivated
+    while subscribers remain on it) — the caller isolates failures
+    per-subscription so one stuck row can't block the rest of a
+    run_billing_cycle() pass."""
     with engine.begin() as conn:
         sub = conn.execute(text("""
-            SELECT id, user_id, product_code, status, current_period_end, grace_until
+            SELECT id, user_id, product_code, status, current_period_end, grace_until,
+                   cancel_at_period_end
             FROM platform_subscriptions WHERE id = :id FOR UPDATE
         """), {"id": sub_id}).first()
         if not sub:
             return None
-        _, user_id, product_code, status, period_end, grace_until = sub
+        _, user_id, product_code, status, period_end, grace_until, cancel_at_period_end = sub
         product = _get_product(conn, product_code)
 
         balance_row = conn.execute(text(
@@ -248,6 +361,7 @@ def _process_subscription(engine, sub_id: int, now: datetime) -> str | None:
             status=status, current_period_end=period_end, grace_until=grace_until,
             balance=balance, price=product["price_credits"],
             billing_period_days=product["billing_period_days"], now=now,
+            cancel_at_period_end=bool(cancel_at_period_end),
         )
 
         if decision["action"] == "noop":
@@ -280,13 +394,16 @@ def _process_subscription(engine, sub_id: int, now: datetime) -> str | None:
             _write_event(conn, sub_id, decision["event"])
             return "mark_past_due"
 
-        if decision["action"] == "cancel":
+        # 'cancel' (grace exhausted) and 'expire' (the user's scheduled
+        # cancellation coming due) differ only in why they happened — the note
+        # carries that — so they share one DB update rather than duplicating it.
+        if decision["action"] in ("cancel", "expire"):
             conn.execute(text("""
                 UPDATE platform_subscriptions SET status = 'cancelled', cancelled_at = :now
                 WHERE id = :id
             """), {"now": now, "id": sub_id})
             _write_event(conn, sub_id, decision["event"], note=decision["note"])
-            return "cancel"
+            return decision["action"]
 
         raise SubscriptionError(f"unknown _decide_renewal action: {decision['action']!r}")
 
@@ -317,7 +434,10 @@ def run_billing_cycle(now: datetime | None = None) -> dict:
                OR status = 'past_due'
         """), {"now": now}).fetchall()]
 
-    action_to_count = {"charge": "renewed", "mark_past_due": "past_due", "cancel": "cancelled"}
+    # 'expire' (scheduled cancellation reaching its period end) counts as a
+    # cancellation like 'cancel' (grace exhausted) — both end the subscription.
+    action_to_count = {"charge": "renewed", "mark_past_due": "past_due",
+                       "cancel": "cancelled", "expire": "cancelled"}
 
     for sub_id in due_ids:
         try:

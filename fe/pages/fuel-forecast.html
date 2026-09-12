@@ -153,6 +153,30 @@
   .method-card .body ul{margin:6px 0 0; padding-left:18px}
   .method-card .body li{margin-bottom:3px}
 
+  /* subscription management bar (shown only to a subscriber whose paid period
+     is still running — cancel / undo-cancel live here, not in the lock overlay,
+     which by definition is hidden for them) */
+  .sub-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:13px 16px; box-shadow:var(--shadow);
+  }
+  .sub-bar.scheduled{background:var(--warn-bg); border-color:var(--warn)}
+  .sub-bar .txt{font-size:12.5px; line-height:1.55; color:var(--ink-soft)}
+  .sub-bar .txt b{color:var(--ink); font-weight:600}
+  .sub-bar .actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .sub-action{
+    appearance:none; cursor:pointer; font:inherit; font-size:12.5px; font-weight:600;
+    padding:8px 14px; border-radius:9px; white-space:nowrap;
+  }
+  .sub-action.ghost{background:transparent; border:1px solid var(--border); color:var(--ink-soft)}
+  .sub-action.ghost:hover{border-color:var(--bad); color:var(--bad)}
+  .sub-action.primary{background:var(--brand); border:1px solid var(--brand); color:#fff}
+  .sub-action.primary:hover{background:var(--brand-ink); border-color:var(--brand-ink)}
+  .sub-action:disabled{opacity:.6; cursor:default}
+  .sub-action:focus-visible{outline:2px solid var(--brand); outline-offset:2px}
+  .sub-bar-msg{font-size:11.5px; color:var(--bad)}
+
   /* billing history card */
   .billing-card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:20px 22px}
   .billing-card h2{font-size:16px; font-weight:600; margin-bottom:12px}
@@ -247,6 +271,14 @@
 
   <div class="stat-row" id="stat-row"></div>
 
+  <div class="sub-bar" id="sub-bar" hidden>
+    <div class="txt" id="sub-bar-text"></div>
+    <div class="actions">
+      <span class="sub-bar-msg" id="sub-bar-msg" hidden></span>
+      <button class="sub-action ghost" id="btn-sub-manage" type="button">Huỷ đăng ký</button>
+    </div>
+  </div>
+
   <div class="method-card">
     <div class="ico">!</div>
     <div class="body">
@@ -283,14 +315,20 @@
     created: "Đăng ký mới",
     charged: "Gia hạn thành công",
     charge_failed: "Không đủ số dư — vào grace period",
+    cancel_scheduled: "Đã lên lịch huỷ (hết kỳ hiện tại)",
+    cancel_undone: "Tiếp tục dùng — đã huỷ lịch huỷ",
     cancelled: "Huỷ",
     reactivated: "Kích hoạt lại",
   };
 
   // state.data holds the raw {fuel, tier, history, forecast} response for the
   // currently selected fuel; state.plan holds the public plan row (price,
-  // billing period) used to word the subscribe CTA.
-  var state = { fuel: "RON95", data: null, plan: null, subscribing: false };
+  // billing period) used to word the subscribe CTA; state.sub holds this
+  // user's platform_subscriptions row for PRODUCT_CODE from
+  // GET /subscriptions/me (null when logged out or never subscribed) and
+  // drives both the manage bar and the wording of the lock overlay.
+  var state = { fuel: "RON95", data: null, plan: null, sub: null,
+                subscribing: false, managing: false };
 
   var fmt = new Intl.NumberFormat("vi-VN");
   function money(v){ return fmt.format(Math.round(v)); }
@@ -394,44 +432,102 @@
       var json = await res.json();
       if (json.success) {
         state.plan = (json.data || []).filter(function(p){ return p.code === PRODUCT_CODE; })[0] || null;
-        applyPlanCopy();
+        applyLockCopy();
       }
     } catch (err) {
       console.warn("[fuel-forecast] could not load plan info:", err);
     }
   }
 
-  function applyPlanCopy(){
+  // Wording of the lock overlay, which has three distinct audiences: someone
+  // who never subscribed (sell the plan), someone whose renewal charge failed
+  // (past_due — tell them how to fix it), and someone whose paid period simply
+  // ran out (expired — offer a renewal, not a first-time pitch).
+  function applyLockCopy(){
     var btn = document.getElementById("btn-subscribe-cta");
     var desc = document.getElementById("lock-desc");
-    if (!state.plan) return;
-    var price = state.plan.price_credits;
-    var days = state.plan.billing_period_days;
-    btn.textContent = "Đăng ký gói B2B — " + price + " credit / " + days + " ngày →";
-    // Giữ đồng bộ với #lock-desc trong HTML tĩnh phía trên — chỉ nêu đúng phần
-    // backend thật sự gate (dải low/high + hệ số k), không nêu R²/skill.
-    desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá với gói " +
-      price + " credit mỗi " + days + " ngày.";
+    var price = state.plan ? state.plan.price_credits : null;
+    var days = state.plan ? state.plan.billing_period_days : null;
+    var priceSuffix = (price != null) ? (" — " + price + " credit / " + days + " ngày") : "";
+    var sub = state.sub;
+
+    if (sub && sub.status === "past_due") {
+      // GRACE_PERIOD_DAYS in be/services/subscription.py — keep the "2 ngày" in
+      // this sentence in sync if that constant ever changes again.
+      desc.textContent = "Gia hạn chưa thành công do số dư ví không đủ. Nạp thêm credit vào Ví — hệ thống sẽ tự thử lại trong vòng 2 ngày, hoặc bấm nút bên dưới để thử ngay.";
+      btn.textContent = "Thử gia hạn ngay" + priceSuffix + " →";
+    } else if (sub && sub.status === "active" && !periodStillRunning(sub)) {
+      desc.textContent = "Gói dữ liệu của bạn đã hết hạn ngày " + fmtPeriodDate(sub.current_period_end) +
+        ". Gia hạn để mở lại dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k).";
+      btn.textContent = "Gia hạn" + priceSuffix + " →";
+    } else if (price != null) {
+      btn.textContent = "Đăng ký gói B2B" + priceSuffix + " →";
+      // Giữ đồng bộ với #lock-desc trong HTML tĩnh phía trên — chỉ nêu đúng phần
+      // backend thật sự gate (dải low/high + hệ số k), không nêu R²/skill.
+      desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá với gói " +
+        price + " credit mỗi " + days + " ngày.";
+    } else {
+      return; // no plan and no subscription yet — leave the static copy alone
+    }
+    // setSubscribeBusy() caches the button label to restore after "Đang xử lý…";
+    // that cache is stale the moment the copy above changes.
+    delete btn.dataset.prevText;
   }
 
-  async function checkBillingHistory(){
+  // Dates from GET /subscriptions/me are serialised with json.dumps(default=str),
+  // i.e. "2026-10-12 03:11:00.123456" — naive, space-separated, no zone marker.
+  // new Date() reads that as LOCAL time (Safari rejects it outright), which can
+  // shift the displayed day. Read the YYYY-MM-DD prefix as text instead.
+  function fmtPeriodDate(raw){
+    if (!raw) return "—";
+    var m = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? (m[3] + "/" + m[2] + "/" + m[1]) : String(raw);
+  }
+
+  function periodStillRunning(sub){
+    if (!sub || !sub.current_period_end) return false;
+    // Same text-first treatment: append "Z" so the naive UTC timestamp is
+    // compared as UTC rather than as the viewer's local time.
+    var iso = String(sub.current_period_end).replace(" ", "T");
+    var end = new Date(/[Zz+]|[+-]\d{2}:\d{2}$/.test(iso) ? iso : iso + "Z");
+    return !isNaN(end.getTime()) && end.getTime() > Date.now();
+  }
+
+  async function loadSubscription(){
+    state.sub = null;
     var authed = false;
     try { authed = await isAuthenticated(); } catch (e) { authed = false; }
-    if (!authed) return;
+    if (!authed) { renderSubscriptionBar(); return; }
 
     try {
       var meRes = await window.fetchWithAuth(API_BASE + "/api/v1/subscriptions/me", { method: "GET" });
       if (!meRes.ok) return; // not authed server-side or transient error — no card
       var meJson = await meRes.json();
-      var everSubscribed = meJson.success && Array.isArray(meJson.data) && meJson.data.length > 0;
-      if (!everSubscribed) return;
+      if (meJson.success && Array.isArray(meJson.data)) {
+        state.sub = meJson.data.filter(function(s){
+          // product_code is present since the cancel-at-period-end change; fall
+          // back to "the only row" for a backend that predates it.
+          return !s.product_code || s.product_code === PRODUCT_CODE;
+        })[0] || null;
+      }
+    } catch (err) {
+      console.warn("[fuel-forecast] subscription lookup failed:", err);
+      return;
+    }
 
+    renderSubscriptionBar();
+    applyLockCopy();
+    if (state.sub) await refreshBillingHistory();
+  }
+
+  async function refreshBillingHistory(){
+    try {
       document.getElementById("billing-card").hidden = false;
       var histRes = await window.fetchWithAuth(API_BASE + "/api/v1/subscriptions/history", { method: "GET" });
       var histJson = await histRes.json();
       renderBillingHistory(histRes.ok && histJson.success ? histJson.data : []);
     } catch (err) {
-      console.warn("[fuel-forecast] billing history check failed:", err);
+      console.warn("[fuel-forecast] billing history fetch failed:", err);
     }
   }
 
@@ -519,9 +615,12 @@
       }
 
       // Success — re-fetch the forecast (flips tier to "advanced") and the
-      // billing history card (this is now the user's first subscription event).
+      // subscription state, which in turn refreshes the billing-history card
+      // and reveals the manage bar with the new period end. This path also
+      // covers a renewal of an expired/past_due subscription, not just a first
+      // subscribe (see subscribe() in be/services/subscription.py).
       await loadFuel(state.fuel);
-      await checkBillingHistory();
+      await loadSubscription();
     } catch (err) {
       console.error("[fuel-forecast] subscribe failed:", err);
       showSubscribeMsg("Lỗi kết nối, vui lòng thử lại sau.", true);
@@ -531,6 +630,110 @@
   }
 
   document.getElementById("btn-subscribe-cta").addEventListener("click", handleSubscribeClick);
+
+  // ── Manage flow: cancel at period end / undo that cancellation ───────────
+  // The bar is only for a subscriber whose paid period is still running. A
+  // past_due or expired row has no access to manage — those are handled by the
+  // lock overlay's copy (see applyLockCopy) instead, so there is exactly one
+  // call-to-action on screen at a time.
+
+  function renderSubscriptionBar(){
+    var bar = document.getElementById("sub-bar");
+    var txt = document.getElementById("sub-bar-text");
+    var btn = document.getElementById("btn-sub-manage");
+    var sub = state.sub;
+
+    if (!sub || sub.status !== "active" || !periodStillRunning(sub)) {
+      bar.hidden = true;
+      return;
+    }
+
+    var until = fmtPeriodDate(sub.current_period_end);
+    if (sub.cancel_at_period_end) {
+      bar.classList.add("scheduled");
+      txt.innerHTML = "<b>Đã lên lịch huỷ</b> — bạn vẫn dùng được đầy đủ tới hết ngày " +
+        escapeHtml(until) + ", sau đó gói sẽ không tự gia hạn và không bị trừ credit.";
+      btn.textContent = "Tiếp tục dùng";
+      btn.className = "sub-action primary";
+    } else {
+      bar.classList.remove("scheduled");
+      txt.innerHTML = "Gói B2B đang hoạt động — tự động gia hạn ngày <b>" + escapeHtml(until) + "</b>.";
+      btn.textContent = "Huỷ đăng ký";
+      btn.className = "sub-action ghost";
+    }
+    bar.hidden = false;
+  }
+
+  function showManageMsg(text){
+    var el = document.getElementById("sub-bar-msg");
+    el.textContent = text;
+    el.hidden = !text;
+  }
+
+  function setManageBusy(busy){
+    state.managing = busy;
+    var btn = document.getElementById("btn-sub-manage");
+    btn.disabled = busy;
+    if (busy) {
+      btn.textContent = "Đang xử lý…";
+    } else {
+      // Re-derive the label from state instead of restoring the one cached
+      // before the request: by the time we get here a successful cancel has
+      // already flipped state.sub, so the pre-request label ("Huỷ đăng ký")
+      // is exactly the wrong one to put back. On the error path state.sub is
+      // unchanged and this restores the same label anyway.
+      renderSubscriptionBar();
+    }
+  }
+
+  async function handleManageClick(){
+    if (state.managing || !state.sub) return;
+    showManageMsg("");
+    var undo = !!state.sub.cancel_at_period_end;
+
+    if (!undo && !window.confirm(
+        "Huỷ đăng ký gói B2B?\n\nBạn vẫn dùng được đầy đủ tới hết kỳ đã thanh toán (" +
+        fmtPeriodDate(state.sub.current_period_end) + "), sau đó gói sẽ không tự gia hạn. " +
+        "Không hoàn tiền cho kỳ hiện tại.")) {
+      return;
+    }
+
+    setManageBusy(true);
+    try {
+      var url = API_BASE + (undo ? "/api/v1/subscriptions/subscribe" : "/api/v1/subscriptions/cancel");
+      var res = await window.fetchWithAuth(url, {
+        method: "POST",
+        body: JSON.stringify({ product_code: PRODUCT_CODE }),
+      });
+      var json = await res.json().catch(function(){ return {}; });
+      if (!res.ok) {
+        showManageMsg((undo ? "Không huỷ được lịch huỷ: " : "Huỷ đăng ký thất bại: ") +
+                      (json.detail || ("HTTP " + res.status)));
+        return;
+      }
+
+      // Apply the server's own answer rather than guessing: POST /cancel
+      // returns the period end it preserved, POST /subscribe (undo path)
+      // returns cancel_at_period_end:false with charged:false.
+      var data = json.data || {};
+      state.sub.cancel_at_period_end = !!data.cancel_at_period_end;
+      if (data.current_period_end) state.sub.current_period_end = data.current_period_end;
+      if (data.status) state.sub.status = data.status;
+      renderSubscriptionBar();
+      applyLockCopy();
+      await refreshBillingHistory();
+      // Entitlement is deliberately NOT re-fetched here: access is unchanged
+      // either way until the period actually ends, so re-running loadFuel()
+      // would only flicker the chart.
+    } catch (err) {
+      console.error("[fuel-forecast] manage subscription failed:", err);
+      showManageMsg("Lỗi kết nối, vui lòng thử lại sau.");
+    } finally {
+      setManageBusy(false);
+    }
+  }
+
+  document.getElementById("btn-sub-manage").addEventListener("click", handleManageClick);
 
   // ── Fetch-error banner (page-level, e.g. forecast endpoint unreachable) ──
 
@@ -787,7 +990,7 @@
     buildFuelTabs();
     loadFuel(state.fuel);
     loadPlan();
-    checkBillingHistory();
+    loadSubscription();
   });
   window.addEventListener("resize", function(){ if(chart) chart.resize(); });
 })();

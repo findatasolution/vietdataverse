@@ -5,6 +5,22 @@ record before implementation planning). Extends the existing Agent-Market
 wallet (`credit_balance`/`credit_ledger`, see `be/services/credit.py`), does
 not replace it.
 
+> **Superseded in two places on 2026-09-12** (product decisions; the rest of
+> this doc stands). Root `CLAUDE.md` "Fuel Forecast subscription" is the
+> current description.
+>
+> 1. **Grace period is 2 days, not 3** (`GRACE_PERIOD_DAYS` in
+>    `be/services/subscription.py`). Every "3 days" below reads as 2.
+> 2. **Cancelling is scheduled, not immediate.** `cancel_subscription()` sets
+>    the new `platform_subscriptions.cancel_at_period_end` flag (migration 015)
+>    and writes a `cancel_scheduled` event; access runs to `current_period_end`,
+>    and `run_billing_cycle`'s new `expire` action then ends it without
+>    charging. Still no proration/refund. A row with no paid time left
+>    (`past_due`, or `active` past its period end) still cancels outright —
+>    scheduling one of those would leave it eligible for the cron's
+>    reactivation charge. `POST /subscribe` on a scheduled-to-cancel row is the
+>    undo, and charges nothing.
+
 ## Problem
 
 Fuel Forecast (`be/fuel/*`, DB `FUEL_FORECAST_DB`) is a working, validated
