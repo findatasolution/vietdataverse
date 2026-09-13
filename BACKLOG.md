@@ -244,6 +244,13 @@
   - Đã chạy crawler thủ công + trigger tay workflow `Generate Static Chart Data` để vá ngay dữ liệu hôm 12/9 thay vì chờ vòng chạy tiếp theo.
   - **Tại sao đây là bug thật, không phải chỉ "độ trễ 1 lần/ngày":** hệ thống retry hourly vốn đã tồn tại sẵn cho mục đích khác (retry khi lỗi) ở CẢ HAI tầng — sửa lỗi này khiến retry ở cả hai tầng cùng làm đúng chức năng thứ hai (refresh intraday) mà thiết kế ban đầu vô tình chặn mất.
   - **Bài học quy trình:** khi sửa 1 bug "guard chặn update", phải rà toàn bộ chuỗi gọi (script → workflow gọi nó → workflow khác phụ thuộc nó) chứ không chỉ chỗ tìm ra đầu tiên — guard trùng ý tưởng có thể tồn tại ở nhiều tầng độc lập.
+- [x] **2026-09-13: Hệ quả của bug trên — chuyển vàng về CHỈ còn SJC + sửa 14 ngày dữ liệu sai + đổi lịch 2 tiếng/lần.** Bug freeze sống 75 ngày (29/6 do `d31423068` → 12/9) nên *mọi* dòng vàng trong khoảng đó là giá sáng bị đóng băng, không riêng ngày nào.
+  - **Đo tác động thật trên SJC:** 14/30 ngày (13/8–11/9) lưu sai giá, lệch tới 2,1 triệu/lượng (19/8: DB 139,7tr — thực tế 141,8tr). Đã sửa 14 dòng này từ `webgia.com/gia-vang/sjc/DD-MM-YYYY.html` (lưu trữ đúng các lần SJC điều chỉnh trong ngày; ví dụ 11/9: 142,0 → 141,4 → 142,4).
+  - **Vì sao chỉ giữ SJC:** 8 brand kia không có nguồn lưu trữ theo ngày nào để đối chiếu — `?ngaythang=` của chính 24h.com.vn trả số rác cho ngày quá khứ (81tr/lượng cho tháng 8/2026, cột "Hôm qua" ghi năm 2021), webgia.com chỉ lưu SJC. Dữ liệu 75 ngày của chúng vĩnh viễn không kiểm chứng được → ngừng crawl, ngừng sinh static JSON, gỡ khỏi dropdown chart. Dòng cũ vẫn nằm trong DB và vẫn gọi được qua `/api/v1/gold?type=…`, chỉ là không tiến thêm.
+  - `gold_types.json` trước đây publish 31 loại lấy thẳng từ `SELECT DISTINCT type` — phần lớn là series chết (DONGA BANK, SACOMBANK, SJC Đà Nẵng, SJC1c…) **không hề có file tĩnh**, chọn vào là 404. Giờ còn `["SJC"]`.
+  - **Lịch mới:** 2 tiếng/lần trong giờ hành chính (`'7 1,3,5,7,9 * * *'` = 08:07, 10:07, 12:07, 14:07, 16:07 VN), thay cho 1 primary + 8 hourly. Workflow đổi tên → đã sửa luôn tham chiếu `workflow_run` trong `generate-static-data.yml` để không đứt trigger.
+  - **Giữ nguyên có chủ đích:** crawler vẫn parse + validate TẤT CẢ brand rồi mới lọc SJC — vì `validate_gold_records` cần ≥3 brand mới chạy được cross-brand median, vốn là lớp chặn thêm sau sự cố DOJI `14,450` thay vì `144,500` (18/7).
+  - **Còn tồn:** 10/30 ngày backfill là carry-forward gần đúng (cuối tuần SJC không cập nhật, hoặc webgia thiếu dữ liệu: 15,18,19,23,30,31/8 và 1,2,6,10/9) — không có số chính xác cho các ngày này. File tĩnh cũ của 8 brand (`gold_DOJI_HN_*.json`…) vẫn nằm trong `fe/data/`, không còn được sinh lại và không còn ai đọc; chưa xoá vì quyết định là "tạm ngừng", không phải bỏ hẳn.
 
 ---
 

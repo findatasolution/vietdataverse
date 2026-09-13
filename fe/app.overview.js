@@ -37,9 +37,9 @@
             id: 'gold', section: 'gold-silver', family: 'dispatch',
             chartType: 'gold', domCardId: 'gold',
             i18nKey: 'ovGold',
-            title: 'Giá vàng trong nước', source: 'DOJI HN', unit: 'triệu/lượng', unitKey: 'unitTrieuLuong',
+            title: 'Giá vàng trong nước', source: 'SJC', unit: 'triệu/lượng', unitKey: 'unitTrieuLuong',
             detailPeriod: '1m',
-            mini: { file: 'data/gold_DOJI_HN_1m.json', series: 'buy_prices',
+            mini: { file: 'data/gold_SJC_1m.json', series: 'buy_prices',
                     scale: 1e6, decimals: 1, color: '#2f5fde', periodic: true }
         },
         {
@@ -196,7 +196,7 @@
     const sectionIsPeriodic = key =>
         CHART_REGISTRY.filter(c => c.section === key).every(isPeriodic);
 
-    /* 'data/gold_DOJI_HN_1m.json' + '7d' -> 'data/gold_DOJI_HN_7d.json' */
+    /* 'data/gold_SJC_1m.json' + '7d' -> 'data/gold_SJC_7d.json' */
     function fileForPeriod(chart, period) {
         if (!isPeriodic(chart) || !period) return chart.mini.file;
         return chart.mini.file.replace(/_(7d|1m|1y)\.json$/, `_${period}.json`);

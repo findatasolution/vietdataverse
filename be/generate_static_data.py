@@ -76,25 +76,21 @@ def generate_gold_data():
     """Generate static JSON for gold prices."""
     print("\n--- Generating Gold Data ---")
 
-    # Get available gold types
-    with engine_crawl.connect() as conn:
-        result = conn.execute(text("""
-            SELECT DISTINCT type FROM vn_macro_gold_daily
-            WHERE type IS NOT NULL
-            ORDER BY type
-        """))
-        gold_types = [row[0] for row in result.fetchall()]
+    # SJC is the only brand published (decision 2026-09-12, see
+    # crawl_tools/crawl_gold_silver.py for the full rationale): it is the only one
+    # still crawled, and the only one whose daily history can be audited against an
+    # external archive. `SELECT DISTINCT type` used to feed this, which put 31 types
+    # in gold_types.json — including long-dead series (DONGA BANK, SACOMBANK,
+    # SJC Đà Nẵng, SJC1c…) that have no static file at all, so picking one in the FE
+    # dropdown 404'd. Their rows stay in the DB and remain reachable through the API;
+    # they are simply no longer offered as chart options.
+    gold_types = ['SJC']
+    types_to_generate = gold_types
 
     print(f"  Gold types: {gold_types}")
 
-    # FE prefetches "DOJI HN" as the default gold chart (app.js) — must always
-    # be generated even if it falls outside the top-5 alphabetical types.
-    types_to_generate = list(dict.fromkeys(['DOJI HN'] + gold_types[:5]))
-
     # Generate for each type and period
     for gold_type in types_to_generate:
-        if gold_type not in gold_types:
-            continue
         for period in ['7d', '1m', '1y']:
             date_filter = get_date_filter(period)
 

@@ -1,4 +1,4 @@
-name: Gold & Silver Price Crawl (Daily + hourly retry)
+name: Gold & Silver Price Crawl (2-hourly, VN office hours)
 
 on:
   schedule:
@@ -8,13 +8,13 @@ on:
     # never fired at all (first run of the day landed 03:04–04:38 UTC), only 4–8
     # of the 9 declared runs materialised, and the ones that did started 32 min
     # late on average (max 58). See deploy/crawl-fallback.sh for the box-side net.
-    # Primary daily run: 8:07 AM VN (1:07 AM UTC)
-    - cron: '7 1 * * *'
-    # Hourly reruns 9:07 AM–4:07 PM VN (2:07–9:07 AM UTC). These upsert today's row
-    # on every successful run (see crawl_gold_silver.py's 2026-09-12 note) so the
-    # stored domestic price tracks intraday moves during business hours instead of
-    # freezing at the 08:07 opening quote — not just a retry-on-failure mechanism.
-    - cron: '7 2-9 * * *'
+    # Every 2 hours across VN office hours: 08:07, 10:07, 12:07, 14:07, 16:07 VN
+    # (01:07, 03:07, 05:07, 07:07, 09:07 UTC). Each run upserts today's row rather
+    # than skipping it (see crawl_gold_silver.py's 2026-09-12 note), so the stored
+    # price tracks intraday moves instead of freezing at the opening quote. Was
+    # hourly (9 runs) until 2026-09-12; SJC adjusts a handful of times a day, so
+    # 2-hourly captures the moves without 9 crawls of mostly-identical data.
+    - cron: '7 1,3,5,7,9 * * *'
   workflow_dispatch: {}
 
 jobs:

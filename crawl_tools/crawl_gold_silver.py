@@ -228,9 +228,27 @@ try:
         if not valid_records:
             raise RuntimeError(f"All {len(gold_records)} gold records failed validation")
 
+        # Store SJC only (decision 2026-09-12). Every other brand on this page is
+        # still PARSED and VALIDATED above on purpose: validate_gold_records'
+        # cross-brand median check needs >=3 brands to run at all, and that check is
+        # the guard added after 24h.com.vn published DOJI at 14,450 instead of
+        # 144,500 (2026-07-18). Filtering to SJC before validation would silently
+        # disable it. So: validate against the full brand set, then persist only SJC.
+        #
+        # Why only SJC: the other 8 brands have no per-day historical archive we
+        # could find (24h.com.vn's own ?ngaythang= lookup returns garbage — 81M/lượng
+        # for Aug 2026 — and webgia.com archives SJC alone), so their
+        # 2026-06-29..09-11 rows can never be corrected for the freeze bug fixed
+        # above. Rather than keep publishing series known to be wrong and impossible
+        # to verify, keep the one brand with an auditable daily source. Historical
+        # rows for the other brands stay in the DB, they just stop being updated.
+        valid_records = [r for r in valid_records if r['type'] == 'SJC']
+        if not valid_records:
+            raise RuntimeError("'SJC' row not present on the page — nothing to store")
+
         inserted = 0
 
-        # Always upsert every brand — do NOT skip when today's row already exists.
+        # Always upsert — do NOT skip when today's row already exists.
         # 24h.com.vn's domestic gold quotes move multiple times during the business
         # day; the 9:07-16:07 VN hourly reruns exist to keep today's row current,
         # not just to retry a failed morning crawl. A prior "skip if exists" guard

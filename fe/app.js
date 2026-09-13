@@ -770,7 +770,7 @@
             // Prefetch gold/silver from static files (generated daily) — anonymous
             // visitors don't carry an API key/Bearer token, and these endpoints
             // are now metered, so the default chart must not depend on a live call.
-            window._prefetchPromises['gold-1m-DOJI HN'] = fetch('./data/gold_DOJI_HN_1m.json')
+            window._prefetchPromises['gold-1m-SJC'] = fetch('./data/gold_SJC_1m.json')
                 .then(r => r.ok ? r.json() : Promise.reject(r.status))
                 .catch(e => { console.warn('[prefetch] gold static failed:', e); return null; });
             window._prefetchPromises['silver-1m'] = fetch('./data/silver_1m.json')
@@ -1289,7 +1289,7 @@
             // drawn" sizing bug for free.
             function ovLoadDetailData(chart) {
                 if (chart.family === 'dispatch') {
-                    const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
+                    const goldType = document.getElementById('goldTypeSelect')?.value || 'SJC';
                     const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
                     loadChartData(chart.chartType, chart.detailPeriod, goldType, bankCode);
                 } else if (chart.family === 'policy') {
@@ -1672,7 +1672,7 @@
             loadedSections[sectionKey] = true;
 
             if (sectionKey === 'gold-silver') {
-                const goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
+                const goldType = document.getElementById('goldTypeSelect')?.value || 'SJC';
                 Promise.all([
                     loadChartData('gold', '1m', goldType),
                     loadChartData('silver', '1m')
@@ -1732,7 +1732,7 @@
                     let bankCode = null;
 
                     if (chart === 'gold') {
-                        goldType = document.getElementById('goldTypeSelect')?.value || 'DOJI HN';
+                        goldType = document.getElementById('goldTypeSelect')?.value || 'SJC';
                     } else if (chart === 'td') {
                         bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
                     }
@@ -1743,12 +1743,12 @@
             });
 
             // Gold type selector
+            // SJC is the only brand charted since 2026-09-12 (see
+            // crawl_tools/crawl_gold_silver.py). The other brands' entries were
+            // removed with their chart options; their historical rows remain in the
+            // DB and reachable through /api/v1/gold?type=…
             const GOLD_SOURCES = {
-                'DOJI HN':    { label: '24h.com.vn', url: 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html' },
-                'DOJI SG':    { label: '24h.com.vn', url: 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html' },
-                'BTMC SJC':   { label: 'btmc.vn',    url: 'https://btmc.vn/' },
-                'BTMH':       { label: 'btmc.vn',    url: 'https://btmc.vn/' },
-                'Phú Quý SJC':{ label: 'phuquygroup.vn', url: 'https://www.phuquygroup.vn/gia-vang' },
+                'SJC': { label: '24h.com.vn', url: 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html' },
             };
             function updateGoldSource(goldType) {
                 const el = document.getElementById('goldChartSource');
@@ -2034,7 +2034,7 @@
                 let url, filename, rows2csv;
 
                 if (datasetId.startsWith('gold-')) {
-                    const type = datasetId.slice(5); // e.g. "DOJI HN"
+                    const type = datasetId.slice(5); // e.g. "SJC"
                     url = `${base}/gold?period=all&type=${encodeURIComponent(type)}`;
                     filename = `gold_${type.replace(/ /g,'_')}`;
                     rows2csv = d => 'Date,Buy Price (VND),Sell Price (VND)\n' +
@@ -2197,7 +2197,7 @@
             }
         }
 
-        async function loadChartData(chartType, period = '1m', goldType = 'DOJI HN', bankCode = 'ACB') {
+        async function loadChartData(chartType, period = '1m', goldType = 'SJC', bankCode = 'ACB') {
             const base = window.APP_CONFIG.API_BASE_URL;
             if (!chartType) return;
 
@@ -3014,10 +3014,10 @@
                 }
             })());
 
-            // Giá vàng trong nước — DOJI HN sell price (static daily data)
+            // Giá vàng trong nước — SJC sell price (static daily data)
             tasks.push((async () => {
                 try {
-                    const staticR = await fetch('./data/gold_DOJI_HN_1m.json').catch(() => null);
+                    const staticR = await fetch('./data/gold_SJC_1m.json').catch(() => null);
                     if (staticR && staticR.ok) {
                         const sj = await staticR.json();
                         const gPrices = sj && sj.data && sj.data.sell_prices ? sj.data.sell_prices : null;

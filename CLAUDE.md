@@ -167,7 +167,7 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | Asset | Source | Table | Freq |
 |-------|--------|-------|------|
 | Term Deposit | ACB | `vn_macro_termdepo_daily` | Daily |
-| Gold | BTMC, DOJI, SJC, PNJ | `vn_macro_gold_daily` | Daily |
+| Gold | **SJC only** (via 24h.com.vn) — see "Gold is SJC-only" below | `vn_macro_gold_daily` | 2-hourly, 08:07–16:07 VN |
 | Silver | Phú Quý | `vn_macro_silver_daily` | Daily |
 | FX Rate | VCB, SBV | `vn_macro_sbv_rate_daily` | Daily |
 | CPI | NSO | `vn_gso_cpi_monthly` | Monthly |
@@ -346,7 +346,7 @@ against it without first re-checking this note.
 
 Cron in VN time (UTC+7): `'7 1 * * *'` = 08:07 VN. Standard steps: checkout → setup-python → `pip install -r crawl_tools/requirements.txt` → `python crawl_tools/crawl_{source}.py` with DB env from secrets.
 
-**Never schedule a crawl on `:00` or `:30`.** GitHub runs scheduled workflows at low priority on shared runners and delays or drops them under load, and the round minutes are the congested slots. Measured 2026-08-09 on the old `'30 1'` + `'30 2-9'` gold/silver schedule: the 01:30 UTC primary slot *never fired at all* (first run of the day landed 03:04–04:38 UTC), only 4–8 of the 9 declared runs materialised, and the runs that did fire started **32 min late on average, 58 max**. Result: the day's gold data reached the DB at 10:00–12:40 VN instead of 08:30 VN, every day, with GitHub healthy. Daily crawlers now sit on distinct odd minutes so they neither hit a congested slot nor collide with each other: gold/silver `7`, termdepo `13`, exchange-rate `17`, SBV `23`, VN30 ratios `27`.
+**Never schedule a crawl on `:00` or `:30`.** GitHub runs scheduled workflows at low priority on shared runners and delays or drops them under load, and the round minutes are the congested slots. Measured 2026-08-09 on the old `'30 1'` + `'30 2-9'` gold/silver schedule: the 01:30 UTC primary slot *never fired at all* (first run of the day landed 03:04–04:38 UTC), only 4–8 of the 9 declared runs materialised, and the runs that did fire started **32 min late on average, 58 max**. Result: the day's gold data reached the DB at 10:00–12:40 VN instead of 08:30 VN, every day, with GitHub healthy. Daily crawlers now sit on distinct odd minutes so they neither hit a congested slot nor collide with each other: gold/silver `7`, termdepo `13`, exchange-rate `17`, SBV `23`, VN30 ratios `27`. Gold/silver runs 5x/day on that minute (`'7 1,3,5,7,9 * * *'` — 2-hourly across VN office hours) rather than once; see "Gold is SJC-only" below for why every run must actually execute instead of skipping when the day already has a row.
 
 ### Box-side crawl fallback (`deploy/crawl-fallback.*`) — INACTIVE since 2026-09-04
 
@@ -809,6 +809,47 @@ range check excludes it.
 premium they differed by ~17% (2023-06-15: DOJI 67.1M vs PNJ 55.5M). Both are
 correct. `crawl_tools/gold_validation.py`'s 15% cross-brand rule would reject the
 ring-gold quotes if that premium returns.
+
+### Gold is SJC-only, and the daily row now tracks intraday moves (2026-09-12)
+
+Two linked changes, both triggered by a user report that the chart had shown a
+*fall* from 11/09 to 12/09 while 24h.com.vn showed a *rise*.
+
+**1. The daily row used to freeze at the morning quote.** `crawl_gold_silver.py`
+skipped its upsert whenever a row for `(date, type)` already existed, and
+`gold-silver-crawl.yml` had a second, independent guard step that skipped the
+whole job once `gold_rows > 0 AND silver_rows > 0`. Between them, every rerun
+after the day's first successful crawl was a no-op, so each day stored whichever
+price happened to be live at ~08:07–08:45 VN and never updated — even though SJC
+adjusts several times a day. Introduced 2026-06-29 by `d31423068`, which
+collapsed a working 2x/day (08:30 + 14:30 VN) crawl into 1x/day to stop duplicate
+rows; it stopped the duplicates but also discarded the afternoon value. Live for
+**75 days**. Both guards are gone; every run upserts, `ON CONFLICT DO UPDATE`
+does the work, and the unique indexes still hold 1 row per (date, type/source).
+Cadence is now 2-hourly across office hours (`'7 1,3,5,7,9 * * *'` = 08:07,
+10:07, 12:07, 14:07, 16:07 VN).
+
+**2. Only SJC is stored and charted now.** Measured impact of the freeze bug on
+SJC: **14 of 30 days in 13/08–11/09 held the wrong price**, off by up to 2.1M
+VND/lượng (19/08: stored 139.7M, actual 141.8M). Those 14 rows were corrected
+from `webgia.com/gia-vang/sjc/DD-MM-YYYY.html`, which archives SJC's own
+published adjustments per day (it shows each intraday change — 11/09 went
+142.0 → 141.4 → 142.4). **No equivalent archive exists for the other 8 brands**:
+24h.com.vn's own `?ngaythang=` lookup returns garbage for past dates (81M/lượng
+for Aug 2026, and a "Hôm qua" column dated 2021), and webgia.com archives SJC
+alone. Their 2026-06-29→09-11 rows therefore can never be verified or corrected,
+so they are no longer crawled, generated as static JSON, or offered in the FE
+chart dropdown. Existing rows stay in `vn_macro_gold_daily` and remain reachable
+via `/api/v1/gold?type=…`; they simply stop advancing. `gold_types.json` used to
+publish 31 types straight from `SELECT DISTINCT type`, most of them long-dead
+series (DONGA BANK, SACOMBANK, SJC Đà Nẵng, SJC1c…) with no static file behind
+them — it is now `["SJC"]`.
+
+**The crawler still parses and validates every brand on the page before
+filtering to SJC.** `validate_gold_records`' cross-brand median check needs ≥3
+brands to run at all, and that check is the guard added after 24h.com.vn
+published DOJI at `14,450` instead of `144,500`. Filtering earlier would silently
+disable it.
 
 ### Gold & silver validation (`crawl_tools/gold_validation.py`)
 

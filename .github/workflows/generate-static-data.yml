@@ -3,7 +3,7 @@ name: Generate Static Chart Data
 on:
   workflow_run:
     workflows:
-      - "Gold & Silver Price Crawl (Daily + hourly retry)"
+      - "Gold & Silver Price Crawl (2-hourly, VN office hours)"
       - "Bank Term Deposit Crawl"
       - "SBV Rates Crawl (Daily)"
       - "Exchange Rate Crawl (Daily)"
