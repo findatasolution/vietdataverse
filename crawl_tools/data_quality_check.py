@@ -79,14 +79,15 @@ TABLES = [
     ('vn_macro_gold_daily',       'CRAWLING_BOT_DB',
      'date', 'date',
      ['buy_price', 'sell_price'],
-     # Floor is 15M, not 50M: gold legitimately traded at ~20M/lượng in 2009,
-     # the first year this table covers. A 50M floor flagged 21k rows of
-     # correct history.
+     # Floor stays at 15M rather than tracking today's price: the table still
+     # holds 2015-2016 SJC rows at ~34M, and a floor set near the current level
+     # would flag them. Ceiling 250M leaves room above the 2026 peak (~188M).
      (15_000_000, 250_000_000),
      ('date', 'type'), False,
-     # 'Vàng TG ($)' is world gold quoted in USD — a different instrument that
-     # ended up in this VND table (dead since 2019). Range-checking it against
-     # VND bounds reports 771 correct rows as broken.
+     # Only SJC remains in this table since 2026-09-14 (every other brand, plus
+     # the misfiled USD-denominated 'Vàng TG ($)' series, was deleted — see
+     # CLAUDE.md "Gold is SJC-only"). The filter is kept as a cheap guard in case
+     # a non-VND series is ever written here again.
      "type <> 'Vàng TG ($)'"),
 
     ('vn_macro_silver_daily',     'CRAWLING_BOT_DB',

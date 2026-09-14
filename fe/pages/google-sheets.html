@@ -11,7 +11,7 @@
     "@context": "https://schema.org",
     "@type": "HowTo",
     "name": "Lấy dữ liệu Viet Dataverse vào Google Sheets",
-    "description": "Hướng dẫn từng bước lấy API token và kéo dữ liệu tài chính Việt Nam (giá vàng SJC/DOJI…) vào Google Sheets bằng hàm IMPORTDATA — không cần code.",
+    "description": "Hướng dẫn từng bước lấy API token và kéo dữ liệu tài chính Việt Nam (giá vàng miếng SJC…) vào Google Sheets bằng hàm IMPORTDATA — không cần code.",
     "inLanguage": "vi-VN",
     "totalTime": "PT5M",
     "tool": [
@@ -33,7 +33,7 @@
       {
         "@type": "HowToStep",
         "name": "Đổi loại vàng & khoảng thời gian",
-        "text": "Thay tham số type (SJC, DOJI HN…) và period (1m, 1y…) trong URL để lấy bộ dữ liệu mong muốn."
+        "text": "Thay tham số period (1m, 1y…) trong URL để lấy bộ dữ liệu mong muốn."
       }
     ]
   }
@@ -217,18 +217,15 @@
         <thead><tr><th>Tham số</th><th>Giá trị</th><th>Ý nghĩa</th></tr></thead>
         <tbody>
           <tr><td><code>type</code></td><td><code>SJC</code></td><td>Vàng miếng SJC</td></tr>
-          <tr><td></td><td><code>DOJI HN</code></td><td>DOJI Hà Nội</td></tr>
-          <tr><td></td><td><code>PNJ</code></td><td>Vàng PNJ</td></tr>
-          <tr><td></td><td><code>BTMC</code></td><td>Bảo Tín Minh Châu</td></tr>
-          <tr><td><code>period</code></td><td><code>7d</code></td><td>7 ngày gần nhất</td></tr>
+                                        <tr><td><code>period</code></td><td><code>7d</code></td><td>7 ngày gần nhất</td></tr>
           <tr><td></td><td><code>1m</code></td><td>1 tháng gần nhất</td></tr>
           <tr><td></td><td><code>1y</code></td><td>1 năm gần nhất</td></tr>
           <tr><td></td><td><code>all</code></td><td>Toàn bộ lịch sử</td></tr>
         </tbody>
       </table>
 
-      <p style="margin-top:16px;" data-i18n="ghs.customize.example">Ví dụ — lấy giá vàng <strong>DOJI Hà Nội trong 1 năm</strong> (token vẫn lấy từ ô B1, không gõ lại):</p>
-      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=<span class="hl">DOJI HN</span>&amp;period=<span class="hl">1y</span>&amp;format=csv&amp;api_key="&amp;$B$1)</div>
+      <p style="margin-top:16px;" data-i18n="ghs.customize.example">Ví dụ — lấy giá vàng <strong>SJC trong 1 năm</strong> (token vẫn lấy từ ô B1, không gõ lại):</p>
+      <div class="formula-box">=IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?type=<span class="hl">SJC</span>&amp;period=<span class="hl">1y</span>&amp;format=csv&amp;api_key="&amp;$B$1)</div>
 
       <div class="doc-info" data-i18n="ghs.customize.info">
         <strong>Gọi 20 giá trị?</strong> Copy công thức, chỉ đổi <code>type</code>/<code>period</code> — phần <code>&amp;$B$1</code> giữ nguyên ở mọi ô.
@@ -244,7 +241,7 @@
       <table class="gs-table" data-i18n="ghs.datasets.table">
         <thead><tr><th>Bộ dữ liệu</th><th>Endpoint</th><th>Tham số chính</th></tr></thead>
         <tbody>
-          <tr><td>Giá vàng</td><td><code>/api/v1/gold</code></td><td><code>type</code> (SJC·DOJI HN·PNJ·BTMC), <code>period</code></td></tr>
+          <tr><td>Giá vàng</td><td><code>/api/v1/gold</code></td><td><code>type</code> (SJC), <code>period</code></td></tr>
           <tr><td>Giá bạc</td><td><code>/api/v1/silver</code></td><td><code>period</code></td></tr>
           <tr><td>Tỷ giá ngoại tệ (VCB)</td><td><code>/api/v1/sbv-rate</code></td><td><code>bank</code>=VCB, <code>currency</code> (USD·EUR·JPY…), <code>period</code></td></tr>
           <tr><td>Lãi suất liên ngân hàng (SBV)</td><td><code>/api/v1/sbv-interbank</code></td><td><code>period</code></td></tr>

@@ -112,14 +112,14 @@ jobs:
 
           # Metered endpoints intentionally reject anonymous requests. Verify the
           # auth boundary without borrowing a real user's API key or consuming quota.
-          request "$API_ORIGIN/api/v1/gold?type=DOJI%20HN&period=7d"
+          request "$API_ORIGIN/api/v1/gold?type=SJC&period=7d"
           if [ "$CURL_EXIT" -eq 0 ] && [ "$HTTP_CODE" = "401" ]; then
             pass "API authentication gate — expected HTTP 401"
           else
             fail "API authentication gate" "expected 401, got transport=$CURL_EXIT HTTP=$HTTP_CODE"
           fi
 
-          check_static "Gold (DOJI HN)"     "gold_DOJI_HN_7d.json"
+          check_static "Gold (SJC)"         "gold_SJC_7d.json"
           check_static "Silver"             "silver_7d.json"
           check_static "SBV rates"           "sbv_7d.json"
           check_static "Term deposit (ACB)"  "termdepo_ACB_7d.json"

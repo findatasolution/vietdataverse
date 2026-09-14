@@ -485,7 +485,7 @@ r = requests.get(f"{BASE}/gold",
 df = pd.DataFrame(r.json()["data"])
 df["period"] = pd.to_datetime(df["period"])
 print(df[["period", "buy_price", "sell_price"]].tail(5))</div>
-                        <p style="font-size:12px;color:var(--text-tertiary);">Endpoint: <code>GET /api/v1/gold</code> · Params: <code>type</code> (SJC | DOJI | BTMC | PNJ), <code>period</code> (30d | 90d | 1y)</p>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Endpoint: <code>GET /api/v1/gold</code> · Params: <code>type</code> (SJC), <code>period</code> (30d | 90d | 1y)</p>
                     </div>
                 </details>
 

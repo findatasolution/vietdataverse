@@ -49,7 +49,7 @@ def _csv_response(header: list, rows: list) -> Response:
 async def get_gold_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
-    type: str = Query("DOJI HN", description="Gold type"),
+    type: str = Query("SJC", description="Gold type — SJC is the only brand published"),
     page: int = Query(None, ge=1, description="Page number (enables row-based response)"),
     limit: int = Query(30, ge=1, le=500, description="Rows per page"),
     format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),

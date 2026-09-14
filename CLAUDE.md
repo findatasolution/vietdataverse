@@ -167,7 +167,7 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | Asset | Source | Table | Freq |
 |-------|--------|-------|------|
 | Term Deposit | ACB | `vn_macro_termdepo_daily` | Daily |
-| Gold | **SJC only** (via 24h.com.vn) — see "Gold is SJC-only" below | `vn_macro_gold_daily` | 2-hourly 08:00–16:00 VN, **from the box** not Actions |
+| Gold | **SJC only** — every other brand deleted from the table 2026-09-14, see below | `vn_macro_gold_daily` (887 rows) | 2-hourly 08:00–16:00 VN, **from the box** not Actions |
 | Silver | Phú Quý | `vn_macro_silver_daily` | Daily |
 | FX Rate | VCB, SBV | `vn_macro_sbv_rate_daily` | Daily |
 | CPI | NSO | `vn_gso_cpi_monthly` | Monthly |
@@ -827,6 +827,27 @@ range check excludes it.
 premium they differed by ~17% (2023-06-15: DOJI 67.1M vs PNJ 55.5M). Both are
 correct. `crawl_tools/gold_validation.py`'s 15% cross-brand rule would reject the
 ring-gold quotes if that premium returns.
+
+### Gold table was reduced to SJC alone (2026-09-14)
+
+`vn_macro_gold_daily` went from **33,885 rows / 31 types to 887 rows of SJC**. Full CSV of everything deleted: `be/migrations/gold_full_backup_20260914-114327.csv` (2.8 MB, committed).
+
+Two separate deletions:
+
+- **32,920 rows of non-SJC brands.** They could not be corrected for the 75-day freeze bug — no per-day archive exists for any of them (24h.com.vn's own `?ngaythang=` lookup returns placeholders for past dates, webgia.com archives SJC alone), so their 2026-06-29→09-11 values were unverifiable and unfixable.
+- **78 SJC rows that were never real prices.** All 2015/2016/2020/2021, each brand pinned to one constant (SJC `81.0/83.3`, Phú Quý `81.2/83.3`, BTMC `81.3/83.0`, DOJI SG `80.0/82.5`, PNJ `73.0/74.7`) — physically impossible when actual gold was 34M and 56M respectively. Every one carried `crawl_time = 00:00:00`, i.e. a synthesised timestamp: they came from a **backfill that bypassed the crawler**, so `gold_validation.py` never saw them. 196 such rows existed across all brands.
+
+**The `?ngaythang=` parameter that produced them is gone from `crawl_gold_silver.py`.** It looked harmless because the crawler only ever passed today's date, but any backfill through that URL would have re-created the same garbage.
+
+**Consequence to know before reading the chart:** SJC's own history is sparse — 5 rows in 2015, 11 in 2016, then **nothing until 2024**. The long history that used to fill the "Tất cả" view came from DOJI HN (5,982 rows back to 2009), which is gone. The chart is honest now but short.
+
+**Why `gold_validation.py` did not catch any of this**, worth understanding before trusting it as a safety net:
+- It runs **pre-insert, on freshly parsed values**. The freeze bug discarded correct values at the persistence step — validation passed on data that was then thrown away. No pre-insert check can see a write that never happens.
+- The backfill rows never went through the crawler at all.
+- Its cross-brand median rule **inverts when bad data is the majority**: on 2015 dates the garbage outnumbered the real quotes, so re-running the rule flags the *correct* BTMC/DOJI rows instead.
+- Its range rule (20M–500M) has no notion of time: 81M is plausible in general and impossible in 2015, and the rule cannot tell the difference.
+
+Nothing reconciles a stored value against the source after the fact, and no check is year-aware. That gap is still open.
 
 ### Gold is SJC-only, and the daily row now tracks intraday moves (2026-09-12)
 

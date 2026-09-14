@@ -175,7 +175,7 @@ function VDV_fetch_(path, params) {
 
 /**
  * Giá vàng Việt Nam.
- * @param {string} type Loại vàng: "SJC", "DOJI HN", "PNJ", "BTMC". Mặc định "SJC".
+ * @param {string} type Loại vàng: "SJC" (loại duy nhất hiện có).
  * @param {string} period "7d", "1m", "1y", "all". Mặc định "1m".
  * @return Bảng: ngày | giá mua | giá bán
  * @customfunction
@@ -232,10 +232,9 @@ function VDV_GOLD(type, period) {
         <tbody>
           <tr><td><code>=VDV_GOLD()</code></td><td>SJC 1 tháng (mặc định)</td></tr>
           <tr><td><code>=VDV_GOLD("SJC","1y")</code></td><td>SJC 1 năm</td></tr>
-          <tr><td><code>=VDV_GOLD("DOJI HN","7d")</code></td><td>DOJI Hà Nội 7 ngày</td></tr>
-        </tbody>
+                  </tbody>
       </table>
-      <p><strong>Tham số:</strong> <code>type</code> = SJC · DOJI HN · PNJ · BTMC; <code>period</code> = 7d · 1m · 1y · all.</p>
+      <p><strong>Tham số:</strong> <code>type</code> = SJC; <code>period</code> = 7d · 1m · 1y · all.</p>
       <div class="doc-info">
         Hiện chỉ <strong>giá vàng</strong> có sẵn CSV nên có <code>VDV_GOLD</code>. Khi mở CSV cho bạc/tỷ giá/lãi suất, sẽ bổ sung <code>VDV_SILVER</code>, <code>VDV_FX</code>… vào cùng script.
       </div>

@@ -30,7 +30,7 @@
   <div id="section-data" class="section">
     <label class="label">Loại dữ liệu</label>
     <select id="sel-datatype" class="inp" onchange="onDatatypeChange()">
-      <option value="gold">🥇 Giá Vàng (SJC / DOJI / BTMC / PNJ)</option>
+      <option value="gold">🥇 Giá Vàng (SJC)</option>
       <option value="silver">🥈 Giá Bạc (Phú Quý)</option>
       <option value="sbv-rate">💱 Tỷ giá USD/VND</option>
       <option value="termdepo">🏦 Lãi suất Tiết kiệm (ACB)</option>
@@ -39,14 +39,12 @@
     </select>
 
     <!-- Sub-options per data type -->
+    <!-- Only SJC is published (2026-09-14). The other brands were removed from the
+         dataset entirely, so offering them here would just return empty results. -->
     <div id="sub-gold" class="sub-opts">
       <label class="label">Thương hiệu</label>
       <select id="sel-gold-type" class="inp">
-        <option value="">Tất cả</option>
         <option value="SJC">SJC</option>
-        <option value="DOJI">DOJI</option>
-        <option value="BTMC">BTMC (Bảo Tín Minh Châu)</option>
-        <option value="PNJ">PNJ</option>
       </select>
     </div>
 

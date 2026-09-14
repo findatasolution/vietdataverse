@@ -29,9 +29,11 @@ engine = create_engine(CRAWLING_BOT_DB, poolclass=NullPool)
 DATASET_CONFIG = {
     'VNGold': {
         'table': 'vn_macro_gold_daily',
-        'query': "SELECT * FROM vn_macro_gold_daily WHERE type IN ('DOJI HN', 'BTTMC SJC') ORDER BY date DESC",
+        # SJC only since 2026-09-14 — other brands were removed from the table.
+        # The previous filter also listed 'BTTMC SJC', a typo that never matched a row.
+        'query': "SELECT * FROM vn_macro_gold_daily WHERE type = 'SJC' ORDER BY date DESC",
         'filename': 'vn_gold_prices.csv',
-        'description': 'Vietnamese Gold Prices (DOJI HN 24k)'
+        'description': 'Vietnamese Gold Prices (SJC bar)'
     },
     'VNSilver': {
         'table': 'vn_macro_silver_daily',

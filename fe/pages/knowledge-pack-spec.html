@@ -213,7 +213,7 @@ print(f"SJC {latest['period']}: mua={latest['buy_price']:,} | bán={latest['sell
 3. Đặt câu hỏi bên dưới
 
 **Câu hỏi gợi ý:**
-- "Chênh lệch giá vàng SJC so với DOJI hiện tại là bao nhiêu? Nguyên nhân?"
+- "Chênh lệch giá vàng SJC trong nước so với giá thế giới hiện tại là bao nhiêu? Nguyên nhân?"
 - "Khi USD/VND tăng 1%, giá vàng VN thường phản ứng thế nào trong lịch sử?"
 - "SBV có những công cụ nào để kiểm soát chênh lệch giá vàng nội địa—quốc tế?"
 
@@ -224,20 +224,18 @@ print(f"SJC {latest['period']}: mua={latest['buy_price']:,} | bán={latest['sell
 ```
 Tổ chức      Loại      Mua vào       Bán ra        Chênh lệch
 SJC          24K 1 lượng 120,500,000  122,500,000   2,000,000 VND
-DOJI         24K 1 lượng 119,800,000  121,300,000   1,500,000 VND
-BTMC         24K 1 lượng 119,700,000  121,200,000   1,500,000 VND
 
 Giá vàng quốc tế (XAU): ~3,320 USD/oz → ~109,000,000 VND/lượng (tỷ giá 25,450)
 Chênh lệch nội địa–quốc tế: ~10–13 triệu VND/lượng (khoảng 10–12%)
 
-Nguồn: Viet Dataverse API / SJC / DOJI / BTMC, tháng 6/2025
+Nguồn: Viet Dataverse API / SJC, tháng 6/2025
 ```
 
 ## Prompt snippet cho agent phân tích vàng
 ```
 Khi người dùng hỏi về giá vàng Việt Nam:
 
-1. Lấy giá SJC + DOJI + BTMC mới nhất từ Viet Dataverse API
+1. Lấy giá SJC mới nhất từ Viet Dataverse API
 2. Tính chênh lệch mua–bán của từng thương hiệu
 3. So sánh với giá XAU quốc tế quy đổi VND theo tỷ giá VCB
 4. Nhận xét xu hướng 30 ngày gần nhất
@@ -251,7 +249,6 @@ Luôn kết hợp với diễn biến tỷ giá USD/VND và chính sách SBV.
 ## Nguồn dữ liệu
 ```python
 GET https://api.vietdataverse.online/api/v1/gold?type=SJC&period=90d
-GET https://api.vietdataverse.online/api/v1/gold?type=DOJI&period=90d
 GET https://api.vietdataverse.online/api/v1/sbv-centralrate?currency=USD
 
 # Nguồn tham khảo:

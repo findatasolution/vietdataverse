@@ -167,7 +167,14 @@ except Exception as e:
 ############## 2. Domestic Gold Prices (HTTP)
 print(f"\n--- Crawling Gold Prices ---")
 
-url_gold = f'https://www.24h.com.vn/gia-vang-hom-nay-c425.html?ngaythang={date_str}'
+# Plain URL, no ?ngaythang= — removed 2026-09-14. The param looked harmless
+# because date_str is always today (same page as the default), but pointing it at
+# any PAST date makes 24h.com.vn return fixed placeholder numbers rather than that
+# day's prices: 81,000/83,300 for SJC, 73,000/74,700 for PNJ, regardless of which
+# date is asked for. A backfill run through this URL wrote 196 such rows into
+# vn_macro_gold_daily across 2015/2016/2020/2021 (deleted 2026-09-14). Leaving the
+# param in place kept that landmine armed for the next person who tries a backfill.
+url_gold = 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html'
 
 # Mirrors global_failed below: stays True until today's gold is on disk, so a source
 # outage or a page-wide validation reject turns the workflow RED instead of passing

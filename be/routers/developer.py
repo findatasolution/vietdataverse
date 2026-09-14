@@ -238,7 +238,7 @@ async def list_endpoints():
                 "description": "Giá vàng trong nước (mua/bán) theo ngày",
                 "params": [
                     {"name": "period", "type": "string", "options": ["7d", "1m", "1y", "all"], "default": "1m"},
-                    {"name": "type",   "type": "string", "example": "DOJI HN", "description": "Loại vàng"},
+                    {"name": "type",   "type": "string", "example": "SJC", "description": "Loại vàng (chỉ có SJC)"},
                 ],
             },
             {
