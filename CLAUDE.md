@@ -361,7 +361,14 @@ Why the box won:
 
 **Cadence: every 2 hours across VN office hours** (01:00–09:00 UTC = 08:00–16:00 VN), and **every run upserts**. There is deliberately no "skip if today's row exists" guard: that guard existed in three places at once (crawler, workflow, this script) and together they pinned the published price to the ~08:45 VN quote for 75 days while SJC moved several times a day. See "Gold is SJC-only" below.
 
-**Each successful run also regenerates `fe/data/*.json`** into the directory FastAPI serves. The charts read those files, not the DB, so without this a fresh row would stay invisible to visitors until `generate-static-data.yml`'s 6-hourly backstop. The crawl mounts the repo read-only; the regeneration step adds a narrow writable mount for `fe/data` only. A deploy (`git reset --hard`) reverts those files to the committed copy; the next run, at most 2 hours later, rewrites them.
+**Each successful run also regenerates `fe/data/*.json`** into the directory FastAPI serves. The charts read those files, not the DB, so without this a fresh row would stay invisible until `generate-static-data.yml`'s 6-hourly backstop. The crawl mounts the repo read-only; the regeneration step adds a narrow writable mount for `fe/data` only.
+
+**Two things had to change before that regeneration was actually visible** (both found 2026-09-14, after the DB was already correct and the site still showed the old price):
+
+- `Dockerfile` does `COPY fe/ /app/fe/`, so the container served a build-time snapshot and ignored host-side writes entirely. `docker-compose.yml` now mounts `./fe/data:/app/fe/data:ro` over it.
+- `deploy.yml`'s `git reset --hard` reverts `fe/data/` to the committed copy — as fresh as the last "Update static chart data" bot commit and no fresher — so a deploy rolled published prices *backwards*. The deploy now ends by running `crawl-fallback.service` synchronously, leaving current data in place when it finishes.
+
+**`gh workflow run "Box — run gold/silver crawl now"`** (`.github/workflows/box-crawl-now.yml`) runs the unit on demand and prints its journal, using the deploy key GitHub already holds. It exists because moving the crawl to the box otherwise left no way to trigger a run or read its log without SSH.
 
 Two things to preserve when touching it:
 
