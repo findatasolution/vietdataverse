@@ -11,6 +11,16 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      # Serve the chart JSON from the host checkout, not the copy baked in by
+      # `COPY fe/ /app/fe/`. The box's 2-hourly crawl regenerates these files
+      # (deploy/crawl-fallback.sh); without this mount those writes landed on the
+      # host and the container kept serving its build-time snapshot, so a corrected
+      # gold price sat in the DB and in fe/data/ while visitors saw the old one
+      # until the next image rebuild. Found 2026-09-14.
+      #
+      # Read-only: nothing in the app writes here, only the crawl does, on the host.
+      - ./fe/data:/app/fe/data:ro
     expose:
       - "8000"                 # internal only — Caddy reaches it as vietdataverse:8000 over `edge`
     mem_limit: 640m            # within the box's ~1.2G budget for new apps (FastAPI + pandas/genai)
