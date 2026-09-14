@@ -793,6 +793,64 @@ def validate_rates(data):
 
 Workflow `data-quality-check.yml` runs scheduled DQ checks. There is also a `data-quality-check` skill — note it is scoped to `manual_listing_report` / `manual_keyword_report` only, **not** the macro tables.
 
+### Retrospective reconciliation (`crawl_tools/reconcile_sjc.py`, 2026-09-14)
+
+The gap this closes: **every other check in this project runs before a write, on
+freshly parsed values**, and that cannot see either of the two failures that
+actually happened — a write that never happens (the 75-day freeze discarded
+correct data at the persistence step) or a write that bypasses the crawler (196
+placeholder rows backfilled straight into the table). Both passed every guard by
+never meeting one.
+
+**Source: `webgia.com/gia-vang/sjc/DD-MM-YYYY.html`**, which archives SJC's own
+published adjustments per day with the time of each. It is unrelated to
+24h.com.vn and giavang.org, and — unlike either — it serves *historical* dates.
+That is the entire point: you cannot audit the past against a source that only
+knows today. **It is deliberately not promoted to a crawl source.** An auditor
+that also writes the books is not an auditor.
+
+**The page must state its own date** (checked against the `<h1>`) before anything
+on it is believed. This is the direct lesson of the fake rows: 24h.com.vn's
+`?ngaythang=` lookup served placeholder numbers under a URL naming a past date
+and nothing checked that the page agreed.
+
+Five verdicts, and **only one is an ERROR**:
+
+| Verdict | Meaning | Severity |
+|---|---|---|
+| `ok` | matches the day's closing quote (or the previous close on a no-change day) | — |
+| `stale` | a real quote from that day, but not the last one — the freeze shape | WARNING |
+| `carry_forward` | the previous close, because SJC's first change came after the last crawl (18:35 happens) — correct behaviour | WARNING |
+| `unconfirmed` | archive lists no change and ours differs — could be our row or a gap in the archive | WARNING |
+| `fabricated` | the archive positively lists the day's quotes and ours is none of them — the fake-row shape | ERROR |
+
+`carry_forward` and `unconfirmed` both began life as false ERRORs against real
+data. Do not collapse them back into `fabricated`: an empty archive day is
+absence of evidence, not evidence of absence, and a tool that overstates its
+confidence gets ignored — which is exactly how the last DQ report ended up
+unread.
+
+**It never auto-corrects.** A third source disagreeing is evidence to look at,
+not truth to overwrite with; silently rewriting stored history from whichever
+source spoke last is how this table got into trouble in the first place.
+
+It also runs a network-free `structural_audit()` over the whole series: rows with
+a synthesised `crawl_time` (`00:00:00`, the backfill fingerprint), prices frozen
+for 20+ consecutive days, and **year-aware** outliers — each row against the
+median of its own ±45-day window, since the fixed 20M–500M range has no notion of
+time and 81M is unremarkable in general but impossible in 2015.
+
+Run ad-hoc: `python crawl_tools/reconcile_sjc.py [days]` (default 30). It is
+wired into the weekly DQ report; the window stays at 30 days so a weekly run has
+4× overlap without re-reporting known-old damage forever.
+
+**Known damage it found on first run, not yet repaired** (2026-06-29 → 2026-08-12,
+the part of the freeze window the 2026-09-13 correction never reached — that pass
+only covered 13/08 onward): 16 `stale` days, 1 `carry_forward`, 5 `unconfirmed`
+(all 2026-07-08 → 07-17), and 1 `fabricated` (2026-07-14 stores 144.1/147.1;
+13/07 closed 145.4/148.4 and 14/07's only change was 18:35 → 144.5/147.5, so that
+figure was never an SJC quote).
+
 **The DQ agent's findings were invisible until 2026-09-14, and two of its
 ERRORs were false.** Three separate problems, all found together:
 

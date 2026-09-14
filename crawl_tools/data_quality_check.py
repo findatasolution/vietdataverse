@@ -427,6 +427,30 @@ for args in TABLES:
     print(f"  Checking {args[0]} …")
     check_table(*args)
 
+# Retrospective reconciliation — the only check here that compares a STORED
+# value against the outside world rather than against itself.
+#
+# Everything above asks internal questions: is the row fresh, is it in range, is
+# it unique. A frozen price and a fabricated one both pass all of them, which is
+# how a 75-day freeze and 196 placeholder rows went unnoticed. reconcile_sjc.py
+# re-reads SJC's own published history from an independent archive and compares.
+# It is slow (one HTTP request per day audited) and network-dependent, which is
+# why this report moved to weekly.
+print("  Reconciling stored SJC prices against the archive …")
+try:
+    from reconcile_sjc import reconcile, structural_audit
+    _bot = ENGINES['CRAWLING_BOT_DB']
+    if _bot is None:
+        raise RuntimeError('CRAWLING_BOT_DB not available')
+    for f in structural_audit(_bot, log=lambda *_: None) + reconcile(_bot, log=lambda *_: None):
+        flag('vn_macro_gold_daily', 'CRAWLING_BOT_DB', f'sjc:{f["verdict"]}',
+             f'{f["date"]}: {f["detail"]}', f['severity'])
+except Exception as e:
+    # Never let the auditor take the whole report down with it — but do say so,
+    # or a silent skip reads as a clean bill of health.
+    flag('vn_macro_gold_daily', 'CRAWLING_BOT_DB', 'sjc:reconcile',
+         f'reconciliation did not run: {type(e).__name__}: {e}', 'ERROR')
+
 print("  Fetching user & payment stats …")
 user_stats = fetch_user_stats()
 

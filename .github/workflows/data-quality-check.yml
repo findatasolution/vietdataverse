@@ -1,9 +1,17 @@
-name: Daily Data Quality Check
+name: Weekly Data Quality Check
 
 on:
   schedule:
-    # 09:00 VN (02:00 UTC) — after all crawlers have finished
-    - cron: '0 2 * * *'
+    # Mondays 09:17 VN (02:17 UTC), after the morning crawlers have finished.
+    #
+    # Weekly, not daily (2026-09-14): the report now includes the retrospective
+    # SJC reconciliation, which makes one HTTP request per audited day against
+    # someone else's archive — not something to run daily. A weekly cadence also
+    # matches how often anyone actually reads it.
+    #
+    # :17, not :00 — see CLAUDE.md: GitHub drops and delays scheduled runs on
+    # round minutes, and this workflow sat on ':00' the whole time.
+    - cron: '17 2 * * 1'
   workflow_dispatch:
 
 jobs:
