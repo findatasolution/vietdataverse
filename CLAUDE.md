@@ -167,7 +167,7 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | Asset | Source | Table | Freq |
 |-------|--------|-------|------|
 | Term Deposit | ACB | `vn_macro_termdepo_daily` | Daily |
-| Gold | **SJC only** (via 24h.com.vn) — see "Gold is SJC-only" below | `vn_macro_gold_daily` | 2-hourly, 08:07–16:07 VN |
+| Gold | **SJC only** (via 24h.com.vn) — see "Gold is SJC-only" below | `vn_macro_gold_daily` | 2-hourly 08:00–16:00 VN, **from the box** not Actions |
 | Silver | Phú Quý | `vn_macro_silver_daily` | Daily |
 | FX Rate | VCB, SBV | `vn_macro_sbv_rate_daily` | Daily |
 | CPI | NSO | `vn_gso_cpi_monthly` | Monthly |
@@ -346,20 +346,31 @@ against it without first re-checking this note.
 
 Cron in VN time (UTC+7): `'7 1 * * *'` = 08:07 VN. Standard steps: checkout → setup-python → `pip install -r crawl_tools/requirements.txt` → `python crawl_tools/crawl_{source}.py` with DB env from secrets.
 
-**Never schedule a crawl on `:00` or `:30`.** GitHub runs scheduled workflows at low priority on shared runners and delays or drops them under load, and the round minutes are the congested slots. Measured 2026-08-09 on the old `'30 1'` + `'30 2-9'` gold/silver schedule: the 01:30 UTC primary slot *never fired at all* (first run of the day landed 03:04–04:38 UTC), only 4–8 of the 9 declared runs materialised, and the runs that did fire started **32 min late on average, 58 max**. Result: the day's gold data reached the DB at 10:00–12:40 VN instead of 08:30 VN, every day, with GitHub healthy. Daily crawlers now sit on distinct odd minutes so they neither hit a congested slot nor collide with each other: gold/silver `7`, termdepo `13`, exchange-rate `17`, SBV `23`, VN30 ratios `27`. Gold/silver runs 5x/day on that minute (`'7 1,3,5,7,9 * * *'` — 2-hourly across VN office hours) rather than once; see "Gold is SJC-only" below for why every run must actually execute instead of skipping when the day already has a row.
+**Never schedule a crawl on `:00` or `:30`.** GitHub runs scheduled workflows at low priority on shared runners and delays or drops them under load, and the round minutes are the congested slots. Measured 2026-08-09 on the old `'30 1'` + `'30 2-9'` gold/silver schedule: the 01:30 UTC primary slot *never fired at all* (first run of the day landed 03:04–04:38 UTC), only 4–8 of the 9 declared runs materialised, and the runs that did fire started **32 min late on average, 58 max**. Result: the day's gold data reached the DB at 10:00–12:40 VN instead of 08:30 VN, every day, with GitHub healthy. Daily crawlers now sit on distinct odd minutes so they neither hit a congested slot nor collide with each other: gold/silver `7`, termdepo `13`, exchange-rate `17`, SBV `23`, VN30 ratios `27`. **Gold/silver is no longer scheduled here at all** (2026-09-14): GitHub runners time out reaching `24h.com.vn` and GitHub dropped every declared slot that day, so the crawl moved to a systemd timer on the prod box — see "Box-side gold/silver crawl" below. `gold-silver-crawl.yml` keeps `workflow_dispatch` only.
 
-### Box-side crawl fallback (`deploy/crawl-fallback.*`) — INACTIVE since 2026-09-04
+### Box-side gold/silver crawl (`deploy/crawl-fallback.*`) — PRIMARY path since 2026-09-14
 
-**Not currently running.** Prod moved off the Hetzner box (deleted 2026-09-04, see "Where production actually serves from" below) to a BKHOST VPS, and this systemd timer was never re-provisioned on the new box. Actions remains the crawl path and is unaffected — this was only ever a secondary safety net for gold/silver lateness, not a required dependency — but re-read this section and re-run the install steps in `DEPLOY.md` before assuming it's protecting anything.
+**This section said "INACTIVE, never re-provisioned on the new box" until 2026-09-14. That was wrong, and it cost a day of debugging.** The DB showed gold and silver rows written at `01:45:32`/`01:45:25` UTC on 2026-09-14 — a day GitHub ran the crawl workflow zero times — matching the timer's `OnCalendar=01:45 UTC` exactly. The timer had been running on the BKHOST box the whole time. `systemctl list-timers 'crawl-fallback*'` on the box beats anything written here; check it before trusting this paragraph.
 
-Design, kept for reference / re-provisioning: odd minutes reduce GitHub's scheduling delay but cannot eliminate it — scheduled runs stay best-effort. A systemd timer on the box fired at **01:45 and 03:00 UTC** (08:45 / 10:00 VN) and crawled gold/silver **only if that day's rows are still missing**, bounding lateness independently of GitHub. It was a net, not a replacement: Actions stayed the primary path and the timer was a no-op on a healthy day.
+**It is now the primary and only scheduled crawler for gold/silver.** `gold-silver-crawl.yml` keeps `workflow_dispatch` alone, for manual use when the box is down. Two writers on the same rows bought nothing.
+
+Why the box won:
+
+- **Network.** GitHub's runners sit outside Vietnam. The 2026-09-13 run failed with a connect timeout to `www.24h.com.vn`, and `nso.gov.vn` refuses foreign datacenter IPs outright — the reason prod itself moved to a VN box on 2026-09-04. This box reaches both sources without trouble.
+- **Scheduling.** GitHub's cron is best-effort: it dropped every declared slot on 2026-09-14, and measured 2026-08-09 it fired only 4–8 of 9 daily runs, 32 min late on average (58 max). systemd fires on time, so the odd-minute trick (`:07`) is unnecessary here — the timer uses round hours.
+
+**Cadence: every 2 hours across VN office hours** (01:00–09:00 UTC = 08:00–16:00 VN), and **every run upserts**. There is deliberately no "skip if today's row exists" guard: that guard existed in three places at once (crawler, workflow, this script) and together they pinned the published price to the ~08:45 VN quote for 75 days while SJC moved several times a day. See "Gold is SJC-only" below.
+
+**Each successful run also regenerates `fe/data/*.json`** into the directory FastAPI serves. The charts read those files, not the DB, so without this a fresh row would stay invisible to visitors until `generate-static-data.yml`'s 6-hourly backstop. The crawl mounts the repo read-only; the regeneration step adds a narrow writable mount for `fe/data` only. A deploy (`git reset --hard`) reverts those files to the committed copy; the next run, at most 2 hours later, rewrites them.
 
 Two things to preserve when touching it:
 
 - **Success is judged by re-probing the DB, never by the crawler's exit code.** `crawl_gold_silver.py` exits 1 whenever its Yahoo Finance section fails, and Yahoo blocks index tickers from datacenter IPs — which the box has. A non-zero exit there is expected and does not mean the domestic crawl failed.
 - **It runs in `python:3.11-slim` (`deploy/crawler.Dockerfile`), not on the box Python.** The box ships Python 3.14 with no `python3-venv`, while `crawl_tools/requirements.txt` pins 3.11-era versions. The image installs only the subset `crawl_gold_silver.py` imports, version-pinned by passing `crawl_tools/requirements.txt` to pip as a *constraint* file, so it stays in lockstep with CI without a duplicate dependency list. The repo is bind-mounted at `/repo`, so deploys refresh crawler code without an image rebuild.
 
-Install/verify steps are in `DEPLOY.md`. This does **not** change the rule that `uptime-check.yml` must stay off-box — a watchdog cannot live on the machine it watches, whereas a crawler net legitimately can.
+**Changing the `.timer`/`.service` needs a box-side step** — a deploy only lands the files. `systemctl daemon-reload && systemctl enable --now crawl-fallback.timer`; full steps in `DEPLOY.md`.
+
+This does **not** change the rule that `uptime-check.yml` must stay off-box — a watchdog cannot live on the machine it watches, whereas a crawler legitimately can.
 
 ## Backend (FastAPI)
 

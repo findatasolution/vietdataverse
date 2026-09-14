@@ -117,13 +117,48 @@ GitHub repo secrets (Settings → Secrets → Actions):
 files, so it never disturbs the box-local `docker-compose.override.yml` /
 `caddy-conf/Caddyfile`. Caddy needs no reload on redeploy.
 
-## 4. Box-side crawl fallback (gold/silver) — NOT currently provisioned
-The Hetzner box ran a systemd timer (`deploy/crawl-fallback.*`) that crawled
-gold/silver only when GitHub Actions' scheduled run was late/dropped — see
-root `CLAUDE.md`'s "GitHub Actions Workflows" section for the design and why
-it existed. It was **not** re-created on this box. Actions remains the
-primary (and currently only) path; re-install from that section's steps if
-this safety net is wanted again.
+## 4. Box-side gold/silver crawl — PRIMARY path (promoted 2026-09-14)
+`deploy/crawl-fallback.*` (systemd timer + unit) is **the** scheduled crawler
+for gold/silver. `gold-silver-crawl.yml` on GitHub has no schedule any more,
+only `workflow_dispatch` for when this box is down.
+
+**This section used to say the timer was not provisioned on this box. That was
+wrong** — corrected 2026-09-14 after the DB showed gold and silver rows written
+at `01:45:25`/`01:45:32` UTC on a day GitHub ran nothing at all, exactly
+matching the timer's old `OnCalendar=01:45 UTC`. Don't trust this file over the
+box: `systemctl list-timers 'crawl-fallback*'` settles it in one command.
+
+Why the box rather than Actions:
+- **Network.** The 2026-09-13 Actions run failed with a connect timeout to
+  `www.24h.com.vn`; `nso.gov.vn` refuses foreign datacenter IPs outright, which
+  is why prod moved here on 2026-09-04. This box reaches both fine.
+- **Scheduling.** GitHub dropped every gold slot on 2026-09-14; measured
+  2026-08-09 it fired 4–8 of 9 declared daily runs, 32 min late on average.
+
+The timer fires **every 2 hours across VN office hours** (01:00–09:00 UTC =
+08:00–16:00 VN) and every run upserts — it does *not* skip when the day already
+has a row. That guard is what froze the published price at the morning quote for
+75 days; see `crawl-fallback.sh`'s header. Each successful run also regenerates
+`fe/data/*.json` into the directory FastAPI serves, because the charts read
+those files rather than the DB.
+
+Install / update on the box (needed whenever `crawl-fallback.timer` or
+`.service` changes — a plain deploy only refreshes the files):
+
+```bash
+cd /root/vietdataverse && git pull          # or let deploy.yml land the files
+cp deploy/crawl-fallback.service deploy/crawl-fallback.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now crawl-fallback.timer
+systemctl list-timers 'crawl-fallback*'     # verify the 5 slots are scheduled
+systemctl start crawl-fallback.service      # optional: run once now
+journalctl -u crawl-fallback.service -n 50 --no-pager
+```
+
+`crawl_gold_silver.py` exits non-zero whenever its Yahoo Finance section fails,
+and Yahoo blocks index tickers from datacenter IPs — so a non-zero exit here is
+expected and does **not** mean the domestic crawl failed. The script re-probes
+the DB and judges on that, not on the exit code.
 
 ---
 

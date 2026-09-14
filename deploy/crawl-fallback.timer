@@ -1,18 +1,23 @@
-# Fires twice, both AFTER GitHub has had a fair chance at the day's crawl.
-# gold-silver-crawl.yml's primary slot is 01:07 UTC (08:07 VN) with hourly
-# retries, so 01:45 UTC (08:45 VN) gives Actions ~38 minutes before the box
-# steps in. 03:00 UTC (10:00 VN) is a second attempt in case the 08:45 run
-# itself failed (source site down, transient network).
+# PRIMARY gold/silver crawl schedule — every 2 hours across VN office hours.
 #
-# Both runs are no-ops once the day's gold+silver rows exist, so a healthy
-# GitHub day costs two DB probes and nothing more.
+# 01:00 UTC = 08:00 VN … 09:00 UTC = 16:00 VN. SJC adjusts its quote a handful of
+# times on a normal trading day, so 5 passes track the moves without hammering the
+# source. The old schedule fired twice (01:45 + 03:00 UTC) and only when the day's
+# rows were still missing — see crawl-fallback.sh for why that guard is gone.
+#
+# Round minutes are fine here, unlike GitHub Actions: this box runs the unit at the
+# time asked. The `:07`-style odd minutes elsewhere in this repo exist purely to
+# dodge GitHub's congested scheduling slots, which do not apply to systemd.
 [Unit]
-Description=Timer for the Viet Dataverse fallback gold/silver crawl
+Description=Timer for the Viet Dataverse gold/silver crawl (primary path)
 
 [Timer]
-OnCalendar=*-*-* 01:45:00 UTC
+OnCalendar=*-*-* 01:00:00 UTC
 OnCalendar=*-*-* 03:00:00 UTC
-# Catch up after a box reboot rather than silently skipping the day.
+OnCalendar=*-*-* 05:00:00 UTC
+OnCalendar=*-*-* 07:00:00 UTC
+OnCalendar=*-*-* 09:00:00 UTC
+# Catch up after a box reboot rather than silently skipping the slot.
 Persistent=true
 AccuracySec=1min
 Unit=crawl-fallback.service

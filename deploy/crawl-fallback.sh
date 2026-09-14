@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 #
-# Box-side fallback crawler for gold & silver (see deploy/crawl-fallback.timer).
+# PRIMARY box-side crawler for gold & silver (see deploy/crawl-fallback.timer).
 #
-# WHY THIS EXISTS
-#   GitHub's scheduled workflows are best-effort: they run at low priority on
-#   shared runners and are delayed or dropped under load. Measured 2026-08-09 on
-#   gold-silver-crawl.yml's old '30 …' schedule:
-#     - the 01:30 UTC primary slot never fired at all; the first scheduled run of
-#       the day landed 03:04–04:38 UTC
-#     - only 4–8 of the 9 declared runs per day materialised
-#     - runs that did fire started 32 min late on average (max 58)
-#   Net effect: the day's gold data reached the DB at 10:00–12:40 VN instead of
-#   the intended 08:30 VN, every day, with GitHub perfectly healthy.
+# The file name still says "fallback" for a boring reason: renaming the systemd
+# units would need them disabled and re-enabled by hand on the box. It is not a
+# fallback any more — it is the only scheduled path that crawls these sources.
 #
-#   This script closes that gap from the box, which has no scheduling queue. It
-#   is a NET, not a replacement: GitHub Actions stays the primary path, and this
-#   only acts when the day's data is still missing by the time the timer fires.
+# WHY THE BOX AND NOT GITHUB ACTIONS (promoted 2026-09-14)
+#   1. Network. GitHub's runners sit outside Vietnam and cannot reach these
+#      sources reliably: gold-silver-crawl.yml failed 2026-09-13 with a connect
+#      timeout to www.24h.com.vn, and nso.gov.vn refuses foreign datacenter IPs
+#      outright — the reason prod itself moved to this VN box on 2026-09-04.
+#      This box talks to 24h.com.vn without trouble.
+#   2. Scheduling. GitHub's cron is best-effort: measured 2026-08-09, the 01:30
+#      UTC slot never fired at all, only 4–8 of 9 declared runs materialised, and
+#      those that did started 32 min late on average (58 max). On 2026-09-14 it
+#      dropped the day's runs entirely. systemd on this box fires on time.
+#
+#   gold-silver-crawl.yml keeps only a workflow_dispatch trigger, for a manual
+#   run when the box is down. Its schedule is gone, so there is exactly one
+#   writer on a normal day.
 #
 # SUCCESS IS MEASURED AGAINST THE DB, NOT THE EXIT CODE
 #   crawl_gold_silver.py exits 1 when the Yahoo Finance (global macro) section
@@ -49,12 +53,19 @@ CRAWL_ENV=$(mktemp) || { log "FATAL: mktemp failed"; exit 1; }
 chmod 600 "$CRAWL_ENV"
 trap 'rm -f "$CRAWL_ENV"' EXIT
 
-for key in CRAWLING_BOT_DB GLOBAL_INDICATOR_DB; do
+# ARGUS_FINTEL_DB is here for generate_static_data.py's market-pulse section, not
+# for the crawler. It is optional there (the script skips that file when unset),
+# so a box whose .env lacks it still produces every other chart.
+for key in CRAWLING_BOT_DB GLOBAL_INDICATOR_DB ARGUS_FINTEL_DB; do
     # Tolerates leading spaces, spaces around '=', trailing spaces/CR and
     # surrounding quotes. Keeps any '=' inside the value (sslmode=require).
     value=$(sed -n -E "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*//p" "$ENV_FILE" \
             | head -1 | sed -E 's/[[:space:]]*$//; s/\r$//; s/^"(.*)"$/\1/; s/^'\''(.*)'\''$/\1/')
     if [ -z "$value" ]; then
+        if [ "$key" = "ARGUS_FINTEL_DB" ]; then
+            log "note: $key not in $ENV_FILE — market_pulse.json will be skipped"
+            continue
+        fi
         log "FATAL: $key not found in $ENV_FILE"
         exit 1
     fi
@@ -94,14 +105,19 @@ sys.exit(0 if (gold and silver) else 1)
 }
 
 before=$(probe)
-probe_rc=$?
 
-if [ $probe_rc -eq 0 ]; then
-    log "today's data already present ($before) — GitHub Actions got there first, nothing to do"
-    exit 0
-fi
-
-log "today's data incomplete ($before) — running fallback crawl"
+# NO "skip if today's row exists" GUARD — deliberate, 2026-09-14.
+#
+# There used to be one here, and it was the third copy of the same mistake: the
+# crawler had it, gold-silver-crawl.yml had it, and so did this script. Together
+# they meant the first successful crawl of the day pinned the price and every
+# later run no-oped, so the published chart sat at the ~08:45 VN quote while SJC
+# moved several times during the day. Reported 2026-09-12 and again 2026-09-14
+# (chart 142.7 vs source 143.2). The other two are fixed; this is the third.
+#
+# Every run now crawls and upserts. `probe` output is kept purely for the log, so
+# a reader can see what the day looked like before and after this run.
+log "pre-crawl state: $before — crawling (every run refreshes, by design)"
 
 # --network default + --env-file: the crawler reads CRAWLING_BOT_DB and
 # GLOBAL_INDICATOR_DB from the environment. It also calls load_dotenv() on a path
@@ -119,7 +135,37 @@ after=$(probe)
 after_rc=$?
 
 if [ $after_rc -eq 0 ]; then
-    log "OK: fallback landed today's data ($after); crawler exit=$crawl_rc (non-zero is expected when Yahoo blocks this IP)"
+    log "OK: today's data present ($after); crawler exit=$crawl_rc (non-zero is expected when Yahoo blocks this IP)"
+
+    # Regenerate the static JSON the FE charts actually read.
+    #
+    # The charts do not query the DB — they fetch fe/data/*.json, which used to be
+    # produced only by generate-static-data.yml on GitHub (triggered by the crawl
+    # workflow finishing, plus a 6-hourly backstop). With crawling moved onto this
+    # box, nothing would trigger it, and a fresh DB row would sit invisible to
+    # visitors for up to 6 hours. So the box regenerates them itself, straight into
+    # the directory FastAPI serves.
+    #
+    # The repo is mounted read-only for the crawl above; this needs fe/data
+    # writable, hence the second, narrower rw mount. A deploy (`git reset --hard`)
+    # reverts these files to whatever is committed; the next run, at most 2 hours
+    # later, regenerates them.
+    log "regenerating static chart JSON"
+    docker run --rm \
+        --env-file "$CRAWL_ENV" \
+        -v "$APP_DIR:/repo:ro" \
+        -v "$APP_DIR/fe/data:/repo/fe/data" \
+        -w /repo/be \
+        --memory 1g \
+        "$IMAGE" python generate_static_data.py 2>&1 | sed 's/^/    /'
+    static_rc=${PIPESTATUS[0]}
+    if [ $static_rc -ne 0 ]; then
+        # The DB is correct either way; only the published files lag. Worth a loud
+        # line in the journal, not worth failing the unit and paging over.
+        log "WARNING: static JSON regeneration exited $static_rc — charts may lag until the next run"
+    else
+        log "static JSON regenerated"
+    fi
     exit 0
 fi
 
