@@ -1,0 +1,56 @@
+# Run the box's gold/silver crawl on demand and show its log.
+#
+# The scheduled crawl lives on the prod box (deploy/crawl-fallback.timer), not on
+# GitHub — see CLAUDE.md "Box-side gold/silver crawl". That is the right place for
+# it (GitHub runners time out reaching 24h.com.vn), but it left no way to trigger a
+# run or read its output without SSH access to the box.
+#
+# This workflow closes that gap using the deploy key GitHub already holds: press
+# Run workflow, it starts the unit and prints the journal. Use it to force a
+# refresh after a bad crawl, or to see why a run did not land.
+name: Box — run gold/silver crawl now
+
+on:
+  workflow_dispatch:
+    inputs:
+      lines:
+        description: "Journal lines to print"
+        required: false
+        default: "120"
+
+jobs:
+  run-on-box:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if server secrets not configured
+        id: guard
+        run: echo "ready=${{ secrets.DEPLOY_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Run crawl on the box and print journal
+        if: steps.guard.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          command_timeout: 15m
+          script: |
+            set -uo pipefail
+            echo "=== timer state ==="
+            systemctl list-timers 'crawl-fallback*' --all --no-pager || true
+
+            echo
+            echo "=== running crawl-fallback.service (synchronously) ==="
+            # --wait blocks until the unit finishes, so the journal below is
+            # complete rather than a snapshot of a still-running crawl.
+            systemctl start --wait crawl-fallback.service || true
+
+            echo
+            echo "=== journal (last ${{ inputs.lines }} lines) ==="
+            journalctl -u crawl-fallback.service -n ${{ inputs.lines }} --no-pager || true
+
+            echo
+            echo "=== unit result ==="
+            systemctl show crawl-fallback.service \
+                -p Result -p ExecMainStatus -p ActiveState --no-pager || true
