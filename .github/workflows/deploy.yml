@@ -50,3 +50,32 @@ jobs:
             docker compose up -d --build
             docker image prune -f
             echo "Deployed $(git rev-parse --short HEAD)"
+
+            # Keep the box's systemd units in step with the repo.
+            #
+            # Until 2026-09-14 a deploy only landed the *files* — installing them
+            # under /etc/systemd/system and reloading was a manual step nobody
+            # remembered. The result: the box kept running a crawl timer whose
+            # schedule and skip-guard no longer matched deploy/crawl-fallback.*,
+            # while CLAUDE.md and DEPLOY.md both claimed the timer wasn't even
+            # provisioned here. That drift is what pinned the published gold price
+            # to the morning quote for 75 days.
+            #
+            # cmp -s keeps this quiet and idempotent: daemon-reload and restart
+            # only happen when a unit file actually changed.
+            changed=0
+            for unit in crawl-fallback.service crawl-fallback.timer; do
+                if [ -f "deploy/$unit" ] && ! cmp -s "deploy/$unit" "/etc/systemd/system/$unit"; then
+                    cp "deploy/$unit" "/etc/systemd/system/$unit"
+                    changed=1
+                    echo "systemd: updated $unit"
+                fi
+            done
+            if [ "$changed" = "1" ]; then
+                systemctl daemon-reload
+                systemctl enable --now crawl-fallback.timer
+                echo "systemd: reloaded; next runs ->"
+                systemctl list-timers 'crawl-fallback*' --no-pager || true
+            else
+                echo "systemd: units already current"
+            fi
