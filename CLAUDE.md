@@ -793,6 +793,32 @@ def validate_rates(data):
 
 Workflow `data-quality-check.yml` runs scheduled DQ checks. There is also a `data-quality-check` skill — note it is scoped to `manual_listing_report` / `manual_keyword_report` only, **not** the macro tables.
 
+**The DQ agent's findings were invisible until 2026-09-14, and two of its
+ERRORs were false.** Three separate problems, all found together:
+
+- **Its only output channel is an HTML email, and that mailbox is dead.** Gmail
+  has rejected `SMTP_USER`/`SMTP_PASS` with `535 Username and Password not
+  accepted` since at least 2026-09-09, so `data-quality-check.yml` goes red every
+  day for a mail failure — not a data failure — and the red light says nothing
+  about the data. **The `SMTP_PASS` app password needs reissuing in the Google
+  account and updating as a repo secret; until then no report is delivered.**
+- **The run log printed three counts and no detail.** It now prints every issue
+  to stdout as well, so the Actions log is a usable report on its own. A count is
+  not a report.
+- **Two standing false ERRORs, both stale `dup_key` config** — the same failure
+  mode the 2026-08-31 overhaul was supposed to end, missed on two tables.
+  `vn_macro_gold_daily` still grouped on `(date, type)` after migration 016
+  widened its unique index to `(date, type, source)`, so every day with both SJC
+  sources counted as a duplicate; `vn_gso_gdp_quarterly` grouped on `(year,)`
+  while the DB enforces `(year, quarter, sector)`, reporting 7 "duplicates" that
+  were simply the other quarters and sectors of the same year. **When a unique
+  index changes, change `dup_key` in the same commit.**
+
+After those fixes the agent reports 0 CRITICAL / 0 ERROR / 3 WARNING, and all
+three warnings are real: `vn_macro_sbv_rate_daily` has had no row since
+2026-09-11, and `vn30_ratio_daily`'s `pe`/`pb` are 84% NULL (the known outage
+noted under "VN30 data source" above).
+
 `crawl_tools/data_quality_check.py` was overhauled on 2026-08-31 after an audit
 found it reporting 15 issues of which 11 were false, which is why a real outage
 (VN30 `pe`/`pb` 100% NULL since 2026-05-15) went unnoticed for months. Rules that

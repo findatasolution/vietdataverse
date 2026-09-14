@@ -143,7 +143,11 @@ TABLES = [
      # not in them, so gdp_billion_vnd is legitimately NULL and is not required.
      ['growth_yoy_pct'],
      (-10.0, 1_000_000),
-     ('year',), False),
+     # (year, quarter, sector) — what vn_gso_gdp_quarterly_year_quarter_sector_key
+     # actually enforces. Grouping on year alone reported 7 "duplicates" that were
+     # just the other quarters and sectors of the same year: a standing false
+     # ERROR, the exact failure mode the 2026-08-31 overhaul was meant to end.
+     ('year', 'quarter', 'sector'), False),
 
     # ── Corp DB ───────────────────────────────────────────────────────────────
     ('vn30_ohlcv_daily',          'CRAWLING_CORP_DB',
@@ -431,6 +435,17 @@ n_error    = sum(1 for i in issues if i['severity'] == 'ERROR')
 n_warning  = sum(1 for i in issues if i['severity'] == 'WARNING')
 
 print(f"\nResult: {n_critical} CRITICAL / {n_error} ERROR / {n_warning} WARNING")
+
+# Print every issue to stdout, not only into the HTML email.
+#
+# Until 2026-09-14 the run log showed these three counts and nothing else: the
+# findings themselves existed only inside a mail that has been rejected by
+# Gmail ("535 Username and Password not accepted") since at least 2026-09-09.
+# So the agent kept working, kept finding things, and nobody could see what —
+# including from the GitHub Actions log, which is the one place always
+# available. A count is not a report.
+for i in issues:
+    print(f"  [{i['severity']:<8}] {i['table']:<24} {i['check']:<12} {i['detail']}")
 print(f"Users active T-1: {user_stats['active_users']} | New signups: {user_stats['new_signups']} | Paid orders: {user_stats['paid_orders']}")
 
 # ── Build HTML report ─────────────────────────────────────────────────────────

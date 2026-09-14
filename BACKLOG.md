@@ -269,6 +269,8 @@
   - **So chéo giờ xét cả `buy` lẫn `sell`** — trước đó chỉ xét `buy`, nên giá bán sai (số người mua thực trả) lọt lưới.
   - **`data_quality_check.py` `dup_key` của vàng** cập nhật thành `(date, type, source)`; để nguyên `(date, type)` thì mọi ngày có đủ 2 nguồn đều bị báo duplicate giả.
   - **Test:** `crawl_tools/test_sjc_store.py` (22 test cùng `test_gold_validation.py`) + `bash deploy/crawl-fallback.sh --self-test` (6 kịch bản, gồm "một nguồn chết"). Cả hai chạy trong `crawl-tests.yml`.
+  - **Phát hiện thêm khi đi kiểm tra:** DQ agent (`data-quality-check.yml`) **đỏ mỗi ngày từ ~09/9 vì gửi mail hỏng, không phải vì dữ liệu** — Gmail trả `535 Username and Password not accepted`. Log run chỉ in 3 con số đếm, chi tiết nằm hết trong cái mail không gửi được → **không ai nhìn thấy DQ tìm ra gì suốt 1 tuần**. Đã cho in toàn bộ issue ra stdout. **Việc cần user làm: cấp lại app password Gmail và update secret `SMTP_PASS`.**
+  - **2 ERROR của DQ đều là báo nhầm**, cùng một nguyên nhân: `dup_key` lệch với unique index thật. Vàng vẫn group `(date, type)` sau migration 016; `vn_gso_gdp_quarterly` group `(year,)` trong khi DB enforce `(year, quarter, sector)`. Sau khi sửa: **0 CRITICAL / 0 ERROR / 3 WARNING**, và 3 WARNING đều thật (`vn_macro_sbv_rate_daily` không có dòng nào từ 11/9; `vn30_ratio_daily` `pe`/`pb` NULL 84%). **Đổi unique index thì phải đổi `dup_key` trong cùng commit.**
   - **Còn tồn:** không có cơ chế đối chiếu *hồi tố* giá đã lưu với nguồn (lỗ hổng đã để 196 dòng giả nằm im). Lịch sử SJC thưa: 5 dòng 2015, 11 dòng 2016, trống 2017–2023.
 
 ---

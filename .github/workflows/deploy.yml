@@ -94,7 +94,7 @@ jobs:
             # only as fresh as the last "Update static chart data" bot commit. The
             # container serves that directory (see docker-compose.yml), so without
             # this a deploy visibly rolls the published prices backwards until the
-            # next 2-hourly crawl. Regenerating takes ~2 min and leaves the site
+            # next hourly crawl. Regenerating takes ~2 min and leaves the site
             # showing current data the moment the deploy finishes.
             echo "refreshing chart data after reset"
             systemctl start --wait crawl-fallback.service || true
