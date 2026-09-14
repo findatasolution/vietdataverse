@@ -63,19 +63,27 @@ jobs:
             #
             # cmp -s keeps this quiet and idempotent: daemon-reload and restart
             # only happen when a unit file actually changed.
-            changed=0
             for unit in crawl-fallback.service crawl-fallback.timer; do
-                if [ -f "deploy/$unit" ] && ! cmp -s "deploy/$unit" "/etc/systemd/system/$unit"; then
+                [ -f "deploy/$unit" ] || continue
+                if [ -L "/etc/systemd/system/$unit" ]; then
+                    # Installed as a symlink into this checkout, so `git reset`
+                    # above already changed its content — nothing to copy, but
+                    # systemd still holds the old text until daemon-reload.
+                    echo "systemd: $unit is a symlink -> $(readlink -f "/etc/systemd/system/$unit")"
+                elif ! cmp -s "deploy/$unit" "/etc/systemd/system/$unit"; then
                     cp "deploy/$unit" "/etc/systemd/system/$unit"
-                    changed=1
-                    echo "systemd: updated $unit"
+                    echo "systemd: copied $unit"
+                else
+                    echo "systemd: $unit content already identical"
                 fi
             done
-            if [ "$changed" = "1" ]; then
-                systemctl daemon-reload
-                systemctl enable --now crawl-fallback.timer
-                echo "systemd: reloaded; next runs ->"
-                systemctl list-timers 'crawl-fallback*' --no-pager || true
-            else
-                echo "systemd: units already current"
-            fi
+
+            # Unconditional: cheap, idempotent, and the only way a symlinked unit
+            # whose file changed under `git reset` actually reaches systemd. The
+            # earlier "only reload when cmp differs" version silently skipped it.
+            systemctl daemon-reload
+            systemctl enable --now crawl-fallback.timer >/dev/null 2>&1 || true
+            systemctl restart crawl-fallback.timer
+            echo "systemd: state after reload ->"
+            systemctl list-timers 'crawl-fallback*' --all --no-pager || true
+            systemctl show crawl-fallback.timer -p TimersCalendar --no-pager || true
