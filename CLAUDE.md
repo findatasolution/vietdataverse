@@ -359,7 +359,7 @@ Why the box won:
 - **Network.** GitHub's runners sit outside Vietnam. The 2026-09-13 run failed with a connect timeout to `www.24h.com.vn`, and `nso.gov.vn` refuses foreign datacenter IPs outright — the reason prod itself moved to a VN box on 2026-09-04. This box reaches both sources without trouble.
 - **Scheduling.** GitHub's cron is best-effort: it dropped every declared slot on 2026-09-14, and measured 2026-08-09 it fired only 4–8 of 9 daily runs, 32 min late on average (58 max). systemd fires on time, so the odd-minute trick (`:07`) is unnecessary here — the timer uses round hours.
 
-**Cadence: every 2 hours across VN office hours** (01:00–09:00 UTC = 08:00–16:00 VN), and **every run upserts**. There is deliberately no "skip if today's row exists" guard: that guard existed in three places at once (crawler, workflow, this script) and together they pinned the published price to the ~08:45 VN quote for 75 days while SJC moved several times a day. See "Gold is SJC-only" below.
+**Cadence: hourly across VN office hours** (nine passes, 01:00–09:00 UTC = 08:00–16:00 VN), and **every run upserts**. There is deliberately no "skip if today's row exists" guard: that guard existed in three places at once (crawler, workflow, this script) and together they pinned the published price to the ~08:45 VN quote for 75 days while SJC moved several times a day. See "Gold is SJC-only" below.
 
 **Each successful run also regenerates `fe/data/*.json`** into the directory FastAPI serves. The charts read those files, not the DB, so without this a fresh row would stay invisible until `generate-static-data.yml`'s 6-hourly backstop. The crawl mounts the repo read-only; the regeneration step adds a narrow writable mount for `fe/data` only.
 
@@ -372,7 +372,9 @@ Why the box won:
 
 Two things to preserve when touching it:
 
-- **Success is judged by re-probing the DB, never by the crawler's exit code.** `crawl_gold_silver.py` exits 1 whenever its Yahoo Finance section fails, and Yahoo blocks index tickers from datacenter IPs — which the box has. A non-zero exit there is expected and does not mean the domestic crawl failed.
+- **Success is "did every writer's `crawl_time` move", not "does today have a row" and not the exit code.** Two independent reasons. (1) `crawl_gold_silver.py` exits 1 whenever its Yahoo Finance section fails, and Yahoo blocks index tickers from datacenter IPs — which the box has; that non-zero exit is routine and says nothing about the domestic crawl. (2) A crawler can exit 0 having written nothing. The script therefore probes `MAX(crawl_time)` per writer (`24h.com.vn`, `giavang.org`, silver) before and after the run and compares the two — no clock arithmetic, so container/box timezone drift cannot fake freshness. Row-presence was the old test and it reported green all afternoon on a source that had died at 08:00; with two SJC sources writing hourly that is precisely the failure the second source exists to expose. A writer that did not advance turns the unit red *after* the static JSON is regenerated, since a degraded run still has fresher data than no run.
+- **The two SJC crawlers' exit code is tracked separately from `crawl_gold_silver.py`'s** (`sjc_rc` vs `crawl_rc`). The SJC crawlers exit non-zero only on an implausible quote or a cross-source disagreement; folding them into one number let Yahoo's daily failure explain away a real one.
+- **`bash deploy/crawl-fallback.sh --self-test`** exercises the freshness judgement against canned probe output — no DB, docker or `.env` needed, so it runs on the box and in CI (`crawl-tests.yml`). It is the only way to prove the "a source died" branch without breaking a source on purpose.
 - **It runs in `python:3.11-slim` (`deploy/crawler.Dockerfile`), not on the box Python.** The box ships Python 3.14 with no `python3-venv`, while `crawl_tools/requirements.txt` pins 3.11-era versions. The image installs only the subset `crawl_gold_silver.py` imports, version-pinned by passing `crawl_tools/requirements.txt` to pip as a *constraint* file, so it stays in lockstep with CI without a duplicate dependency list. The repo is bind-mounted at `/repo`, so deploys refresh crawler code without an image rebuild.
 
 **Changing the `.timer`/`.service` needs a box-side step** — a deploy only lands the files. `systemctl daemon-reload && systemctl enable --now crawl-fallback.timer`; full steps in `DEPLOY.md`.
@@ -905,8 +907,9 @@ collapsed a working 2x/day (08:30 + 14:30 VN) crawl into 1x/day to stop duplicat
 rows; it stopped the duplicates but also discarded the afternoon value. Live for
 **75 days**. Both guards are gone; every run upserts, `ON CONFLICT DO UPDATE`
 does the work, and the unique indexes still hold 1 row per (date, type/source).
-Cadence is now 2-hourly across office hours (`'7 1,3,5,7,9 * * *'` = 08:07,
-10:07, 12:07, 14:07, 16:07 VN).
+Cadence is now hourly across office hours, from a systemd timer on the box
+(nine passes, 08:00–16:00 VN) rather than GitHub cron — see
+`deploy/crawl-fallback.timer`.
 
 **2. Only SJC is stored and charted now.** Measured impact of the freeze bug on
 SJC: **14 of 30 days in 13/08–11/09 held the wrong price**, off by up to 2.1M
@@ -924,11 +927,23 @@ publish 31 types straight from `SELECT DISTINCT type`, most of them long-dead
 series (DONGA BANK, SACOMBANK, SJC Đà Nẵng, SJC1c…) with no static file behind
 them — it is now `["SJC"]`.
 
-**The crawler still parses and validates every brand on the page before
-filtering to SJC.** `validate_gold_records`' cross-brand median check needs ≥3
-brands to run at all, and that check is the guard added after 24h.com.vn
-published DOJI at `14,450` instead of `144,500`. Filtering earlier would silently
-disable it.
+**That is no longer how the gold path validates — `validate_gold_records` has no
+production caller any more.** It used to be kept alive by parsing every brand on
+the page before filtering to SJC, because its cross-brand median check needs ≥3
+brands to run at all. `crawl_sjc_24h.py` reads the SJC row alone and validates
+through `sjc_store.py` instead. The exchange is deliberate and is net coverage
+*gained*, not lost:
+
+- The digit-error case that motivated the median rule (24h.com.vn publishing
+  `14,450` for `144,500`) is caught by `check_plausible`'s 20M floor outright.
+- The median rule **inverts when bad rows are the majority** — on the 2015 dates
+  it flags the correct BTMC/DOJI quotes, not the fakes. The cross-source
+  comparison has no such failure mode: two unrelated sites do not invent the same
+  wrong figure.
+
+`validate_gold_records` still guards nothing but its own tests. Leave it in place
+(`gold_validation.silver_is_plausible` in the same module is live, used by
+`crawl_gold_silver.py`), but do not cite it as the gold safety net.
 
 ### Gold & silver validation (`crawl_tools/gold_validation.py`)
 
@@ -942,7 +957,7 @@ Added 2026-08-07 after 24h.com.vn itself published DOJI at `14,450` instead of `
 
 ### Uniqueness
 
-`vn_macro_gold_daily` has `uq_vn_gold_date_type (date, type)`; `vn_macro_silver_daily` has `uq_vn_silver_date_source (date, source)`. Both crawler INSERTs use `ON CONFLICT … DO UPDATE`, so overlapping hourly retries refresh the row instead of appending a second one. Before these existed (2026-01→06), retries left 1,217 duplicate gold rows and 298 silver rows, 347 of them disagreeing on price.
+`vn_macro_gold_daily` has `uq_vn_gold_date_type_source (date, type, source)` — widened from `(date, type)` by migration 016 so two crawlers can quote the same day side by side; `vn_macro_silver_daily` has `uq_vn_silver_date_source (date, source)`. **`crawl_tools/data_quality_check.py`'s `dup_key` for gold must match** — it still said `(date, type)` until 2026-09-14 and would have reported every two-source day as a duplicate. Both crawler INSERTs use `ON CONFLICT … DO UPDATE`, so overlapping hourly retries refresh the row instead of appending a second one. Before these existed (2026-01→06), retries left 1,217 duplicate gold rows and 298 silver rows, 347 of them disagreeing on price.
 
 ### Missing values are `null`, never `0`
 

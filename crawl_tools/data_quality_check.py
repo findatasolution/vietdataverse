@@ -83,7 +83,11 @@ TABLES = [
      # holds 2015-2016 SJC rows at ~34M, and a floor set near the current level
      # would flag them. Ceiling 250M leaves room above the 2026 peak (~188M).
      (15_000_000, 250_000_000),
-     ('date', 'type'), False,
+     # (date, type, source), not (date, type): migration 016 widened the unique
+     # index when SJC gained a second, independent crawler. Two sources quoting
+     # the same day is the design, not a duplicate — keeping the old key here
+     # would have flagged every single day from 2026-09-14 onward.
+     ('date', 'type', 'source'), False,
      # Only SJC remains in this table since 2026-09-14 (every other brand, plus
      # the misfiled USD-denominated 'Vàng TG ($)' series, was deleted — see
      # CLAUDE.md "Gold is SJC-only"). The filter is kept as a cheap guard in case

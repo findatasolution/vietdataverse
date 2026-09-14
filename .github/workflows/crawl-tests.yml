@@ -11,9 +11,11 @@ on:
     branches: [main]
     paths:
       - 'crawl_tools/**'
+      - 'deploy/crawl-fallback.sh'
   pull_request:
     paths:
       - 'crawl_tools/**'
+      - 'deploy/crawl-fallback.sh'
   workflow_dispatch:
 
 jobs:
@@ -33,3 +35,10 @@ jobs:
 
       - name: Run crawl_tools test suite
         run: python -m pytest crawl_tools/ -v
+
+      # The box script decides whether an hourly crawl actually wrote anything.
+      # Its --self-test needs no DB, docker or .env, so it runs here as well as
+      # on the box — and it is the only way to prove the "a source died" branch
+      # short of breaking a source on purpose.
+      - name: Check the box crawl script's freshness judgement
+        run: bash deploy/crawl-fallback.sh --self-test

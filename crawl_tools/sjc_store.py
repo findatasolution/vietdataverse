@@ -62,6 +62,32 @@ def get_engine():
     return create_engine(url)
 
 
+def compare_sources(source, buy, sell, others) -> list:
+    """Lines describing where this reading disagrees with the other source(s).
+
+    `others` is a sequence of (source, buy, sell, crawl_time) — what the DB holds
+    for the same day from every other source.
+
+    BOTH columns are compared. An earlier version compared buy alone, which left
+    a wrong sell price invisible — and sell is the number a buyer actually pays,
+    so it is the more consequential of the two to get wrong.
+
+    Kept separate from store_sjc so the rule is testable without a database;
+    store_sjc's own work is the upsert and the query that feeds this.
+    """
+    out = []
+    for other_source, other_buy, other_sell, other_time in others:
+        for label, mine, theirs in (("buy", buy, other_buy), ("sell", sell, other_sell)):
+            theirs = float(theirs)
+            delta = abs(mine - theirs) / theirs
+            if delta > CROSS_SOURCE_TOLERANCE:
+                out.append(
+                    f"{label}: {source} says {mine:,.0f} but {other_source} says {theirs:,.0f} "
+                    f"({delta * 100:.1f}% apart, other read at {other_time:%H:%M})"
+                )
+    return out
+
+
 def store_sjc(source: str, buy: float, sell: float, date_str: Optional[str] = None) -> dict:
     """Validate, upsert today's SJC row for `source`, and compare against the
     other source. Returns a small report the caller prints.
@@ -100,14 +126,7 @@ def store_sjc(source: str, buy: float, sell: float, date_str: Optional[str] = No
             {"date": date_str, "source": source},
         ).fetchall()
 
-    disagreements = []
-    for other_source, other_buy, _other_sell, other_time in others:
-        delta = abs(buy - float(other_buy)) / float(other_buy)
-        if delta > CROSS_SOURCE_TOLERANCE:
-            disagreements.append(
-                f"{source} says {buy:,.0f} but {other_source} says {float(other_buy):,.0f} "
-                f"({delta * 100:.1f}% apart, other read at {other_time:%H:%M})"
-            )
+    disagreements = compare_sources(source, buy, sell, others)
 
     return {"date": date_str, "source": source, "buy": buy, "sell": sell,
             "compared_with": [o[0] for o in others], "disagreements": disagreements}

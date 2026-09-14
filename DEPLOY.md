@@ -135,7 +135,7 @@ Why the box rather than Actions:
 - **Scheduling.** GitHub dropped every gold slot on 2026-09-14; measured
   2026-08-09 it fired 4–8 of 9 declared daily runs, 32 min late on average.
 
-The timer fires **every 2 hours across VN office hours** (01:00–09:00 UTC =
+The timer fires **hourly across VN office hours** (nine passes, 01:00–09:00 UTC =
 08:00–16:00 VN) and every run upserts — it does *not* skip when the day already
 has a row. That guard is what froze the published price at the morning quote for
 75 days; see `crawl-fallback.sh`'s header. Each successful run also regenerates
