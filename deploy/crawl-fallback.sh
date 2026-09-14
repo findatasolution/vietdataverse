@@ -123,13 +123,25 @@ log "pre-crawl state: $before — crawling (every run refreshes, by design)"
 # GLOBAL_INDICATOR_DB from the environment. It also calls load_dotenv() on a path
 # three levels above itself, which resolves to a non-existent /.env inside the
 # container; load_dotenv does not override real env vars, so that is harmless.
-docker run --rm \
-    --env-file "$CRAWL_ENV" \
-    -v "$APP_DIR:/repo:ro" \
-    -w /repo/crawl_tools \
-    --memory 1g \
-    "$IMAGE" python crawl_gold_silver.py 2>&1 | sed 's/^/    /'
-crawl_rc=${PIPESTATUS[0]}
+# Three scripts, run independently so one failing source cannot hide the others.
+# The two SJC crawlers read the same number from unrelated sites and cross-check
+# each other (crawl_tools/sjc_store.py); crawl_gold_silver.py now covers silver
+# and global macro only.
+crawl_rc=0
+for script in crawl_sjc_24h.py crawl_sjc_giavang.py crawl_gold_silver.py; do
+    log "running $script"
+    docker run --rm \
+        --env-file "$CRAWL_ENV" \
+        -v "$APP_DIR:/repo:ro" \
+        -w /repo/crawl_tools \
+        --memory 1g \
+        "$IMAGE" python "$script" 2>&1 | sed 's/^/    /'
+    rc=${PIPESTATUS[0]}
+    [ "$rc" -ne 0 ] && log "$script exited $rc"
+    # Keep the worst exit code, but carry on: a Yahoo outage inside
+    # crawl_gold_silver.py must not stop the SJC crawlers from having run.
+    [ "$rc" -gt "$crawl_rc" ] && crawl_rc=$rc
+done
 
 after=$(probe)
 after_rc=$?

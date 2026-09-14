@@ -98,11 +98,25 @@ def generate_gold_data():
                 result = conn.execute(text(f"""
                     SELECT date, buy_price, sell_price
                     FROM (
-                        SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
+                        -- Two crawlers store the same day's SJC quote from two
+                        -- different sites (see crawl_tools/sjc_store.py), so a
+                        -- date can hold more than one row. Pick deliberately
+                        -- rather than by crawl_time: "latest wins" would make the
+                        -- published figure flip between sources depending on
+                        -- which happened to run last. 24h.com.vn is primary
+                        -- because it has the longer history in this table;
+                        -- giavang.org covers days it missed.
+                        SELECT DISTINCT ON (date) date, buy_price, sell_price
                         FROM vn_macro_gold_daily
                         WHERE date >= '{date_filter}'
                         AND type = :gold_type
-                        ORDER BY date, crawl_time DESC
+                        ORDER BY date,
+                                 CASE source
+                                     WHEN '24h.com.vn' THEN 1
+                                     WHEN 'giavang.org' THEN 2
+                                     ELSE 3
+                                 END,
+                                 crawl_time DESC
                     ) subquery
                     ORDER BY date ASC
                 """), {'gold_type': gold_type})

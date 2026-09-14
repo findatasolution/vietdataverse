@@ -167,7 +167,7 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | Asset | Source | Table | Freq |
 |-------|--------|-------|------|
 | Term Deposit | ACB | `vn_macro_termdepo_daily` | Daily |
-| Gold | **SJC only** — every other brand deleted from the table 2026-09-14, see below | `vn_macro_gold_daily` (887 rows) | 2-hourly 08:00–16:00 VN, **from the box** not Actions |
+| Gold (SJC) | **Two independent crawlers**: 24h.com.vn + giavang.org, cross-checked | `vn_macro_gold_daily` | Hourly 08:00–16:00 VN, **from the box** not Actions |
 | Silver | Phú Quý | `vn_macro_silver_daily` | Daily |
 | FX Rate | VCB, SBV | `vn_macro_sbv_rate_daily` | Daily |
 | CPI | NSO | `vn_gso_cpi_monthly` | Monthly |
@@ -827,6 +827,46 @@ range check excludes it.
 premium they differed by ~17% (2023-06-15: DOJI 67.1M vs PNJ 55.5M). Both are
 correct. `crawl_tools/gold_validation.py`'s 15% cross-brand rule would reject the
 ring-gold quotes if that premium returns.
+
+### SJC gold is crawled twice, from two unrelated sites (2026-09-14)
+
+One number — SJC's quoted buy/sell price — is read by **two independent crawlers**:
+
+| Script | Source | Role |
+|---|---|---|
+| `crawl_tools/crawl_sjc_24h.py` | 24h.com.vn | primary on the read path |
+| `crawl_tools/crawl_sjc_giavang.py` | giavang.org | covers dates the primary missed |
+
+Both call `crawl_tools/sjc_store.py`, which holds the write path, the plausibility
+rules and the cross-source comparison in one place.
+
+**Why two.** Every check this project had looked at the data in isolation — range,
+freshness, internal consistency — and a frozen or placeholder price passes all of
+them. Two unrelated sites do not invent the same wrong figure, so disagreement is
+the one signal that catches a wrong-but-plausible number. When they differ by more
+than 2% the crawler still stores its row (a disputed day beats an empty one) and
+exits non-zero, so the unit goes red.
+
+**They are not primary/backup — both rows are stored.** Migration
+`be/migrations/016_gold_unique_per_source.sql` changed the unique key from
+`(date, type)` to `(date, type, source)`; under the old key their upserts
+overwrote each other and any disagreement was invisible.
+
+**The read path chooses, it does not take the newest.** `be/generate_static_data.py`
+and `be/routers/market_data.py` both `ORDER BY` a `CASE` on `source` — 24h.com.vn,
+then giavang.org — so the published figure cannot flip between sources depending on
+which crawler ran last. **Change both together.**
+
+`sjc.com.vn` itself would be the ideal source and was tried first: it returns 403
+to server-side requests (checked 2026-09-14).
+
+**Schedule: hourly, 01:00–09:00 UTC (08:00–16:00 VN)** — nine passes across the
+eight working hours, in `deploy/crawl-fallback.timer`. Each pass runs both SJC
+crawlers and `crawl_gold_silver.py` (silver + global macro) as **separate**
+container runs, so a Yahoo Finance outage — routine, Yahoo blocks datacenter IPs —
+cannot mask whether the gold crawl worked. That coupling is exactly why gold was
+split out of `crawl_gold_silver.py`; despite its name that script no longer touches
+gold.
 
 ### Gold table was reduced to SJC alone (2026-09-14)
 

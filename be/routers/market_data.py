@@ -59,10 +59,22 @@ async def get_gold_data(
         query = text("""
             SELECT date, buy_price, sell_price
             FROM (
+                -- One date can hold a row per source: two crawlers read the
+                -- SJC quote from two different sites (crawl_tools/sjc_store.py).
+                -- Prefer 24h.com.vn, fall back to giavang.org — ordering by
+                -- crawl_time alone would flip the published number between the
+                -- two depending on which ran last. Mirrors the same choice in
+                -- be/generate_static_data.py; change both together.
                 SELECT DISTINCT ON (date) date, buy_price, sell_price, crawl_time
                 FROM vn_macro_gold_daily
                 WHERE date >= :date_filter AND type = :gold_type
-                ORDER BY date, crawl_time DESC
+                ORDER BY date,
+                         CASE source
+                             WHEN '24h.com.vn' THEN 1
+                             WHEN 'giavang.org' THEN 2
+                             ELSE 3
+                         END,
+                         crawl_time DESC
             ) s ORDER BY date DESC
         """)
         with get_engine_crawl().connect() as conn:

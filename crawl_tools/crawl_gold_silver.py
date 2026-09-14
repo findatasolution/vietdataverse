@@ -1,11 +1,13 @@
 """
-Gold & Silver Price Crawler
-Runs at 08:07 VN, then hourly 09:07-16:07 VN — every run upserts today's row for
-each domestic source/brand (see 2026-09-12 note inline), so the stored price
-tracks the latest intraday quote during business hours rather than freezing at
-the morning value.
-- Domestic silver prices from giabac.vn (+ phuquygroup.vn backup)
-- Domestic gold prices from 24h.com.vn
+Silver & global macro crawler.
+
+Despite the filename this no longer touches gold: domestic gold moved to
+crawl_sjc_24h.py + crawl_sjc_giavang.py on 2026-09-14. The name is kept because
+the box's systemd unit (deploy/crawl-fallback.*) invokes it by path.
+
+Runs hourly across VN office hours; every run upserts rather than skipping when
+the day already has a row.
+- Domestic silver from giabac.vn (+ phuquygroup.vn backup)
 - Global gold/silver/indices from Yahoo Finance, with FRED index fallback
 """
 
@@ -23,7 +25,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from global_market_sources import fill_missing_indices
-from gold_validation import silver_is_plausible, validate_gold_records
+from gold_validation import silver_is_plausible
 
 # Load environment variables
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / '.env')
@@ -164,133 +166,14 @@ except Exception as e:
     print(f"  Error crawling phuquygroup silver: {e}")
 
 
-############## 2. Domestic Gold Prices (HTTP)
-print(f"\n--- Crawling Gold Prices ---")
-
-# Plain URL, no ?ngaythang= — removed 2026-09-14. The param looked harmless
-# because date_str is always today (same page as the default), but pointing it at
-# any PAST date makes 24h.com.vn return fixed placeholder numbers rather than that
-# day's prices: 81,000/83,300 for SJC, 73,000/74,700 for PNJ, regardless of which
-# date is asked for. A backfill run through this URL wrote 196 such rows into
-# vn_macro_gold_daily across 2015/2016/2020/2021 (deleted 2026-09-14). Leaving the
-# param in place kept that landmine armed for the next person who tries a backfill.
-url_gold = 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html'
-
-# Mirrors global_failed below: stays True until today's gold is on disk, so a source
-# outage or a page-wide validation reject turns the workflow RED instead of passing
-# silently with yesterday's data still being served.
-gold_failed = True
-
-try:
-    response_gold = requests.get(url_gold, timeout=10)
-    response_gold.raise_for_status()
-    soup_gold = BeautifulSoup(response_gold.content, 'html.parser')
-    crawl_time = datetime.now()
-    gold_records = []
-    tables_gold = soup_gold.find_all('table')
-
-    for table in tables_gold:
-        rows = table.find_all('tr')
-        for row in rows:
-            cols = row.find_all('td')
-            if len(cols) >= 3:
-                brand_td = cols[0].find('h2')
-                if not brand_td:
-                    continue
-                brand_type = brand_td.get_text(strip=True)
-
-                try:
-                    buy_span = cols[1].find('span', class_='fixW')
-                    sell_span = cols[2].find('span', class_='fixW')
-
-                    if not buy_span or not sell_span:
-                        continue
-
-                    buy_price = buy_span.get_text(strip=True).replace('.', '').replace(',', '')
-                    sell_price = sell_span.get_text(strip=True).replace('.', '').replace(',', '')
-
-                    buy_price = float(buy_price) * 1000
-                    sell_price = float(sell_price) * 1000
-
-                    gold_records.append({
-                        'date': date_str,
-                        'type': brand_type,
-                        'buy_price': buy_price,
-                        'sell_price': sell_price,
-                        'crawl_time': crawl_time
-                    })
-                except (ValueError, AttributeError):
-                    continue
-
-    if gold_records:
-        print(f"  Crawled {len(gold_records)} gold brands for {date_str}")
-
-        # Validate before insert — never write a partial or implausible row.
-        # Rules live in gold_validation.py so they can be unit-tested.
-        valid_records = validate_gold_records(gold_records)
-
-        rejected = len(gold_records) - len(valid_records)
-        if rejected:
-            print(f"  Rejected {rejected} implausible record(s) — not inserted")
-        if not valid_records:
-            raise RuntimeError(f"All {len(gold_records)} gold records failed validation")
-
-        # Store SJC only (decision 2026-09-12). Every other brand on this page is
-        # still PARSED and VALIDATED above on purpose: validate_gold_records'
-        # cross-brand median check needs >=3 brands to run at all, and that check is
-        # the guard added after 24h.com.vn published DOJI at 14,450 instead of
-        # 144,500 (2026-07-18). Filtering to SJC before validation would silently
-        # disable it. So: validate against the full brand set, then persist only SJC.
-        #
-        # Why only SJC: the other 8 brands have no per-day historical archive we
-        # could find (24h.com.vn's own ?ngaythang= lookup returns garbage — 81M/lượng
-        # for Aug 2026 — and webgia.com archives SJC alone), so their
-        # 2026-06-29..09-11 rows can never be corrected for the freeze bug fixed
-        # above. Rather than keep publishing series known to be wrong and impossible
-        # to verify, keep the one brand with an auditable daily source. Historical
-        # rows for the other brands stay in the DB, they just stop being updated.
-        valid_records = [r for r in valid_records if r['type'] == 'SJC']
-        if not valid_records:
-            raise RuntimeError("'SJC' row not present on the page — nothing to store")
-
-        inserted = 0
-
-        # Always upsert — do NOT skip when today's row already exists.
-        # 24h.com.vn's domestic gold quotes move multiple times during the business
-        # day; the 9:07-16:07 VN hourly reruns exist to keep today's row current,
-        # not just to retry a failed morning crawl. A prior "skip if exists" guard
-        # here froze each brand at whichever value the first successful run of the
-        # day happened to see (often the ~08:07 opening quote) and never updated it
-        # again — on a day with a real afternoon move this made the chart visibly
-        # stale/wrong vs. the live source for hours (reported 2026-09-12: DOJI HN
-        # sat at the 08:45 quote of 142.4M/145.4M all day while the source had moved
-        # to 143.0M/146.0M by 13:36). ON CONFLICT DO UPDATE refreshes price +
-        # crawl_time on every successful run; the uq_vn_gold_date_type index still
-        # guarantees exactly one row per (date, type).
-        for record in valid_records:
-            with engine.connect() as conn:
-                conn.execute(
-                    text("""
-                        INSERT INTO vn_macro_gold_daily (date, type, buy_price, sell_price, crawl_time, source, group_name)
-                        VALUES (:date, :type, :buy_price, :sell_price, :crawl_time, '24h.com.vn', 'commodity')
-                        ON CONFLICT (date, type) DO UPDATE SET
-                            buy_price  = EXCLUDED.buy_price,
-                            sell_price = EXCLUDED.sell_price,
-                            crawl_time = EXCLUDED.crawl_time
-                    """),
-                    record
-                )
-                conn.commit()
-                inserted += 1
-
-        print(f"  Pushed {inserted} gold records")
-        gold_failed = False  # today's gold is persisted (freshly inserted or already present)
-    else:
-        print(f"  No gold data found for {date_str}")
-
-except Exception as e:
-    print(f"  Error crawling gold prices: {e}")
-
+# Domestic gold used to be crawled here. It moved out on 2026-09-14 into two
+# dedicated crawlers reading two unrelated sites — crawl_sjc_24h.py and
+# crawl_sjc_giavang.py — which cross-check each other (see sjc_store.py).
+#
+# Two reasons for the split. Only SJC is published now, so the multi-brand
+# parsing here had no consumer; and mixing gold with the Yahoo Finance section
+# below meant a Yahoo failure (routine — Yahoo blocks datacenter IPs) exited the
+# whole run non-zero, burying whether the gold crawl itself had worked.
 
 ############## 3. Global Macro Data from Yahoo Finance
 print(f"\n--- Crawling Global Macro (Yahoo Finance) ---")
@@ -414,12 +297,8 @@ print(f"\n{'='*60}")
 print(f"Gold & Silver Crawler completed at {datetime.now().strftime('%H:%M:%S')}")
 print(f"{'='*60}")
 
-# Fail loudly so a stale feed surfaces as a red workflow instead of passing silently:
-# a Yahoo Finance outage, or a gold page that returned nothing / failed validation
-# (source published implausible prices — see GOLD_MIN_VND and the median check).
+# Fail loudly so a stale feed surfaces as a red run instead of passing silently.
 failures = []
-if gold_failed:
-    failures.append("Domestic gold (24h.com.vn)")
 if global_failed:
     failures.append("Global macro (Yahoo Finance)")
 

@@ -1,21 +1,27 @@
-# PRIMARY gold/silver crawl schedule — every 2 hours across VN office hours.
+# Gold/silver crawl schedule — hourly across an 8-hour working day.
 #
-# 01:00 UTC = 08:00 VN … 09:00 UTC = 16:00 VN. SJC adjusts its quote a handful of
-# times on a normal trading day, so 5 passes track the moves without hammering the
-# source. The old schedule fired twice (01:45 + 03:00 UTC) and only when the day's
-# rows were still missing — see crawl-fallback.sh for why that guard is gone.
+# 01:00 UTC = 08:00 VN … 09:00 UTC = 16:00 VN: nine passes spanning the eight
+# working hours, so both ends of the day are sampled rather than only the middle.
+# Each pass runs both SJC crawlers (24h.com.vn and giavang.org) plus silver, and
+# every run upserts — there is deliberately no "skip if the day already has a
+# row" guard anywhere in this path; that guard, duplicated across three files, is
+# what pinned the published price to the morning quote for 75 days.
 #
-# Round minutes are fine here, unlike GitHub Actions: this box runs the unit at the
-# time asked. The `:07`-style odd minutes elsewhere in this repo exist purely to
+# Round minutes are fine here, unlike GitHub Actions: this box runs the unit at
+# the time asked. The `:07`-style odd minutes elsewhere in the repo exist only to
 # dodge GitHub's congested scheduling slots, which do not apply to systemd.
 [Unit]
 Description=Timer for the Viet Dataverse gold/silver crawl (primary path)
 
 [Timer]
 OnCalendar=*-*-* 01:00:00 UTC
+OnCalendar=*-*-* 02:00:00 UTC
 OnCalendar=*-*-* 03:00:00 UTC
+OnCalendar=*-*-* 04:00:00 UTC
 OnCalendar=*-*-* 05:00:00 UTC
+OnCalendar=*-*-* 06:00:00 UTC
 OnCalendar=*-*-* 07:00:00 UTC
+OnCalendar=*-*-* 08:00:00 UTC
 OnCalendar=*-*-* 09:00:00 UTC
 # Catch up after a box reboot rather than silently skipping the slot.
 Persistent=true
