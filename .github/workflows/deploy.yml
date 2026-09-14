@@ -87,3 +87,15 @@ jobs:
             echo "systemd: state after reload ->"
             systemctl list-timers 'crawl-fallback*' --all --no-pager || true
             systemctl show crawl-fallback.timer -p TimersCalendar --no-pager || true
+
+            # Refresh the chart JSON after the reset above.
+            #
+            # `git reset --hard` reverts fe/data/ to the committed copy, which is
+            # only as fresh as the last "Update static chart data" bot commit. The
+            # container serves that directory (see docker-compose.yml), so without
+            # this a deploy visibly rolls the published prices backwards until the
+            # next 2-hourly crawl. Regenerating takes ~2 min and leaves the site
+            # showing current data the moment the deploy finishes.
+            echo "refreshing chart data after reset"
+            systemctl start --wait crawl-fallback.service || true
+            journalctl -u crawl-fallback.service -n 15 --no-pager || true
