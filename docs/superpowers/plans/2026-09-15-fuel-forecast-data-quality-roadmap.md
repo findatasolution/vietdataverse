@@ -65,10 +65,14 @@ gasoline).
   2022) vào `discover_latest()`/`MOIT_NEWS_INDEXES` nếu MOIT tiếp tục đổi
   cách đặt tên bài — hiện `discover_latest()` mới chỉ quét category, chưa thử
   đa pattern slug như bản backfill.
-- [ ] Bật cron billing subscription (`subscription-billing.yml`) — cần user
-  tự thêm secret `KNOWLEDGE_MARKET_DB` (bị chặn bởi chính sách an toàn Claude
-  Code — "Secret-Store Writes", không phải thiếu quyền GitHub; user có thể tự
-  thêm Bash permission rule trong settings để bỏ chặn cho lần sau).
+- [x] **Cron billing subscription live** — secret `KNOWLEDGE_MARKET_DB` đã
+  thêm (2026-09-15, sau khi user tự thêm Bash permission rule). Chạy thật
+  phát hiện **2 bug chưa từng lộ ra** (chưa từng chạy thật lần nào trước đó):
+  (1) `be/services/email.py` che khuất module `email` chuẩn của Python khi
+  script chạy trực tiếp (`python be/services/subscription.py`) — đổi tên
+  thành `email_service.py`; (2) fix sys.path nằm trong `if __name__ ==
+  "__main__"` nên chạy sau các import top-level, luôn quá muộn — chuyển lên
+  đầu file. Verify xanh trên CI thật (không chỉ local) sau cả 2 fix.
 
 ## 4. Model performance tốt
 
