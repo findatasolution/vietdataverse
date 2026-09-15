@@ -166,18 +166,40 @@ IS_FORMULAS = {
                  ('46', 1, False), ('47', 1, False), ('48', 1, False)]),
         ('60', [('50', 1, False), ('51', 1, False), ('52', 1, False)]),
     ],
-    # CTCK P&L (B02-CTCK, verified via VIX FY2025) — the OPPOSITE convention:
-    # every expense/loss line is stored POSITIVE (same habit as GAS/HPG's
-    # B02-DN), so the combining formulas (70/90/200) subtract explicitly.
+    # CTCK P&L (B02-CTCK, verified via VIX FY2025 + SSI FY2024) — the OPPOSITE
+    # sign convention from bank/insurance above: every expense/loss line is
+    # stored POSITIVE (same habit as GAS/HPG's B02-DN), so the combining
+    # formulas (70/90/200) subtract explicitly.
+    #
+    # 04/08/11/23/24/28/29/41/44/51/55 are optional — VIX's filing has none of
+    # them at all (a smaller company with fewer business lines), SSI's has all
+    # of them; each is a genuine "this company doesn't do that activity" gap,
+    # not missing extraction.
+    #
+    # Code '60' ("Cộng chi phí tài chính") is deliberately left REQUIRED, not
+    # optional, in target '70' — real case: VIX's filing uses code '80' for
+    # this same concept instead of '60', while SSI's own code '80' means
+    # something else entirely ("Cộng kết quả hoạt động khác" = 71-72, a
+    # separate memo subtotal). The two companies' "80" are not the same line
+    # item, so folding both into one optional operand would silently corrupt
+    # whichever company doesn't match. Requiring '60' means a VIX-style filing
+    # (no code 60) reports '70' as INFO_NULL — "can't conclude, this company's
+    # numbering doesn't match" — rather than risk validating against the
+    # wrong number.
     'CTCK_B02': [
-        ('20', [('01', 1, False), ('02', 1, False), ('03', 1, False), ('06', 1, False),
-                 ('07', 1, False), ('09', 1, False), ('10', 1, False)]),
-        ('40', [('21', 1, False), ('26', 1, False), ('27', 1, False), ('30', 1, False),
+        ('20', [('01', 1, False), ('02', 1, False), ('03', 1, False), ('04', 1, True),
+                 ('06', 1, False), ('07', 1, False), ('08', 1, True), ('09', 1, False),
+                 ('10', 1, False), ('11', 1, True)]),
+        ('40', [('21', 1, False), ('23', 1, True), ('24', 1, True), ('26', 1, False),
+                 ('27', 1, False), ('28', 1, True), ('29', 1, True), ('30', 1, False),
                  ('31', 1, False), ('32', 1, False)]),
-        ('50', [('42', 1, False)]),
-        ('80', [('52', 1, False)]),
+        ('50', [('41', 1, True), ('42', 1, False), ('44', 1, True)]),
+        ('60', [('51', 1, True), ('52', 1, False), ('55', 1, True)]),
+        # '80' itself is NOT checked — its meaning varies by company (see
+        # comment above) and nothing downstream depends on its value, so
+        # there is no safe single formula to write for it.
         ('100', [('100.1', 1, False), ('100.2', 1, False)]),
-        ('70', [('20', 1, False), ('50', 1, False), ('40', -1, False), ('80', -1, False), ('62', -1, False)]),
+        ('70', [('20', 1, False), ('50', 1, False), ('40', -1, False), ('60', -1, False), ('62', -1, False)]),
         ('90', [('70', 1, False), ('71', 1, False), ('72', -1, False)]),
         ('200', [('90', 1, False), ('100', -1, False)]),
     ],

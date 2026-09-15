@@ -93,9 +93,21 @@ def find_pdf_url(ticker: str, year: int) -> str | None:
     return None
 
 
+DOWNLOAD_HEADERS = {
+    # Some IR sites (SSI confirmed: 403 with no header, 200 with this) reject
+    # requests' default "python-requests/x.y" User-Agent outright — curl's
+    # default UA (or lack of one) sails through the same check, which is why
+    # a manual `curl` retest can look like it "just works" while the Python
+    # path fails silently. Not an anti-bot bypass attempt, just presenting as
+    # an ordinary browser client the way curl already does by default.
+    "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"),
+}
+
+
 def download_pdf(url: str, dest: Path) -> bool:
     try:
-        r = requests.get(url, timeout=60)
+        r = requests.get(url, timeout=60, headers=DOWNLOAD_HEADERS)
         if r.status_code != 200 or len(r.content) < 10000:
             return False
         dest.write_bytes(r.content)
