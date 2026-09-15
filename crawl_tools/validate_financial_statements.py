@@ -75,13 +75,18 @@ SCHEME_INHERITANCE = {
 # purposes only), which would then wrongly fail the SIGN check on every
 # correctly-extracted row. Hence a separate formula table instead.
 #
-# Only TT200_DN (ordinary corporates) is mapped — banks/CTCK/insurance have a
-# structurally different P&L (interest income/expense breakdown for banks,
-# brokerage/margin/investment income for CTCK) that is not yet in the KB.
-# Crawling B02 for those schemes must stay out_of_scope until researched, not
-# guessed from the TT200 shape.
+# Banks/insurance-holding/CTCK each have their own P&L form, researched and
+# verified against one real filing each 2026-09-15 (see
+# nganhang_chungkhoan_baohiem_ma_ke_toan_bctc.md §16.5-16.8): bank B03/TCTD-HN
+# (VCB), insurance-holding B02-DN/HN's insurance-specific 01-48 block (BVH),
+# CTCK B02-CTCK (VIX). Only one company per scheme has been checked — treat
+# these as a first pass, not yet as settled as TT200_DN_B02 (multiple
+# companies, two conventions already reconciled).
 IS_SCHEME_FOR_BS_SCHEME = {
     'TT200_DN': 'TT200_DN_B02',
+    'BANK_B02_TCTD_HN': 'BANK_B03_TCTD_HN',
+    'TT200_DN_INSURANCE': 'TT200_DN_INSURANCE_B02',
+    'CTCK_B01': 'CTCK_B02',
 }
 
 # (target_code, [(operand_code, +1 or -1, optional), ...]) — matches
@@ -124,6 +129,57 @@ IS_FORMULAS = {
         ('40', [('31', 1, False), ('32', -1, False)]),
         ('50', [('30', 1, False), ('40', 1, False)]),
         ('60', [('50', 1, False), ('51', -1, False), ('52', -1, False)]),
+    ],
+    # Bank P&L (B03/TCTD-HN, verified via VCB FY2024) — every expense line is
+    # already stored negative (parens in the source), so every weight below is
+    # +1: the formula is pure addition, matching what the filing itself prints
+    # (e.g. "I = 1+2" where "2. Chi phí lãi" is already negative).
+    'BANK_B03_TCTD_HN': [
+        ('PL.1', [('PL.1a', 1, False), ('PL.1b', 1, False)]),
+        ('PL.2', [('PL.2a', 1, False), ('PL.2b', 1, False)]),
+        ('PL.6', [('PL.6a', 1, False), ('PL.6b', 1, False)]),
+        ('PL.TOI', [('PL.1', 1, False), ('PL.2', 1, False), ('PL.3', 1, False),
+                     ('PL.4', 1, False), ('PL.5', 1, False), ('PL.6', 1, False), ('PL.7', 1, False)]),
+        ('PL.9', [('PL.TOI', 1, False), ('PL.8', 1, False)]),
+        ('PL.11', [('PL.9', 1, False), ('PL.10', 1, False)]),
+        ('PL.12', [('PL.12a', 1, False), ('PL.12b', 1, False)]),
+        ('PL.13', [('PL.11', 1, False), ('PL.12', 1, False)]),
+    ],
+    # Insurance-holding P&L (B02-DN/HN insurance block, verified via BVH
+    # FY2024) — same additive convention as banks above; every weight is +1.
+    'TT200_DN_INSURANCE_B02': [
+        ('01', [('02', 1, False), ('03', 1, False), ('04', 1, False)]),
+        ('05', [('06', 1, False), ('07', 1, False)]),
+        ('08', [('01', 1, False), ('05', 1, False)]),
+        ('15', [('08', 1, False), ('09', 1, False)]),
+        ('18', [('19', 1, False), ('20', 1, False)]),
+        ('22', [('23', 1, False), ('24', 1, False), ('25', 1, False), ('26', 1, False)]),
+        ('29', [('16', 1, False), ('17', 1, False), ('18', 1, False), ('21', 1, False),
+                 ('22', 1, False), ('27', 1, False), ('28', 1, False)]),
+        ('31', [('32', 1, False), ('33', 1, False)]),
+        ('41', [('29', 1, False), ('30', 1, False), ('31', 1, False)]),
+        ('42', [('15', 1, False), ('41', 1, False)]),
+        ('43', [('43.1', 1, False), ('43.2', 1, False)]),
+        ('44', [('44.1', 1, False), ('44.2', 1, False)]),
+        ('48', [('48.1', 1, False), ('48.2', 1, False)]),
+        ('50', [('42', 1, False), ('43', 1, False), ('44', 1, False), ('45', 1, False),
+                 ('46', 1, False), ('47', 1, False), ('48', 1, False)]),
+        ('60', [('50', 1, False), ('51', 1, False), ('52', 1, False)]),
+    ],
+    # CTCK P&L (B02-CTCK, verified via VIX FY2025) — the OPPOSITE convention:
+    # every expense/loss line is stored POSITIVE (same habit as GAS/HPG's
+    # B02-DN), so the combining formulas (70/90/200) subtract explicitly.
+    'CTCK_B02': [
+        ('20', [('01', 1, False), ('02', 1, False), ('03', 1, False), ('06', 1, False),
+                 ('07', 1, False), ('09', 1, False), ('10', 1, False)]),
+        ('40', [('21', 1, False), ('26', 1, False), ('27', 1, False), ('30', 1, False),
+                 ('31', 1, False), ('32', 1, False)]),
+        ('50', [('42', 1, False)]),
+        ('80', [('52', 1, False)]),
+        ('100', [('100.1', 1, False), ('100.2', 1, False)]),
+        ('70', [('20', 1, False), ('50', 1, False), ('40', -1, False), ('80', -1, False), ('62', -1, False)]),
+        ('90', [('70', 1, False), ('71', 1, False), ('72', -1, False)]),
+        ('200', [('90', 1, False), ('100', -1, False)]),
     ],
 }
 

@@ -193,8 +193,18 @@ BS_TITLE_RE = re.compile(f'{CORP_BS_TITLE_RE.pattern}|{CTCK_BS_TITLE_RE.pattern}
 # TOC/prose pages have none. Real case: GAS FY2024 page 7 (audit opinion)
 # matched BS_TITLE_RE with 0 such figures — this floor rejects that class of
 # false start without rejecting genuine statement pages (which had 35-56).
+#
+# Raised 5→10 after a second false-positive class (VIX FY2025 page 3): some
+# filings bundle a "công văn giải trình chênh lệch lợi nhuận" (a disclosure
+# letter explaining the year's profit swing) ahead of the actual statements,
+# which is prose but cites enough real VND totals (6 matches) to clear a
+# floor of 5, and separately says "tài sản tài chính" (financial assets)
+# often enough to match ASSET_HEADER_RE too. Every genuine statement page
+# checked so far — GAS/BCM/NVL/VIX among others — has carried at least 14
+# money-matches, so 10 keeps a safety margin on both sides without needing a
+# third, more specific filter for this one letter's phrasing.
 MONEY_RE = re.compile(r'\d{1,3}(?:\.\d{3}){2,}')
-MIN_MONEY_MATCHES = 5
+MIN_MONEY_MATCHES = 10
 # Explicit stop signals: title of the NEXT statement in the filing (income
 # statement / cash flow / notes). A balance sheet legitimately runs 2-4 pages
 # and keeps repeating "TÀI SẢN"/"NGUỒN VỐN" on each one — capping the range by
@@ -230,7 +240,7 @@ MAX_STATEMENT_PAGES = 6  # safety valve — no real balance sheet needs more tha
 # a VN BCTC PDF — its own title doubles as B01's stop marker above. Its own
 # stop marker is deliberately NEXT_STATEMENT_RE minus the KẾT QUẢ pattern
 # (that would just match this statement's own title on page 1 of the scan).
-IS_TITLE_RE = re.compile(r'KET QUA HOAT DONG KINH DOANH', re.IGNORECASE)
+IS_TITLE_RE = re.compile(r'KET QUA HOAT DONG', re.IGNORECASE)
 IS_STOP_RE = re.compile(r'LUU CHUYEN TIEN TE|THUYET MINH BAO CAO', re.IGNORECASE)
 
 
@@ -544,10 +554,13 @@ def run_one(ticker: str, year: int):
                     report_type='balance_sheet')
         bs_codes = {str(r.get('line_code', ''))[:10] for r in rows if r.get('value_current') is not None}
 
-        # ── B02 (income statement) — only for schemes the KB has formulas for
-        # (see IS_SCHEME_FOR_BS_SCHEME in validate_financial_statements.py).
-        # Banks/CTCK/insurance stay out_of_scope here rather than guessing a
-        # P&L structure the KB hasn't verified.
+        # ── Income statement — only for schemes the KB has a formula table
+        # for (see IS_SCHEME_FOR_BS_SCHEME in validate_financial_statements.py:
+        # TT200_DN→B02-DN, BANK_B02_TCTD_HN→B03/TCTD-HN, CTCK_B01→B02-CTCK,
+        # TT200_DN_INSURANCE→B02-DN/HN's insurance block, each verified against
+        # one real filing 2026-09-15). A scheme with no entry there stays
+        # out_of_scope here rather than guessing a P&L structure the KB
+        # hasn't seen yet.
         is_codes: set[str] = set()
         if loc['scheme'] in vfs.IS_SCHEME_FOR_BS_SCHEME:
             is_dir = scratch / "is_scan"
