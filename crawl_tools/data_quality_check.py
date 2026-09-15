@@ -607,7 +607,7 @@ if not SMTP_USER or not SMTP_PASS:
     print("WARNING: SMTP_USER / SMTP_PASS not set — skipping email send.")
     print("\n--- HTML report preview (first 500 chars) ---")
     print(html[:500])
-    sys.exit(0 if n_critical == 0 else 1)
+    sys.exit(1 if (n_critical or n_error) else 0)
 
 subject_prefix = f"[{'CRITICAL' if n_critical else 'ERROR' if n_error else 'OK'}]"
 subject = f"{subject_prefix} Viet Dataverse DQ Report — {TODAY}"
@@ -629,5 +629,11 @@ except Exception as e:
     print(f"ERROR sending email: {e}")
     sys.exit(1)
 
-# Exit non-zero when there are critical issues so GitHub marks the run red
-sys.exit(1 if n_critical else 0)
+# Exit non-zero on CRITICAL *or* ERROR so GitHub marks the run red — a WARNING
+# alone still exits 0 (long-closed historical gaps and known, documented soft
+# spots are WARNING by design, see the severity rules above). Before this,
+# only CRITICAL turned the workflow red, so an ERROR-level finding (e.g. a
+# real duplicate-key bug, or the SJC reconciliation catching a fabricated
+# row) stayed invisible unless someone actually opened the run log — the same
+# "an alert nobody sees is not an alert" gap DQ-01 was opened to close.
+sys.exit(1 if (n_critical or n_error) else 0)
