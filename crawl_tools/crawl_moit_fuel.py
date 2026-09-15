@@ -68,20 +68,17 @@ def store(engine, period: date, rows: list[CycleRow], source_url: str) -> None:
         for r in rows:
             conn.execute(text("""
                 INSERT INTO fuel_price_cycle
-                    (period, fuel, retail_price, base_price, world_avg_price,
-                     bog_contrib, bog_use, taxes, crawl_time, source, group_name)
+                    (period, fuel, retail_price, world_avg_price,
+                     crawl_time, source, group_name)
                 VALUES
-                    (:period, :fuel, :retail, :base, :world,
-                     :bogc, :bogu, '{}'::jsonb, :ct, :src, 'commodity')
+                    (:period, :fuel, :retail, :world, :ct, :src, 'commodity')
                 ON CONFLICT (fuel, period) DO UPDATE SET
                     retail_price = EXCLUDED.retail_price,
-                    base_price = EXCLUDED.base_price,
                     world_avg_price = EXCLUDED.world_avg_price,
                     crawl_time = EXCLUDED.crawl_time
             """), {
                 "period": period, "fuel": r.fuel, "retail": r.retail_price,
-                "base": r.base_price, "world": r.world_avg_price,
-                "bogc": r.bog_contrib, "bogu": r.bog_use, "ct": now, "src": source_url,
+                "world": r.world_avg_price, "ct": now, "src": source_url,
             })
         conn.commit()
 

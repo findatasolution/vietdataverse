@@ -14,7 +14,7 @@ We extract the three fuels the product covers (kerosene / mazut are ignored):
 """
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
 
 from bs4 import BeautifulSoup
@@ -26,11 +26,7 @@ FUELS = ("RON95", "E5RON92", "DO005S")
 class CycleRow:
     fuel: str
     retail_price: int          # VND/L
-    base_price: int            # VND/L (Plan 1: approximated by retail; Plan 2 parses giá cơ sở tables)
     world_avg_price: float     # USD/barrel
-    bog_contrib: float = 0.0   # VND/L (parsed in Plan 2)
-    bog_use: float = 0.0       # VND/L
-    taxes: dict = field(default_factory=dict)
 
 
 def _to_world(num: str) -> float:
@@ -82,7 +78,6 @@ def parse_moit(html: str, period: date) -> list[CycleRow]:
             rows.append(CycleRow(
                 fuel=fuel,
                 retail_price=retail[fuel],
-                base_price=retail[fuel],          # Plan 1 approximation
                 world_avg_price=world[fuel],
             ))
     return rows

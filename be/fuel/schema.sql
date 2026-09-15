@@ -3,16 +3,16 @@
 -- Medallion Silver + params (Gold tables added in Plan 2).
 
 -- Silver: one row per cycle (Thursday) per fuel — parsed from MOIT announcements.
+-- base_price/bog_contrib/bog_use/taxes columns removed 2026-09-15 — never actually
+-- parsed (base_price always duplicated retail_price, the rest always stayed at
+-- their defaults); see be/migrations/fix_fuel_price_cycle_drop_unused_cols.py.
+-- The model consumes only world_avg_price and retail_price (be/fuel/calibration.py).
 CREATE TABLE IF NOT EXISTS fuel_price_cycle (
   id SERIAL PRIMARY KEY,
   period DATE NOT NULL,                          -- announcement/cycle date (Thu)
   fuel VARCHAR(12) NOT NULL,                     -- RON95 | E5RON92 | DO005S
   retail_price NUMERIC NOT NULL,                 -- VND/L
-  base_price NUMERIC NOT NULL,                   -- VND/L
-  world_avg_price NUMERIC NOT NULL,              -- USD/barrel
-  bog_contrib NUMERIC NOT NULL DEFAULT 0,        -- VND/L (trích Quỹ BOG)
-  bog_use NUMERIC NOT NULL DEFAULT 0,            -- VND/L (chi Quỹ BOG)
-  taxes JSONB NOT NULL DEFAULT '{}'::jsonb,
+  world_avg_price NUMERIC NOT NULL,              -- USD/barrel (MOPS, MOIT-published)
   crawl_time TIMESTAMP NOT NULL,
   source TEXT NOT NULL,
   group_name VARCHAR(20) NOT NULL DEFAULT 'commodity',
