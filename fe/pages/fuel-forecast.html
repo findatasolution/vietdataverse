@@ -246,7 +246,7 @@
 
     <div class="chart-head">
       <div>
-        <h2 id="chart-title">RON95 — lịch sử &amp; dự báo</h2>
+        <h2 id="chart-title">E5RON92 — lịch sử &amp; dự báo</h2>
         <div class="legend-row">
           <span class="key"><span class="swatch" style="background:var(--ink-soft)"></span>Giá thực tế đã công bố</span>
           <span class="key"><span class="swatch dashed"></span>Kịch bản cơ sở (world không đổi)</span>
@@ -308,8 +308,8 @@
 
   var PRODUCT_CODE = "fuel-forecast-advanced";
 
-  var FUEL_LABEL = {RON95:"RON95", E5RON92:"E5RON92 (E5)", DO005S:"Diesel 0.05S"};
-  var FUEL_ORDER = ["RON95","E5RON92","DO005S"];
+  var FUEL_LABEL = {E5RON92:"E5RON92 (E5)", DO005S:"Diesel 0.05S"};
+  var FUEL_ORDER = ["E5RON92","DO005S"];
 
   var EVENT_LABEL = {
     created: "Đăng ký mới",
@@ -327,7 +327,7 @@
   // user's platform_subscriptions row for PRODUCT_CODE from
   // GET /subscriptions/me (null when logged out or never subscribed) and
   // drives both the manage bar and the wording of the lock overlay.
-  var state = { fuel: "RON95", data: null, plan: null, sub: null,
+  var state = { fuel: "E5RON92", data: null, plan: null, sub: null,
                 subscribing: false, managing: false };
 
   var fmt = new Intl.NumberFormat("vi-VN");
@@ -908,8 +908,8 @@
     // vs. random-walk, and full-sample R²) — not part of the live API
     // response; kept as static constants per the fuel-forecast statistical
     // work referenced in the methodology card above.
-    var skillByFuel = {RON95:{skill:0.533,mae:653}, E5RON92:{skill:0.557,mae:539}, DO005S:{skill:0.784,mae:508}};
-    var r2ByFuel = {RON95:0.68, E5RON92:0.65, DO005S:0.96};
+    var skillByFuel = {E5RON92:{skill:0.557,mae:539}, DO005S:{skill:0.784,mae:508}};
+    var r2ByFuel = {E5RON92:0.65, DO005S:0.96};
     var sk = skillByFuel[state.fuel], r2 = r2ByFuel[state.fuel];
     statRow.innerHTML = [
       tile("Giá kỳ hiện tại", money(lastRetail)+" đ/l", "Công bố "+toVN(lastDate)),

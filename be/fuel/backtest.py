@@ -36,7 +36,7 @@ class BacktestResult:
     """Horizon-specific backtest metrics for a single fuel.
 
     Attributes:
-        fuel: Fuel type code (e.g., "RON95", "E5RON92", "DO005S").
+        fuel: Fuel type code ("E5RON92" or "DO005S").
         horizon: Forecast horizon (days ahead). Currently 1 for walk-forward.
         mae: Mean absolute error (VND/liter).
         rmse: Root mean squared error (VND/liter).

@@ -1,7 +1,11 @@
 """
 Fuel Forecast router — gated by platform subscription 'fuel-forecast-advanced'.
 
-  GET /api/v1/fuel-forecast/{fuel}   fuel in {RON95, E5RON92, DO005S}
+  GET /api/v1/fuel-forecast/{fuel}   fuel in {E5RON92, DO005S}
+
+RON95 dropped 2026-09-15 — product scope is commercial/transport fuel cost
+(trucking, logistics), where E5RON92 + diesel dominate; premium-grade RON95
+passenger-car gasoline isn't representative of that cost base.
 
 Auth optional. Without an active subscription: history + base scenario only,
 breakdown stripped to the disclaimer. With one: full response including the
@@ -22,7 +26,7 @@ from services.subscription import has_active_subscription
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/fuel-forecast", tags=["fuel-forecast"])
 
-VALID_FUELS = {"RON95", "E5RON92", "DO005S"}
+VALID_FUELS = {"E5RON92", "DO005S"}
 PRODUCT_CODE = "fuel-forecast-advanced"
 
 

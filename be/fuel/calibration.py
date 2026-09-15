@@ -22,7 +22,7 @@ class CyclePoint:
 
     Attributes:
         period: Date of the cycle.
-        fuel: Fuel type code (e.g., "RON95", "E5RON92", "DO005S").
+        fuel: Fuel type code ("E5RON92" or "DO005S").
         world_avg: World refined-product price (USD/barrel) MOIT publishes in the
             bulletin itself — this IS the MOPS (Mean of Platts Singapore) window
             average the regulator's formula uses, not a proxy.

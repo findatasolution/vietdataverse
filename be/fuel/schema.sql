@@ -10,7 +10,7 @@
 CREATE TABLE IF NOT EXISTS fuel_price_cycle (
   id SERIAL PRIMARY KEY,
   period DATE NOT NULL,                          -- announcement/cycle date (Thu)
-  fuel VARCHAR(12) NOT NULL,                     -- RON95 | E5RON92 | DO005S
+  fuel VARCHAR(12) NOT NULL,                     -- E5RON92 | DO005S (RON95 dropped 2026-09-15)
   retail_price NUMERIC NOT NULL,                 -- VND/L
   world_avg_price NUMERIC NOT NULL,              -- USD/barrel (MOPS, MOIT-published)
   crawl_time TIMESTAMP NOT NULL,

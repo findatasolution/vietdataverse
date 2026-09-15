@@ -7,8 +7,10 @@ Two numeric conventions appear on the page and must NOT be confused:
   - World average price uses a COMMA decimal:  "73,582 USD/thùng"  -> 73.582 USD/barrel
   - Retail price uses a DOT thousands sep:      "18.845 đồng/lít"   -> 18845 VND/liter
 
-We extract the three fuels the product covers (kerosene / mazut are ignored):
-  RON95    <- "xăng RON95" world price + "Xăng RON95-III" retail
+We extract the two fuels the product covers (kerosene / mazut are ignored; RON95
+dropped 2026-09-15 — product scope is commercial/transport fuel cost, where
+E5RON92 + diesel dominate and premium-grade RON95 passenger-car gasoline is not
+representative):
   E5RON92  <- "xăng RON92" world price (blend basis) + "Xăng E5RON92" retail
   DO005S   <- "dầu điêzen 0,05S" world price + "Dầu điêzen 0.05S" retail (đồng/lít)
 """
@@ -19,7 +21,7 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 
-FUELS = ("RON95", "E5RON92", "DO005S")
+FUELS = ("E5RON92", "DO005S")
 
 
 @dataclass
@@ -41,16 +43,14 @@ def _to_vnd(num: str) -> int:
 
 # World-price patterns (comma decimal). Diesel spelling varies: điêzen / diezen / diesel.
 _WORLD_PATTERNS = {
-    "RON95": r"(\d+,\d+)\s*USD/thùng\s*xăng\s*RON\s*95\b",
     "E5RON92": r"(\d+,\d+)\s*USD/thùng\s*xăng\s*RON\s*92\b",
     "DO005S": r"(\d+,\d+)\s*USD/thùng\s*dầu\s*(?:đi[êe]zen|diesel|diezen)",
 }
 # Retail patterns (dot thousands, must be đồng/lít not đồng/kg). `[^:]{0,20}:` matches
 # only a SHORT grade suffix ("-III", " 0.05S") before the label's colon — this stops the
 # pattern from starting at the fuel's mention in the world-price sentence and greedily
-# skipping to the wrong retail colon. E10 rollout: gasoline relabelled "E10RON95-III".
+# skipping to the wrong retail colon.
 _RETAIL_PATTERNS = {
-    "RON95": r"Xăng\s*(?:E10\s*)?RON\s*95[^:]{0,20}:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
     "E5RON92": r"Xăng\s*E5\s*RON\s*92[^:]{0,20}:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
     "DO005S": r"Dầu\s*(?:đi[êe]zen|diesel|diezen)[^:]{0,20}:\s*không cao hơn\s*([\d.]+)\s*đồng/lít",
 }
