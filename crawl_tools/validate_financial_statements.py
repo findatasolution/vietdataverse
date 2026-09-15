@@ -63,6 +63,70 @@ SCHEME_INHERITANCE = {
     'TT200_DN_INSURANCE': 'TT200_DN',
 }
 
+# Which balance-sheet scheme's income statement uses which bctc_line_code_dict
+# scheme. Income-statement (B02) line relationships are explicit add/subtract
+# formulas (V03/V04 in tt200_ma_ke_toan_bctc.md §5), NOT a generic "parent =
+# sum of children" — B02 deduction/expense lines (02, 11, 22, 25, 26, 32, 51,
+# 52) are conventionally stored POSITIVE in the source document with the
+# formula itself doing the subtraction, unlike balance-sheet contra accounts
+# which are stored negative in the ledger. Reusing the generic parent/child
+# summation engine for B02 would require lying about sign_convention (marking
+# real positive expenses as sign_convention='negative' for validation
+# purposes only), which would then wrongly fail the SIGN check on every
+# correctly-extracted row. Hence a separate formula table instead.
+#
+# Only TT200_DN (ordinary corporates) is mapped — banks/CTCK/insurance have a
+# structurally different P&L (interest income/expense breakdown for banks,
+# brokerage/margin/investment income for CTCK) that is not yet in the KB.
+# Crawling B02 for those schemes must stay out_of_scope until researched, not
+# guessed from the TT200 shape.
+IS_SCHEME_FOR_BS_SCHEME = {
+    'TT200_DN': 'TT200_DN_B02',
+}
+
+# (target_code, [(operand_code, +1 or -1, optional), ...]) — matches
+# tt200_ma_ke_toan_bctc.md §5's "Cách xác định / quan hệ" column (V03/V04 in
+# §10.1). `optional=True` means "contributes 0 if absent, don't downgrade to
+# INFO_NULL for its absence" — code 24 ("Phần lãi trong công ty liên doanh,
+# liên kết", equity-method share of associate/JV profit) is NOT in the base
+# TT200 B02 KB at all; it only appears for holding companies that actually
+# hold associate/JV investments (real case: GAS FY2024). A company without
+# such investments simply never has this line — that's the normal case, not
+# missing data — so it must default to zero contribution rather than forcing
+# every ordinary company's "30" check into a permanent INFO_NULL.
+# GAS/HPG print every B02 deduction/expense line as a plain POSITIVE number
+# and let the formula's own "-" do the subtracting. PDR (real case, FY2024)
+# instead prints every one of those SAME lines in parentheses (stored
+# negative) — including "52 Thu nhập (chi phí) thuế TNDN hoãn lại", whose
+# formula weight is -1 for the same structural reason (it sits in the
+# "expense" family per the KB), even though ITS OWN sign varies year to year
+# (a genuine tax benefit vs. expense) — the flip is about which SUBTRACTION
+# CONVENTION the whole statement uses, not about that one line's current-year
+# direction. Detect the convention from code '11' (Giá vốn hàng bán — always
+# present, always a true cost, sign is presentation-only) and flip every
+# operand whose TEMPLATE weight is -1 (i.e., every item the formula was
+# written to subtract) so `X - cost` becomes `X + (-cost)` — the same
+# subtraction, regardless of which way the source prints it. Operands with a
+# template weight of +1 (01, 21, 24, 31 — items the formula ADDS, whose sign
+# is always genuine economic direction, never a presentation artifact) are
+# never touched.
+def _income_statement_orientation_negative(by_code) -> bool:
+    row = by_code.get('11')
+    return row is not None and row[2] is not None and row[2] < 0
+
+
+IS_FORMULAS = {
+    'TT200_DN_B02': [
+        ('10', [('01', 1, False), ('02', -1, False)]),
+        ('20', [('10', 1, False), ('11', -1, False)]),
+        ('30', [('20', 1, False), ('21', 1, False), ('22', -1, False),
+                 ('24', 1, True), ('25', -1, False), ('26', -1, False)]),
+        ('40', [('31', 1, False), ('32', -1, False)]),
+        ('50', [('30', 1, False), ('40', 1, False)]),
+        ('60', [('50', 1, False), ('51', -1, False), ('52', -1, False)]),
+    ],
+}
+
 
 def close_enough(a: Decimal, b: Decimal) -> bool:
     if a is None or b is None:
@@ -104,16 +168,27 @@ def validate_ticker(conn, ticker, violations):
     scheme = scheme_row[0]
 
     period_rows = conn.execute(text(
-        "SELECT DISTINCT period_end FROM listed_company_financials WHERE ticker = :t ORDER BY period_end"
+        "SELECT DISTINCT period_end, report_type FROM listed_company_financials "
+        "WHERE ticker = :t ORDER BY period_end"
     ), dict(t=ticker)).fetchall()
-    for (period_end,) in period_rows:
-        validate_ticker_period(conn, ticker, scheme, period_end, violations)
+    for period_end, report_type in period_rows:
+        if report_type == 'income_statement':
+            validate_income_statement_period(conn, ticker, scheme, period_end, violations)
+        else:
+            validate_ticker_period(conn, ticker, scheme, period_end, violations)
 
 
 def validate_ticker_period(conn, ticker, scheme, period_end, violations):
+    """Balance sheet (B01) only — see module docstring's report_type note.
+    Scoped with report_type='balance_sheet' so an income-statement row for the
+    same ticker/period_end can never leak into this function's by_code map;
+    B02's line_code namespace (01, 02, 10, 11, 20...) is short enough to
+    plausibly collide with a mis-keyed B01 code, and the two statements' sign
+    conventions/parent-child semantics are incompatible (see IS_FORMULAS)."""
     rows = conn.execute(text(
         "SELECT line_code, line_label, value_current, value_current_vnd, unit "
-        "FROM listed_company_financials WHERE ticker = :t AND period_end = :p"
+        "FROM listed_company_financials WHERE ticker = :t AND period_end = :p "
+        "AND report_type = 'balance_sheet'"
     ), dict(t=ticker, p=period_end)).fetchall()
     by_code = {r[0]: r for r in rows}
 
@@ -219,6 +294,89 @@ def validate_ticker_period(conn, ticker, scheme, period_end, violations):
                                     f"nghi ngờ lỗi đơn vị (unit='{assets_row[4]}')."))
 
     # 5. NULL visibility (not necessarily an error — report as INFO, doesn't fail exit code)
+    null_codes = [c for c, r in by_code.items() if r[2] is None]
+    if null_codes:
+        violations.append((ticker, period_end, 'INFO_NULL', ','.join(null_codes),
+                            f"value_current NULL ở các mã: {', '.join(null_codes)} — "
+                            f"kiểm tra đây có phải khoảng trống đã biết/chủ đích không."))
+
+
+def validate_income_statement_period(conn, ticker, bs_scheme, period_end, violations):
+    """Income statement (B02) — report_type='income_statement' rows only.
+
+    bs_scheme is the ticker's BALANCE SHEET scheme from tracked_companies
+    (e.g. 'TT200_DN'); this maps it to the income-statement dict scheme via
+    IS_SCHEME_FOR_BS_SCHEME. A bank/CTCK/insurance ticker has no mapping yet
+    (B02 KB gap, see IS_SCHEME_FOR_BS_SCHEME's comment) — flagged as
+    SCHEME/out_of_scope rather than silently skipped, so it's visible instead
+    of looking like "checked, 0 issues"."""
+    is_scheme = IS_SCHEME_FOR_BS_SCHEME.get(bs_scheme)
+    if not is_scheme:
+        violations.append((ticker, period_end, 'SCHEME', '—',
+                            f"income_statement scheme cho {ticker} (bs_scheme={bs_scheme}) chưa có trong "
+                            f"IS_SCHEME_FOR_BS_SCHEME — B02 cho ngân hàng/CTCK/bảo hiểm ngoài phạm vi KB hiện tại, "
+                            f"báo out_of_scope thay vì áp công thức TT200_DN sai chỗ."))
+        return
+
+    rows = conn.execute(text(
+        "SELECT line_code, line_label, value_current, value_current_vnd, unit "
+        "FROM listed_company_financials WHERE ticker = :t AND period_end = :p "
+        "AND report_type = 'income_statement'"
+    ), dict(t=ticker, p=period_end)).fetchall()
+    by_code = {r[0]: r for r in rows}
+
+    sign_by_code = {r[0]: r[1] for r in conn.execute(text(
+        "SELECT line_code, sign_convention FROM bctc_line_code_dict WHERE code_scheme = :s"
+    ), dict(s=is_scheme)).fetchall()}
+
+    # 1. Sign convention (same rule as balance sheet — most B02 lines are
+    # 'positive' even when they represent an expense/deduction, because the
+    # FORMULA subtracts them rather than the ledger storing them negative;
+    # see the sign list built alongside IS_SCHEME_FOR_BS_SCHEME above).
+    for code, (_, label, cur, _, _) in by_code.items():
+        if cur is None:
+            continue
+        conv = sign_by_code.get(code)
+        if conv == 'negative' and cur > 0:
+            violations.append((ticker, period_end, 'SIGN', code,
+                                f"{code} ({label}) = {cur} — PHẢI ÂM theo bctc_line_code_dict "
+                                f"(scheme={is_scheme}) nhưng đang dương."))
+        elif conv == 'positive' and cur < 0:
+            violations.append((ticker, period_end, 'SIGN', code,
+                                f"{code} ({label}) = {cur} — PHẢI DƯƠNG theo bctc_line_code_dict "
+                                f"(scheme={is_scheme}) nhưng đang âm."))
+
+    # 2. Explicit add/subtract formulas (V03/V04)
+    orientation_neg = _income_statement_orientation_negative(by_code)
+    for target, operands in IS_FORMULAS.get(is_scheme, []):
+        if target not in by_code or by_code[target][2] is None:
+            continue
+        def _eff_weight(w):
+            return -w if (orientation_neg and w == -1) else w
+        present = [(c, _eff_weight(w)) for c, w, _opt in operands if c in by_code and by_code[c][2] is not None]
+        # Only REQUIRED operands being absent triggers INFO_NULL — an absent
+        # optional operand (e.g. 24) legitimately contributes 0 and is simply
+        # not counted, not reported as "missing".
+        missing = [c for c, _w, opt in operands
+                   if not opt and (c not in by_code or by_code[c][2] is None)]
+        if not present:
+            continue
+        computed = sum((by_code[c][2] * w for c, w in present), Decimal(0))
+        target_val = by_code[target][2]
+        if close_enough(computed, target_val):
+            continue
+        formula_str = " ".join(f"{'+' if w > 0 else '-'}{c}" for c, w, _opt in operands)
+        if missing:
+            violations.append((ticker, period_end, 'INFO_NULL', target,
+                                f"{target} ({formula_str}) = {target_val}, tính từ {len(present)} mã có = "
+                                f"{computed} (lệch {abs(computed - target_val)}) — nhưng còn thiếu mã "
+                                f"{', '.join(missing)} chưa trích, nên KHÔNG kết luận là sai số học."))
+        else:
+            violations.append((ticker, period_end, 'ARITHMETIC', target,
+                                f"{target} ({formula_str}) = {target_val}, đủ mã tính = {computed} "
+                                f"(lệch {abs(computed - target_val)}) — ĐÂY LÀ LỖI THẬT, không phải do thiếu trích."))
+
+    # 3. NULL visibility
     null_codes = [c for c, r in by_code.items() if r[2] is None]
     if null_codes:
         violations.append((ticker, period_end, 'INFO_NULL', ','.join(null_codes),

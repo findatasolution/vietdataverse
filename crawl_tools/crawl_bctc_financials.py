@@ -47,6 +47,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 from pathlib import Path
 
 import requests
@@ -121,27 +122,79 @@ def page_num_from_path(p: Path) -> int:
     return int(m.group(1)) if m else -1
 
 
+def _strip_diacritics(s: str) -> str:
+    """Collapse Vietnamese diacritics to bare ASCII before pattern matching.
+
+    OCR at low DPI is unreliable about WHICH diacritic/glyph it reports even
+    when the general shape is right — two real cases this session: the dash
+    in "B 01 – DN/HN" OCR'd as a tilde on one page of GAS's FY2024 filing
+    (silently missed 2 of 3 balance-sheet pages, with no validator signal
+    since there was nothing to cross-check the missing assets side against);
+    "KẾT QUẢ" OCR'd as "KÉT QUÀ" (wrong tone mark on both syllables) on the
+    very next page, missing the income statement entirely. Enumerating every
+    possible OCR misspelling as a regex alternative doesn't scale — stripping
+    diacritics to ASCII once here, centrally, means every pattern below only
+    needs its plain-ASCII form and stops caring which specific accent OCR
+    guessed wrong.
+    """
+    nfkd = unicodedata.normalize('NFKD', s)
+    ascii_s = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    return ascii_s.replace('Đ', 'D').replace('đ', 'd')
+
+
 def ocr_text(image_path: Path) -> str:
     proc = subprocess.run(
         ["tesseract", str(image_path), "-", "-l", "vie"],
         capture_output=True, text=True, check=False,
     )
-    return proc.stdout or ""
+    return _strip_diacritics(proc.stdout or "")
 
 
+# Every pattern below is ASCII-only and matched against ocr_text()'s output,
+# which is always diacritic-stripped (see _strip_diacritics) — do not add
+# accented alternatives here, they can never match and just add noise. The
+# dash in "B01-DN" is intentionally `\W?` (any single non-word char or none)
+# rather than an enumerated dash-character class: real case (GAS FY2024) had
+# it OCR'd as "~" on one page and a normal "-" on the next, and a tilde is
+# far from being the only glyph a low-DPI scan can turn a dash into.
 MARKER_PATTERNS = {
     'BANK_B02_TCTD_HN': re.compile(r'B\s*0?2\s*/\s*TCTD', re.IGNORECASE),
-    'CTCK_B01': re.compile(r'B\s*0?1\s*[-–—]\s*CTCK', re.IGNORECASE),
-    'TT200_DN': re.compile(r'B\s*0?1\s*[-–—]\s*DN', re.IGNORECASE),
+    'CTCK_B01': re.compile(r'B\s*0?1\s*\W?\s*CTCK', re.IGNORECASE),
+    'TT200_DN': re.compile(r'B\s*0?1\s*\W?\s*DN', re.IGNORECASE),
 }
 # Checked in this order — CTCK/BANK markers are more specific than the bare
 # "B01-DN" pattern, so they must be tried first or a bank page whose OCR
 # garbled "TCTD" down to noise could wrongly fall through to TT200_DN.
 MARKER_ORDER = ['BANK_B02_TCTD_HN', 'CTCK_B01', 'TT200_DN']
 
-ASSET_HEADER_RE = re.compile(r'(TÀI SẢN|TAI SAN)', re.IGNORECASE)
-LIABILITY_HEADER_RE = re.compile(r'(NGUỒN VỐN|NGUON VON|NỢ PHẢI TRẢ|NO PHAI TRA)', re.IGNORECASE)
-INSURANCE_MARKER_RE = re.compile(r'tái bảo hiểm|tai bao hiem', re.IGNORECASE)
+ASSET_HEADER_RE = re.compile(r'TAI SAN', re.IGNORECASE)
+LIABILITY_HEADER_RE = re.compile(r'NGUON VON|NO PHAI TRA', re.IGNORECASE)
+INSURANCE_MARKER_RE = re.compile(r'tai bao hiem', re.IGNORECASE)
+# The running page title ("BẢNG CÂN ĐỐI KẾ TOÁN" / CTCK's "BÁO CÁO TÌNH HÌNH
+# TÀI CHÍNH") reprints on every page of the statement and is a far more
+# reliable start/continuation signal than MARKER_PATTERNS's small italic
+# "Mẫu số B01-DN/HN" side-note: real case (GAS FY2024) — that side-note's
+# dash OCR'd as "~" on page 9/10 at 120 DPI (matched fine on page 11), so
+# scheme-marker-gated detection silently started 2 pages late and captured
+# ONLY the liabilities+equity page, dropping the entire assets side with no
+# validator signal (V01 can't fire without an assets total to compare against
+# — it looked like a clean, complete extraction). Statement-range detection
+# below no longer depends on the scheme marker at all; scheme is resolved
+# separately from whichever page in the found range does carry a clean marker.
+CORP_BS_TITLE_RE = re.compile(r'BANG CAN DOI KE TOAN', re.IGNORECASE)
+CTCK_BS_TITLE_RE = re.compile(r'BAO CAO TINH HINH TAI CHINH', re.IGNORECASE)
+BS_TITLE_RE = re.compile(f'{CORP_BS_TITLE_RE.pattern}|{CTCK_BS_TITLE_RE.pattern}', re.IGNORECASE)
+# BS_TITLE_RE alone false-positives on the table of contents (lists every
+# statement's title as an entry) and the audit-opinion page (names the
+# statement in prose — "báo cáo tài chính hợp nhất này bao gồm: bảng cân đối
+# kế toán hợp nhất..."), both of which precede the real statement pages in
+# every filing and have neither content markers in volume. A real statement
+# page is dense with dot-grouped VND figures (thousand-separator formatting);
+# TOC/prose pages have none. Real case: GAS FY2024 page 7 (audit opinion)
+# matched BS_TITLE_RE with 0 such figures — this floor rejects that class of
+# false start without rejecting genuine statement pages (which had 35-56).
+MONEY_RE = re.compile(r'\d{1,3}(?:\.\d{3}){2,}')
+MIN_MONEY_MATCHES = 5
 # Explicit stop signals: title of the NEXT statement in the filing (income
 # statement / cash flow / notes). A balance sheet legitimately runs 2-4 pages
 # and keeps repeating "TÀI SẢN"/"NGUỒN VỐN" on each one — capping the range by
@@ -149,12 +202,36 @@ INSURANCE_MARKER_RE = re.compile(r'tái bảo hiểm|tai bao hiem', re.IGNORECAS
 # unrelated page (case: FPT FY2024, page 19) get treated as if it were the
 # liabilities continuation. Stopping on the next statement's own title is a
 # structural signal, not a fragile page-count guess.
+#
+# "THUYET MINH BAO CAO" is NOT safe to match bare: every single statement page
+# ends with the routine footer disclaimer "Bản thuyết minh báo cáo tài chính
+# ... là phần KHÔNG THỂ TÁCH RỜI của báo cáo này" ("the notes are an integral
+# part of this report") — real case (NVL FY2024): that footer on page 14 (the
+# balance sheet's own 2nd page) matched and broke the scan after only 1 page,
+# same failure class as GAS's TOC/audit-opinion false start. The genuine notes
+# SECTION title never has "KHÔNG THỂ TÁCH RỜI" nearby; the footer disclaimer
+# always does — check the text just after the match to tell them apart.
+_DISCLAIMER_NEARBY_RE = re.compile(r'khong the tach roi', re.IGNORECASE)
+
+
+def _has_next_statement_title(txt: str, pattern: 're.Pattern') -> bool:
+    for m in pattern.finditer(txt):
+        if not _DISCLAIMER_NEARBY_RE.search(txt[m.start():m.start() + 80]):
+            return True
+    return False
+
+
 NEXT_STATEMENT_RE = re.compile(
-    r'KẾT QUẢ HOẠT ĐỘNG|KET QUA HOAT DONG|LƯU CHUYỂN TIỀN TỆ|LUU CHUYEN TIEN TE|'
-    r'THUYẾT MINH BÁO CÁO|THUYET MINH BAO CAO',
-    re.IGNORECASE,
+    r'KET QUA HOAT DONG|LUU CHUYEN TIEN TE|THUYET MINH BAO CAO', re.IGNORECASE
 )
 MAX_STATEMENT_PAGES = 6  # safety valve — no real balance sheet needs more than this
+
+# Income statement (B02) always immediately follows the balance sheet (B01) in
+# a VN BCTC PDF — its own title doubles as B01's stop marker above. Its own
+# stop marker is deliberately NEXT_STATEMENT_RE minus the KẾT QUẢ pattern
+# (that would just match this statement's own title on page 1 of the scan).
+IS_TITLE_RE = re.compile(r'KET QUA HOAT DONG KINH DOANH', re.IGNORECASE)
+IS_STOP_RE = re.compile(r'LUU CHUYEN TIEN TE|THUYET MINH BAO CAO', re.IGNORECASE)
 
 
 def scan_for_statement_pages(pdf_path: Path, scratch: Path, max_pages: int = 25) -> dict:
@@ -172,45 +249,63 @@ def scan_for_statement_pages(pdf_path: Path, scratch: Path, max_pages: int = 25)
     document once nothing matched nearby.
     """
     pages = render_pages(pdf_path, scratch, 1, max_pages, dpi=120)
+    texts = {page_num_from_path(p): ocr_text(p) for p in pages}
 
-    scheme = None
+    # Pass 1 — find the contiguous page RANGE using content signals only
+    # (running title + TÀI SẢN/NGUỒN VỐN headers), independent of whether the
+    # small scheme-marker side-note OCR'd cleanly on any given page. See
+    # BS_TITLE_RE's comment for why this is decoupled from scheme detection.
     statement_pages: list[int] = []
     is_insurance = False
     started = False
-
-    for p in pages:
-        pnum = page_num_from_path(p)
-        txt = ocr_text(p)
-
-        page_scheme = None
-        for s in MARKER_ORDER:
-            if MARKER_PATTERNS[s].search(txt):
-                page_scheme = s
-                break
-
+    for pnum in sorted(texts):
+        txt = texts[pnum]
         if INSURANCE_MARKER_RE.search(txt):
             is_insurance = True
-
-        has_statement_content = bool(ASSET_HEADER_RE.search(txt) or LIABILITY_HEADER_RE.search(txt))
-
+        has_statement_content = bool(
+            (ASSET_HEADER_RE.search(txt) or LIABILITY_HEADER_RE.search(txt) or BS_TITLE_RE.search(txt))
+            and len(MONEY_RE.findall(txt)) >= MIN_MONEY_MATCHES
+        )
         if not started:
-            if page_scheme and has_statement_content:
+            if has_statement_content:
                 started = True
-                scheme = page_scheme
                 statement_pages.append(pnum)
             continue
-
-        # Already inside the statement — a DIFFERENT scheme marker, or the
-        # next statement's own title, means the balance sheet has ended.
-        other_scheme = any(page_scheme == s2 for s2 in MARKER_ORDER if s2 != scheme and page_scheme == s2)
-        if other_scheme or NEXT_STATEMENT_RE.search(txt):
+        if _has_next_statement_title(txt, NEXT_STATEMENT_RE):
             break
-        if has_statement_content or page_scheme == scheme:
+        if has_statement_content:
             statement_pages.append(pnum)
             if len(statement_pages) >= MAX_STATEMENT_PAGES:
                 break
         else:
-            break  # a page with neither header nor scheme marker ends the run
+            break  # a page with none of the content signals ends the run
+
+    # Pass 2 — resolve scheme from ANY page within the found range (a bank/
+    # CTCK/TT200 marker only needs to OCR cleanly on ONE of the 1-4 pages,
+    # not specifically the first).
+    scheme = None
+    for pnum in statement_pages:
+        for s in MARKER_ORDER:
+            if MARKER_PATTERNS[s].search(texts[pnum]):
+                scheme = s
+                break
+        if scheme:
+            break
+
+    # Fallback: some filings never print the small "Mẫu số B01-DN/HN"
+    # side-note at all (real case: BCM FY2024 — every page in the found range
+    # matched CORP_BS_TITLE_RE with dozens of money-figure matches, a
+    # completely unambiguous ordinary balance sheet, yet MARKER_PATTERNS
+    # never matched on any page because the annotation simply isn't there).
+    # The RUNNING TITLE that got the page range started already tells corp
+    # apart from CTCK (banks always keep the very distinctive "TCTD" marker
+    # and haven't needed this fallback in practice) — use it rather than
+    # leaving a well-formed statement unclassified.
+    if not scheme:
+        if any(CTCK_BS_TITLE_RE.search(texts[p]) for p in statement_pages):
+            scheme = 'CTCK_B01'
+        elif any(CORP_BS_TITLE_RE.search(texts[p]) for p in statement_pages):
+            scheme = 'TT200_DN'
 
     if scheme == 'TT200_DN' and is_insurance:
         scheme = 'TT200_DN_INSURANCE'
@@ -219,6 +314,38 @@ def scan_for_statement_pages(pdf_path: Path, scratch: Path, max_pages: int = 25)
         'scheme': scheme,
         'pages': statement_pages,
     }
+
+
+def scan_for_income_statement_pages(pdf_path: Path, scratch: Path, after_page: int,
+                                     max_pages: int = 30) -> dict:
+    """Same cheap local-OCR approach as scan_for_statement_pages, but for B02
+    (income statement). Starts scanning right after the balance sheet's own
+    last page so it can't re-match B01 content, and stops at IS_STOP_RE (the
+    next statement after B02 — cash flow or notes) rather than a fixed page
+    count, for the same reason scan_for_statement_pages does: a real income
+    statement is usually 1 page but occasionally 2.
+
+    `scratch` MUST be a directory not already used for another render pass —
+    render_pages globs the whole directory for "p-*.png", so reusing the same
+    dir as the balance-sheet low-DPI scan would silently re-glob its leftover
+    files back in. Caller passes a dedicated subdirectory (see run_one)."""
+    pages = render_pages(pdf_path, scratch, after_page + 1, after_page + max_pages, dpi=120)
+    statement_pages: list[int] = []
+    started = False
+    for p in pages:
+        pnum = page_num_from_path(p)
+        txt = ocr_text(p)
+        if not started:
+            if IS_TITLE_RE.search(txt) and len(MONEY_RE.findall(txt)) >= MIN_MONEY_MATCHES:
+                started = True
+                statement_pages.append(pnum)
+            continue
+        if _has_next_statement_title(txt, IS_STOP_RE):
+            break
+        statement_pages.append(pnum)
+        if len(statement_pages) >= MAX_STATEMENT_PAGES:
+            break
+    return {'pages': statement_pages}
 
 
 # ── 3. Gemini vision extraction ──────────────────────────────────────────────
@@ -239,13 +366,14 @@ def get_code_dict(scheme: str) -> list[dict]:
     return rows
 
 
-def gemini_extract_lines(image_paths: list[Path], scheme: str, code_dict: list[dict]) -> list[dict]:
+def gemini_extract_lines(image_paths: list[Path], scheme: str, code_dict: list[dict],
+                          statement_label: str = 'Bảng cân đối kế toán (balance sheet)') -> list[dict]:
     if not GEMINI_API_KEY:
         print("  [gemini] GEMINI_API_KEY not set, skipping")
         return []
 
     dict_text = json.dumps(code_dict, ensure_ascii=False)
-    prompt = f"""Bạn đang đọc trang "Bảng cân đối kế toán" (balance sheet) từ báo cáo tài chính
+    prompt = f"""Bạn đang đọc trang "{statement_label}" từ báo cáo tài chính
 của một công ty niêm yết Việt Nam, biểu mẫu scheme = "{scheme}".
 
 Dưới đây là từ điển mã chỉ tiêu chính thức cho scheme này (line_code, line_label, parent_code,
@@ -298,13 +426,14 @@ def detect_unit(image_paths: list[Path]) -> str:
     """Best-effort: OCR the header row for 'Triệu' — defaults to VND (raw)
     if not found, matching the more common case across the manual pilot."""
     for p in image_paths[:1]:
-        if re.search(r'triệu|trieu', ocr_text(p), re.IGNORECASE):
+        if re.search(r'trieu', ocr_text(p), re.IGNORECASE):
             return 'VND_million'
     return 'VND'
 
 
 def insert_rows(ticker: str, scheme: str, rows: list[dict], unit: str,
-                 source_url: str, consolidated: bool, period_end: str):
+                 source_url: str, consolidated: bool, period_end: str,
+                 report_type: str = 'balance_sheet', update_tracked_companies: bool = True):
     mult = 1_000_000 if unit == 'VND_million' else 1
     with engine.begin() as conn:
         for r in rows:
@@ -319,18 +448,21 @@ def insert_rows(ticker: str, scheme: str, rows: list[dict], unit: str,
                  line_code, line_label, value_current, value_prior, unit,
                  value_current_vnd, value_prior_vnd,
                  source_url, extraction_method, validated, source, group_name, crawl_time)
-                VALUES (:ticker, 'balance_sheet', :consolidated, :period_end, 'annual',
+                VALUES (:ticker, :report_type, :consolidated, :period_end, 'annual',
                  :code, :label, :cur, :pri, :unit, :curv, :priv,
                  :src, 'ocr_llm', false, :src, 'stock', now())
                 ON CONFLICT (ticker, report_type, consolidated, period_end, line_code)
                 DO UPDATE SET value_current=EXCLUDED.value_current, value_prior=EXCLUDED.value_prior,
                               value_current_vnd=EXCLUDED.value_current_vnd, value_prior_vnd=EXCLUDED.value_prior_vnd,
                               validated=false, crawl_time=now()
-            """), dict(ticker=ticker, code=code, label=str(r.get('line_label', ''))[:500],
+            """), dict(ticker=ticker, report_type=report_type, code=code, label=str(r.get('line_label', ''))[:500],
                        cur=cur, pri=pri, unit=unit,
                        curv=(cur * mult) if cur is not None else None,
                        priv=(pri * mult) if pri is not None else None,
                        src=source_url, consolidated=consolidated, period_end=period_end))
+
+        if not update_tracked_companies:
+            return
 
         # Ensure a tracked_companies row exists so validate_financial_statements
         # can resolve this ticker's scheme. tracked_companies is one row PER
@@ -356,14 +488,15 @@ def insert_rows(ticker: str, scheme: str, rows: list[dict], unit: str,
                    s=scheme, cons=consolidated, pe=period_end, src=source_url))
 
 
-def mark_validated(ticker: str, period_end: str, ok_codes: set[str]):
+def mark_validated(ticker: str, period_end: str, ok_codes: set[str],
+                    report_type: str = 'balance_sheet'):
     if not ok_codes:
         return
     with engine.begin() as conn:
         conn.execute(text("""
             UPDATE listed_company_financials SET validated = true
-            WHERE ticker = :t AND period_end = :p AND line_code = ANY(:codes)
-        """), dict(t=ticker, p=period_end, codes=list(ok_codes)))
+            WHERE ticker = :t AND period_end = :p AND report_type = :rt AND line_code = ANY(:codes)
+        """), dict(t=ticker, p=period_end, rt=report_type, codes=list(ok_codes)))
 
 
 def run_one(ticker: str, year: int):
@@ -407,7 +540,39 @@ def run_one(ticker: str, year: int):
 
         consolidated = loc['scheme'] != 'CTCK_B01'  # CTCK pilot (VIX) was standalone; refine per-ticker later
         period_end = f"{year}-12-31"
-        insert_rows(ticker, loc['scheme'], rows, unit, url, consolidated, period_end)
+        insert_rows(ticker, loc['scheme'], rows, unit, url, consolidated, period_end,
+                    report_type='balance_sheet')
+        bs_codes = {str(r.get('line_code', ''))[:10] for r in rows if r.get('value_current') is not None}
+
+        # ── B02 (income statement) — only for schemes the KB has formulas for
+        # (see IS_SCHEME_FOR_BS_SCHEME in validate_financial_statements.py).
+        # Banks/CTCK/insurance stay out_of_scope here rather than guessing a
+        # P&L structure the KB hasn't verified.
+        is_codes: set[str] = set()
+        if loc['scheme'] in vfs.IS_SCHEME_FOR_BS_SCHEME:
+            is_dir = scratch / "is_scan"
+            is_dir.mkdir()
+            is_loc = scan_for_income_statement_pages(pdf_path, is_dir, after_page=max(loc['pages']))
+            if is_loc['pages']:
+                print(f"  [B02] pages={is_loc['pages']}")
+                is_hi_dir = scratch / "is_hi"
+                is_hi_dir.mkdir()
+                is_images = render_pages(pdf_path, is_hi_dir, min(is_loc['pages']), max(is_loc['pages']), dpi=300)
+                is_scheme = vfs.IS_SCHEME_FOR_BS_SCHEME[loc['scheme']]
+                is_code_dict = get_code_dict(is_scheme)
+                is_rows = gemini_extract_lines(
+                    is_images, is_scheme, is_code_dict,
+                    statement_label='Báo cáo kết quả hoạt động kinh doanh (income statement) — số liệu TRONG KỲ, không phải số dư cuối kỳ',
+                )
+                if is_rows:
+                    print(f"  [B02] extracted {len(is_rows)} lines")
+                    insert_rows(ticker, is_scheme, is_rows, unit, url, consolidated, period_end,
+                                report_type='income_statement', update_tracked_companies=False)
+                    is_codes = {str(r.get('line_code', ''))[:10] for r in is_rows if r.get('value_current') is not None}
+                else:
+                    print("  [B02] gemini returned no rows")
+            else:
+                print("  [B02] could not locate income statement pages")
 
         # Run the same mechanical validation the manual pipeline uses, then
         # promote only the rows that pass to validated=true. validate_ticker
@@ -416,14 +581,20 @@ def run_one(ticker: str, year: int):
         # period this run just inserted before acting on the result, or a
         # violation on the ticker's OTHER period would wrongly block this one
         # (and marking "ok" codes true would wrongly touch the other period's
-        # rows too, which is why mark_validated is also period-scoped).
+        # rows too, which is why mark_validated is also period-scoped). B01
+        # and B02 codes don't collide (3-digit vs 2-digit namespaces), so one
+        # combined hard_codes set can be safely intersected against each
+        # statement's own code set below.
         all_violations = []
         vfs.validate_ticker(engine.connect(), ticker, all_violations)
         violations = [v for v in all_violations if str(v[1]) == period_end]
         hard_codes = {v[3] for v in violations if v[2] in ('SIGN', 'ARITHMETIC', 'V01', 'SCALE')}
-        all_codes = {str(r.get('line_code', ''))[:10] for r in rows if r.get('value_current') is not None}
-        ok_codes = all_codes - hard_codes
-        mark_validated(ticker, period_end, ok_codes)
+
+        bs_ok = bs_codes - hard_codes
+        mark_validated(ticker, period_end, bs_ok, report_type='balance_sheet')
+        is_ok = is_codes - hard_codes
+        if is_codes:
+            mark_validated(ticker, period_end, is_ok, report_type='income_statement')
 
         hard = [v for v in violations if v[2] in ('SIGN', 'ARITHMETIC', 'V01', 'SCALE')]
         if hard:
@@ -431,7 +602,8 @@ def run_one(ticker: str, year: int):
             for v in hard:
                 print(f"    [{v[2]}] {v[3]}: {v[4]}")
         else:
-            print(f"  clean — {len(ok_codes)} rows validated=true")
+            print(f"  clean — B01 {len(bs_ok)} rows validated=true"
+                  + (f", B02 {len(is_ok)} rows validated=true" if is_codes else ""))
 
 
 def main():
