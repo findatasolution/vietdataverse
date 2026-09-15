@@ -1,0 +1,24 @@
+name: Subscription Billing
+
+# Daily wallet-debit billing cycle for platform subscriptions. Odd, non-:00/:30
+# minute per CLAUDE.md's crawl-scheduling rule (avoids GitHub's congested
+# round-minute slots) — this job doesn't need same-minute precision, it just
+# must not silently fail to run for days without anyone noticing.
+on:
+  schedule:
+    - cron: '11 3 * * *'   # 10:11 VN
+  workflow_dispatch:
+
+jobs:
+  run-billing-cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r be/requirements.txt
+      - name: Run billing cycle
+        run: python be/services/subscription.py --run-billing-cycle
+        env:
+          KNOWLEDGE_MARKET_DB: ${{ secrets.KNOWLEDGE_MARKET_DB }}
