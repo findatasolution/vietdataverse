@@ -844,12 +844,20 @@ Run ad-hoc: `python crawl_tools/reconcile_sjc.py [days]` (default 30). It is
 wired into the weekly DQ report; the window stays at 30 days so a weekly run has
 4× overlap without re-reporting known-old damage forever.
 
-**Known damage it found on first run, not yet repaired** (2026-06-29 → 2026-08-12,
-the part of the freeze window the 2026-09-13 correction never reached — that pass
-only covered 13/08 onward): 16 `stale` days, 1 `carry_forward`, 5 `unconfirmed`
-(all 2026-07-08 → 07-17), and 1 `fabricated` (2026-07-14 stores 144.1/147.1;
-13/07 closed 145.4/148.4 and 14/07's only change was 18:35 → 144.5/147.5, so that
-figure was never an SJC quote).
+**16 of the days it found were repaired 2026-09-15** (`be/migrations/fix_gold_freeze_stale_days.py`,
+backup `be/migrations/gold_freeze_fix_backup_20260915-102845.csv`) — every `stale`
+and the one `fabricated` day from the first run, all with strong evidence
+(webgia.com's own per-day adjustment log, 2-4 timestamped changes per day). Each
+value is the day's actual closing quote, not a guess. `reconcile_sjc.py` confirms
+0 ERROR / 0 stale afterward.
+
+**Deliberately left alone**: `2026-08-07` (`carry_forward` — already correct,
+nothing to fix) and `2026-07-08/09/15/16/17` (`unconfirmed` — the archive lists
+no change those days and the stored value differs from the previous close, which
+is absence of evidence, not evidence the row is wrong; the archive may simply be
+missing an entry). Do not "fix" these without independently confirming SJC's
+actual price that day from a second source — reconcile_sjc.py designed this
+verdict specifically so a weak signal does not get treated as certain.
 
 **The DQ agent's findings were invisible until 2026-09-14, and two of its
 ERRORs were false.** Three separate problems, all found together:
