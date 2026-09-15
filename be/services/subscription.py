@@ -3,6 +3,17 @@ be/services/credit.py's purchase_product(). New tables live in
 KNOWLEDGE_MARKET_DB (same DB as credit_balance/credit_ledger), so a
 subscription write and a wallet debit always share one transaction.
 """
+import sys
+from pathlib import Path
+
+# Must run before the core.*/services.* imports below: when this file is
+# executed directly (python be/services/subscription.py, as the billing cron
+# does), Python puts its own directory (be/services/) at sys.path[0], not
+# be/ — so core.engines resolves only once be/ itself is also on the path.
+# A sys.path fix inside `if __name__ == "__main__":` runs too late (found
+# 2026-09-15: it ran after these top-level imports had already failed).
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import logging
 from datetime import datetime, timedelta
 
@@ -452,12 +463,9 @@ def run_billing_cycle(now: datetime | None = None) -> dict:
 
 
 if __name__ == "__main__":
-    import sys
-    from pathlib import Path
     from dotenv import load_dotenv
 
     load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
     if "--run-billing-cycle" in sys.argv:
         result = run_billing_cycle()
