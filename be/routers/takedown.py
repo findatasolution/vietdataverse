@@ -176,7 +176,7 @@ async def submit_takedown(body: TakedownBody, request: Request):
                 ).fetchone()
             product_title = title_row[0] if title_row else f"Product #{product_id}"
 
-            from services.email import send_email
+            from services.email_service import send_email
             send_email(
                 to=body.claimant_email.strip(),
                 subject=f"Khiếu nại DMCA đã nhận — #{notice_id}",

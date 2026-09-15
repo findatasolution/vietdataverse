@@ -208,7 +208,7 @@ async def register_seller(body: RegisterRequest, request: Request):
 
         # Send verify email (best-effort)
         try:
-            from services.email import send_email
+            from services.email_service import send_email
             send_email(
                 to=email,
                 subject="Xác minh email seller — Viet Dataverse",
@@ -356,7 +356,7 @@ async def resend_verify(request: Request):
             """), {"token": verify_token, "expires": verify_expires, "pid": profile_id})
 
         try:
-            from services.email import send_email
+            from services.email_service import send_email
             send_email(
                 to=email,
                 subject="Xác minh email seller — Viet Dataverse",
@@ -660,7 +660,7 @@ async def seller_create_product(
 
         # Send rejection email
         try:
-            from services.email import send_email
+            from services.email_service import send_email
             send_email(
                 to=seller_email,
                 subject=f"Sản phẩm chưa được duyệt — {title.strip()}",
@@ -770,7 +770,7 @@ async def seller_create_product(
 
         # Send published email
         try:
-            from services.email import send_email
+            from services.email_service import send_email
             product_url = f"{FRONTEND_URL}/pages/knowledge.html#{slug}"
             send_email(
                 to=seller_email,

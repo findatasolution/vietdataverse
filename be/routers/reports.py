@@ -241,7 +241,7 @@ async def report_product(
                     product_title = title_row[0] if title_row else f"Product #{product_id}"
 
                     try:
-                        from services.email import send_email
+                        from services.email_service import send_email
                         send_email(
                             to=sp_row[2],
                             subject=f"Sản phẩm bị tạm gỡ — {product_title}",
