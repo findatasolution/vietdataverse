@@ -908,8 +908,8 @@
     // vs. random-walk, and full-sample R²) — not part of the live API
     // response; kept as static constants per the fuel-forecast statistical
     // work referenced in the methodology card above.
-    var skillByFuel = {E5RON92:{skill:0.687,mae:278}, DO005S:{skill:0.831,mae:237}};
-    var r2ByFuel = {E5RON92:0.69, DO005S:0.96};
+    var skillByFuel = {E5RON92:{skill:0.740,mae:257}, DO005S:{skill:0.794,mae:293}};
+    var r2ByFuel = {E5RON92:0.85, DO005S:0.96};
     var sk = skillByFuel[state.fuel], r2 = r2ByFuel[state.fuel];
     statRow.innerHTML = [
       tile("Giá kỳ hiện tại", money(lastRetail)+" đ/l", "Công bố "+toVN(lastDate)),
@@ -917,7 +917,7 @@
       tile("R² (full-sample)", r2.toFixed(2), r2<0.8 ? "2 kỳ can thiệp BOG kéo xuống — xem ghi chú" : "Ổn định qua permutation test"),
       tile("Skill vs random-walk", "+"+(sk.skill*100).toFixed(0)+"%", "MAE "+sk.mae+" đ/l, out-of-sample"),
     ].join("");
-    document.getElementById("foot-left").textContent = "Dữ liệu lịch sử từ 03/2024 (51 kỳ điều hành — một số tuần thiếu do MOIT đổi cách đặt tên bản tin qua các năm)";
+    document.getElementById("foot-left").textContent = "Dữ liệu lịch sử từ 01/2022 (74 kỳ điều hành — một số kỳ thiếu do MOIT đổi cách đặt tên bản tin qua các năm)";
     document.getElementById("foot-right").textContent = "Nguồn world price: bản tin MOIT (MOPS thật) · Model: delta-world-v1";
 
     var ctxEl = document.getElementById("fanChart");
