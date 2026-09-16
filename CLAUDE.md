@@ -6,6 +6,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Trao đổi với người dùng (chat, giải thích, tóm tắt) bằng tiếng Việt. Code, comment, commit message vẫn giữ tiếng Anh như chuẩn hiện tại của repo.
 
+## Agent Boundaries — Codex (HARD RULES)
+
+Hai luật tuyệt đối, không có ngoại lệ và không được tự diễn giải lỏng ra:
+
+1. **NGHIÊM CẤM Codex sửa `CLAUDE.md`** — dù chỉ một ký tự, dù là sửa chính tả,
+   đổi đường dẫn, hay "dọn dẹp" cho nhất quán. File này do user và Claude
+   Code duy trì. Nếu Codex thấy nội dung trong `CLAUDE.md` sai hoặc lỗi thời:
+   **báo cho user, không tự sửa**. Ghi chú riêng của Codex thuộc về `AGENTS.md`.
+
+2. **NGHIÊM CẤM Codex edit hoặc xoá bất kỳ file nào khi không có yêu cầu trực
+   tiếp từ user.** "Trực tiếp" nghĩa là user nói rõ file/phạm vi đó trong
+   phiên hiện tại. Không suy ra từ ngữ cảnh, không "tiện tay sửa luôn",
+   không refactor kèm, không xoá file thừa, không đổi tên, không format lại file
+   ngoài phạm vi được giao. Task diagnose/review là chỉ-đọc: báo finding, không
+   sửa.
+
+Lý do luật này tồn tại (2026-09-16): trong một phiên Claude Code đang làm việc
+khác, working tree đột ngột xuất hiện `CODEX.md` bị xoá + `CLAUDE.md` và
+`AGENTS.md` bị sửa mà user không yêu cầu — hai agent ghi đè lên cùng cây làm việc,
+rất dễ commit nhầm thay đổi của nhau lên prod. `CODEX.md` sau đó được user xác
+nhận là xoá có chủ đích, nhưng phần sửa `CLAUDE.md` đã bị revert.
+
+**Áp dụng cho Claude Code luôn ở luật 2**: agent nào cũng chỉ được động vào file
+nằm trong phạm vi user giao. Thấy thay đổi lạ trong working tree mà mình không
+tạo ra thì **tách ra, hỏi user, không commit kèm**.
+
 ## Project Overview
 
 Viet Dataverse — financial data platform for Vietnam macro & corporate data, with a knowledge/skill marketplace for AI agents.
@@ -37,7 +63,7 @@ Two products in one SPA:
 
 Documentation is part of the definition of done. Before marking any task complete:
 
-1. Identify every document affected by the change, including `BACKLOG.md`, `CLAUDE.md`, `CODEX.md`, scoped `fe/CLAUDE.md` / `AGENTS.md`, README/API docs, runbooks, architecture notes, migration notes, and `.env.example` when applicable.
+1. Identify every document affected by the change, including `BACKLOG.md`, `CLAUDE.md`, scoped `fe/CLAUDE.md` / `AGENTS.md`, README/API docs, runbooks, architecture notes, migration notes, and `.env.example` when applicable.
 2. Update status, behavior, paths, commands, schemas, access rules, deployment state, and limitations in the same task. Do not leave documentation describing the pre-change behavior.
 3. When completing a backlog item, mark it complete only after implementation and required verification succeed. If production deployment is still pending or blocked, document that state explicitly instead of marking it fully complete.
 4. Replace stale statements rather than appending contradictory notes. Update source documents, not generated artifacts, then rebuild generated documentation when required.
