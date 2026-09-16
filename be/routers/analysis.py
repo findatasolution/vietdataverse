@@ -55,9 +55,27 @@ async def get_market_pulse(
     request: Request,
     lang: str = Query("vi", description="Language: vi or en"),
     limit: int = Query(10, ge=1, le=50, description="Number of articles"),
-    _auth: None = Depends(authenticate_user_optional),
 ):
-    # 1s Pulse news is fully public — anonymous users read every article, no login gate.
+    # Two different audiences read this one endpoint, and only one of them is
+    # gated. The site's own "1s Pulse" page (fe/app.js _doPulseFetch) calls it
+    # with a Bearer token or no header at all — that stays fully public, it is
+    # a core Open Data product surface, not the Developer API. A third-party
+    # caller presenting X-API-Key is using the Developer API, and per the
+    # documented catalog (developer.py's /endpoints lists this path as
+    # access="premium_developer") that path requires a paid key — free-tier
+    # keys get metered (quota still consumed) then rejected with 403, same
+    # contract already documented for every other tiered endpoint.
+    if request.headers.get("X-API-Key"):
+        await authenticate_user(request)
+        _caller = getattr(request.state, "user", None) or {}
+        if not (_caller.get("is_admin") or _caller.get("user_level") == "premium_developer"):
+            raise HTTPException(
+                status_code=403,
+                detail="Endpoint này yêu cầu gói API Supper Lite (premium_developer) trở lên.",
+            )
+    else:
+        await authenticate_user_optional(request)
+
     free_preview_count = None
 
     try:

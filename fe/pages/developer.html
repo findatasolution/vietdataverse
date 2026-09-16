@@ -361,6 +361,7 @@
             <div class="sub-plan" id="sub-plan-label">API Supper Lite trở lên</div>
             <div class="sub-expiry" id="sub-expiry-label"></div>
         </div>
+        <a class="btn-upgrade" id="btn-upgrade-plan" href="/pages/pricing.html">Nâng cấp</a>
     </div>
 
     <!-- Usage guide -->
@@ -451,11 +452,17 @@ const data = await res.json();</div>
             const sub = d.subscription || {};
             document.getElementById('sub-card').style.display = 'flex';
             const planLabels = {
-                dev_monthly: 'Dev Monthly (10,000 req/tháng)',
-                dev_yearly:  'Dev Yearly (100,000 req/tháng)',
+                pro_monthly:     'API Supper Lite — Tháng (10.000 req/tháng)',
+                pro_yearly:      'API Supper Lite — Năm (10.000 req/tháng)',
+                dev_monthly:     'Dev Monthly (10.000 req/tháng)',
+                dev_yearly:      'Dev Yearly (100.000 req/tháng)',
+                premium_monthly: 'Premium — Tháng',
+                premium_yearly:  'Premium — Năm',
             };
             document.getElementById('sub-plan-label').textContent =
                 planLabels[sub.plan] || 'Free (1.000 req/tháng)';
+            const upgradeBtn = document.getElementById('btn-upgrade-plan');
+            upgradeBtn.textContent = sub.plan ? 'Gia hạn' : 'Nâng cấp';
             if (sub.premium_expiry) {
                 const exp = new Date(sub.premium_expiry);
                 const now = new Date();

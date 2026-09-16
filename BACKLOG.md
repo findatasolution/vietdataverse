@@ -7,7 +7,9 @@
 
 ## 🔴 HIGH — Làm ngay (core revenue + stability)
 
-### [REV-01] VN30 data source (`vnstock3`) — gỡ khỏi API/FE, giữ nội bộ để đối chiếu
+### ~~[REV-01] VN30 data source (`vnstock3`) — gỡ khỏi API/FE, giữ nội bộ để đối chiếu~~ ✅ Chốt xong 2026-09-16
+- **User chốt xong 2026-09-16** — phần compliance (gỡ vnstock3 khỏi API/FE công khai) đã xong từ 2026-09-10; pipeline BCTC tự động đã chứng minh chạy được cho cả 4 nhóm ngành (thường/ngân hàng/bảo hiểm/CTCK, 0 vi phạm). Phần việc lặt vặt còn lại (TCB — sai loại tài liệu, 1-2 công ty chưa dò nguồn, chuyển LLM sang Kaggle/model mã nguồn mở) **chuyển xuống waiting list**, không còn là gate chặn gì nữa. Chi tiết lịch sử đầy đủ giữ nguyên bên dưới để tham khảo khi cần quay lại.
+- `vnstock3` (bọc SSI/TCBS) cấm mọi hoạt động thương mại kể cả gián tiếp — áp dụng cho cả bản miễn phí vì VDV là tổ chức thương mại. Chi tiết: `CLAUDE.md` mục "VN30 data source (`vnstock3`)..."
 - `vnstock3` (bọc SSI/TCBS) cấm mọi hoạt động thương mại kể cả gián tiếp — áp dụng cho cả bản miễn phí vì VDV là tổ chức thương mại. Chi tiết: `CLAUDE.md` mục "VN30 data source (`vnstock3`)..."
 - ✅ **Xong (2026-09-10)**: `be/routers/vn30_data.py` không còn endpoint `/vn30/*` hay `/market/vnindex` nào — gỡ TOÀN BỘ, không chỉ field giá (profile/sector/OHLCV/BCTC-quý/ratio/VN-Index đều là vnstock3-sourced, theo đúng lý luận "đi theo chuỗi nguồn gốc dữ liệu"). Đã rà và sửa mọi chỗ trên `fe/` từng hiển thị/nhắc tới dữ liệu này (xem CLAUDE.md để có danh sách file đầy đủ). Crawler vnstock3 (`crawl_vn30_*.py` + GitHub Actions) **giữ nguyên, vẫn chạy ngầm** — chỉ đường ra API/FE bị gỡ.
 - ⏳ **Còn lại**: viết crawler BCTC tự động từ IR/cổng công bố thay vnstock3 — đã chứng minh khả thi thủ công cho 27 công ty (`listed_company_financials`), nhưng chưa tự động hoá. Đây là điều kiện để REV-02 bán được.
@@ -63,7 +65,9 @@
 
 ---
 
-## 🟡 MEDIUM — Làm sau khi HIGH xong
+## ⏸️ WAITING LIST — MEDIUM + LOW gộp lại, tạm gác (2026-09-16)
+
+> Không chủ động làm các mục dưới đây trừ khi user gọi tên cụ thể. Ưu tiên hiện tại dồn hết vào doanh thu (xem đầu file / memory `project_product_strategy`) — test luồng thanh toán + API là việc đang làm.
 
 ### [DQ-01] DQ agent phải chặn/báo động, không chỉ gửi email — 🟡 phần lớn xong, 1 việc cần user
 - Sự cố gốc 2026-07-18: 24h.com.vn công bố DOJI thiếu 1 chữ số; giá sai lên chart + API, nằm đó 20 ngày, email WARNING không ai đọc, workflow vẫn xanh.
@@ -139,10 +143,6 @@
 ### [ADMIN-01] Admin: export user list CSV
 - Trang admin thêm button "Export users" → download CSV (email, created_at, plan)
 - **Tại sao:** Cần cho email marketing, không muốn phụ thuộc vào SQL query
-
----
-
-## ⚪ LOW / DEFER — Khi có traction
 
 ### [CHAT-02] Chat subscription billing — ₫99k/tháng
 - Chỉ build khi CHAT-01 có người dùng thực
