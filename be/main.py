@@ -216,10 +216,20 @@ def _serve_fe_file(filename: str, media_type: str):
         return FileResponse(path, media_type=media_type)
     return _endpoint
 
+# auth.js / style.css are NOT crawler files — they are here because the /pages
+# alias above serves fe/pages/*.html one directory level shallower than /fe/pages/.
+# Those pages link their shared assets as "../auth.js" / "../style.css", which the
+# browser resolves against the page URL: under /fe/pages/x.html that is /fe/auth.js
+# (served by the /fe mount), but under /pages/x.html it is /auth.js at the domain
+# root — 404 before these routes existed. A 404 on auth.js left `login` undefined,
+# so every "Đăng nhập" button on /pages/* was silently dead (the pages carry inline
+# <style>, so the style.css 404 was invisible and only auth broke visibly).
 for _fname, _mtype in (
     ("robots.txt", "text/plain; charset=utf-8"),
     ("sitemap.xml", "application/xml"),
     ("llms.txt", "text/plain; charset=utf-8"),
+    ("auth.js", "application/javascript; charset=utf-8"),
+    ("style.css", "text/css; charset=utf-8"),
 ):
     app.add_api_route("/" + _fname, _serve_fe_file(_fname, _mtype),
                       methods=["GET", "HEAD"], include_in_schema=False)

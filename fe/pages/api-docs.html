@@ -748,41 +748,41 @@ async function loadEndpoints() {
     container.innerHTML = html;
 }
 
-// Mọi link "trang Developer" (mục đích LẤY API): chưa đăng nhập → login()
-// trước rồi quay lại developer.html (không để user thấy màn wall); đã đăng
-// nhập → vào thẳng developer.html.
-function setupDevLinks() {
-    document.querySelectorAll('a.dev-link').forEach((a) => {
-        a.addEventListener('click', async (e) => {
-            e.preventDefault();
-            let ok = false;
-            try { ok = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
-            if (ok) {
-                window.location.href = '/pages/developer.html';
-            } else if (typeof login === 'function') {
-                await login('/pages/developer.html');
-            } else {
-                window.location.href = '/pages/developer.html';
-            }
-        });
-    });
-}
+// Auth links, delegated on `document` — NOT bound per node.
+// docs-i18n.js rewrites every [data-i18n] block with innerHTML on each apply,
+// including the initial pass (VI restores from its own cache the same way), which
+// replaces these <a> nodes. A listener attached to the original node dies with it
+// and the link silently does nothing but jump to "#". Delegation survives that.
+//
+//   a.login-link — mục đích ĐĂNG NHẬP: gọi Auth0 login() trực tiếp, đăng nhập
+//                  xong quay lại trang hiện tại (KHÔNG dẫn về developer.html).
+//   a.dev-link   — mục đích LẤY API: chưa đăng nhập → login() trước rồi quay lại
+//                  developer.html (không để user thấy màn wall); đã đăng nhập →
+//                  vào thẳng developer.html.
+document.addEventListener('click', async (e) => {
+    const a = e.target && e.target.closest && e.target.closest('a.login-link, a.dev-link');
+    if (!a) return;
+    e.preventDefault();
 
-// Link "Đăng nhập" (mục đích ĐĂNG NHẬP): gọi Auth0 login() trực tiếp,
-// đăng nhập xong quay lại trang hiện tại (KHÔNG dẫn về developer.html).
-function setupLoginLinks() {
-    document.querySelectorAll('a.login-link').forEach((a) => {
-        a.addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (typeof login === 'function') await login();
-        });
-    });
-}
+    if (a.classList.contains('login-link')) {
+        if (typeof login === 'function') await login();
+        else console.warn('auth.js not loaded — login() unavailable');
+        return;
+    }
+
+    let ok = false;
+    try { ok = (typeof isAuthenticated === 'function') && await isAuthenticated(); } catch (_) {}
+    if (ok) {
+        window.location.href = '/pages/developer.html';
+    } else if (typeof login === 'function') {
+        await login('/pages/developer.html');
+    } else {
+        window.location.href = '/pages/developer.html';
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     loadEndpoints();
-    setupDevLinks();
-    setupLoginLinks();
 });
 window.addEventListener('docs-lang-changed', () => loadEndpoints());
 </script>

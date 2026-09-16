@@ -300,11 +300,15 @@
 <script src="docs-sidebar.js"></script>
 <script>
 // Link "Đăng nhập" → gọi Auth0 login() trực tiếp (quay lại trang này sau khi đăng nhập).
-document.querySelectorAll('a.login-link').forEach(function(a){
-  a.addEventListener('click', async function(e){
-    e.preventDefault();
-    if (typeof login === 'function') await login();
-  });
+// Delegated on `document`: docs-i18n.js replaces each [data-i18n] block's innerHTML
+// on every language apply, so a listener bound to the <a> node itself is discarded
+// and the link goes dead (same bug as api-docs.html).
+document.addEventListener('click', async function(e){
+  var a = e.target && e.target.closest && e.target.closest('a.login-link');
+  if (!a) return;
+  e.preventDefault();
+  if (typeof login === 'function') await login();
+  else console.warn('auth.js not loaded — login() unavailable');
 });
 (function(){
   var items = document.querySelectorAll('.doc-toc-item[href^="#"]');
