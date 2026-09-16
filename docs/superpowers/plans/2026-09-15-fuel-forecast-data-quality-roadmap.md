@@ -1,5 +1,48 @@
 # Fuel Forecast — Data Quality & Model Roadmap
 
+## Backfill methodology (standard for future gap-filling — 2026-09-16)
+
+Decision: 3 options were ranked by the user — (1) fixed-location dashboard
+with a logically-changing URL, (2) free third-party API/dataset, (3) deep
+research (web search) for historical info. **Option 1 does not exist for
+this source** — MOIT publishes only prose news articles, never a
+table/JSON/dashboard, across 5+ incompatible URL slug templates over the
+years (verified by checking MOIT's own transparency mirror
+`minhbach.moit.gov.vn` too — same prose format, yet another prefix).
+Approved combination: **option 2 + option 3**.
+
+- **Option 2 (free dataset, not a live API)**: Kaggle
+  `suthcong/fuel-prices-in-vietnam` (`Petrolimex_oilprice.csv`), downloaded
+  anonymously via `kagglehub` (no API key/account needed) — Petrolimex Zone
+  1/2 retail prices per real cycle date, 2022-12-01 → 2026-04-16. Checked
+  `github.com/TranQui004/vietfuel-api`'s claimed live API first — its
+  documented endpoint (`vietfuel-api.tranqui.workers.dev`) does not resolve
+  (DNS failure), not usable.
+- **Option 3 (deep research)**: no dedicated "deep research" tool exists in
+  this environment — WebSearch used iteratively, one query per few
+  months, each returning several real bulletin URLs at once.
+- **Kaggle's role is date discovery only, never a value source in the DB.**
+  Its retail_price has no MOPS/world-price companion, so every row actually
+  inserted into `fuel_price_cycle` still comes from fetching and regex-
+  parsing the real MOIT bulletin for that confirmed-real date (same
+  `be/fuel/moit_parser.py` pipeline as the live crawler) — Kaggle's number
+  is used only as an **independent cross-check** against the MOIT-parsed
+  value (>2% disagreement would flag for review; 0 flags across 22 rows
+  checked this way).
+- **Per-row provenance**: unchanged from every other row in this table —
+  the `source` column stores the literal MOIT URL that was fetched. No new
+  column added; this was judged sufficient granularity (anyone querying the
+  table sees exactly which page each number came from).
+- **Reusable script**: `crawl_tools/backfill_moit_fuel_kaggle_assisted.py`
+  — run again if the Kaggle dataset gets a newer version with a longer
+  date range, or if another free real-date-oracle dataset is found later.
+- **Result (2026-09-16)**: `fuel_price_cycle` grew from 74 → **114** cycles
+  (+40) in one pass: 22 via the scripted Kaggle-date pipeline, 20 via manual
+  WebSearch rounds for dates Kaggle knew about but the script's fixed URL
+  pattern list didn't reach. ~76 Kaggle-confirmed real dates still have no
+  known MOIT URL — logged in the script's own output, not force-guessed;
+  a future WebSearch pass (or a wider pattern list) can pick these up.
+
 Ordered by dependency — each stage assumes the previous one is solid before
 work moves forward. Scope as of 2026-09-15: **E5RON92 + DO005S only** (RON95
 dropped — product targets commercial/transport fuel cost, not passenger-car
@@ -78,14 +121,16 @@ gasoline).
 
 - [x] `delta-world-v1` thắng random-walk có ý nghĩa thống kê (p<0.0001,
   Wilcoxon p<0.01) trên cả E5RON92 và DO005S.
-- [x] Backtest cuối cùng (n=68, sau backfill 2022-2023, chạy qua chính
-  pipeline production 2026-09-15): E5RON92 skill **0.740** (R² 0.85, tăng
-  mạnh từ 0.69 nhờ thêm dữ liệu 2022-2023), DO005S skill **0.794** (R² 0.96,
-  ổn định qua mọi lần refit — không phải may mắn mẫu nhỏ).
-- [x] **3 gate trước XGBoost đã xong (2026-09-15): backfill ✅, data quality
-  check ✅ (0 lỗi), verify pipeline trên prod ✅ (workflow_dispatch thật,
-  DB query xác nhận).** XGBoost có thể bắt đầu — chờ user gật đầu vì đây là
-  việc build mới, chưa triển khai gì ngoài 1 lần brainstorm sơ bộ.
+- [x] Backtest cuối cùng (n=108, sau backfill Kaggle+WebSearch 2026-09-16,
+  114 kỳ tổng): E5RON92 skill **0.745** (R² 0.88), DO005S skill **0.778**
+  (R² 0.93) — cả 2 ổn định qua mọi lần refit từ n=17 đến n=108, không phải
+  may mắn mẫu nhỏ. 2 cảnh báo "jump" trong DQ check (2026-02-26→03-07) là
+  sự kiện BOG-fund thật đã biết, không phải lỗi.
+- [x] **3 gate trước XGBoost đã xong (2026-09-15/16): backfill ✅ (114 kỳ),
+  data quality check ✅ (0 lỗi thật), verify pipeline trên prod ✅
+  (workflow_dispatch thật, DB query xác nhận).** XGBoost có thể bắt đầu —
+  chờ user gật đầu vì đây là việc build mới, chưa triển khai gì ngoài 1 lần
+  brainstorm sơ bộ.
 - [ ] Xử lý residual tự tương quan âm (AR(1) hoặc bootstrap CI) — vẫn treo,
   ưu tiên thấp hơn, không ảnh hưởng production ngay.
 
