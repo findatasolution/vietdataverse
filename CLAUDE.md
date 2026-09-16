@@ -685,6 +685,58 @@ chart, full size, unchanged from before. Spec:
   panel height − section head row − tile chrome, so the first row of tiles ends
   level with the panel. Re-measure it in a browser if the panel gains a row or
   the head row changes height — adding the period picker already moved it once.
+- **Three blocks are overview-only and must be toggled by hand** (2026-09-16):
+  `#market-overview-panel`, `.ticker-strip` (the six at-a-glance cards — SJC gold,
+  Phú Quý silver, ACB 12M, SBV overnight/3M, USD/VND) and `#global-ticker-band`
+  (NASDAQ / S&P 500 / Dow / world gold / world silver). All three sit **outside**
+  `.ov-root` and `.chart-section-group`, so the routing's class toggling never
+  reaches them — `ovShowChartDetail()` sets `hidden` on them and `ovShowOverview()`
+  clears it, via `ovTickers()` in `app.js`. They stay on the overview and disappear
+  on any chart detail: a detail view is the one chart the visitor opened
+  deliberately, and six unrelated tickers above it push it below the fold.
+  `[hidden] { display: none !important; }` at the top of `style.css` is what makes
+  the attribute win against these blocks' own `display` rules — don't remove it.
+  **The hero (`.data-hero`) deliberately stays visible on detail views** (product
+  decision, 2026-09-16) — only the ticker blocks and the panel are hidden.
+
+### Brand assets (`fe/images/`) — self-hosted since 2026-09-16
+
+Every favicon / app icon / social card is generated from **one source file,
+`logo.png` at the repo root**, by `python fe/tools/make_icons.py`. Re-run it after
+replacing that file and commit the regenerated PNGs — nothing regenerates them
+automatically.
+
+| File | Size | Consumers |
+|---|---|---|
+| `favicon-16x16.png` | 16 | `<link rel=icon>` in `_layout_head.html` + every `fe/pages/*.html`; Excel add-in `Icon.16x16` |
+| `favicon-32x32.png` | 32 | same, 32px slot; Excel add-in `IconUrl` / `Icon.32x32` |
+| `icon-80.png` | 80 | Excel add-in `HighResolutionIconUrl` / `Icon.80x80` |
+| `apple-touch-icon.png` | 180 | iOS home screen; `manifest.json` |
+| `icon-192.png` | 192 | `manifest.json`; the header brand mark (`.app-brand-icon` img) |
+| `icon-512.png` | 512 | `manifest.json`, `msapplication-TileImage`, JSON-LD `logo`, `sitemap.xml` `image:loc` |
+| `og-card.png` | 1200×630 | `og:image` / `twitter:image` in `_layout_head.html` and `pages/pricing.html` |
+
+Three things to know before touching these:
+
+- **They were on ImageKit until 2026-09-16** (`ik.imagekit.io/o2u9hny2s/vietdataverse/…`).
+  Nothing references that CDN any more. Swapping the logo no longer needs a CDN
+  upload, but it does need a deploy, since `deploy.yml` git-resets the box.
+- **`og-card.png` is NOT a square copy of the logo, and is not named `logo.png`.**
+  `_layout_head.html` declares `og:image:width=1200` / `height=630`, so a square
+  image gets letterboxed or centre-cropped by scrapers; the generator composes the
+  mark on the site surface colour at exactly that size. And `.gitignore` carries a
+  bare `logo.png` rule ("stray assets — keep OUT of this PUBLIC repo") that matches
+  at **any** depth — an `fe/images/logo.png` would silently never be committed and
+  would 404 in production. The root `logo.png` predates that rule and is tracked.
+- **Reference them as `/fe/images/…`, never `../images/…`.** Standalone pages are
+  reachable at both `/fe/pages/x.html` and `/pages/x.html`, and a parent-relative
+  path resolves differently on each — the same trap that killed `../auth.js` (see
+  "Where production actually serves from"). Absolute-URL contexts (og/twitter,
+  JSON-LD, manifest, sitemap, Excel add-in manifest) use
+  `https://vietdataverse.online/fe/images/…`.
+
+`fe/tools/make_icons.py` needs Pillow. It is an authoring-time tool — not loaded by
+the browser, not run by CI — so the "FE is zero-dep" rule is unaffected.
 
 ### Agent Market (KM) auth states
 

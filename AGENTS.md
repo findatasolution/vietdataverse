@@ -10,6 +10,7 @@ Trao đổi với người dùng bằng tiếng Việt. Giữ code, comment và 
 
 ## Source of truth
 
+- Dùng `CLAUDE.md` làm project handbook chung cho cả Claude và Codex. Trước task triển khai, đọc các section liên quan trong file này; `AGENTS.md` chỉ giữ các chỉ dẫn Codex cần nạp tự động và các override ngắn gọn.
 - Đọc `BACKLOG.md` khi người dùng nói `Làm <ID>`; coi item tương ứng là acceptance criteria, rồi kiểm tra code hiện tại trước khi triển khai.
 - Đọc `.claude/rules/DESIGN.md` trước mọi thay đổi UI/CSS/HTML. Phần 10 áp dụng cho mobile, phần 11 cho marketplace, phần 12 cho app shell/routing, phần 13 cho standalone pages.
 - Đọc `.claude/rules/KNOWLEDGE_PACK_SPEC.md` khi tạo, sửa hoặc review knowledge pack.
@@ -35,7 +36,7 @@ Luồng chính: Python crawlers → PostgreSQL/Neon → FastAPI (`be/`) → stat
 - Với task diagnose/review: chỉ báo nguyên nhân hoặc finding; không tự sửa nếu người dùng chưa yêu cầu.
 - Change nhỏ và scoped; không refactor tiện tay.
 - Nếu task xuyên DB/API/FE, làm theo thứ tự migration/schema → backfill → crawler/service → API/static JSON → FE → CI/test.
-- Trước khi kết thúc mọi task, thực hiện documentation close-out theo `CODEX.md`: rà và cập nhật status/hành vi/đường dẫn/lệnh/schema/deploy state trong tất cả tài liệu liên quan; không tuyên bố hoàn tất khi docs còn mô tả trạng thái cũ.
+- Trước khi kết thúc mọi task, thực hiện documentation close-out theo section `Documentation Close-out (Required)` trong `CLAUDE.md`: rà và cập nhật status/hành vi/đường dẫn/lệnh/schema/deploy state trong tất cả tài liệu liên quan; không tuyên bố hoàn tất khi docs còn mô tả trạng thái cũ.
 
 ## Backend and data invariants
 

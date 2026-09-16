@@ -12,8 +12,8 @@
   <DefaultLocale>vi-VN</DefaultLocale>
   <DisplayName DefaultValue="Viet Dataverse Data"/>
   <Description DefaultValue="Nhập dữ liệu tài chính Việt Nam trực tiếp vào Excel — vàng, bạc, tỷ giá, lãi suất, CPI, VN30."/>
-  <IconUrl DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
-  <HighResolutionIconUrl DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+  <IconUrl DefaultValue="https://vietdataverse.online/fe/images/favicon-32x32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://vietdataverse.online/fe/images/icon-80.png"/>
   <SupportUrl DefaultValue="https://vietdataverse.online"/>
   <AppDomains>
     <AppDomain>api.vietdataverse.online</AppDomain>
@@ -74,9 +74,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://api.vietdataverse.online/fe/assets/V2.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://vietdataverse.online/fe/images/favicon-16x16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://vietdataverse.online/fe/images/favicon-32x32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://vietdataverse.online/fe/images/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://vietdataverse.online"/>

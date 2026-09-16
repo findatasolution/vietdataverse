@@ -55,9 +55,9 @@
                 loginBtn: 'Đăng nhập',
                 logoutBtn: 'Đăng xuất',
                 mainTitle: 'Tải dữ liệu kinh tế mở',
-                mainSubtitle: '<strong>Tải miễn phí</strong> lịch sử giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái',
-                dataHeroCTAExplore: 'Tích hợp Google Sheets',
-                dataHeroCTAApi: 'API cho lập trình viên',
+                mainSubtitle: '<strong>Tải xuống, API và tích hợp Excel — miễn phí.</strong> Dữ liệu vĩ mô Việt Nam: giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái.',
+                dataHeroCTASignIn: 'Đăng nhập',
+                dataHeroCTADocs: 'Tài liệu hướng dẫn',
                 sectionTitle: 'Tải dữ liệu kinh tế mở',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
@@ -295,9 +295,9 @@
                 loginBtn: 'Log in',
                 logoutBtn: 'Log out',
                 mainTitle: 'Download Open Economic Data',
-                mainSubtitle: '<strong>Download for free</strong> Vietnam gold, silver prices, SBV interest rates and more economic research and analysis.',
-                dataHeroCTAExplore: 'Google Sheets integration',
-                dataHeroCTAApi: 'API for developers',
+                mainSubtitle: '<strong>Download, API and Excel integration — all free.</strong> Vietnam macro data: gold and silver prices, SBV interest rates, bank deposit rates and exchange rates.',
+                dataHeroCTASignIn: 'Sign in',
+                dataHeroCTADocs: 'Guideline document',
                 sectionTitle: 'Download Open Economic Data',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
@@ -1264,6 +1264,16 @@
             // Returns overview to view: the default state already present in the
             // static HTML (five sections hidden via ov-section-hidden), restated
             // here so "Back to overview" and popstate can return to it explicitly.
+            // The market-at-a-glance strip (6 cards) and the world-index band.
+            // Both live above .portal-body, so the show/hide of .ov-root and
+            // .chart-section-group never reaches them — they need toggling by hand,
+            // exactly like #market-overview-panel.
+            function ovTickers() {
+                return ['.ticker-strip', '#global-ticker-band']
+                    .map(sel => document.querySelector(sel))
+                    .filter(Boolean);
+            }
+
             function ovShowOverview() {
                 const root = document.getElementById('data-charts');
                 const bar = document.getElementById('ov-detail-bar');
@@ -1273,6 +1283,7 @@
                 // A detail view is one chart the visitor deliberately opened,
                 // so it gets the full width instead (see ovShowChartDetail).
                 document.getElementById('market-overview-panel')?.removeAttribute('hidden');
+                ovTickers().forEach(el => el.removeAttribute('hidden'));
                 if (root) root.classList.remove('ov-section-hidden');
                 document.querySelectorAll('[data-lazy-section]').forEach(el => {
                     el.classList.add('ov-section-hidden');
@@ -1311,6 +1322,11 @@
                 // Full width for the chart the visitor opened — the overview's
                 // companion panel would otherwise keep 300px of it.
                 document.getElementById('market-overview-panel')?.setAttribute('hidden', '');
+                // Same reasoning for the two ticker blocks: six at-a-glance cards
+                // and a world-index band are overview furniture. On a detail view
+                // they push the one chart the visitor asked for below the fold and
+                // compete with it for attention. Back to overview restores them.
+                ovTickers().forEach(el => el.setAttribute('hidden', ''));
 
                 // Show only this chart's section; hide the other four.
                 document.querySelectorAll('[data-lazy-section]').forEach(el => {
