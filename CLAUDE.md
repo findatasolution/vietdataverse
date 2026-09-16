@@ -559,7 +559,11 @@ read it as local time and can shift the displayed day.
 
 ### 1s Pulse API status
 
-`GET /api/v1/market-pulse` currently reads `ARGUS_FINTEL_DB.mri_analysis` and is intentionally public for the FE. It supports only `lang` and `limit` (maximum 50); it does not yet provide pagination, total count, time/source/label/MRI filters, or an official stable response contract. The Developer catalog currently labels it `premium_developer`, so access policy is inconsistent. Treat `BACKLOG.md` item `API-06` as the source of truth before marketing or monetizing this endpoint as an official API.
+`GET /api/v1/market-pulse` currently reads `ARGUS_FINTEL_DB.mri_analysis`. It supports only `lang` and `limit` (maximum 50); it does not yet provide pagination, total count, time/source/label/MRI filters, or an official stable response contract.
+
+**Access is now two-tiered by caller, fixed 2026-09-16** — this endpoint has two audiences reading it, and only one is gated:
+- **The site's own "1s Pulse" page** (`fe/app.js` `_doPulseFetch`) calls it with a Bearer token or no header at all — this path (`request.headers.get("X-API-Key")` absent → `authenticate_user_optional`) stays **fully public**, unchanged, for every visitor. This is a core Open Data product surface, not the Developer API — do not gate it without a separate, deliberate product decision.
+- **A third-party caller presenting `X-API-Key`** (the Developer API) now genuinely requires `premium_developer`/admin — `be/routers/analysis.py` checks tier explicitly and returns `403` for a free-tier key, matching what `developer.py`'s `/endpoints` catalog has always documented (`access: "premium_developer"`, `403` error code). Before this fix the catalog entry was aspirational only — any key, free or paid, got `200`. Treat `BACKLOG.md` item `API-06` as the source of truth for the endpoint's remaining product-shape gaps (pagination, filters, response contract) — the tier-access half of that item is now done.
 
 ### 1s Pulse source research (not approved)
 
