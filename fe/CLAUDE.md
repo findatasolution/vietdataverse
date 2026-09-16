@@ -90,10 +90,16 @@ Four rules that a UI audit of the Open Data page found broken in ~40 places. The
 are cheap to keep and expensive to notice later — the page reads as unfinished
 long before anyone can name why.
 
-1. **Bump `?v=` when you touch `app.js` or `style.css`.** Both are referenced as
-   `app.js?v=YYYYMMDDNN` from `_layout_head.html` / `_layout_footer.html`. Ship a
-   change without bumping and returning visitors keep the cached old bundle and
-   see none of it — the change looks like it silently failed.
+1. **Do NOT hand-bump `?v=` — `build.py` hashes it for you.** This rule used to
+   say "bump `?v=YYYYMMDDNN` whenever you touch `app.js` or `style.css`"; that is
+   obsolete and actively misleading (it cost a pointless edit on 2026-09-16).
+   `build.py` rewrites every `<asset>?v=…` token in the partials with a 10-char
+   sha256 of that file's own bytes, so the cache-buster cannot go stale and cannot
+   be forgotten. The literal value sitting in `_layout_head.html` /
+   `_layout_footer.html` is just a placeholder — the regex needs *some* `?v=` token
+   to find, and the built `index.html` never carries it. What still matters: run
+   `python fe/build.py` after touching `app.js` / `style.css`, or the committed
+   `index.html` keeps pointing at the previous hash.
 2. **Vietnamese headings use sentence case, not Title Case.** "Lịch sử giá vàng
    trong nước", never "Lịch Sử Giá Vàng Trong Nước". Proper nouns keep their caps
    (Việt Nam, Phú Quý, NHNN, NHTM, GDP, CPI, SBV). This does **not** apply to the
