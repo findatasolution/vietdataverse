@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Giá | Viet Dataverse</title>
-    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — full history, Market Pulse, API không giới hạn. Gói API Supper Lite từ 99.000đ/tháng.">
+    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — full history, Market Pulse, API không giới hạn. Gói API Supper Lite từ 45.000đ/tháng.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://vietdataverse.online/pages/pricing.html">
     <link rel="icon" type="image/png" sizes="32x32" href="/fe/images/favicon-32x32.png">
     <meta property="og:title" content="Bảng Giá | Viet Dataverse">
-    <meta property="og:description" content="Gói API Supper Lite — full history, API access, Market Pulse không giới hạn. Từ 99.000đ/tháng.">
+    <meta property="og:description" content="Gói API Supper Lite — full history, API access, Market Pulse không giới hạn. Từ 45.000đ/tháng.">
     <meta property="og:url" content="https://vietdataverse.online/pages/pricing.html">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://vietdataverse.online/fe/images/og-card.png">
@@ -570,38 +570,68 @@
         .co-sp-names span:last-child  { text-align: right; }
 
         /* Confirm step — 2 choice cards */
-        .co-choice-label {
-            font-size: 11px; font-weight: 600; color: var(--stone-gray);
-            letter-spacing: .04em; text-transform: uppercase; margin-bottom: 10px;
-        }
+        /* Account-type choice cards.
+           Rebuilt 2026-09-16: the emoji icons (credit card / graduation cap) and
+           the "CHỌN LOẠI TÀI KHOẢN" overline are gone. The overline repeated the
+           modal's own title one line above it, and two colour emoji rendered at
+           22px next to 13px bold text read as clutter rather than affordance —
+           the card's shape already says "pick one". What remains carries meaning:
+           a title, one line of consequence, and the price. */
         .co-choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
         .co-choice-card {
-            display: flex; align-items: center; gap: 14px;
-            border: 2px solid var(--border-cream);
+            display: flex; align-items: center; gap: 16px;
+            border: 1px solid var(--border-warm);
             border-radius: var(--radius-md);
-            padding: 14px 16px;
+            padding: 16px 18px;
             cursor: pointer;
+            /* Ring shadow, not a thicker border — a width change on hover shifts
+               the text inside by a pixel (DESIGN.md §6, §11.12). */
             transition: border-color .18s, box-shadow .18s, background .18s;
             background: var(--pure-white);
             text-align: left;
             font-family: inherit;
             width: 100%;
         }
-        .co-choice-card:hover { border-color: var(--terracotta); box-shadow: 0 2px 8px rgba(201,100,66,.1); }
-        .co-choice-card.stu-card:hover { border-color: #2d7a4f; box-shadow: 0 2px 8px rgba(45,122,79,.12); }
-        .co-choice-card.selected { border-color: var(--terracotta); background: rgba(201,100,66,.04); }
-        .co-choice-card.stu-card.selected { border-color: #2d7a4f; background: rgba(45,122,79,.05); }
-        .co-choice-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
-        .co-choice-body { flex: 1; min-width: 0; }
-        .co-choice-title { font-size: 13px; font-weight: 700; color: var(--near-black); margin-bottom: 2px; }
-        .co-choice-sub   { font-size: 11px; color: var(--stone-gray); line-height: 1.4; }
-        .co-choice-price {
-            font-size: 17px; font-weight: 700; color: var(--near-black);
-            flex-shrink: 0; text-align: right; line-height: 1.2;
+        .co-choice-card:hover {
+            border-color: var(--terracotta);
+            box-shadow: 0 0 0 1px var(--terracotta);
         }
-        .co-choice-price small { font-size: 10px; font-weight: 400; color: var(--stone-gray); display: block; }
+        .co-choice-card.stu-card:hover {
+            border-color: #2d7a4f;
+            box-shadow: 0 0 0 1px #2d7a4f;
+        }
+        .co-choice-card.selected {
+            border-color: var(--terracotta);
+            box-shadow: 0 0 0 1px var(--terracotta);
+            background: rgba(201,100,66,.04);
+        }
+        .co-choice-card.stu-card.selected {
+            border-color: #2d7a4f;
+            box-shadow: 0 0 0 1px #2d7a4f;
+            background: rgba(45,122,79,.05);
+        }
+        .co-choice-body { flex: 1; min-width: 0; }
+        .co-choice-title {
+            font-size: 14px; font-weight: 600; color: var(--near-black);
+            margin-bottom: 3px; display: flex; align-items: center; gap: 8px;
+        }
+        .co-choice-sub { font-size: 12px; color: var(--stone-gray); line-height: 1.45; }
+        .co-choice-pill {
+            font-size: 11px; font-weight: 600; line-height: 1;
+            padding: 3px 7px; border-radius: 24px;
+            background: rgba(45,122,79,.1); color: #2d7a4f;
+            letter-spacing: .01em;
+        }
+        .co-edu-chip {
+            font-size: 11px; padding: 1px 5px; border-radius: 4px;
+            background: var(--warm-sand); color: var(--charcoal);
+        }
+        .co-choice-price {
+            font-size: 16px; font-weight: 600; color: var(--near-black);
+            flex-shrink: 0; text-align: right; line-height: 1.25;
+        }
+        .co-choice-price small { font-size: 11px; font-weight: 400; color: var(--stone-gray); display: block; }
         .co-choice-card.stu-card .co-choice-price { color: #2d7a4f; }
-        .co-choice-card.stu-card .co-choice-title { color: #2d7a4f; }
     </style>
 </head>
 <body>
@@ -685,11 +715,11 @@
             <div class="plan-price-block">
                 <!-- Promo badge -->
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                    <span style="font-size:12px;text-decoration:line-through;color:var(--stone-gray);">198.000₫</span>
+                    <span style="font-size:12px;text-decoration:line-through;color:var(--stone-gray);">90.000₫</span>
                     <span style="font-size:11px;font-weight:600;background:#2f5fde;color:#faf9f5;border-radius:24px;padding:2px 8px;letter-spacing:0.12px;">-50% KM</span>
                 </div>
                 <div class="plan-price">
-                    <span class="price-amount" id="price-pro">99.000</span>
+                    <span class="price-amount" id="price-pro">45.000</span>
                     <span class="price-currency">₫</span>
                     <span class="price-period" id="price-period-pro">/tháng</span>
                 </div>
@@ -835,46 +865,43 @@
                     <div class="co-price-row">
                         <span class="co-price-label">API Supper Lite</span>
                         <span class="co-price-value" style="color:#2d7a4f;">
-                            <span id="co-final-price">49.500</span>₫<span class="co-price-period" id="co-final-period">/tháng</span>
+                            <span id="co-final-price">22.500</span>₫<span class="co-price-period" id="co-final-period">/tháng</span>
                         </span>
                     </div>
                     <div class="co-discount-row" style="display:flex;">
-                        <span class="co-discount-tag">🎓 −50% sinh viên đã xác minh</span>
-                        <span class="co-discount-orig" id="co-discount-orig-text">Giá gốc: <s>99.000₫</s></span>
+                        <span class="co-discount-tag">−50% sinh viên đã xác minh</span>
+                        <span class="co-discount-orig" id="co-discount-orig-text">Giá gốc: <s>45.000₫</s></span>
                     </div>
                 </div>
                 <div class="co-error" id="co-err-confirm"></div>
                 <button class="co-btn-primary full" id="co-btn-pay" onclick="coSubmitPayment()" style="background:#2d7a4f;">
                     <span class="co-spinner"></span>
-                    <span class="co-btn-text" id="co-btn-pay-text">Thanh toán 49.500₫/tháng →</span>
+                    <span class="co-btn-text" id="co-btn-pay-text">Thanh toán 22.500₫/tháng →</span>
                 </button>
             </div>
 
             <!-- Unverified: show 2 clear choices -->
             <div id="co-choice-block">
-                <div class="co-choice-label">Chọn loại tài khoản</div>
                 <div class="co-choices">
                     <!-- Normal pay -->
                     <button class="co-choice-card" id="co-btn-pay-normal" onclick="coSubmitPaymentNormal(this)">
-                        <div class="co-choice-icon">💳</div>
                         <div class="co-choice-body">
                             <div class="co-choice-title">Thanh toán ngay</div>
-                            <div class="co-choice-sub">Kích hoạt ngay sau thanh toán</div>
+                            <div class="co-choice-sub">Kích hoạt ngay sau khi thanh toán</div>
                         </div>
                         <div class="co-choice-price">
-                            <span id="co-normal-price-display">99.000₫</span>
+                            <span id="co-normal-price-display">45.000₫</span>
                             <small id="co-normal-period-display">/tháng</small>
                         </div>
                     </button>
                     <!-- Student verify -->
                     <button class="co-choice-card stu-card" onclick="coStartStudentVerify()">
-                        <div class="co-choice-icon">🎓</div>
                         <div class="co-choice-body">
-                            <div class="co-choice-title">Tôi là sinh viên — giảm 50%</div>
-                            <div class="co-choice-sub">Xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 3px;border-radius:3px;font-size:10px;">.edu.vn</code> · ~2 phút</div>
+                            <div class="co-choice-title">Sinh viên <span class="co-choice-pill">−50%</span></div>
+                            <div class="co-choice-sub">Xác minh email <code class="co-edu-chip">.edu.vn</code> · khoảng 2 phút</div>
                         </div>
                         <div class="co-choice-price">
-                            <span id="co-stu-price-display">49.500₫</span>
+                            <span id="co-stu-price-display">22.500₫</span>
                             <small id="co-stu-period-display">/tháng</small>
                         </div>
                     </button>
@@ -886,18 +913,16 @@
 
         <!-- STEP GUEST: 2 choices (not logged in) -->
         <div class="co-step-content" id="co-step-guest">
-            <div class="co-choice-label">Chọn loại tài khoản</div>
             <div class="co-choices">
                 <!-- Pay as guest -->
                 <div id="co-guest-normal-card">
                     <button class="co-choice-card" id="co-guest-toggle-btn" onclick="coToggleGuestForm(this)">
-                        <div class="co-choice-icon">💳</div>
                         <div class="co-choice-body">
-                            <div class="co-choice-title">Thanh toán không cần tài khoản</div>
+                            <div class="co-choice-title">Không cần tài khoản</div>
                             <div class="co-choice-sub">Nhập email để nhận thông tin kích hoạt</div>
                         </div>
                         <div class="co-choice-price">
-                            <span id="co-guest-price-display">99.000₫</span>
+                            <span id="co-guest-price-display">45.000₫</span>
                             <small id="co-guest-period-display">/tháng</small>
                         </div>
                     </button>
@@ -915,13 +940,12 @@
                 </div>
                 <!-- Login to verify student -->
                 <button class="co-choice-card stu-card" onclick="login()">
-                    <div class="co-choice-icon">🎓</div>
                     <div class="co-choice-body">
-                        <div class="co-choice-title">Tôi là sinh viên — giảm 50%</div>
-                        <div class="co-choice-sub">Đăng nhập → xác minh email <code style="background:rgba(45,122,79,.1);padding:1px 3px;border-radius:3px;font-size:10px;">.edu.vn</code></div>
+                        <div class="co-choice-title">Sinh viên <span class="co-choice-pill">−50%</span></div>
+                        <div class="co-choice-sub">Đăng nhập rồi xác minh email <code class="co-edu-chip">.edu.vn</code></div>
                     </div>
                     <div class="co-choice-price">
-                        <span id="co-guest-stu-price-display">49.500₫</span>
+                        <span id="co-guest-stu-price-display">22.500₫</span>
                         <small id="co-guest-stu-period-display">/tháng</small>
                     </div>
                 </button>
@@ -941,27 +965,27 @@
     const PLANS = {
         monthly: {
             key:             'pro_monthly',
-            amount:          99_000,
-            amountStudent:   49_500,     // -50% sinh viên
-            display:         '99.000',
-            displayStudent:  '49.500',
+            amount:          45_000,
+            amountStudent:   22_500,     // -50% sinh viên
+            display:         '45.000',
+            displayStudent:  '22.500',
             period:          '/tháng',
-            alt:             '≈ $3.99 / month · Khuyến mại -50%',
-            altStudent:      '(giảm 50% sinh viên) ≈ $1.99/month',
-            confirmLabel:    'Thanh toán 99.000₫/tháng →',
-            confirmLabelStu: 'Thanh toán 49.500₫/tháng →',
+            alt:             '≈ $1.79 / month · Khuyến mại -50%',
+            altStudent:      '(giảm 50% sinh viên) ≈ $0.89/month',
+            confirmLabel:    'Thanh toán 45.000₫/tháng →',
+            confirmLabelStu: 'Thanh toán 22.500₫/tháng →',
         },
         yearly: {
             key:             'pro_yearly',
-            amount:          990_000,    // 99k × 10 (2 tháng free)
-            amountStudent:   495_000,    // 49.5k × 10
-            display:         '990.000',
-            displayStudent:  '495.000',
+            amount:          450_000,    // 45k × 10 (2 tháng free)
+            amountStudent:   225_000,    // 22.5k × 10
+            display:         '450.000',
+            displayStudent:  '225.000',
             period:          '/năm',
-            alt:             '≈ 82.500₫/tháng · tiết kiệm 198.000₫',
-            altStudent:      '(giảm 50% sinh viên) ≈ 41.250₫/tháng',
-            confirmLabel:    'Thanh toán 990.000₫/năm →',
-            confirmLabelStu: 'Thanh toán 495.000₫/năm →',
+            alt:             '≈ 37.500₫/tháng · tiết kiệm 90.000₫',
+            altStudent:      '(giảm 50% sinh viên) ≈ 18.750₫/tháng',
+            confirmLabel:    'Thanh toán 450.000₫/năm →',
+            confirmLabelStu: 'Thanh toán 225.000₫/năm →',
         },
     };
     let _billingPeriod = 'monthly';
@@ -975,15 +999,23 @@
         const p = _currentPlan();
         const disc = _studentVerified;
 
-        // Update Pro card price display
-        document.getElementById('price-pro').textContent       = disc ? p.displayStudent : p.display;
+        // Update Pro card price display.
+        // #price-alt-pro no longer exists in the card markup, but the write stayed
+        // behind and threw on every switchBilling() call -- which aborted the rest
+        // of the function, so the footer note never followed the toggle AND the
+        // open checkout modal never re-priced itself (it could still be showing the
+        // monthly figure after switching to yearly). Optional-chained, not
+        // re-added: the alt line is exactly the kind of extra text the card was
+        // cleaned of.
+        document.getElementById('price-pro').textContent        = disc ? p.displayStudent : p.display;
         document.getElementById('price-period-pro').textContent = p.period;
-        document.getElementById('price-alt-pro').textContent   = disc ? p.altStudent     : p.alt;
+        const altEl = document.getElementById('price-alt-pro');
+        if (altEl) altEl.textContent = disc ? p.altStudent : p.alt;
 
         // Update student badge display if verified
         const badge = document.getElementById('student-discount-badge');
         if (disc) {
-            badge.textContent = `🎓 −50% đã xác minh ✓`;
+            badge.textContent = `−50% đã xác minh`;
         }
 
         // Update footer note
@@ -1095,7 +1127,7 @@
         _coStudentPath   = true;
         const p     = _currentPlan();
         const badge = document.getElementById('student-discount-badge');
-        badge.textContent = '🎓 −50% đã xác minh ✓';
+        badge.textContent = '−50% đã xác minh';
         badge.classList.add('verified');
         badge.onclick = null;
         document.getElementById('price-pro').textContent        = p.displayStudent;
@@ -1203,7 +1235,7 @@
             const disc = _studentVerified;
             const p    = _currentPlan();
             document.getElementById('co-panel-title').textContent =
-                disc ? '🎓 Xác nhận thanh toán sinh viên' : 'Chọn loại tài khoản';
+                disc ? 'Xác nhận thanh toán sinh viên' : 'Chọn loại tài khoản';
 
             // Show/hide blocks
             document.getElementById('co-verified-block').style.display = disc ? 'block' : 'none';

@@ -46,8 +46,12 @@ FRONTEND_URL       = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 
 SUBSCRIPTION_PLANS = {
     # ── Active plans ──────────────────────────────────────────────────────────
-    "pro_monthly": {"amount": 99_000,  "days": 30,  "level": "premium_developer", "name": "API Supper Lite Monthly"},
-    "pro_yearly":  {"amount": 990_000, "days": 365, "level": "premium_developer", "name": "API Supper Lite Yearly"},
+    # Priced 45k/month from 2026-09-16 (was 99k). Yearly keeps the "pay 10, get 12"
+    # shape the FE's -15% toggle is built on: 45_000 x 10. The student tier is not a
+    # plan of its own — create_payment() halves whichever amount applies, so 45k/450k
+    # become 22.5k/225k for a verified .edu.vn account.
+    "pro_monthly": {"amount": 45_000,  "days": 30,  "level": "premium_developer", "name": "API Supper Lite Monthly"},
+    "pro_yearly":  {"amount": 450_000, "days": 365, "level": "premium_developer", "name": "API Supper Lite Yearly"},
     # ── Legacy plans (kept for existing subscriptions / webhook replay) ───────
     "premium_monthly": {"amount": 99_000,    "days": 30,  "level": "premium",           "name": "Premium 1 Thang"},
     "premium_yearly":  {"amount": 990_000,   "days": 360, "level": "premium",           "name": "Premium 1 Nam"},
