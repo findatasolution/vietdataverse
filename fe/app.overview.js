@@ -73,12 +73,7 @@
         },
         {
             id: 'policy', section: 'currency', family: 'policy',
-            // interbank and policy share ONE .chart-card in the DOM (see
-            // _tab_data_portal.html) — the interbank chart and the policy stat
-            // panel are two blocks inside the same card, not two cards. Detail
-            // routing reveals that shared card for either id, then scrolls to
-            // scrollAnchor so the policy block is what's in view.
-            domCardId: 'interbank', scrollAnchor: 'sbv-policy-anchor',
+            domCardId: 'policy', scrollAnchor: 'sbv-policy-anchor',
             i18nKey: 'ovPolicy',
             title: 'Lãi suất điều hành', source: 'NHNN', unit: '%/năm', unitKey: 'unitPctYear',
             detailPeriod: 'all',

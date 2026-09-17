@@ -576,7 +576,7 @@
             // VD Official — premium badge with logo
             sellerHtml = '<div class="km-card-seller">'
                 + '<span class="km-vd-official-badge">'
-                    + '<span class="km-vd-logo-mark">V</span>'
+                    + '<img class="km-vd-logo-mark" src="/fe/images/icon-192.png" alt="">'
                     + '<span class="km-vd-official-text">VD Official</span>'
                 + '</span>'
                 + '</div>';
@@ -890,7 +890,7 @@
         var authorHtml;
         if (p.is_vd_owned) {
             authorHtml = '<span class="km-vd-official-badge">'
-                + '<span class="km-vd-logo-mark">V</span>'
+                + '<img class="km-vd-logo-mark" src="/fe/images/icon-192.png" alt="">'
                 + '<span class="km-vd-official-text">VD Official</span>'
                 + '</span>';
         } else {

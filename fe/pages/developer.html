@@ -410,6 +410,17 @@ const data = await res.json();</div>
     let _currentKeyFull = null;
     let _newKeyFull = null;
 
+    async function ensureBackendUser(token) {
+        const res = await fetch(`${API}/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            const d = await res.json().catch(() => ({}));
+            throw new Error(d.detail || 'Không thể đồng bộ tài khoản');
+        }
+        return res.json();
+    }
+
     async function initPage() {
         const loadEl = document.getElementById('loading-state');
         try {
@@ -421,6 +432,13 @@ const data = await res.json();</div>
             }
 
             const token = await getToken();
+            if (!token) throw new Error('Không lấy được phiên đăng nhập');
+
+            // Auth0 login and the local user database are separate steps. A
+            // direct return to developer.html used to skip /me provisioning,
+            // so generate-key authenticated successfully but found no user row.
+            await ensureBackendUser(token);
+
             const res = await fetch(`${API}/api/v1/payment/status`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -448,6 +466,7 @@ const data = await res.json();</div>
                 headers: { Authorization: `Bearer ${token}` }
             });
             const d = await res.json();
+            if (!res.ok) throw new Error(d.detail || 'Không tải được thông tin API key');
 
             const sub = d.subscription || {};
             document.getElementById('sub-card').style.display = 'flex';
@@ -523,10 +542,13 @@ const data = await res.json();</div>
 
     async function generateKey() {
         const btn = document.getElementById('btn-generate');
+        const btnText = document.getElementById('btn-generate-text');
+        const originalText = btnText.textContent;
         const errEl = document.getElementById('key-error');
+        let generated = false;
         errEl.style.display = 'none';
         btn.disabled = true;
-        btn.querySelector('span').textContent = 'Đang tạo…';
+        btnText.textContent = 'Đang tạo…';
 
         try {
             const token = await getToken();
@@ -538,6 +560,7 @@ const data = await res.json();</div>
             if (!res.ok) throw new Error(d.detail || 'Lỗi generate key');
 
             _newKeyFull = d.api_key;
+            generated = true;
             document.getElementById('new-key-raw').textContent = d.api_key;
             document.getElementById('new-key-notice').classList.add('visible');
 
@@ -550,6 +573,7 @@ const data = await res.json();</div>
             errEl.style.display = 'block';
         } finally {
             btn.disabled = false;
+            if (!generated) btnText.textContent = originalText;
         }
     }
 

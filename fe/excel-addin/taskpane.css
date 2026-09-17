@@ -23,13 +23,8 @@ body {
   width: 26px;
   height: 26px;
   border-radius: 6px;
-  background: linear-gradient(135deg, #c96442, #d97757);
-  color: #faf9f5;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  object-fit: contain;
 }
 
 .vd-title {

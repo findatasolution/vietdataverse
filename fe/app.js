@@ -54,11 +54,11 @@
                 sidebarAccount: 'Tài khoản',
                 loginBtn: 'Đăng nhập',
                 logoutBtn: 'Đăng xuất',
-                mainTitle: 'Tải dữ liệu kinh tế mở',
+                mainTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 mainSubtitle: '<strong>Tải xuống, API và tích hợp Excel — miễn phí.</strong> Dữ liệu vĩ mô Việt Nam: giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái.',
                 dataHeroCTASignIn: 'Đăng nhập',
                 dataHeroCTADocs: 'Tài liệu hướng dẫn',
-                sectionTitle: 'Tải dữ liệu kinh tế mở',
+                sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
                 silverChart: 'Lịch sử giá bạc (Phú Quý)',
@@ -294,11 +294,11 @@
                 sidebarAccount: 'Account',
                 loginBtn: 'Log in',
                 logoutBtn: 'Log out',
-                mainTitle: 'Download Open Economic Data',
+                mainTitle: 'Viet economic data for operational finance',
                 mainSubtitle: '<strong>Download, API and Excel integration — all free.</strong> Vietnam macro data: gold and silver prices, SBV interest rates, bank deposit rates and exchange rates.',
                 dataHeroCTASignIn: 'Sign in',
                 dataHeroCTADocs: 'Guideline document',
-                sectionTitle: 'Download Open Economic Data',
+                sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
                 silverChart: 'Silver Price History (Vietnam)',
@@ -1287,6 +1287,7 @@
                 if (root) root.classList.remove('ov-section-hidden');
                 document.querySelectorAll('[data-lazy-section]').forEach(el => {
                     el.classList.add('ov-section-hidden');
+                    el.classList.remove('ov-chart-detail');
                 });
                 if (window.VDOverview) window.VDOverview.mount(root);
             }
@@ -1330,21 +1331,17 @@
 
                 // Show only this chart's section; hide the other four.
                 document.querySelectorAll('[data-lazy-section]').forEach(el => {
-                    el.classList.toggle('ov-section-hidden', el.dataset.lazySection !== chart.section);
+                    const isActiveSection = el.dataset.lazySection === chart.section;
+                    el.classList.toggle('ov-section-hidden', !isActiveSection);
+                    el.classList.toggle('ov-chart-detail', isActiveSection);
                 });
 
-                // Within that section, reveal only this chart's card — EXCEPT
-                // gold-silver, whose two cards sit in one .gs-two-col grid
-                // (fixed 2 columns) alongside the market-overview sidebar. Hiding
-                // one card there still left its grid column reserved, showing as
-                // a large dead gap next to the sidebar. Vàng & Bạc is meant to
-                // always show both charts together (per the approved reference
-                // layout), so it is exempt from the one-card-at-a-time drill-down
-                // the other sections use. interbank and policy still share ONE
-                // .chart-card in the DOM (see the registry comment in
-                // app.overview.js) — both ids reveal that same card.
+                // A detail route is always one indicator. The active section gets
+                // a one-column layout via .ov-chart-detail, so paired cards such
+                // as gold/silver do not reserve an empty grid track after their
+                // sibling is hidden.
                 const sectionEl = document.querySelector(`[data-lazy-section="${chart.section}"]`);
-                if (sectionEl && chart.section !== 'gold-silver') {
+                if (sectionEl) {
                     sectionEl.querySelectorAll('.chart-card[data-chart-id]').forEach(card => {
                         card.classList.toggle('ov-section-hidden', card.dataset.chartId !== chart.domCardId);
                     });
@@ -1384,9 +1381,7 @@
                 const secLabelEl = document.getElementById('ov-detail-section');
                 if (secLabelEl) secLabelEl.textContent = secMeta ? secMeta.label : '';
 
-                // ‹ › steps over DISTINCT DOM cards in the section, in registry
-                // order — interbank and policy collapse to ONE stop, since they
-                // are the same card.
+                // ‹ › steps over distinct indicator cards in registry order.
                 const domOrder = [];
                 overview.REGISTRY.filter(c => c.section === chart.section).forEach(c => {
                     if (!domOrder.includes(c.domCardId)) domOrder.push(c.domCardId);
@@ -2007,6 +2002,24 @@
             return {};
         }
 
+        // A fresh Auth0 session can reach the SPA before its local `users` row
+        // has been created. The metered data middleware correctly rejects that
+        // bearer token because it has no user_id to charge quota to. Provision
+        // through /me once, then retry the original download with the same token.
+        async function _fetchDownloadWithProvisioning(url, headers) {
+            let response = await fetch(url, { headers });
+            if (response.status !== 401 || !headers.Authorization) return response;
+
+            const identityBase = typeof API_BASE_URL === 'string'
+                ? API_BASE_URL
+                : window.location.origin;
+            const sync = await fetch(`${identityBase}/me`, {
+                headers: { Authorization: headers.Authorization }
+            });
+            if (!sync.ok) return response;
+            return fetch(url, { headers });
+        }
+
         // Anonymous-visitor fallback: the same 1-year static JSON the chart itself
         // already reads with zero auth (fe/data/*.json, no login, no quota) — the
         // CSV button used to hard-block anonymous users with a login wall even
@@ -2036,12 +2049,16 @@
             return null; // vn30-profile / vn30-prices / vn30-financials / vn30-ratios
         }
 
-        async function downloadDataset(datasetId) {
+        async function downloadDataset(datasetId, btn) {
             const base = window.APP_CONFIG.API_BASE_URL;
-            const btn = event.currentTarget;
+            // Pass `this` from inline handlers. Relying on the browser-specific
+            // global `event` made the same button fail outside Chromium.
+            btn = btn || (window.event && window.event.currentTarget);
+            if (!btn) return;
             const origHtml = btn.innerHTML;
 
             const authed = typeof isAuthenticated === 'function' && await isAuthenticated();
+            const authHeaders = authed ? await _authHeaders() : {};
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
             btn.disabled = true;
@@ -2101,8 +2118,8 @@
                 }
 
                 let dataOut;
-                if (authed) {
-                    const res = await fetch(url, { headers: await _authHeaders() });
+                if (authHeaders.Authorization) {
+                    const res = await _fetchDownloadWithProvisioning(url, authHeaders);
                     if (!res.ok) throw new Error(`API error ${res.status}`);
                     const json = await res.json();
                     if (!json.success || !json.data) throw new Error('Invalid response');

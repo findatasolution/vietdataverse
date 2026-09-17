@@ -9,7 +9,7 @@
                          alone (an earlier, reverted attempt) never fixed it. -->
                     <section class="data-hero">
                         <div class="data-hero-copy">
-                            <h1 class="data-hero-title" data-i18n="mainTitle">Tải dữ liệu kinh tế mở</h1>
+                            <h1 class="data-hero-title" data-i18n="mainTitle">Dữ liệu Kinh tế cho Tài chính Vận hành</h1>
                             <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải xuống, API và tích hợp Excel — miễn phí.</strong> Dữ liệu vĩ mô Việt Nam: giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái.</p>
                             <div class="data-hero-cta">
                                 <a href="/fe/pages/pricing.html" class="btn-data-primary"><i class="fas fa-right-to-bracket"></i> <span data-i18n="dataHeroCTASignIn">Đăng nhập</span></a>
@@ -198,7 +198,7 @@
                                     <button class="filter-btn active" data-chart="gold" data-period="1m" data-i18n="period1m">1 tháng</button>
                                     <button class="filter-btn" data-chart="gold" data-period="1y" data-i18n="period1y">1 năm</button>
                                     <button class="filter-btn" data-chart="gold" data-period="all" data-i18n="periodAll">Tất cả</button>
-                                    <button class="filter-btn" onclick="downloadDataset('gold-' + (document.getElementById('goldTypeSelect')?.value || 'SJC'))" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                    <button class="filter-btn" onclick="downloadDataset('gold-' + (document.getElementById('goldTypeSelect')?.value || 'SJC'), this)" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -231,7 +231,7 @@
                                     <button class="filter-btn active" data-chart="silver" data-period="1m" data-i18n="period1m">1 tháng</button>
                                     <button class="filter-btn" data-chart="silver" data-period="1y" data-i18n="period1y">1 năm</button>
                                     <button class="filter-btn" data-chart="silver" data-period="all" data-i18n="periodAll">Tất cả</button>
-                                    <button class="filter-btn" onclick="downloadDataset('silver')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                    <button class="filter-btn" onclick="downloadDataset('silver', this)" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -276,7 +276,7 @@
                                     </select>
                                     <button class="filter-btn" data-chart="td" data-period="1y" data-i18n="period1y">1 năm</button>
                                     <button class="filter-btn" data-chart="td" data-period="all" data-i18n="periodAll">Tất cả</button>
-                                    <button class="filter-btn" onclick="downloadDataset('termdepo-' + (document.getElementById('bankTypeSelect')?.value || 'ACB'))" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                    <button class="filter-btn" onclick="downloadDataset('termdepo-' + (document.getElementById('bankTypeSelect')?.value || 'ACB'), this)" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -309,10 +309,9 @@
                                     <button class="filter-btn active" data-chart="sbv" data-period="1m" data-i18n="period1m">1 tháng</button>
                                     <button class="filter-btn" data-chart="sbv" data-period="1y" data-i18n="period1y">1 năm</button>
                                     <button class="filter-btn" data-chart="sbv" data-period="all" data-i18n="periodAll">Tất cả</button>
-                                    <button class="filter-btn" onclick="downloadDataset('sbv-interbank')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                    <button class="filter-btn" onclick="downloadDataset('sbv-interbank', this)" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
-                            <p data-i18n="sbvPanelInterbank" style="font-size:0.78rem;color:var(--text-tertiary);margin:0.5rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Thị Trường Liên Ngân Hàng</p>
                             <div class="chart-container">
                                 <canvas id="sbvChart"></canvas>
                                 <div class="chart-loading" id="sbvLoading">
@@ -328,12 +327,22 @@
                                     </div></div>
                                 </div>
                             </div>
-                            <p data-i18n="sbvPanelPolicy" style="font-size:0.78rem;color:var(--text-tertiary);margin:1.25rem 1rem 0.25rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Lãi Suất Điều Hành (NHNN)</p>
+                            <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.sbv.gov.vn/vi/lãi-suất1" target="_blank" rel="noopener">sbv.gov.vn</a></small>
+                        </div>
+
+                        <!-- SBV Policy Rate Chart -->
+                        <div class="chart-card" data-chart-id="policy" id="sbv-policy-anchor">
+                            <div class="chart-header">
+                                <h3 class="chart-title">
+                                    <span data-i18n="sbvPanelPolicy">Lãi suất điều hành (NHNN)</span>
+                                    <span class="chart-info-icon" data-tooltip="Lãi suất điều hành do Ngân hàng Nhà nước Việt Nam công bố. Đơn vị: %/năm.">ⓘ</span>
+                                </h3>
+                            </div>
                             <!-- Policy rates get their OWN horizon, independent of the
                                  interbank selector above. SBV moves them a few times a
                                  year, so on the interbank window (7 ngày–1 năm) they are
                                  flat by construction and carry no information. -->
-                            <div class="chart-filters policy-filters" id="sbv-policy-anchor">
+                            <div class="chart-filters policy-filters">
                                 <button class="filter-btn" data-policy-period="5y">5 năm</button>
                                 <button class="filter-btn" data-policy-period="10y">10 năm</button>
                                 <button class="filter-btn active" data-policy-period="all" data-i18n="periodAll">Tất cả</button>
@@ -360,7 +369,7 @@
                                     <button class="filter-btn active" data-chart="fxrate" data-period="1m" data-i18n="period1m">1 tháng</button>
                                     <button class="filter-btn" data-chart="fxrate" data-period="1y" data-i18n="period1y">1 năm</button>
                                     <button class="filter-btn" data-chart="fxrate" data-period="all" data-i18n="periodAll">Tất cả</button>
-                                    <button class="filter-btn" onclick="downloadDataset('fxrate-SBV-USD')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                    <button class="filter-btn" onclick="downloadDataset('fxrate-SBV-USD', this)" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">
@@ -400,7 +409,7 @@
                                     <button class="filter-btn" data-chart="global" data-period="1m" data-i18n="period1m">1 tháng</button>
                                     <button class="filter-btn active" data-chart="global" data-period="1y" data-i18n="period1y">1 năm</button>
                                     <button class="filter-btn" data-chart="global" data-period="all" data-i18n="periodAll">Tất cả</button>
-                                    <button class="filter-btn" onclick="downloadDataset('global-macro')" title="Tải CSV"><i class="fas fa-download"></i></button>
+                                    <button class="filter-btn" onclick="downloadDataset('global-macro', this)" title="Tải CSV"><i class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="chart-container">

@@ -32,8 +32,7 @@ def main():
         'gold', 'silver', 'termdepo', 'interbank', 'policy',
         'fxrate', 'global', 'cpi', 'gdp', 'trade')]
     # 'vnindex' removed 2026-09-10 (REV-01) — was vnstock3-sourced, no longer
-    # exposed on API/FE. 11 -> 10 registry entries (interbank/policy still
-    # share one DOM card, so this was "10 visible cards" even before).
+    # exposed on API/FE. 11 -> 10 registry entries.
     if len(reg_ids) != 10:
         fail(f'CHART_REGISTRY: expected 10 entries, found {len(reg_ids)}: {reg_ids}')
     if len(set(reg_ids)) != len(reg_ids):
@@ -71,17 +70,19 @@ def main():
                 fail(f'{cid}: field "{m_series.group(1)}" missing/not a list in data/{f}')
 
     # ── HTML: exactly one visible overview root + detail bar + 10 chart-cards
-    #    tagged with data-chart-id (interbank/policy share one) ───────────
+    #    tagged with data-chart-id ────────────────────────────────────────
     if html.count('id="data-charts"') != 1:
         fail('index.html: expected exactly one #data-charts element')
     if html.count('id="ov-detail-bar"') != 1:
         fail('index.html: expected exactly one #ov-detail-bar element')
 
     dom_ids = re.findall(r'data-chart-id="(\w+)"', html)
-    # data-chart-id appears on: 9 .chart-card wrappers + 10 mini-tile <button>
-    # markup is JS-generated so won't be in the static HTML — only the 9 cards.
+    # Mini-tile markup is JS-generated, so only the 10 full-size cards appear
+    # in static HTML. Each registry item owns one card so detail routing can
+    # reveal exactly the indicator the visitor selected.
     if sorted(dom_ids) != sorted(['gold', 'silver', 'termdepo', 'interbank',
-                                  'fxrate', 'global', 'cpi', 'gdp', 'trade']):
+                                  'policy', 'fxrate', 'global', 'cpi', 'gdp',
+                                  'trade']):
         fail(f'index.html: chart-card data-chart-id set is wrong: {sorted(dom_ids)}')
 
     if html.count('id="sbv-policy-anchor"') != 1:
@@ -96,7 +97,7 @@ def main():
             fail(f'index.html: section "{sec}" is not statically hidden by default')
 
     # Every registry id must resolve to a domCardId that actually exists in
-    # the DOM (interbank/policy both resolve to "interbank").
+    # the DOM.
     dom_card_map = dict(re.findall(r"id: '(\w+)'.*?domCardId: '(\w+)'", overview_js, re.S))
     for cid in reg_ids:
         dom_id = dom_card_map.get(cid)

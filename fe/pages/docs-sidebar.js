@@ -27,7 +27,7 @@
     +  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>'
     + '</button>'
     + '<a class="docs-topbar-brand" href="/index.html">'
-    +  '<div class="docs-topbar-logo">V</div>'
+    +  '<img class="docs-topbar-logo" src="/fe/images/icon-192.png" alt="Viet Dataverse">'
     +  '<span class="docs-topbar-name">Viet Dataverse</span>'
     + '</a>'
     + '<span class="docs-topbar-sep">/</span>'

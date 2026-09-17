@@ -34,29 +34,6 @@
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="../auth.js" defer></script>
     <style>
-        :root {
-            --parchment:    #f5f4ed;
-            --ivory:        #faf9f5;
-            --pure-white:   #ffffff;
-            --warm-sand:    #e8e6dc;
-            --deep-dark:    #141413;
-            --near-black:   #141413;
-            --olive-gray:   #5e5d59;
-            --stone-gray:   #87867f;
-            --terracotta:   #2f5fde;
-            --error-red:    #b53333;
-            --border-cream: #f0eee6;
-            --border-warm:  #e8e6dc;
-            --ring-warm:    #d1cfc5;
-            --whisper:      rgba(20,20,19,0.05) 0px 4px 24px;
-            --text-primary:   #141413;
-            --text-secondary: #5e5d59;
-            --text-tertiary:  #87867f;
-            --border-subtle:  #e8e6dc;
-            --radius-sm:  8px;
-            --radius-md:  12px;
-            --radius-xl:  20px;
-        }
         body { margin: 0; background: var(--parchment); color: var(--near-black); }
 
         /* ── Hero ─────────────────────────────────── */
@@ -80,7 +57,7 @@
         }
         .hero-badge {
             display: inline-flex; align-items: center;
-            background: rgba(201,100,66,.08); border: 1px solid rgba(201,100,66,.18);
+            background: rgba(47,95,222,.08); border: 1px solid rgba(47,95,222,.18);
             border-radius: 99px; padding: 4px 14px;
             font-size: 11px; font-weight: 600; color: var(--terracotta);
             letter-spacing: .06em; text-transform: uppercase; margin-bottom: 18px;
@@ -134,7 +111,7 @@
             transition: border-color .2s, color .2s;
             box-shadow: var(--whisper); display: inline-block;
         }
-        .btn-secondary:hover { border-color: rgba(201,100,66,.30); color: var(--terracotta); }
+        .btn-secondary:hover { border-color: rgba(47,95,222,.30); color: var(--terracotta); }
 
         /* ── Quota grid ────────────────────────────── */
         .quota-grid {
@@ -163,14 +140,14 @@
             box-shadow: var(--whisper); transition: border-color .2s, box-shadow .2s;
         }
         .endpoint-row:hover {
-            border-color: rgba(201,100,66,.22);
-            box-shadow: 0 4px 16px rgba(201,100,66,.07);
+            border-color: rgba(47,95,222,.22);
+            box-shadow: 0 4px 16px rgba(47,95,222,.07);
         }
         .endpoint-header {
             display: flex; align-items: center; gap: 12px;
             padding: 13px 20px; cursor: pointer; user-select: none;
         }
-        .endpoint-header:hover { background: rgba(201,100,66,.025); }
+        .endpoint-header:hover { background: rgba(47,95,222,.025); }
         .method-badge {
             font-size: 10px; font-weight: 800; letter-spacing: .06em;
             padding: 3px 9px; border-radius: 5px; flex-shrink: 0;
@@ -186,7 +163,7 @@
             border-radius: 99px; flex-shrink: 0;
         }
         .access-free { background: rgba(45,122,79,.10); color: #2d7a4f; }
-        .access-dev  { background: rgba(201,100,66,.10); color: var(--terracotta); }
+        .access-dev  { background: rgba(47,95,222,.10); color: var(--terracotta); }
         .endpoint-body {
             display: none; padding: 0 20px 20px; font-size: 12.5px;
             border-top: 1px solid var(--border-cream);
@@ -233,7 +210,7 @@
         details summary::-webkit-details-marker { display: none; }
         details summary::after { content: '▾'; font-size: 11px; color: var(--text-tertiary); }
         details[open] summary::after { content: '▴'; }
-        details[open] { border-color: rgba(201,100,66,.22) !important; }
+        details[open] { border-color: rgba(47,95,222,.22) !important; }
         details[open] > summary { color: var(--terracotta); }
 
         /* ── Error table ───────────────────────────── */
@@ -297,7 +274,7 @@
         .inline-link:hover { text-decoration: underline; }
         .callout {
             display: flex; gap: 12px; align-items: flex-start;
-            background: rgba(201,100,66,.06); border: 1px solid rgba(201,100,66,.16);
+            background: rgba(47,95,222,.06); border: 1px solid rgba(47,95,222,.16);
             border-radius: var(--radius-sm); padding: 13px 18px;
             font-size: 13.5px; color: var(--text-secondary); line-height: 1.65;
         }

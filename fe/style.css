@@ -3289,19 +3289,12 @@ html {
     flex-shrink: 0;
 }
 .km-vd-logo-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     width: 16px;
     height: 16px;
     background: rgba(255,255,255,0.22);
     border-radius: 4px;
-    font-family: 'Lora', Georgia, serif;
-    font-size: 0.625rem;
-    font-weight: 700;
-    color: #faf9f5;
-    letter-spacing: 0;
-    line-height: 1;
+    object-fit: contain;
 }
 .km-vd-official-text {
     font-size: 0.6875rem;
@@ -4682,10 +4675,7 @@ html {
 }
 .docs-topbar-logo {
   width: 28px; height: 28px; border-radius: 6px;
-  background: linear-gradient(135deg, var(--terracotta), var(--coral));
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Lora', Georgia, serif; font-size: 0.875rem; font-weight: 600; color: #fff;
-  flex-shrink: 0;
+  display: block; object-fit: contain; flex-shrink: 0;
 }
 .docs-topbar-name { font-size: 0.9375rem; font-weight: 500; color: var(--near-black); }
 .docs-topbar-sep { color: var(--border-warm); font-size: 1.25rem; margin: 0 4px; line-height: 1; }
@@ -5237,6 +5227,21 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 @keyframes ov-shimmer { to { background-position: -200% 0; } }
 
 /* ── Detail chrome ─────────────────────────────────────────────────────── */
+
+/* A detail route gives the selected indicator the full content column and a
+   viewport-aware plotting area. This also collapses paired grids (gold/silver)
+   to one track after the sibling card is hidden. */
+.chart-section-group.ov-chart-detail .gs-two-col {
+    grid-template-columns: minmax(0, 1fr);
+}
+.chart-section-group.ov-chart-detail .chart-container {
+    height: clamp(420px, 58vh, 620px);
+}
+@media (max-width: 767px) {
+    .chart-section-group.ov-chart-detail .chart-container {
+        height: clamp(320px, 52vh, 420px);
+    }
+}
 
 .ov-detail-bar {
     display: flex;
