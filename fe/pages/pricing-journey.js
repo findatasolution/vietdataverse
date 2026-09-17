@@ -69,6 +69,18 @@
             grid.append(item);
             J.snapshot(d).then(s => { range.textContent = J.coverage(s.rows); }).catch(() => { range.textContent = 'Snapshot tạm không khả dụng'; });
         });
+        // Fuel is a standalone product page, not a chart in the SPA overview, so it
+        // stays out of J.catalog (tests pin catalog to VDOverview.REGISTRY).
+        const fuel = J.el('article', null, 'journey-dataset');
+        fuel.append(J.link('Giá xăng dầu & dự báo', new URL('fuel-forecast.html', location.href).href, ''),
+            J.el('small', 'Bộ Công Thương · VND/lít'));
+        const fuelRange = J.el('small', 'Đang kiểm tra dữ liệu…'); fuel.append(fuelRange);
+        fuel.append(J.el('small', 'E5RON92 · Diesel 0.05S · Kịch bản dự báo'));
+        grid.append(fuel);
+        fetch(`${J.api}/fuel-forecast/E5RON92`)
+            .then(r => { if (!r.ok) throw new Error('Fuel data unavailable'); return r.json(); })
+            .then(json => { fuelRange.textContent = J.coverage(json.data.history); })
+            .catch(() => { fuelRange.textContent = 'Dữ liệu tạm không khả dụng'; });
         loadPlans();
     }
     window.VDPricing = {resumeHref, renderFacts, ready: () => ready};

@@ -40,6 +40,7 @@ let chrome, ws;
             let response = {};
             if(request.url.endsWith('/payment/plans')) response = plans;
             else if(request.url.includes('/payment/verify-order/')) response = {activated:true};
+            else if(request.url.includes('/fuel-forecast/')) response = {success:true,data:{fuel:'E5RON92',tier:'free',history:[{period:'2022-01-21',retail_price:23595},{period:'2026-08-27',retail_price:21763}],forecast:[]}};
             await send('Fetch.fulfillRequest',{requestId,responseCode:(planFailure && request.url.endsWith('/payment/plans') || verifyFailure && request.url.includes('/payment/verify-order/'))?503:200,
                 responseHeaders:[{name:'Content-Type',value:'application/json'},{name:'Access-Control-Allow-Origin',value:'*'}],body:Buffer.from(JSON.stringify(response)).toString('base64')});
         }
@@ -55,6 +56,8 @@ let chrome, ws;
     const navigate = async url => { await send('Page.navigate',{url});await until("document.readyState === 'complete'"); };
     await navigate(origin+'/fe/pages/pricing.html?id=gold&period=1y&method=api');
     await until('window.VDPricing?.ready()');
+    await until("document.querySelector('#pricing-catalog a[href$=\"fuel-forecast.html\"]')?.closest('article')?.textContent.includes('2022-01-21 → 2026-08-27')");
+    assert.equal(await evaluate("document.querySelectorAll('#pricing-catalog article').length"),11);
     assert.match(await evaluate("document.getElementById('paid-quota').textContent"),/10\.000/);
     assert.match(await evaluate('VDPricing.resumeHref()'),/chart\/gold\?period=1y/);
     await evaluate("switchBilling('yearly')");
