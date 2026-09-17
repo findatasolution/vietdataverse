@@ -29,29 +29,6 @@
     --shadow: 0 1px 2px rgba(20,30,55,.04), 0 8px 24px rgba(20,30,55,.06);
     color-scheme: light;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#0b0f17; --card:#121826; --card-2:#182136;
-      --ink:#eef1f8; --ink-soft:#aab4c8; --ink-mute:#727e93;
-      --border:#232d42; --border-soft:#1b2333;
-      --brand:#6f92f2; --brand-ink:#bcd0ff; --brand-soft:#233458; --brand-wash:#141c2e;
-      --good:#4cc98b; --warn:#e6a23c; --warn-bg:#2a2313;
-      --bad:#e05a5a; --bad-bg:#2c1616;
-      --lock-bg: rgba(6,9,15,.78);
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#0b0f17; --card:#121826; --card-2:#182136;
-    --ink:#eef1f8; --ink-soft:#aab4c8; --ink-mute:#727e93;
-    --border:#232d42; --border-soft:#1b2333;
-    --brand:#6f92f2; --brand-ink:#bcd0ff; --brand-soft:#233458; --brand-wash:#141c2e;
-    --good:#4cc98b; --warn:#e6a23c; --warn-bg:#2a2313;
-    --bad:#e05a5a; --bad-bg:#2c1616;
-    --lock-bg: rgba(6,9,15,.78);
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
-  }
-
   *{box-sizing:border-box}
   body{
     background:var(--paper); color:var(--ink);
@@ -284,7 +261,7 @@
     <div class="body">
       <b>Đây là kịch bản điều kiện theo giá thế giới, không phải một con số dự báo chắc chắn.</b> Mô hình cần biết Δworld của kỳ tới để dự báo, nhưng giá MOPS thời gian thực chỉ có qua feed trả phí (S&amp;P Global Platts — đã khảo sát, không có bản miễn phí). Dải thấp/cao ở trên mô phỏng "nếu giá thế giới thay đổi trong biên độ lịch sử thì giá trong nước sẽ ra sao", không phải xác suất đã được hiệu chỉnh hoàn hảo.
       <ul>
-        <li>Hệ số k có ý nghĩa thống kê mạnh (p&lt;0.0001) trên toàn bộ 3 loại nhiên liệu, kiểm chứng bằng permutation test (20.000 lần xáo trộn).</li>
+        <li>Hệ số k có ý nghĩa thống kê mạnh (p&lt;0.0001) trên cả 2 loại nhiên liệu, kiểm chứng bằng permutation test (20.000 lần xáo trộn).</li>
         <li>Residual còn tự tương quan âm — 2 kỳ tháng 3/2026 (can thiệp BOG) là nguồn gây lệch chính, chưa được model hoá riêng.</li>
         <li>Không dự báo xa hơn ~1 tháng: dải tin cậy giãn theo căn bậc hai số kỳ, tới ~1 năm sẽ rộng gần bằng chính mức giá — không còn thông tin hữu ích.</li>
       </ul>
