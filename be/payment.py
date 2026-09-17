@@ -22,6 +22,7 @@ import os
 import time
 from datetime import datetime, timedelta
 from typing import Optional
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import requests
 from fastapi import APIRouter, HTTPException, Request
@@ -31,6 +32,7 @@ from sqlalchemy.orm import sessionmaker
 
 from middleware import authenticate_user
 from core.engines import get_engine_user
+from quota import get_quota
 
 router = APIRouter(prefix="/api/v1/payment", tags=["payment"])
 
@@ -58,6 +60,26 @@ SUBSCRIPTION_PLANS = {
     "dev_monthly":     {"amount": 375_000,   "days": 30,  "level": "premium_developer", "name": "Dev Premium 1 Thang"},
     "dev_yearly":      {"amount": 4_500_000, "days": 360, "level": "premium_developer", "name": "Dev Premium 1 Nam"},
 }
+
+
+@router.get("/plans")
+async def public_plans():
+    """Public purchase facts from the same configuration used by billing/quota."""
+    plans = [{"key": "free", "amount": 0, "days": None,
+              **get_quota("free", None)}]
+    for key in ("pro_monthly", "pro_yearly"):
+        plan = SUBSCRIPTION_PLANS[key]
+        plans.append({"key": key, "amount": plan["amount"], "days": plan["days"],
+                      **get_quota(plan["level"], key)})
+    return {"success": True, "source": "billing_config", "count": len(plans),
+            "data": plans, "auto_renew": False}
+
+
+def checkout_return_url(**params):
+    """Always return to the page that verifies the payment, not the SPA root."""
+    parsed = urlsplit(FRONTEND_URL)
+    path = parsed.path if parsed.path.endswith("/pricing.html") else "/pages/pricing.html"
+    return urlunsplit((parsed.scheme, parsed.netloc, path, urlencode(params), ""))
 
 # ============================================================
 # DB helpers
@@ -382,8 +404,8 @@ async def create_payment_order(body: CreateOrderRequest, request: Request):
     if not all([PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY]):
         raise HTTPException(status_code=500, detail="PAYOS_* env vars chưa được cấu hình")
 
-    return_url  = f"{FRONTEND_URL}?payment=success&order={order_code}"
-    cancel_url  = f"{FRONTEND_URL}?payment=cancelled"
+    return_url  = checkout_return_url(payment="success", order=order_code)
+    cancel_url  = checkout_return_url(payment="cancelled")
     description = plan_info["name"][:25]
 
     payload = {
@@ -519,8 +541,8 @@ async def create_payment_order_guest(body: GuestOrderRequest):
     if not all([PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY]):
         raise HTTPException(status_code=500, detail="PAYOS_* env vars chưa được cấu hình")
 
-    return_url  = f"{FRONTEND_URL}?payment=success&order={order_code}&email={email}"
-    cancel_url  = f"{FRONTEND_URL}?payment=cancelled"
+    return_url  = checkout_return_url(payment="success", order=order_code)
+    cancel_url  = checkout_return_url(payment="cancelled")
     description = plan_info["name"][:25]
 
     payload = {

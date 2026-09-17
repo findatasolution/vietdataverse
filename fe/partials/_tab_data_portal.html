@@ -10,10 +10,10 @@
                     <section class="data-hero">
                         <div class="data-hero-copy">
                             <h1 class="data-hero-title" data-i18n="mainTitle">Dữ liệu Kinh tế cho Tài chính Vận hành</h1>
-                            <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tải xuống, API và tích hợp Excel — miễn phí.</strong> Dữ liệu vĩ mô Việt Nam: giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái.</p>
+                            <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tìm đúng dữ liệu. Thử miễn phí. Kết nối vào công việc.</strong> Kiểm tra nguồn, phạm vi lịch sử và dữ liệu mẫu trước khi tải file hoặc dùng Excel / API.</p>
                             <div class="data-hero-cta">
-                                <a href="/fe/pages/pricing.html" class="btn-data-primary"><i class="fas fa-right-to-bracket"></i> <span data-i18n="dataHeroCTASignIn">Đăng nhập</span></a>
-                                <a href="/fe/pages/docs.html" class="btn-data-secondary"><i class="fas fa-book"></i> <span data-i18n="dataHeroCTADocs">Tài liệu hướng dẫn</span></a>
+                                <a href="#data/portal" id="discover-data" class="btn-data-primary"><span data-i18n="dataHeroCTASignIn">Khám phá dữ liệu</span></a>
+                                <a href="pages/excel.html" class="btn-data-secondary"><span data-i18n="dataHeroCTADocs">Kết nối Excel / API</span></a>
                             </div>
                         </div>
                         <picture class="data-hero-art">
@@ -21,6 +21,8 @@
                             <img src="images/hero-illustration.png" alt="" width="1672" height="941" loading="eager" fetchpriority="high">
                         </picture>
                     </section>
+
+                    <section id="data-discovery" class="journey-discovery" aria-label="Dataset catalog"></section>
 
                     <!-- ── Market Ticker Strip ── -->
                     <div class="ticker-strip">
@@ -172,6 +174,9 @@
                             </button>
                         </span>
                     </div>
+
+                    <section id="dataset-intro" class="journey-intro" hidden></section>
+                    <section id="dataset-tools" class="journey-tools" hidden></section>
 
                     <!-- ── Section: Vàng & Bạc ── -->
                     <div class="chart-section-group ov-section-hidden" data-lazy-section="gold-silver">

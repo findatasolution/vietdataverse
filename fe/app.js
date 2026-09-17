@@ -55,9 +55,9 @@
                 loginBtn: 'Đăng nhập',
                 logoutBtn: 'Đăng xuất',
                 mainTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
-                mainSubtitle: '<strong>Tải xuống, API và tích hợp Excel — miễn phí.</strong> Dữ liệu vĩ mô Việt Nam: giá vàng, bạc trong nước, lãi suất SBV, lãi suất gửi tiết kiệm và tỷ giá hối đoái.',
-                dataHeroCTASignIn: 'Đăng nhập',
-                dataHeroCTADocs: 'Tài liệu hướng dẫn',
+                mainSubtitle: '<strong>Tìm đúng dữ liệu. Thử miễn phí. Kết nối vào công việc.</strong> Kiểm tra nguồn, phạm vi lịch sử và dữ liệu mẫu trước khi tải file hoặc dùng Excel / API.',
+                dataHeroCTASignIn: 'Khám phá dữ liệu',
+                dataHeroCTADocs: 'Kết nối Excel / API',
                 sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
@@ -295,9 +295,9 @@
                 loginBtn: 'Log in',
                 logoutBtn: 'Log out',
                 mainTitle: 'Viet economic data for operational finance',
-                mainSubtitle: '<strong>Download, API and Excel integration — all free.</strong> Vietnam macro data: gold and silver prices, SBV interest rates, bank deposit rates and exchange rates.',
-                dataHeroCTASignIn: 'Sign in',
-                dataHeroCTADocs: 'Guideline document',
+                mainSubtitle: '<strong>Find the right data. Try it free. Put it to work.</strong> Inspect sources, history coverage and sample records before downloading or connecting Excel / API.',
+                dataHeroCTASignIn: 'Explore datasets',
+                dataHeroCTADocs: 'Connect Excel / API',
                 sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
@@ -669,6 +669,7 @@
             // Set HTML lang and persist choice
             document.documentElement.lang = lang;
             localStorage.setItem('lang', lang);
+            window.VDJourney?.refresh();
         }
 
         /* Re-renders every JS-composed timestamp from its stored date. Safe to call
@@ -1275,6 +1276,9 @@
             }
 
             function ovShowOverview() {
+                window.VDJourney?.hide();
+                document.getElementById('data-discovery')?.removeAttribute('hidden');
+                document.querySelector('.data-hero')?.removeAttribute('hidden');
                 const root = document.getElementById('data-charts');
                 const bar = document.getElementById('ov-detail-bar');
                 if (bar) bar.hidden = true;
@@ -1305,6 +1309,7 @@
                     const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
                     loadChartData(chart.chartType, chart.detailPeriod, goldType, bankCode);
                 } else if (chart.family === 'policy') {
+                    _policyPeriod = chart.detailPeriod;
                     loadPolicyRates();
                 } else if (chart.family === 'macro') {
                     loadMacroCharts(chart.detailPeriod === 'all' ? 0 : parseInt(chart.detailPeriod, 10));
@@ -1313,9 +1318,20 @@
             }
 
             function ovShowChartDetail(chartId) {
+                const [datasetId, search = ''] = chartId.split('?');
+                const context = window.VDJourney?.cleanContext({id: datasetId, ...Object.fromEntries(new URLSearchParams(search))});
                 const overview = window.VDOverview;
-                const chart = overview && overview.byId(chartId);
+                const registered = overview && overview.byId(datasetId);
+                const chart = registered && {...registered};
                 if (!chart) { ovShowOverview(); return; } // unknown id -> overview, not a blank view
+                const card = document.querySelector(`.chart-card[data-chart-id="${chart.domCardId}"]`);
+                if (context?.period && card?.querySelector(`[data-period="${context.period}"], [data-macro-period="${context.period}"], [data-policy-period="${context.period}"]`)) chart.detailPeriod = context.period;
+                card?.querySelectorAll('[data-period], [data-macro-period], [data-policy-period]').forEach(button => {
+                    button.classList.toggle('active', (button.dataset.period || button.dataset.macroPeriod || button.dataset.policyPeriod) === chart.detailPeriod);
+                });
+                if (datasetId === 'termdepo' && context?.bank) document.getElementById('bankTypeSelect').value = context.bank;
+                document.getElementById('data-discovery')?.setAttribute('hidden', '');
+                document.querySelector('.data-hero')?.setAttribute('hidden', '');
 
                 if (overview) overview.unmount(); // destroy mini instances while a detail is open
 
@@ -1366,6 +1382,7 @@
                 if (chart.section === 'macro') loadedSections.macro = true;
                 else loadChartsForSection(chart.section);
                 ovLoadDetailData(chart);
+                window.VDJourney?.show(chart, context || {});
 
                 if (chart.scrollAnchor) {
                     setTimeout(() => {
@@ -1419,9 +1436,10 @@
             // Tile clicks (event delegation — tiles are (re)built by
             // VDOverview.mount on every return to the overview).
             document.addEventListener('click', e => {
-                const tile = e.target.closest('.ov-tile[data-chart-id]');
+                const tile = e.target.closest('.ov-tile[data-chart-id], [data-dataset-id]');
                 if (!tile) return;
-                const id = tile.dataset.chartId;
+                e.preventDefault();
+                const id = tile.dataset.chartId || tile.dataset.datasetId;
                 history.pushState(null, '', `#data/portal/chart/${id}`);
                 ovShowChartDetail(id);
             });
@@ -1434,6 +1452,12 @@
                 e.preventDefault();
                 history.pushState(null, '', '#data/portal');
                 ovShowOverview();
+            });
+            document.getElementById('discover-data')?.addEventListener('click', e => {
+                e.preventDefault();
+                history.pushState(null, '', '#data/portal');
+                ovShowOverview();
+                document.getElementById('data-discovery')?.scrollIntoView({behavior: 'smooth', block: 'start'});
             });
             document.getElementById('ov-prev')?.addEventListener('click', () => {
                 const order = window._ovSectionOrder, pos = window._ovSectionPos;
@@ -2120,7 +2144,10 @@
                 let dataOut;
                 if (authHeaders.Authorization) {
                     const res = await _fetchDownloadWithProvisioning(url, authHeaders);
-                    if (!res.ok) throw new Error(`API error ${res.status}`);
+                    if (!res.ok) {
+                        if (res.status === 429) window.VDJourney?.downloadError();
+                        throw new Error(`API error ${res.status}`);
+                    }
                     const json = await res.json();
                     if (!json.success || !json.data) throw new Error('Invalid response');
                     dataOut = json.data; // full history, uncut — see removal note above

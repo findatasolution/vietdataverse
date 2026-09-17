@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Giá | Viet Dataverse</title>
-    <meta name="description" content="Truy cập toàn bộ dữ liệu tài chính Việt Nam — full history, Market Pulse, API không giới hạn. Gói API Supper Lite từ 45.000đ/tháng.">
+    <meta name="description" content="Thử dữ liệu kinh tế Việt Nam miễn phí. So sánh phạm vi dữ liệu và hạn mức API trước khi nâng cấp từ 45.000đ cho 30 ngày.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://vietdataverse.online/pages/pricing.html">
     <link rel="icon" type="image/png" sizes="32x32" href="/fe/images/favicon-32x32.png">
     <meta property="og:title" content="Bảng Giá | Viet Dataverse">
-    <meta property="og:description" content="Gói API Supper Lite — full history, API access, Market Pulse không giới hạn. Từ 45.000đ/tháng.">
+    <meta property="og:description" content="Kiểm tra dữ liệu mẫu, kết nối Excel / API và chọn hạn mức phù hợp với nhu cầu của bạn.">
     <meta property="og:url" content="https://vietdataverse.online/pages/pricing.html">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://vietdataverse.online/fe/images/og-card.png">
     <meta property="og:locale" content="vi_VN">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Bảng Giá | Viet Dataverse">
-    <meta name="twitter:description" content="Gói API Supper Lite — full history, API access, Market Pulse không giới hạn.">
+    <meta name="twitter:description" content="Dữ liệu kinh tế Việt Nam cho công việc. Thử miễn phí, nâng cấp khi cần hạn mức API cao hơn.">
     <meta name="twitter:image" content="https://vietdataverse.online/fe/images/og-card.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -650,8 +650,10 @@
 
     <!-- Header -->
     <p class="pricing-subtitle"></p>
-    <h1 class="pricing-title">Gói thành viên</h1>
-    <p class="pricing-subtitle"></p>
+    <h1 class="pricing-title">Đưa dữ liệu vào công việc</h1>
+    <p class="pricing-subtitle">Thử dữ liệu trước. Chỉ nâng cấp khi bạn cần hạn mức API cao hơn cho bảng tính, dashboard hoặc ứng dụng.</p>
+    <section id="purchase-context" class="journey-tools" hidden></section>
+    <p id="plan-status" class="journey-status" role="status">Đang kiểm tra giá và hạn mức hiện hành…</p>
 
     <!-- Billing period toggle -->
     <div class="billing-toggle">
@@ -660,7 +662,7 @@
         </button>
         <button class="bt-btn" id="bt-yearly" onclick="switchBilling('yearly')">
             Theo năm
-            <span class="bt-save-pill">−15%</span>
+            <span class="bt-save-pill">365 ngày</span>
         </button>
     </div>
 
@@ -671,7 +673,7 @@
         <div class="plan-card" id="card-free">
             <!-- <span class="plan-tier-badge badge-free">Miễn phí</span> -->
             <div class="plan-name">Free</div>
-            <div class="plan-tagline">Try data before you go deep</div>
+            <div class="plan-tagline">Kiểm tra dữ liệu và chạy thử quy trình của bạn</div>
             <div class="plan-price-block">
                 <div class="plan-price">
                     <span class="price-amount price-free">0₫</span>
@@ -689,19 +691,19 @@
                 <ul class="features-list">
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Truy cập dữ liệu lịch sử giới hạn
+                        Xem biểu đồ và tải CSV snapshot không cần đăng nhập
                     </li>
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Download tối đa 1 năm / loại dữ liệu
+                        Lịch sử API hiện có sau khi đăng nhập; phạm vi tuỳ dataset
                     </li>
                     <li>
                         <svg class="feat-icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
-                        Market Pulse — preview top 5
+                        API key miễn phí · <span id="free-quota">Đang kiểm tra hạn mức</span>
                     </li>
                     <li>
                         <svg class="feat-icon icon-limit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
-                        Giới hạn 10 lần download (lifetime)
+                        Hướng dẫn kết nối Excel; Google Sheets cho giá vàng
                     </li>
                 </ul>
             </div>
@@ -711,17 +713,12 @@
         <div class="plan-card featured" id="card-pro">
             <!-- <span class="plan-tier-badge badge-pro">Pro</span> -->
             <div class="plan-name">API Supper Lite</div>
-            <div class="plan-tagline">Dành cho dự án cá nhân, học tập, nghiên cứu</div>
+            <div class="plan-tagline">Cho quy trình cập nhật dữ liệu vượt hạn mức miễn phí</div>
             <div class="plan-price-block">
-                <!-- Promo badge -->
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                    <span style="font-size:12px;text-decoration:line-through;color:var(--stone-gray);">90.000₫</span>
-                    <span style="font-size:11px;font-weight:600;background:#2f5fde;color:#faf9f5;border-radius:24px;padding:2px 8px;letter-spacing:0.12px;">-50% KM</span>
-                </div>
                 <div class="plan-price">
                     <span class="price-amount" id="price-pro">45.000</span>
                     <span class="price-currency">₫</span>
-                    <span class="price-period" id="price-period-pro">/tháng</span>
+                    <span class="price-period" id="price-period-pro">/30 ngày</span>
                 </div>
 
                 <!-- Student discount badge -->
@@ -730,7 +727,7 @@
                      -50% sinh viên
                 </span>
             </div>
-            <button class="btn-plan btn-pro" id="btn-pro" onclick="openCheckout()">
+            <button class="btn-plan btn-pro" id="btn-pro" onclick="openCheckout()" disabled>
                 <span class="spinner"></span>
                 <span class="btn-text">Nâng cấp gói →</span>
             </button>
@@ -745,27 +742,27 @@
                 <ul class="features-list">
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Download toàn bộ dữ liệu (full history)
+                        <span id="paid-quota">Đang kiểm tra hạn mức API</span>
                     </li>
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Dữ liệu realtime / gần realtime
+                        <span id="paid-burst">Đang kiểm tra giới hạn tốc độ</span>
                     </li>
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Không giới hạn thời gian (không cutoff)
+                        Dùng key hiện có, không cần sửa tích hợp sau nâng cấp
                     </li>
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Market Pulse đầy đủ
+                        Hạn mức dùng chung cho các endpoint API được tính quota
                     </li>
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        API key riêng</span>
+                        Cùng nguồn và phạm vi dữ liệu với API miễn phí
                     </li>
                     <li>
                         <svg class="feat-icon icon-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 8 6 12 14 4"/></svg>
-                        Ưu tiên tốc độ download
+                        Không cam kết realtime hoặc SLA; kiểm tra độ mới từng dataset
                     </li>
                 </ul>
             </div>
@@ -774,8 +771,29 @@
     </div>
 
     <p id="billing-footer-note" style="font-size:12px;color:var(--stone-gray);text-align:center;margin-bottom:24px;">
-        Thanh toán theo tháng · Huỷ bất kỳ lúc nào
+        Thanh toán một lần cho 30 ngày · Không tự động gia hạn
     </p>
+
+    <section class="journey-tools" id="purchase-evidence">
+        <h2>Bạn nhận được gì — và không nhận được gì?</h2>
+        <p>Hạn mức cao hơn cho việc gọi dữ liệu định kỳ; không phải quyền truy cập một kho dữ liệu độc quyền khác. Nếu hạn mức miễn phí đã đủ, bạn chưa cần nâng cấp.</p>
+        <div class="journey-actions">
+            <a class="btn-data-secondary" href="excel.html">Xem cách kết nối Excel</a>
+            <a class="btn-data-secondary" href="api-docs.html">Kiểm tra tài liệu API</a>
+        </div>
+        <details><summary>Ước lượng hạn mức cho quy trình của bạn</summary>
+            <p>Ví dụ: 5 request mỗi giờ × 8 giờ/ngày × 22 ngày = 880 request/tháng. Refresh lại, phân trang và retry có thể tăng số request. Gói trả phí không có nghĩa là gọi API không giới hạn.</p>
+        </details>
+        <details><summary>Lịch sử, độ mới và quyền sử dụng</summary>
+            <p>Lịch sử hiện có khác nhau theo dataset. Snapshot bên dưới là bản xem trước công khai, không phải toàn bộ lịch sử API. Nâng cấp không bổ sung những kỳ dữ liệu chưa có, không bảo đảm dữ liệu realtime và không tự cấp quyền phân phối lại dữ liệu nguồn.</p>
+            <a href="terms.html">Điều khoản sử dụng</a>
+        </details>
+        <details><summary>Sau khi thanh toán và khi hết hạn</summary>
+            <p>Quyền lợi chỉ được kích hoạt sau khi thanh toán được xác minh. Bạn có thể trở lại dataset đã chọn, tiếp tục dùng key hiện có. Không tự động trừ tiền gia hạn; khi hết hạn, tài khoản trở về hạn mức miễn phí.</p>
+        </details>
+        <h2>Kiểm tra dataset trước khi mua</h2>
+        <div id="pricing-catalog" class="journey-catalog"></div>
+    </section>
 
     <div class="pricing-footer">
         <span class="security-note">
@@ -955,13 +973,15 @@
     </div>
 </div>
 
+<script src="data-journey.js"></script>
+<script src="pricing-journey.js"></script>
 <script>
     const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:8000'
         : 'https://api.vietdataverse.online';
 
     // ── Billing plans ─────────────────────────────────────────
-    // yearly = monthly × 12 × 0.85, rounded
+    // Fallback display only. Checkout waits for the server's public plan catalog.
     const PLANS = {
         monthly: {
             key:             'pro_monthly',
@@ -969,7 +989,7 @@
             amountStudent:   22_500,     // -50% sinh viên
             display:         '45.000',
             displayStudent:  '22.500',
-            period:          '/tháng',
+            period:          '/30 ngày',
             alt:             '≈ $1.79 / month · Khuyến mại -50%',
             altStudent:      '(giảm 50% sinh viên) ≈ $0.89/month',
             confirmLabel:    'Thanh toán 45.000₫/tháng →',
@@ -981,7 +1001,7 @@
             amountStudent:   225_000,    // 22.5k × 10
             display:         '450.000',
             displayStudent:  '225.000',
-            period:          '/năm',
+            period:          '/365 ngày',
             alt:             '≈ 37.500₫/tháng · tiết kiệm 90.000₫',
             altStudent:      '(giảm 50% sinh viên) ≈ 18.750₫/tháng',
             confirmLabel:    'Thanh toán 450.000₫/năm →',
@@ -1020,13 +1040,14 @@
 
         // Update footer note
         document.getElementById('billing-footer-note').textContent = period === 'yearly'
-            ? 'Thanh toán hàng năm · Tiết kiệm 2 tháng · Huỷ bất kỳ lúc nào'
-            : 'Thanh toán theo tháng · Huỷ bất kỳ lúc nào';
+            ? 'Thanh toán một lần cho 365 ngày · Không tự động gia hạn'
+            : 'Thanh toán một lần cho 30 ngày · Không tự động gia hạn';
+        window.VDPricing?.renderFacts();
 
         // Refresh confirm step if overlay is open
         if (document.getElementById('checkout-overlay').style.display !== 'none'
-            && _coCurrentStep === 'confirm') {
-            coGoStep('confirm');
+            && ['confirm', 'guest'].includes(_coCurrentStep)) {
+            coGoStep(_coCurrentStep);
         }
     }
 
@@ -1053,6 +1074,7 @@
                 <p class="result-desc">Vui lòng chờ trong giây lát.</p>`;
             try {
                 const res  = await fetch(`${API}/api/v1/payment/verify-order/${orderCode}`, { method: 'POST' });
+                if (!res.ok) throw new Error('Payment verification unavailable');
                 const data = await res.json();
                 if (data.activated || data.already_paid) {
                     banner.innerHTML = `
@@ -1060,22 +1082,22 @@
                         <div class="result-title">Thanh toán thành công!</div>
                         <p class="result-desc">API Supper Lite đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
                         <div class="result-actions">
-                            <a class="btn-home" href="/index.html">Về trang chủ</a>
-                            <button class="btn-cta-sm" onclick="login()">Đăng nhập ngay</button>
+                            <a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Tiếp tục với dữ liệu đã chọn</a>
+                            <button class="btn-cta-sm" onclick="login(window.VDPricing?.resumeHref())">Đăng nhập để tiếp tục</button>
                         </div>`;
                 } else {
                     banner.innerHTML = `
                         <div class="result-icon">⏳</div>
                         <div class="result-title" style="color:var(--terracotta)">Đang xử lý thanh toán</div>
                         <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>API Supper Lite sẽ tự động kích hoạt sau khi xử lý xong.</p>
-                        <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
+                        <div class="result-actions"><a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Trở lại dữ liệu đã chọn</a></div>`;
                 }
             } catch {
                 banner.innerHTML = `
-                    <div class="result-icon">🎉</div>
-                    <div class="result-title">Thanh toán đã ghi nhận!</div>
-                    <p class="result-desc">API Supper Lite sẽ được kích hoạt sớm.<br>Liên hệ hỗ trợ nếu chưa thấy sau 10 phút.</p>
-                    <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
+                    <div class="result-icon">⏳</div>
+                    <div class="result-title">Chưa xác minh được thanh toán</div>
+                    <p class="result-desc">Chưa thể xác nhận quyền lợi đã kích hoạt. Vui lòng kiểm tra tài khoản hoặc tải lại để thử xác minh; không thanh toán lại nếu đã bị trừ tiền.</p>
+                    <div class="result-actions"><a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Trở lại dữ liệu đã chọn</a></div>`;
             }
         } else if (payment === 'cancelled') {
             banner.className = 'cancelled';
@@ -1083,10 +1105,10 @@
                 <div class="result-icon">✕</div>
                 <div class="result-title">Thanh toán đã huỷ</div>
                 <p class="result-desc">Bạn có thể thử lại bất cứ lúc nào.</p>
-                <div class="result-actions"><a class="btn-home" href="/index.html">Về trang chủ</a></div>`;
+                <div class="result-actions"><a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Trở lại dữ liệu đã chọn</a></div>`;
         }
 
-        window.history.replaceState({}, '', window.location.pathname);
+        // Keep the order query so reloading can safely retry verification.
     })();
 
     // ── Auth on load ──────────────────────────────────────────
@@ -1131,6 +1153,7 @@
         badge.classList.add('verified');
         badge.onclick = null;
         document.getElementById('price-pro').textContent        = p.displayStudent;
+        window.VDPricing?.renderFacts();
     }
 
     function updateNavAuth(user) {
@@ -1146,13 +1169,14 @@
         }
     }
 
-    function handleFreePlan() { window.location.href = '/index.html'; }
+    function handleFreePlan() { window.location.href = window.VDPricing?.resumeHref() || '/index.html#data/portal'; }
 
     // ── Checkout overlay ──────────────────────────────────────
     async function openCheckout()        { await _openOverlay(); }
     async function openCheckoutStudent() { await _openOverlay(); }
 
     async function _openOverlay() {
+        if (!window.VDPricing?.ready()) return;
         try { _coIsAuth = await isAuthenticated(); } catch { _coIsAuth = false; }
         document.getElementById('checkout-overlay').style.display = 'flex';
         document.body.style.overflow = 'hidden';

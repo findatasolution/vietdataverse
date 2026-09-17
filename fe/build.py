@@ -22,7 +22,7 @@ GENERATED_COMMENT = "<!-- GENERATED FILE — edit fe/partials/ instead. Run: pyt
 # unchanged URL, so a "deployed" fix stayed invisible until a manual hard
 # refresh. A hash of the file's own bytes can't go stale like that: it only
 # changes when the file's content does, automatically, on every build.
-CACHE_BUSTED_ASSETS = ("style.css", "app.js", "app.overview.js")
+CACHE_BUSTED_ASSETS = ("style.css", "app.js", "app.overview.js", "auth.js", "pages/data-journey.js")
 
 # Ordered list of partials to concatenate
 PARTIALS = [

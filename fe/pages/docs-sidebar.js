@@ -1,18 +1,15 @@
 (function(){
   var shell = document.querySelector('.doc-shell');
   if (!shell) return;
+  document.body.classList.add('docs-page');
 
   var currentFile = window.location.pathname.split('/').pop();
 
-  // 1. Replace existing .doc-topbar/.page-nav with unified docs topbar,
-  //    but preserve .settings-tabs and #nav-auth so account pages keep their nav.
+  // Remove the legacy header; retain account controls on pages such as pricing.
   var oldTopbar = document.querySelector('.doc-topbar') || document.querySelector('.page-nav');
-  var pageTitle = '';
   var settingsTabs = null;
   var navAuth = null;
   if (oldTopbar) {
-    var titleEl = oldTopbar.querySelector('.doc-topbar-title');
-    if (titleEl) pageTitle = titleEl.textContent.trim();
     settingsTabs = oldTopbar.querySelector('.settings-tabs');
     if (settingsTabs) settingsTabs = oldTopbar.removeChild(settingsTabs);
     navAuth = oldTopbar.querySelector('#nav-auth');
@@ -20,37 +17,25 @@
     oldTopbar.parentNode.removeChild(oldTopbar);
   }
 
-  var newTopbar = document.createElement('header');
-  newTopbar.className = 'docs-topbar';
+  var newTopbar = document.createElement('div');
+  newTopbar.className = 'docs-tools';
   newTopbar.innerHTML =
-    '<button class="docs-burger" type="button" aria-label="Menu">'
+    '<button class="docs-burger" type="button" aria-label="Menu" aria-controls="docs-sidebar" aria-expanded="false">'
     +  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>'
     + '</button>'
-    + '<a class="docs-topbar-brand" href="/index.html">'
-    +  '<img class="docs-topbar-logo" src="/fe/images/icon-192.png" alt="Viet Dataverse">'
-    +  '<span class="docs-topbar-name">Viet Dataverse</span>'
-    + '</a>'
-    + '<span class="docs-topbar-sep">/</span>'
-    + '<a class="docs-topbar-section docs-topbar-section-link" href="docs.html">Docs</a>'
-    + (pageTitle
-        ? '<span class="docs-topbar-sep">/</span>'
-          + '<span class="docs-topbar-section">' + pageTitle + '</span>'
-        : '')
     + '<div class="docs-topbar-search" id="docs-search-box">'
     +   '<svg width="14" height="14" fill="none" stroke="#87867f" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-    +   '<input id="docs-search-input" type="text" placeholder="Tìm kiếm tài liệu..." autocomplete="off" spellcheck="false">'
+    +   '<input id="docs-search-input" type="text" aria-label="Tìm kiếm tài liệu" placeholder="Tìm kiếm tài liệu..." autocomplete="off" spellcheck="false">'
     +   '<kbd>⌘K</kbd>'
     +   '<div class="docs-search-results" id="docs-search-results" hidden></div>'
     + '</div>';
 
-  // Re-attach preserved controls into topbar right side
+  // Preserve controls without recreating a horizontal header.
   if (settingsTabs || navAuth) {
     var actions = document.createElement('div');
-    actions.className = 'docs-topbar-actions';
-    actions.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:12px;';
+    actions.className = 'docs-sidebar-actions';
     if (settingsTabs) actions.appendChild(settingsTabs);
     if (navAuth) actions.appendChild(navAuth);
-    newTopbar.appendChild(actions);
   }
 
   document.body.insertBefore(newTopbar, document.body.firstChild);
@@ -116,13 +101,16 @@
     }
   ];
 
-  var navHTML = '<nav class="docs-sidebar"><div class="docs-sidebar-inner">';
+  var navHTML = '<nav class="docs-sidebar" id="docs-sidebar" aria-label="Docs"><div class="docs-sidebar-inner">'
+    + '<a class="docs-topbar-brand docs-sidebar-brand" href="/index.html">'
+    + '<img class="docs-topbar-logo" src="/fe/images/icon-192.png" alt="">'
+    + '<span class="docs-topbar-name">Viet Dataverse</span></a>';
   NAV.forEach(function(group){
     navHTML += '<div class="docs-nav-group"><div class="docs-nav-group-title">' + group.title + '</div>';
     group.items.forEach(function(item){
       var isExternal = item.href.indexOf('/index.html#') === 0;
       var active = !isExternal && currentFile === item.href;
-      navHTML += '<a class="docs-nav-item' + (active ? ' active' : '') + '" href="' + item.href + '">'
+      navHTML += '<a class="docs-nav-item' + (active ? ' active' : '') + '"' + (active ? ' aria-current="page"' : '') + ' href="' + item.href + '">'
         + item.icon
         + item.label
         + '</a>';
@@ -132,27 +120,24 @@
   navHTML += '</div></nav>';
 
   shell.insertAdjacentHTML('afterbegin', navHTML);
+  if (actions) shell.querySelector('.docs-sidebar-inner').appendChild(actions);
 
-  // 5. Mobile dropdown menu (toggled by hamburger) — gom toàn bộ nav vào đây
-  var menuHTML = '<nav class="docs-mobile-menu" id="docs-mobile-menu">';
-  NAV.forEach(function(group){
-    group.items.forEach(function(item){
-      var isExternal = item.href.indexOf('/index.html#') === 0;
-      var active = !isExternal && currentFile === item.href;
-      menuHTML += '<a class="docs-mobile-menu-item' + (active ? ' active' : '') + '" href="' + item.href + '">' + item.label + '</a>';
-    });
-  });
-  menuHTML += '</nav>';
-  newTopbar.insertAdjacentHTML('afterend', menuHTML);
-
+  // Reuse the same grouped sidebar on mobile instead of a second menu.
   var burger = newTopbar.querySelector('.docs-burger');
-  var menu = document.getElementById('docs-mobile-menu');
+  var menu = document.getElementById('docs-sidebar');
   if (burger && menu) {
+    function closeMenu() {
+      menu.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
     burger.addEventListener('click', function(e){
       e.stopPropagation();
-      menu.classList.toggle('open');
+      burger.setAttribute('aria-expanded', String(menu.classList.toggle('open')));
     });
-    document.addEventListener('click', function(){ menu.classList.remove('open'); });
+    document.addEventListener('click', function(e){ if (!menu.contains(e.target)) closeMenu(); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && menu.classList.contains('open')) { closeMenu(); burger.focus(); }
+    });
   }
 
   // 6. Search — client-side, indexed from docs headings (docs-search-index.json,
@@ -183,7 +168,10 @@
 
   function renderResults(items, query) {
     if (!items.length) {
-      searchResults.innerHTML = '<div class="docs-search-empty">Không tìm thấy kết quả cho "' + query + '"</div>';
+      var empty = document.createElement('div');
+      empty.className = 'docs-search-empty';
+      empty.textContent = 'Không tìm thấy kết quả cho "' + query + '"';
+      searchResults.replaceChildren(empty);
       searchResults.hidden = false;
       return;
     }

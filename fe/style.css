@@ -222,9 +222,8 @@ html {
     border-bottom-color: var(--terracotta);
 }
 
-/* Desktop shows text only — .tab-icon / .tab-label-short exist purely for
-   the mobile icon-bar treatment below (≤768px) and are inert here. */
-.tab-icon { display: none; }
+/* Desktop/tablet show text only; mobile (<640px) uses icon-only tabs. */
+.workspace-tab .tab-icon { display: none; }
 .tab-label-short { display: none; }
 
 /* ── Top Bar Right Cluster ── */
@@ -4801,6 +4800,66 @@ html {
   .docs-topbar-actions { margin-left: auto; }
 }
 
+/* Docs navigation has no horizontal header. Tools float independently;
+   one sidebar supplies the same groups, typography and active state everywhere. */
+.docs-page .doc-shell { min-height: 100vh; }
+.docs-page .doc-shell > main { padding-top: 88px; }
+.docs-tools {
+  position: fixed; top: 12px; right: 24px; z-index: 45;
+  display: flex; align-items: center; gap: 8px;
+  max-width: calc(100vw - 284px);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.docs-tools .docs-topbar-search { display: flex; margin-left: 0; min-height: 44px; box-sizing: border-box; }
+.docs-tools .docs-lang-toggle { min-height: 44px; }
+.docs-tools .docs-search-results { max-width: calc(100vw - 32px); }
+.docs-tools .docs-search-results[hidden] { display: none; }
+.docs-page .docs-sidebar {
+  display: block; top: 0; height: 100vh; width: 260px;
+  box-sizing: border-box; align-self: flex-start;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px; line-height: 1.4; text-align: left;
+}
+.docs-sidebar-brand { min-height: 44px; margin: 0 8px 24px; }
+.docs-sidebar-actions { padding: 8px; border-top: 1px solid var(--border-cream); }
+.docs-sidebar-actions #nav-auth { flex-wrap: wrap; }
+.docs-page .docs-nav-item { min-height: 44px; box-sizing: border-box; }
+.docs-page .docs-nav-group-title { line-height: 1.4; }
+@media (min-width: 640px) and (max-width: 1024px) {
+  .docs-page .docs-sidebar { width: 220px; }
+  .docs-tools { right: 16px; max-width: calc(100vw - 244px); }
+}
+@media (max-width: 639px) {
+  .docs-tools { top: 8px; left: 16px; right: 16px; max-width: none; }
+  .docs-tools .docs-burger { display: inline-flex; width: 44px; height: 44px; background: var(--ivory); }
+  .docs-tools .docs-topbar-search { flex: 1; width: auto; min-width: 0; }
+  .docs-tools .docs-topbar-search input { font-size: 16px; }
+  .docs-tools .docs-topbar-search kbd { display: none; }
+  .docs-tools .docs-search-results { position: fixed; top: 60px; left: 16px; right: 16px; width: auto; }
+  .docs-page .docs-sidebar {
+    display: none; position: fixed; top: 64px; left: 0; bottom: 0;
+    width: min(320px, 100vw); height: calc(100dvh - 64px); z-index: 44;
+    box-shadow: 8px 0 24px rgba(20,20,19,0.12);
+  }
+  .docs-page .docs-sidebar.open { display: block; }
+  .docs-page .doc-shell > main { padding-top: 80px; }
+}
+@media (min-width: 640px) {
+  .docs-tools .docs-burger { display: none; }
+  .workspace-tab .tab-icon, .workspace-tab .tab-label-short { display: none; }
+  .workspace-tab .tab-label-full { display: inline; }
+  .workspace-tab {
+    width: auto; height: 100%; padding: 0 0.75rem;
+    border: none; border-bottom: 2px solid transparent; border-radius: 0;
+    margin-bottom: -1px;
+  }
+  .workspace-tab.active { background: transparent; border-bottom: 2px solid var(--terracotta); }
+  .workspace-nav { height: 100%; }
+}
+@media (max-width: 639px) {
+  .workspace-tab { width: 44px; height: 44px; }
+}
+
 /*
 TOC scroll-spy (inline in each doc page):
 const tocItems = document.querySelectorAll('.doc-toc-item[href^="#"]');
@@ -4811,6 +4870,42 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 */
 
 /* ── Open Data — value-prop hero (above ticker strip) ── */
+.journey-discovery, .journey-intro, .journey-tools {
+    padding: 24px; margin: 0 0 24px; border: 1px solid var(--border-cream);
+    border-radius: 20px; background: var(--ivory); min-width: 0;
+}
+.journey-discovery { scroll-margin-top: 80px; }
+.journey-tools { scroll-margin-top: 80px; }
+.ov-chart-detail > .chart-section-heading { display: none; }
+.journey-discovery h2, .journey-intro h2, .journey-tools h2, .journey-tools h3 {
+    font-family: 'Lora', Georgia, serif; font-weight: 500; margin: 0 0 12px;
+}
+.journey-intro p, .journey-tools p { color: var(--olive-gray); line-height: 1.6; margin: 8px 0 16px; }
+.journey-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.journey-actions button, .journey-tools button, .journey-tools a.btn-data-secondary { min-height: 44px; }
+.journey-actions button, .journey-tools button { border: 1px solid var(--border-warm); font-family: inherit; cursor: pointer; }
+.journey-tools button:disabled { opacity: 0.55; cursor: not-allowed; }
+.journey-actions [aria-pressed="true"] { border-color: var(--terracotta); color: var(--terracotta); background: var(--warm-sand); }
+.journey-catalog { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.journey-dataset { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--border-cream); border-radius: 12px; color: var(--near-black); text-decoration: none; }
+.journey-dataset:hover { border-color: var(--terracotta); }
+.journey-dataset small { color: var(--olive-gray); line-height: 1.5; }
+.journey-status { font-size: 0.875rem; color: var(--olive-gray); }
+.journey-code { padding: 16px; background: var(--warm-sand); border-radius: 8px; overflow-x: auto; white-space: pre; margin: 16px 0; }
+.journey-upgrade { background: var(--parchment); padding: 20px; border-radius: 12px; margin-top: 24px; }
+.journey-tools details { margin-top: 20px; }
+.journey-tools summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
+.journey-table { max-width: 100%; overflow-x: auto; }
+.journey-table table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.journey-table th, .journey-table td { padding: 10px; border-bottom: 1px solid var(--border-cream); text-align: left; white-space: nowrap; }
+.pricing-page > .journey-tools, .pricing-page > .journey-status { width: calc(100% - 32px); max-width: 1000px; }
+.pricing-page .pricing-title, .pricing-page .pricing-subtitle { padding-left: 16px; padding-right: 16px; }
+@media (max-width: 639px) {
+    .journey-discovery, .journey-intro, .journey-tools { padding: 16px; border-radius: 14px; }
+    .journey-catalog { grid-template-columns: 1fr; }
+    .journey-actions > * { flex: 1 1 auto; justify-content: center; }
+}
+
 /* Compacted for the overview (spec: "Page header" decision) — the grid needs to
    reach above the fold, so this trades vertical space while keeping the <h1>
    and both CTAs intact for SEO and the API entry point.

@@ -73,9 +73,11 @@ async function initAuth0() {
                 // Callback always lands on the whitelisted /index.html; this returns
                 // the user to e.g. /pages/developer.html so login feels seamless.
                 const dest = result && result.appState && result.appState.returnTo;
-                const destPath = dest && dest.split(/[?#]/)[0];
-                if (dest && destPath !== window.location.pathname) {
-                    window.location.replace(dest);
+                const returnURL = dest && new URL(dest, window.location.origin);
+                // The dataset lives in the hash of the same index.html path.
+                // Compare the full URL, while rejecting cross-origin redirects.
+                if (returnURL && returnURL.origin === window.location.origin && returnURL.href !== window.location.href) {
+                    window.location.replace(returnURL.href);
                     return _auth0Client;
                 }
             } catch (err) {
