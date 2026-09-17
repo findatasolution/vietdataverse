@@ -575,6 +575,40 @@ unlike `/history`'s explicit ISO-8601 `…Z`), so the page reads the
 `YYYY-MM-DD` prefix as text rather than through `new Date()`, which would
 read it as local time and can shift the displayed day.
 
+### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
+
+`users.email` and `users.auth0_id` are both UNIQUE, and every router finds the
+caller with `WHERE auth0_id = :aid` on `request.state.user["auth0_id"]`. A person
+who signed up with email/password (`auth0|…`) and later logs in with Google
+(`google-oauth2|…`) therefore had no row for the second identity: `/auth/me`
+crashed trying to insert a duplicate email, `/subscriptions/me` returned 404, the
+fuel forecast served the free tier. Found when `findatasolution@gmail.com` (admin,
+active subscription) saw the lock overlay.
+
+**`be/services/identity.py` `resolve_identity()` is now the only way the three
+auth entry points in `be/middleware.py` (`_auth_via_bearer`, `authenticate_user`,
+`authenticate_user_optional`) map a token to a user**, and they put the row's own
+`users.auth0_id` into `request.state.user` — so no router needed changing. Order:
+`users.auth0_id` → `user_identities` (migration 017, USER_DB) → claim an account
+that has **no** identity yet (e.g. guest checkout) only when Auth0 `/userinfo`
+says this identity's email is verified. Unknown subjects are negative-cached 5 min
+to stay under Auth0's `/userinfo` rate limit.
+
+**Never auto-merge into an account that already has an identity.** Whoever
+registered that email first may never have proven they own it (account
+pre-hijacking), and `users.email_verified` is unreliable (always `false` for rows
+created by `/auth/me`). `/auth/me` and `/auth/callback` now return **409** for that
+case instead of crashing. Link manually after confirming the person owns both:
+
+```sql
+INSERT INTO user_identities (auth0_sub, user_id) VALUES ('google-oauth2|…', <user_id>);
+```
+
+This also closed a privilege-escalation hole: `authenticate_user` used to fall back
+to `SELECT user_level, is_admin FROM users WHERE email = <token email claim>`
+without any verification, so a self-registered unverified login claiming an admin's
+email got `is_admin=true` on the request. It also stored `user_level` in `user_id`.
+
 ### GA4 Reporting API (2026-09)
 
 `admin_dashboard` (`be/routers/admin.py`) now returns a `website_traffic` field (active users, pageviews, sessions, new users for the selected `24h`/`7d`/`ytd` period) sourced from GA4 property `522974314` via `be/core/ga4.py`. Site-side `gtag.js` tracking (`fe/partials/_layout_head.html`, two Measurement IDs `G-YB3PKHN2E5`/`G-B9BHYSYDES` — both data streams under this one property) already existed; this adds server-side *read* access so the number shows up in `admin.html` instead of requiring a manual login to analytics.google.com.

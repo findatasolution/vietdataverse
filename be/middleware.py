@@ -7,8 +7,20 @@ from fastapi.responses import JSONResponse
 from jose import JWTError
 from sqlalchemy import text
 
-from auth import verify_auth0_token, get_user_level, get_user_is_admin, NAMESPACE
+from auth import verify_auth0_token, get_user_level, get_user_is_admin, NAMESPACE, AUTH0_DOMAIN
 from quota import check_and_consume
+from services.identity import resolve_identity
+
+
+def _userinfo_fetcher(token: str):
+    """Deferred Auth0 /userinfo call — only made for a subject not yet known to users."""
+    def fetch() -> dict:
+        import requests
+        resp = requests.get(f"https://{AUTH0_DOMAIN}/userinfo",
+                            headers={"Authorization": f"Bearer {token}"}, timeout=5)
+        resp.raise_for_status()
+        return resp.json()
+    return fetch
 
 
 async def _log_api_call(
@@ -196,22 +208,18 @@ async def _auth_via_bearer(request: Request, token: str) -> bool:
     engine = get_engine_user()
     try:
         with engine.connect() as conn:
-            row = conn.execute(text("""
-                SELECT user_id, email, user_level, is_admin, current_plan
-                FROM users WHERE auth0_id = :aid
-                LIMIT 1
-            """), {"aid": auth0_id}).fetchone()
-        if not row:
+            resolved = resolve_identity(conn, auth0_id, _userinfo_fetcher(token))
+        if not resolved:
             return False  # chưa có dòng user → /me sẽ tạo; tạm coi như chưa đo được
 
-        user_id, db_email, user_level, is_admin, current_plan = row
+        user_id, user_level, current_plan = resolved.user_id, resolved.user_level, resolved.current_plan
 
         # Preserve the resolved identity even when quota enforcement rejects
         # the call, allowing the meter gate to log a known user instead of an
         # anonymous failure.
         request.state.user = {
-            "auth0_id": auth0_id, "email": db_email or email,
-            "user_level": user_level, "is_admin": bool(is_admin),
+            "auth0_id": resolved.auth0_id, "email": resolved.email or email,
+            "user_level": user_level, "is_admin": resolved.is_admin,
             "user_id": user_id, "auth_method": "bearer",
         }
 
@@ -275,35 +283,18 @@ async def authenticate_user(request: Request):
         email    = payload.get(f"{NAMESPACE}/email") or payload.get("email", "")
 
         # Read user_level from DB (JWT custom claims require Auth0 Action to be set up;
-        # DB is always authoritative)
+        # DB is always authoritative). Never trust the token's email claim to pick
+        # the row: it is not proof of ownership (see services/identity.py).
         from core.engines import get_engine_user
-        from sqlalchemy import text as _text
-        user_level = "free"
-        is_admin   = False
         with get_engine_user().connect() as conn:
-            row = conn.execute(
-                _text("SELECT user_level, is_admin FROM users WHERE auth0_id = :aid"),
-                {"aid": auth0_id},
-            ).fetchone()
-            if row:
-                user_level = row[0]
-                is_admin   = bool(row[1])
-            elif email:
-                # Fallback: pre-existing anonymous user not yet linked
-                row = conn.execute(
-                    _text("SELECT user_level, is_admin FROM users WHERE email = :em"),
-                    {"em": email},
-                ).fetchone()
-                if row:
-                    user_level = row[0]
-                    is_admin   = bool(row[1])
+            resolved = resolve_identity(conn, auth0_id, _userinfo_fetcher(token))
 
         request.state.user = {
-            "auth0_id":   auth0_id,
+            "auth0_id":   resolved.auth0_id if resolved else auth0_id,
             "email":      email,
-            "user_level": user_level,
-            "is_admin":   is_admin,
-            "user_id":    row[0] if row else None,
+            "user_level": resolved.user_level if resolved else "free",
+            "is_admin":   resolved.is_admin if resolved else False,
+            "user_id":    resolved.user_id if resolved else None,
             "auth_method": "bearer",
         }
         return payload
@@ -344,37 +335,16 @@ async def authenticate_user_optional(request: Request):
         auth0_id = payload.get("sub")
         email    = payload.get(f"{NAMESPACE}/email") or payload.get("email", "")
 
-        # Look up user_level from DB — try auth0_id first, fall back to email
         from core.engines import get_engine_user
-        from sqlalchemy import text as _text
         with get_engine_user().connect() as conn:
-            row = conn.execute(
-                _text("SELECT user_id, user_level, is_admin, auth0_id FROM users WHERE auth0_id = :aid"),
-                {"aid": auth0_id},
-            ).fetchone()
-
-            if not row and email:
-                # Pre-existing user (anonymous/internal) — link auth0_id on the fly
-                row = conn.execute(
-                    _text("SELECT user_id, user_level, is_admin, auth0_id FROM users WHERE email = :em"),
-                    {"em": email},
-                ).fetchone()
-                if row and row[3] is None:
-                    # auth0_id not yet set — link it now
-                    conn.execute(
-                        _text("UPDATE users SET auth0_id = :aid WHERE user_id = :uid"),
-                        {"aid": auth0_id, "uid": row[0]},
-                    )
-                    conn.commit()
-
-        user_level = row[1] if row else "free"
-        is_admin   = bool(row[2]) if row else False
+            resolved = resolve_identity(conn, auth0_id, _userinfo_fetcher(token))
 
         request.state.user = {
-            "auth0_id":   auth0_id,
+            "auth0_id":   resolved.auth0_id if resolved else auth0_id,
             "email":      email,
-            "user_level": user_level,
-            "is_admin":   is_admin,
+            "user_level": resolved.user_level if resolved else "free",
+            "is_admin":   resolved.is_admin if resolved else False,
+            "user_id":    resolved.user_id if resolved else None,
         }
     except Exception:
         pass  # invalid token → treat as anonymous

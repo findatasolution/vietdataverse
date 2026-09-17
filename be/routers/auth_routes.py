@@ -84,13 +84,20 @@ async def auth0_callback(request: Request, code: str = None, error: str = None):
         user = session.query(User).filter_by(auth0_id=user_info["auth0_id"]).first()
 
         if not user:
-            # Thử link với anonymous account có cùng email
+            # Thử link với anonymous account có cùng email — chỉ khi Auth0 xác minh
+            # email của danh tính này (xem services/identity.py).
             user = session.query(User).filter_by(email=user_info["email"]).first()
-            if user and user.auth0_id is None:
+            if user and (user.auth0_id is not None or user_info.get("email_verified") is not True):
+                raise HTTPException(
+                    status_code=409,
+                    detail="Email này đã gắn với một tài khoản đăng nhập bằng cách khác. "
+                           "Hãy đăng nhập bằng cách cũ hoặc liên hệ hỗ trợ để liên kết.",
+                )
+            if user:
                 user.auth0_id          = user_info["auth0_id"]
                 user.name              = user_info.get("name")
                 user.picture           = user_info.get("picture")
-                user.email_verified    = user_info.get("email_verified", False)
+                user.email_verified    = True
                 user.registration_type = "google"
             else:
                 user = User(**create_local_user_from_auth0(user_info))
@@ -157,33 +164,27 @@ async def get_current_user_info(request: Request):
         db_user = session.query(User).filter_by(auth0_id=auth0_id).first()
 
         if not db_user:
-            # Thử link với anonymous account có cùng email
-            email   = user.get("email", "")
-            db_user = session.query(User).filter_by(email=email).first()
-
-            if db_user and db_user.auth0_id is None:
-                # Link anonymous → google
-                db_user.auth0_id          = auth0_id
-                db_user.name              = user.get("name")
-                db_user.picture           = user.get("picture")
-                db_user.email_verified    = user.get("email_verified", False)
-                db_user.registration_type = "google"
-                # Preserve existing premium level — only downgrade if currently 'free'
-                if db_user.user_level == "free":
-                    db_user.user_level    = user.get("user_level", "free")
-                db_user.is_admin          = user.get("is_admin", False)
-            else:
-                db_user = User(
-                    auth0_id          = auth0_id,
-                    email             = email,
-                    name              = user.get("name"),
-                    picture           = user.get("picture"),
-                    email_verified    = user.get("email_verified", False),
-                    user_level        = user.get("user_level", "free"),
-                    registration_type = "google",
-                    is_admin          = user.get("is_admin", False),
+            # authenticate_user already claimed a matching account if Auth0 verified
+            # this identity's email (services/identity.py). An account that still
+            # holds the email belongs to another identity — linking needs an admin.
+            email = user.get("email", "")
+            if email and session.query(User).filter_by(email=email).first():
+                raise HTTPException(
+                    status_code=409,
+                    detail="Email này đã gắn với một tài khoản đăng nhập bằng cách khác. "
+                           "Hãy đăng nhập bằng cách cũ hoặc liên hệ hỗ trợ để liên kết.",
                 )
-                session.add(db_user)
+            db_user = User(
+                auth0_id          = auth0_id,
+                email             = email,
+                name              = user.get("name"),
+                picture           = user.get("picture"),
+                email_verified    = False,
+                user_level        = "free",
+                registration_type = "google",
+                is_admin          = False,
+            )
+            session.add(db_user)
 
             session.commit()
             session.refresh(db_user)
