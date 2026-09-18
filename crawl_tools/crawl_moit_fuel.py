@@ -95,6 +95,7 @@ def crawl_one(url: str, period: date, engine) -> int:
 
 
 def _period_from_url(url: str) -> date:
+    """Year-bearing slugs only; kept for crawl_tools/backfill_moit_archive.py."""
     m = re.search(r"ngay-(\d{1,2})-(\d{1,2})-(\d{4})", url)
     if not m:
         sys.exit(f"cannot derive cycle date from url: {url}")
@@ -102,16 +103,37 @@ def _period_from_url(url: str) -> date:
     return date(y, mo, d)
 
 
-def _bulletin_url(d: date) -> str:
-    return (
-        "https://moit.gov.vn/tin-tuc/"
-        f"mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-{d.day}-{d.month}-{d.year}.html"
-    )
+def _published_date(html: str) -> date | None:
+    m = re.search(r'article:published_time"[^>]*?content="(\d{4})-(\d{2})-(\d{2})', html)
+    return date(*(int(x) for x in m.groups())) if m else None
 
 
-def _page_exists(url: str) -> bool:
-    html, status = fetch(url)
-    return status == 200 and "Xin lỗi! Liên kết không tồn tại" not in html
+# MOIT has used several slug templates and categories for the same bulletin;
+# 2026-09 dropped the year altogether ("...-ngay-10-9.html" under /thong-bao/),
+# which the crawler could not see while CI stayed green.
+_BULLETIN_PREFIXES = ("tin-tuc", "tin-tuc/thong-bao", "tin-tuc/thi-truong-trong-nuoc")
+_BULLETIN_SLUGS = (
+    "mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-{d}-{m}-{y}.html",
+    "mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-{d}-{m}.html",
+    "thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-{d}-{m}-{y}.html",
+)
+
+
+def _bulletin_urls(d: date) -> list[str]:
+    return [f"https://moit.gov.vn/{prefix}/{slug.format(d=d.day, m=d.month, y=d.year)}"
+            for prefix in _BULLETIN_PREFIXES for slug in _BULLETIN_SLUGS]
+
+
+def _published_on(html: str, d: date) -> bool:
+    """A bulletin goes up on its cycle day (occasionally the next). A year-less
+    slug keeps resolving to last year's article, so the page itself must agree."""
+    published = _published_date(html)
+    return published is not None and 0 <= (published - d).days <= 1
+
+
+def _slug_day_month(url: str) -> tuple[int, int] | None:
+    m = re.search(r"ngay-(\d{1,2})-(\d{1,2})(?:-\d{4})?(?:-[^/]*)?\.html$", url)
+    return (int(m.group(1)), int(m.group(2))) if m else None
 
 
 # How many days ahead of the last known cycle to direct-probe. Cadence has moved
@@ -128,44 +150,59 @@ PROBE_WINDOW_DAYS = 21
 STALE_AFTER_DAYS = 25
 
 
-def discover_latest(latest_known: date | None) -> str | None:
-    """Find the newest MOIT fuel-price-cycle bulletin newer than `latest_known`.
+def discover_new(latest_known: date | None, today: date | None = None,
+                 fetch=fetch, indexes=MOIT_NEWS_INDEXES) -> list[tuple[date, str]]:
+    """Every MOIT fuel-price-cycle bulletin newer than `latest_known`, oldest first.
 
     Two independent strategies, because category listings have proven unreliable —
     confirmed 2026-09-08: the 2026-08-27 cycle exists at its predictable URL but is
-    not linked from EITHER known category page (thi-truong-trong-nuoc, where the
-    bulletins used to be listed until 2026-07-09, nor phat-trien-nang-luong, where
-    they moved to afterwards — that page links 2026-08-13 but not 2026-08-27).
+    not linked from EITHER known category page.
 
     1. Category scan (cheap, catches a same-page re-listing).
-    2. Direct date probe (robust, catches unlisted pages): the article URL itself
-       follows a fixed, predictable pattern regardless of which category links it,
-       so probe every calendar day in the window after `latest_known` directly.
+    2. Direct date probe (robust, catches unlisted pages): try every known slug
+       template for every calendar day in the window after `latest_known`.
 
-    Returns None if nothing newer than `latest_known` was found by either strategy —
-    NOT necessarily an error; see STALE_AFTER_DAYS in main() for the actual alert.
+    A page only counts if its own publish date matches the cycle day, which is
+    also where a year-less slug gets its year. Returns [] if nothing newer was
+    found — NOT necessarily an error; see STALE_AFTER_DAYS in main().
     """
-    candidates: list[str] = []
+    today = today or date.today()
+    found: dict[date, str] = {}
 
-    for index_url in MOIT_NEWS_INDEXES:
+    for index_url in indexes:
         html, _ = fetch(index_url)
         for m in re.finditer(r'href="([^"]*dieu-hanh-gia-xang-dau-ngay[^"]+\.html)"', html):
             href = m.group(1)
-            candidates.append(href if href.startswith("http") else "https://moit.gov.vn" + href)
+            url = href if href.startswith("http") else "https://moit.gov.vn" + href
+            day_month, published = _slug_day_month(url), None
+            page, status = fetch(url)
+            if status == 200:
+                published = _published_date(page)
+            if not day_month or not published:
+                continue
+            for year in (published.year, published.year - 1):
+                try:
+                    d = date(year, day_month[1], day_month[0])
+                except ValueError:
+                    continue
+                if _published_on(page, d):
+                    found.setdefault(d, url)
+                    break
 
     if latest_known is not None:
         for offset in range(1, PROBE_WINDOW_DAYS + 1):
             d = latest_known + timedelta(days=offset)
-            if d > date.today():
+            if d > today:
                 break
-            url = _bulletin_url(d)
-            if _page_exists(url):
-                candidates.append(url)
+            if d in found:
+                continue
+            for url in _bulletin_urls(d):
+                page, status = fetch(url)
+                if status == 200 and _published_on(page, d):
+                    found[d] = url
+                    break
 
-    newer = [u for u in candidates if latest_known is None or _period_from_url(u) > latest_known]
-    if not newer:
-        return None
-    return max(newer, key=_period_from_url)
+    return sorted((d, u) for d, u in found.items() if latest_known is None or d > latest_known)
 
 
 def _latest_known_period(engine) -> date | None:
@@ -180,9 +217,9 @@ def main() -> None:
         return
 
     latest_known = _latest_known_period(engine)
-    url = discover_latest(latest_known)
+    new_cycles = discover_new(latest_known)
 
-    if url is None:
+    if not new_cycles:
         gap_days = (date.today() - latest_known).days if latest_known else None
         if gap_days is not None and gap_days > STALE_AFTER_DAYS:
             # This is the failure mode that let the crawl freeze silently for 2
@@ -193,7 +230,7 @@ def main() -> None:
                 f"fuel_price_cycle hasn't advanced in {gap_days} days (latest: "
                 f"{latest_known}), past the {STALE_AFTER_DAYS}-day staleness "
                 "threshold. MOIT likely re-filed the bulletin under a category not "
-                "in MOIT_NEWS_INDEXES, or changed the URL pattern in _bulletin_url — "
+                "in MOIT_NEWS_INDEXES, or changed the slug again (_BULLETIN_SLUGS) — "
                 "check https://moit.gov.vn manually."
             )
         print(
@@ -203,7 +240,10 @@ def main() -> None:
         )
         return
 
-    crawl_one(url, _period_from_url(url), engine)
+    # All of them, oldest first: taking only the newest used to drop any
+    # cycle missed in between.
+    for period, url in new_cycles:
+        crawl_one(url, period, engine)
 
 
 if __name__ == "__main__":

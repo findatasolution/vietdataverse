@@ -257,6 +257,27 @@ the date-probe fallback alone will still catch a new cycle within
 `PROBE_WINDOW_DAYS`, but finding the right category faster reduces reliance on that
 fallback.
 
+### Fuel crawl — MOIT dropped the year from the slug (found + fixed 2026-09-18)
+
+Same silent-freeze shape as 2026-09-08, new cause. From 2026-09-03 MOIT filed the
+bulletins under `/tin-tuc/thong-bao/` with **no year in the slug**
+(`...-dieu-hanh-gia-xang-dau-ngay-10-9.html`). `_bulletin_url()` only probed
+`/tin-tuc/...-ngay-D-M-YYYY.html`, so 2026-09-03, 09-10 and 09-17 were all missed
+while `fuel-pipeline.yml` stayed green — `STALE_AFTER_DAYS` (25) would not have
+fired until 09-21. Worse, had the category scan found such a link,
+`_period_from_url()` would have `sys.exit`ed on it (no 4-digit year to parse).
+
+`discover_new()` (replaces `discover_latest()`) now probes every combination of
+three category prefixes x three slug templates, **including the year-less one**,
+and returns **every** new cycle oldest-first — the old code crawled only the
+newest, so any cycle skipped in between was lost for good. A year-less URL keeps
+resolving to last year's article, so a hit only counts when the page's own
+`article:published_time` meta is the cycle day (or the day after); that meta is
+also where a year-less slug gets its year. `_period_from_url()` is kept for
+`crawl_tools/backfill_moit_archive.py`, which still parses year-bearing URLs.
+
+Covered by `tests/fuel/test_crawl_moit_discovery.py` (no network).
+
 ### Fuel forecast model — structural-v1 removed, delta-world-v1 only (2026-09-10)
 
 **`structural-v1` (two-stage OLS: `world ~ Brent/RBOB`, then `retail ~ Nghị định 80
@@ -546,6 +567,19 @@ not existing yet (`gh secret list` confirmed); until it's added and the
 workflow file committed, subscriptions do not auto-renew or auto-expire on
 their own — `subscribe`/`cancel` work, but nothing calls `run_billing_cycle`
 except a manual `workflow_dispatch` or local invocation.
+
+**Fan chart (2026-09-18)** — `make_forecast_rows` also writes
+`breakdown.bands`: the 50/80/95% world-shift quantiles per horizon, from the same
+`z * sigma_world * sqrt(h)` formula as the low/high scenarios (`z` now defaults to
+the exact 80% quantile so the 80% band *is* low/high, not a near-copy). The page
+draws them as nested bands; it never recomputes model maths in JS. Levels are
+nominal under the random-walk-on-world assumption — walk-forward coverage of the
+80% band measured 88-90%, i.e. wider than advertised. The chart uses a **real time
+axis** (cycles run 7-14 days apart) and defaults to a 3-month window, since the fan
+is only ~4 weeks wide and a longer window squeezes it into a sliver; 6 tháng /
+1 năm / Tất cả are one click away. The free tier's lock overlay now covers **only
+the forecast zone** — published history stays sharp, and the backend still sends no
+band numbers to free callers, so the lock hides nothing it does not also withhold.
 
 **`fe/pages/fuel-forecast.html`** — the product page: real
 `fetchWithAuth('/api/v1/fuel-forecast/{fuel}')` calls, a lock overlay for

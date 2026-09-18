@@ -132,6 +132,23 @@ class TestMakeForecastRows:
             spread_by_h[h] = h_rows[0]["hi"] - h_rows[0]["lo"]
         assert spread_by_h[4] > spread_by_h[1]
 
+    def test_fan_bands_are_nested_and_80_matches_low_high(self):
+        """The fan chart draws these; 80% must be the stored low/high, not a near-copy."""
+        points = _points("RON95", [67.0, 72.0, 68.0, 80.0, 74.0, 90.0],
+                         [18000.0, 18500.0, 18200.0, 19500.0, 18900.0, 20500.0])
+        rows = make_forecast_rows({"RON95": points}, datetime(2026, 2, 6), horizons=4)
+        widths = []
+        for h in range(1, 5):
+            by_scenario = {r["scenario"]: r for r in rows if r["horizon"] == h}
+            bands = {b["level"]: b for b in by_scenario["base"]["breakdown"]["bands"]}
+            assert sorted(bands) == [50, 80, 95]
+            base = by_scenario["base"]["point"]
+            assert bands[95]["lo"] < bands[80]["lo"] < bands[50]["lo"] < base
+            assert base < bands[50]["hi"] < bands[80]["hi"] < bands[95]["hi"]
+            assert (bands[80]["lo"], bands[80]["hi"]) == (by_scenario["low"]["point"], by_scenario["high"]["point"])
+            widths.append(bands[95]["hi"] - bands[95]["lo"])
+        assert widths == sorted(widths) and widths[0] < widths[-1]
+
     def test_breakdown_includes_required_keys(self):
         points = _points("RON95", [67.0, 72.0, 76.0, 80.0, 84.0],
                          [18000.0, 18500.0, 19000.0, 19500.0, 20000.0])

@@ -31,6 +31,7 @@ DB functions:
 import math
 import sys
 from pathlib import Path
+from statistics import NormalDist
 from datetime import datetime, date, timedelta
 from dotenv import load_dotenv
 import os
@@ -46,6 +47,17 @@ from be.fuel.calibration import CyclePoint, fit_passthrough, predict_retail_from
 MODEL_VERSION = "delta-world-v1"
 METHODOLOGY_VERSION = "delta-passthrough-2026.09"
 CYCLE_DAYS = 7  # fallback only when <2 cycles are available to measure a real gap from
+# Nested bands the fan chart draws. Nominal under the random-walk-on-world
+# assumption — walk-forward coverage of the 80% band measured 88-90%, i.e. wider
+# than advertised, so these read as conservative rather than overconfident.
+FAN_LEVELS = (50, 80, 95)
+
+
+def _z_for(level: int) -> float:
+    return NormalDist().inv_cdf(0.5 + level / 200)
+
+
+Z_80 = _z_for(80)  # 1.2816; low/high scenarios are exactly the 80% band
 DISCLAIMER = (
     "World-conditional scenario, not a point forecast: assumes a Delta world price "
     "move, does not predict what that move will be (no licensed real-time MOPS/"
@@ -116,7 +128,7 @@ def make_forecast_rows(
     points_by_fuel: dict[str, list[CyclePoint]],
     run_ts: datetime,
     horizons: int = 4,
-    z: float = 1.28,
+    z: float = Z_80,
 ) -> list[dict]:
     """PURE. Generate world-conditional scenario forecast rows.
 
@@ -170,6 +182,17 @@ def make_forecast_rows(
 
             lo, hi = min(h_points.values()), max(h_points.values())
 
+            # Same world-shift formula at several quantiles, so the fan chart's
+            # nested bands and the low/high scenarios cannot drift apart.
+            bands = []
+            for level in FAN_LEVELS:
+                shift = _z_for(level) * sigma_world * math.sqrt(h)
+                bands.append({
+                    "level": level,
+                    "lo": round(predict_retail_from_world_delta(last.retail, k, 0.0, -shift)),
+                    "hi": round(predict_retail_from_world_delta(last.retail, k, 0.0, shift)),
+                })
+
             for scenario_name, point in h_points.items():
                 rows.append({
                     "run_ts": run_ts,
@@ -188,6 +211,7 @@ def make_forecast_rows(
                         "resid_std_vnd_l": round(resid_std, 1),
                         "sigma_world_usd_bbl": round(sigma_world, 3),
                         "cycle_days_used": cycle_days,
+                        "bands": bands,
                         "last_known_cycle": last.period.isoformat(),
                         "last_known_retail": last.retail,
                         "disclaimer": DISCLAIMER,

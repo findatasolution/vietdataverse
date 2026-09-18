@@ -10,6 +10,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Real time axis: cycles are 7-14 days apart, so a category axis would draw a
+     two-week gap the same width as a one-week one (see CLAUDE.md chart rules). -->
+<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script src="/fe/auth.js" defer></script>
 <style>
   :root{color-scheme:light}
@@ -87,11 +91,24 @@
   .chart-wrap{position:relative; height:340px}
   canvas{max-width:100%}
 
+  /* history range picker */
+  .range-row{display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 10px}
+  .range-btn{
+    appearance:none; cursor:pointer; font:inherit; font-size:11.5px; font-weight:500;
+    padding:4px 11px; border-radius:20px; border:1px solid var(--border);
+    background:var(--card); color:var(--ink-soft);
+  }
+  .range-btn:hover{color:var(--ink)}
+  .range-btn.active{background:var(--brand-wash); border-color:var(--brand-soft); color:var(--brand-ink); font-weight:600}
+  .range-btn:focus-visible{outline:2px solid var(--brand); outline-offset:2px}
+
   .chart-foot{display:flex; justify-content:space-between; gap:12px; font-size:11.5px; color:var(--ink-mute); margin-top:10px; padding-top:10px; border-top:1px solid var(--border-soft); flex-wrap:wrap}
 
   /* lock overlay */
+  /* Covers only the forecast zone: the free tier still reads the published
+     history at full sharpness, which is the part that is genuinely free. */
   .lock-overlay{
-    position:absolute; inset:0; border-radius:16px; z-index:5;
+    position:absolute; top:0; right:0; bottom:0; left:56%; border-radius:0 16px 16px 0; z-index:5;
     display:flex; align-items:center; justify-content:center; text-align:center;
     background:var(--lock-bg); backdrop-filter: blur(3px) saturate(1.1);
     -webkit-backdrop-filter: blur(3px) saturate(1.1);
@@ -172,6 +189,8 @@
 
   @media (max-width:640px){
     .chart-wrap{height:280px}
+    .lock-overlay{left:0; border-radius:16px}
+    .lock-card h3{font-size:15px}
     .price-now .v{font-size:19px}
   }
 </style>
@@ -204,30 +223,13 @@
   <div id="fetch-error-box"></div>
 
   <div class="chart-card">
-    <div class="lock-overlay" id="lock-overlay">
-      <div class="lock-card">
-        <div class="lock-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 11V8a6 6 0 0 1 12 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="4" y="11" width="16" height="10" rx="2.5" stroke="#fff" stroke-width="2"/></svg>
-        </div>
-        <h3>Dải dự báo đầy đủ dành cho khách hàng B2B</h3>
-        <!-- Copy phải khớp đúng những gì backend thực sự gate (Task 4 free/advanced
-             split): dải kịch bản low/high + breakdown mô hình (hệ số k). R² và skill
-             vs random-walk KHÔNG nằm trong breakdown của be/fuel/forecast.py — chúng
-             là số liệu phân tích một lần, hiển thị công khai ngay trên trang này, nên
-             không được quảng cáo là nội dung trả phí. -->
-        <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá sau khi đăng ký gói dữ liệu.</p>
-        <button class="unlock-btn" id="btn-subscribe-cta">Đăng ký gói B2B →</button>
-        <div class="subscribe-msg" id="subscribe-msg" hidden></div>
-      </div>
-    </div>
-
     <div class="chart-head">
       <div>
         <h2 id="chart-title">E5RON92 — lịch sử &amp; dự báo</h2>
         <div class="legend-row">
           <span class="key"><span class="swatch" style="background:var(--ink-soft)"></span>Giá thực tế đã công bố</span>
           <span class="key"><span class="swatch dashed"></span>Kịch bản cơ sở (world không đổi)</span>
-          <span class="key"><span class="swatch band" style="background:var(--brand)"></span>Dải low–high theo biến động world (~80%)</span>
+          <span class="key"><span class="swatch band" style="background:var(--brand)"></span>Dải 50% / 80% / 95% theo biến động world</span>
         </div>
       </div>
       <div class="price-now">
@@ -236,8 +238,26 @@
       </div>
     </div>
 
+    <div class="range-row" id="range-row"></div>
+
     <div class="chart-wrap" id="chart-target">
       <canvas id="fanChart"></canvas>
+      <div class="lock-overlay" id="lock-overlay">
+        <div class="lock-card">
+          <div class="lock-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 11V8a6 6 0 0 1 12 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="4" y="11" width="16" height="10" rx="2.5" stroke="#fff" stroke-width="2"/></svg>
+          </div>
+          <h3>Dải dự báo đầy đủ dành cho khách hàng B2B</h3>
+          <!-- Copy phải khớp đúng những gì backend thực sự gate (Task 4 free/advanced
+               split): dải kịch bản low/high + breakdown mô hình (hệ số k). R² và skill
+               vs random-walk KHÔNG nằm trong breakdown của be/fuel/forecast.py — chúng
+               là số liệu phân tích một lần, hiển thị công khai ngay trên trang này, nên
+               không được quảng cáo là nội dung trả phí. -->
+          <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo 50% / 80% / 95% cho 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá sau khi đăng ký gói dữ liệu.</p>
+          <button class="unlock-btn" id="btn-subscribe-cta">Đăng ký gói B2B →</button>
+          <div class="subscribe-msg" id="subscribe-msg" hidden></div>
+        </div>
+      </div>
     </div>
 
     <div class="chart-foot">
@@ -304,7 +324,14 @@
   // user's platform_subscriptions row for PRODUCT_CODE from
   // GET /subscriptions/me (null when logged out or never subscribed) and
   // drives both the manage bar and the wording of the lock overlay.
-  var state = { fuel: "E5RON92", data: null, plan: null, sub: null,
+  // How much published history to show beside the 4 forecast cycles. The fan is
+  // only ~4 weeks wide, so a long window squeezes it into a sliver at the right
+  // edge — 3 months keeps the bands readable while still showing the recent run
+  // of real prices; longer windows are one click away.
+  var RANGES = [{key:"3m",label:"3 tháng",months:3},{key:"6m",label:"6 tháng",months:6},
+                {key:"1y",label:"1 năm",months:12},{key:"all",label:"Tất cả",months:null}];
+
+  var state = { fuel: "E5RON92", range: "3m", data: null, plan: null, sub: null,
                 subscribing: false, managing: false };
 
   var fmt = new Intl.NumberFormat("vi-VN");
@@ -345,10 +372,10 @@
   var todayLinePlugin = {
     id: "todayLine",
     afterDatasetsDraw: function(c){
-      var idx = c.$todayIndex;
-      if (idx == null) return;
+      var at = c.$lastCycleAt;
+      if (at == null) return;
       var xScale = c.scales.x, area = c.chartArea, ctx = c.ctx;
-      var x = xScale.getPixelForValue(idx);
+      var x = xScale.getPixelForValue(at);
       ctx.save();
       ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--ink-mute").trim() || "#8590a3";
       ctx.setLineDash([4,4]);
@@ -361,7 +388,7 @@
       ctx.fillStyle = ctx.strokeStyle;
       ctx.font = "600 10.5px Inter, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Hôm nay", x, area.top - 6);
+      ctx.fillText("Kỳ gần nhất", x, area.top - 6);
       ctx.restore();
     }
   };
@@ -435,13 +462,13 @@
       btn.textContent = "Thử gia hạn ngay" + priceSuffix + " →";
     } else if (sub && sub.status === "active" && !periodStillRunning(sub)) {
       desc.textContent = "Gói dữ liệu của bạn đã hết hạn ngày " + fmtPeriodDate(sub.current_period_end) +
-        ". Gia hạn để mở lại dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k).";
+        ". Gia hạn để mở lại dải dự báo 50% / 80% / 95% cho 4 kỳ tới (kèm hệ số truyền dẫn k).";
       btn.textContent = "Gia hạn" + priceSuffix + " →";
     } else if (price != null) {
       btn.textContent = "Đăng ký gói B2B" + priceSuffix + " →";
       // Giữ đồng bộ với #lock-desc trong HTML tĩnh phía trên — chỉ nêu đúng phần
       // backend thật sự gate (dải low/high + hệ số k), không nêu R²/skill.
-      desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo thấp–cao 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá với gói " +
+      desc.textContent = "Xem lịch sử giá công khai miễn phí. Dải dự báo 50% / 80% / 95% cho 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá với gói " +
         price + " credit mỗi " + days + " ngày.";
     } else {
       return; // no plan and no subscription yet — leave the static copy alone
@@ -743,12 +770,12 @@
     tierPill.className = "tier-pill " + (isAdvanced ? "advanced" : "free");
 
     document.getElementById("lock-overlay").style.display = isAdvanced ? "none" : "flex";
-    document.getElementById("chart-target").classList.toggle("blur-target", !isAdvanced);
+    // Only the forecast zone is gated now, so published history stays sharp.
     document.getElementById("stat-row").classList.toggle("blur-target", !isAdvanced);
     if (isAdvanced) clearSubscribeMsg();
 
-    var hist = (d.history || []).map(function(p){ return [p.period, p.retail_price]; });
-    hist = hist.filter(function(p){ return p[0] >= "2025-05-01"; }); // drop isolated 2024 anchor point, see caption
+    var allHist = (d.history || []).map(function(p){ return [p.period, p.retail_price]; });
+    var hist = withinRange(allHist, state.range);
     var fc = d.forecast || [];
 
     if (!hist.length) {
@@ -765,114 +792,88 @@
     document.getElementById("price-now").textContent = money(lastRetail);
     document.getElementById("price-now-unit").textContent = "đ/lít · kỳ " + toVN(lastDate);
 
-    // labels: history dates + horizon target dates
-    var horizons = [1,2,3,4];
+    // Forecast rows -> one entry per horizon. The 50/80/95% bands come from the
+    // model (breakdown.bands), never recomputed here, so the chart cannot drift
+    // from what backtest.py validated. The free tier gets no bands at all.
     var byH = {};
     fc.forEach(function(row){
-      var h = row.horizon, scen = row.scenario, tc = row.target_cycle, pt = row.point;
-      byH[h] = byH[h] || {};
-      byH[h][scen] = pt;
-      byH[h].target = tc;
+      var h = row.horizon;
+      byH[h] = byH[h] || { target: row.target_cycle };
+      byH[h][row.scenario] = row.point;
+      if (row.scenario === "base" && row.breakdown && row.breakdown.bands) byH[h].bands = row.breakdown.bands;
     });
-    // Free-tier responses only carry the "base" scenario per horizon — fill
-    // in a horizon placeholder so labels still render even with no forecast
-    // rows at all yet (e.g. before the first forecast run for a fuel).
-    horizons.forEach(function(h){
-      byH[h] = byH[h] || { target: null };
-    });
-    var haveForecast = horizons.some(function(h){ return byH[h].target != null; });
-
-    var labels = hist.map(function(p){ return toVN(p[0]); });
-    var todayIndex = labels.length - 1;
-    if (haveForecast) {
-      horizons.forEach(function(h){ labels.push(byH[h].target ? toVN(byH[h].target) : ""); });
-    }
-
-    var histSeries = hist.map(function(p){ return p[1]; });
-    var baseSeries, lowSeries, highSeries;
-
-    if (haveForecast) {
-      horizons.forEach(function(){ histSeries.push(null); });
-      baseSeries = new Array(hist.length-1).fill(null).concat([lastRetail]);
-      lowSeries  = baseSeries.slice();
-      highSeries = baseSeries.slice();
-      horizons.forEach(function(h){
-        baseSeries.push(byH[h].base != null ? byH[h].base : null);
-        lowSeries.push(byH[h].low != null ? byH[h].low : null);
-        highSeries.push(byH[h].high != null ? byH[h].high : null);
-      });
-    } else {
-      baseSeries = new Array(hist.length).fill(null);
-      lowSeries = baseSeries.slice();
-      highSeries = baseSeries.slice();
-    }
+    var horizons = Object.keys(byH).map(Number).sort(function(a,b){ return a-b; });
+    var haveForecast = horizons.length > 0;
 
     var brand = cssVar("--brand");
     var ink = cssVar("--ink-soft");
 
-    var datasets = [
-      {
-        label: "Giá thực tế",
-        data: histSeries,
-        borderColor: ink,
-        backgroundColor: ink,
-        borderWidth: 2,
-        pointRadius: function(c){ return c.dataIndex===todayIndex?4:2; },
-        pointBackgroundColor: ink,
-        pointBorderColor: cssVar("--card"),
-        pointBorderWidth: 1.5,
-        tension: 0,
-        spanGaps: false,
-        order: 1,
-      },
-      {
-        label: "Dải cao (kịch bản world tăng)",
-        data: highSeries,
-        borderColor: "transparent",
-        pointRadius: 0,
-        fill: "+1",
-        backgroundColor: function(c){
-          if (!c.chart.chartArea) return hexA(brand,.16);
-          return bandGradient(c.chart.ctx, c.chart.chartArea, brand, .30, .04);
-        },
-        tension: .15,
-        order: 3,
-      },
-      {
+    var histPoints = hist.map(function(p){ return {x: p[0], y: p[1]}; });
+    var anchor = {x: lastDate, y: lastRetail};  // every forecast series starts at the last real price
+
+    var datasets = [{
+      label: "Giá thực tế",
+      data: histPoints,
+      borderColor: ink,
+      backgroundColor: ink,
+      borderWidth: 2,
+      pointRadius: function(c){ return c.dataIndex === histPoints.length - 1 ? 4 : 2; },
+      pointBackgroundColor: ink,
+      pointBorderColor: cssVar("--card"),
+      pointBorderWidth: 1.5,
+      tension: 0,
+      order: 1,
+    }];
+
+    // Widest band first so narrower ones layer on top: the overlap is what makes
+    // the middle of the fan read as most likely, exactly like the reference.
+    var levels = [];
+    if (haveForecast && byH[horizons[0]].bands) {
+      levels = byH[horizons[0]].bands.map(function(b){ return b.level; })
+        .sort(function(a,b){ return b-a; });
+    }
+    var ALPHA = {95: 0.10, 80: 0.14, 50: 0.18};
+    levels.forEach(function(level){
+      var lo = [anchor], hi = [anchor];
+      horizons.forEach(function(h){
+        var band = (byH[h].bands || []).filter(function(b){ return b.level === level; })[0];
+        if (!band) return;
+        lo.push({x: byH[h].target, y: band.lo});
+        hi.push({x: byH[h].target, y: band.hi});
+      });
+      var colour = hexA(brand, ALPHA[level] || 0.12);
+      var loIndex = datasets.length + 1;
+      datasets.push({
+        label: "Dải " + level + "%", data: hi, borderColor: "transparent", pointRadius: 0,
+        backgroundColor: colour, fill: {target: loIndex, above: colour, below: colour},
+        tension: .15, order: 5,
+      });
+      datasets.push({
+        label: "Dải " + level + "% (dưới)", data: lo, borderColor: "transparent",
+        pointRadius: 0, fill: false, tension: .15, order: 5,
+      });
+    });
+
+    if (haveForecast) {
+      var baseLine = [anchor];
+      horizons.forEach(function(h){
+        if (byH[h].base != null) baseLine.push({x: byH[h].target, y: byH[h].base});
+      });
+      datasets.push({
         label: "Kịch bản cơ sở",
-        data: baseSeries,
+        data: baseLine,
         borderColor: brand,
         borderDash: [5,4],
         borderWidth: 2,
-        pointRadius: function(c){ return c.dataIndex>=todayIndex ? 3 : 0; },
+        pointRadius: function(c){ return c.dataIndex > 0 ? 3 : 0; },
         pointBackgroundColor: brand,
         pointBorderColor: cssVar("--card"),
         pointBorderWidth: 1.5,
         fill: false,
         tension: .15,
         order: 2,
-      },
-      {
-        label: "Dải thấp (kịch bản world giảm)",
-        data: lowSeries,
-        borderColor: "transparent",
-        pointRadius: 0,
-        fill: false,
-        order: 4,
-      },
-    ];
-    // fill base->low band using the low dataset as boundary (index 3) referenced from base (index 2)
-    datasets[2].fill = {target:3, above:"transparent"};
-    // fix high band fill target explicitly to base line (index 2)
-    datasets[1].fill = {target:2, above:function(c){
-      if (!c.chart.chartArea) return hexA(brand,.16);
-      return bandGradient(c.chart.ctx, c.chart.chartArea, brand, .30, .04);
-    }};
-    datasets[3].backgroundColor = function(c){
-      if (!c.chart.chartArea) return hexA(brand,.16);
-      return bandGradient(c.chart.ctx, c.chart.chartArea, brand, .30, .04);
-    };
-    datasets[3].fill = {target:2, above: datasets[3].backgroundColor, below: datasets[3].backgroundColor};
+      });
+    }
 
     // stat row + footnotes — populated before the Chart.js call so a chart
     // render failure (e.g. CDN hiccup) never hides the rest of the page.
@@ -894,7 +895,7 @@
       tile("R² (full-sample)", r2.toFixed(2), r2<0.8 ? "2 kỳ can thiệp BOG kéo xuống — xem ghi chú" : "Ổn định qua permutation test"),
       tile("Skill vs random-walk", "+"+(sk.skill*100).toFixed(0)+"%", "MAE "+sk.mae+" đ/l, out-of-sample"),
     ].join("");
-    document.getElementById("foot-left").textContent = "Dữ liệu lịch sử từ 01/2022 (114 kỳ điều hành — một số kỳ thiếu do MOIT đổi cách đặt tên bản tin qua các năm)";
+    document.getElementById("foot-left").textContent = "Lịch sử: " + allHist.length + " kỳ điều hành (" + toVN(allHist[0][0]) + " → " + toVN(lastDate) + "), đang xem " + hist.length + " kỳ";
     document.getElementById("foot-right").textContent = "Nguồn world price: bản tin MOIT (MOPS thật) · Model: delta-world-v1";
 
     var ctxEl = document.getElementById("fanChart");
@@ -914,10 +915,11 @@
     }
     chart = new Chart(ctxEl, {
       type: "line",
-      data: { labels: labels, datasets: datasets },
+      data: { datasets: datasets },
       plugins: [todayLinePlugin],
       options: {
         responsive:true, maintainAspectRatio:false,
+        layout:{ padding:{ top:16 } },   // room for the "Kỳ gần nhất" label
         interaction:{ mode:"index", intersect:false },
         plugins:{
           legend:{ display:false },
@@ -927,17 +929,27 @@
             bodyColor: cssVar("--paper"),
             padding:10, cornerRadius:8, displayColors:false,
             callbacks:{
+              title: function(items){ return items.length ? toVN(items[0].raw.x) : ""; },
               label: function(c){
-                if (c.raw==null) return null;
-                var name = c.dataset.label.indexOf("Dải")===0 ? null : c.dataset.label;
-                if (!name) return null;
-                return name + ": " + money(c.raw) + " đ/l";
+                if (!c.raw || c.raw.y == null) return null;
+                var name = c.dataset.label;
+                if (name.indexOf("(dưới)") > -1) return null;
+                if (name.indexOf("Dải") === 0) {
+                  var lo = c.chart.data.datasets[c.datasetIndex + 1].data[c.dataIndex];
+                  return name + ": " + money(lo.y) + " – " + money(c.raw.y) + " đ/l";
+                }
+                return name + ": " + money(c.raw.y) + " đ/l";
               }
             }
           }
         },
         scales:{
-          x:{ grid:{display:false}, ticks:{ color: cssVar("--ink-mute"), font:{size:10.5}, maxRotation:0, autoSkip:true, maxTicksLimit:9 } },
+          x:{
+            type: "time",
+            time: { unit: "month", tooltipFormat: "dd/MM/yyyy", displayFormats: { month: "MM/yy" } },
+            grid:{display:false},
+            ticks:{ color: cssVar("--ink-mute"), font:{size:10.5}, maxRotation:0, autoSkip:true, maxTicksLimit:9 }
+          },
           y:{
             grid:{ color: cssVar("--border-soft") },
             ticks:{ color: cssVar("--ink-mute"), font:{size:10.5}, callback:function(v){ return money(v); } }
@@ -945,8 +957,35 @@
         }
       }
     });
-    chart.$todayIndex = todayIndex;
+    chart.$lastCycleAt = new Date(lastDate + "T00:00:00").getTime();
     chart.update();
+  }
+
+  function withinRange(hist, key){
+    var range = RANGES.filter(function(r){ return r.key === key; })[0];
+    if (!range || !range.months || !hist.length) return hist;
+    var last = new Date(hist[hist.length-1][0] + "T00:00:00");
+    var cutoff = new Date(last.getFullYear(), last.getMonth() - range.months, last.getDate());
+    var kept = hist.filter(function(p){ return new Date(p[0] + "T00:00:00") >= cutoff; });
+    return kept.length >= 2 ? kept : hist;
+  }
+
+  function buildRangeButtons(){
+    var row = document.getElementById("range-row");
+    row.innerHTML = "";
+    RANGES.forEach(function(r){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "range-btn" + (r.key === state.range ? " active" : "");
+      btn.textContent = r.label;
+      btn.addEventListener("click", function(){
+        if (state.range === r.key) return;
+        state.range = r.key;
+        buildRangeButtons();
+        render();
+      });
+      row.appendChild(btn);
+    });
   }
 
   function tile(label, value, sub){
@@ -965,6 +1004,7 @@
   // fetchWithAuth/isAuthenticated/login already exist on window.
   document.addEventListener("DOMContentLoaded", function(){
     buildFuelTabs();
+    buildRangeButtons();
     loadFuel(state.fuel);
     loadPlan();
     loadSubscription();
