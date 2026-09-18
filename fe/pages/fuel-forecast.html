@@ -114,20 +114,25 @@
     -webkit-backdrop-filter: blur(3px) saturate(1.1);
     color:#fff; padding:24px;
   }
-  .lock-card{max-width:360px; display:flex; flex-direction:column; align-items:center; gap:10px}
-  .lock-icon{width:40px; height:40px; border-radius:11px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; margin-bottom:2px}
-  .lock-card h3{color:#fff; font-size:17px}
-  .lock-card p{margin:0; font-size:12.5px; color:rgba(255,255,255,.78); line-height:1.55}
-  .unlock-btn{
-    margin-top:6px; appearance:none; border:0; cursor:pointer; font:inherit; font-weight:600; font-size:13px;
-    background:#fff; color:var(--brand-ink); padding:10px 18px; border-radius:10px;
+  .lock-icon{width:40px; height:40px; border-radius:11px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center}
+
+  .unlock-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    margin-top:12px; padding:14px 16px; border-radius:12px;
+    background:var(--brand-wash); border:1px solid var(--brand-soft);
   }
-  .unlock-btn:hover{background:var(--brand-soft)}
+  .unlock-bar h3{font-size:14.5px; color:var(--ink)}
+  .unlock-bar p{margin:4px 0 0; font-size:12.5px; color:var(--ink-soft); line-height:1.55; max-width:64ch}
+  .unlock-btn{
+    appearance:none; border:0; cursor:pointer; font:inherit; font-weight:600; font-size:13px; white-space:nowrap;
+    background:var(--brand); color:#fff; padding:10px 18px; border-radius:10px;
+  }
+  .unlock-btn:hover{background:var(--brand-ink)}
   .unlock-btn:disabled{opacity:.6; cursor:default}
 
-  .subscribe-msg{font-size:12px; line-height:1.5; margin-top:4px; padding:8px 12px; border-radius:8px; max-width:320px}
-  .subscribe-msg.err{background:rgba(181,51,51,.18); color:#ffd9d9}
-  .subscribe-msg a{color:#fff; text-decoration:underline}
+  .subscribe-msg{font-size:12px; line-height:1.5; margin-top:8px; padding:8px 12px; border-radius:8px; max-width:420px; background:var(--card); color:var(--ink-soft)}
+  .subscribe-msg.err{background:var(--bad-bg); color:var(--bad)}
+  .subscribe-msg a{color:var(--brand-ink)}
 
   .blur-target{filter:blur(6px); user-select:none; pointer-events:none}
 
@@ -243,21 +248,27 @@
     <div class="chart-wrap" id="chart-target">
       <canvas id="fanChart"></canvas>
       <div class="lock-overlay" id="lock-overlay">
-        <div class="lock-card">
-          <div class="lock-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 11V8a6 6 0 0 1 12 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="4" y="11" width="16" height="10" rx="2.5" stroke="#fff" stroke-width="2"/></svg>
-          </div>
-          <h3>Dải dự báo đầy đủ dành cho khách hàng B2B</h3>
-          <!-- Copy phải khớp đúng những gì backend thực sự gate (Task 4 free/advanced
-               split): dải kịch bản low/high + breakdown mô hình (hệ số k). R² và skill
-               vs random-walk KHÔNG nằm trong breakdown của be/fuel/forecast.py — chúng
-               là số liệu phân tích một lần, hiển thị công khai ngay trên trang này, nên
-               không được quảng cáo là nội dung trả phí. -->
-          <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo 50% / 80% / 95% cho 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá sau khi đăng ký gói dữ liệu.</p>
-          <button class="unlock-btn" id="btn-subscribe-cta">Đăng ký gói B2B →</button>
-          <div class="subscribe-msg" id="subscribe-msg" hidden></div>
+        <div class="lock-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 11V8a6 6 0 0 1 12 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="4" y="11" width="16" height="10" rx="2.5" stroke="#fff" stroke-width="2"/></svg>
         </div>
       </div>
+    </div>
+
+    <!-- The pitch lives under the chart, not inside the overlay: the forecast
+         strip is only ~4 cycles wide, too narrow to hold readable copy without
+         covering history the free tier is entitled to see. -->
+    <div class="unlock-bar" id="unlock-bar">
+      <div>
+        <h3>Dải dự báo đầy đủ dành cho khách hàng B2B</h3>
+        <!-- Copy phải khớp đúng những gì backend thực sự gate (Task 4 free/advanced
+             split): dải kịch bản low/high + breakdown mô hình (hệ số k). R² và skill
+             vs random-walk KHÔNG nằm trong breakdown của be/fuel/forecast.py — chúng
+             là số liệu phân tích một lần, hiển thị công khai ngay trên trang này, nên
+             không được quảng cáo là nội dung trả phí. -->
+        <p id="lock-desc">Xem lịch sử giá công khai miễn phí. Dải dự báo 50% / 80% / 95% cho 4 kỳ tới (kèm hệ số truyền dẫn k của mô hình) mở khoá sau khi đăng ký gói dữ liệu.</p>
+        <div class="subscribe-msg" id="subscribe-msg" hidden></div>
+      </div>
+      <button class="unlock-btn" id="btn-subscribe-cta">Đăng ký gói B2B →</button>
     </div>
 
     <div class="chart-foot">
@@ -770,6 +781,7 @@
     tierPill.className = "tier-pill " + (isAdvanced ? "advanced" : "free");
 
     document.getElementById("lock-overlay").style.display = isAdvanced ? "none" : "flex";
+    document.getElementById("unlock-bar").hidden = isAdvanced;
     // Only the forecast zone is gated now, so published history stays sharp.
     document.getElementById("stat-row").classList.toggle("blur-target", !isAdvanced);
     if (isAdvanced) clearSubscribeMsg();
@@ -959,6 +971,20 @@
     });
     chart.$lastCycleAt = new Date(lastDate + "T00:00:00").getTime();
     chart.update();
+    alignLockToForecast();
+  }
+
+  // The lock must start exactly at the last published cycle, otherwise it eats
+  // into history the free tier is entitled to read. Below 640px the forecast
+  // strip is too narrow to hold the card, so CSS keeps it full width there.
+  function alignLockToForecast(){
+    var overlay = document.getElementById("lock-overlay");
+    if (!chart || !chart.scales || !chart.scales.x || window.innerWidth <= 640) {
+      overlay.style.left = "";
+      return;
+    }
+    var x = chart.scales.x.getPixelForValue(chart.$lastCycleAt);
+    overlay.style.left = (x > 0 && x < chart.width ? Math.round(x) + "px" : "");
   }
 
   function withinRange(hist, key){
@@ -1009,7 +1035,7 @@
     loadPlan();
     loadSubscription();
   });
-  window.addEventListener("resize", function(){ if(chart) chart.resize(); });
+  window.addEventListener("resize", function(){ if(chart) { chart.resize(); alignLockToForecast(); } });
 })();
 </script>
 
