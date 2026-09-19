@@ -894,18 +894,24 @@
     var kVal = breakdown1 && breakdown1.k_vnd_per_usd_bbl;
 
     var statRow = document.getElementById("stat-row");
-    // Real, one-time statistical-analysis numbers (permutation-tested skill
-    // vs. random-walk, and full-sample R²) — not part of the live API
-    // response; kept as static constants per the fuel-forecast statistical
-    // work referenced in the methodology card above.
-    var skillByFuel = {E5RON92:{skill:0.745,mae:200}, DO005S:{skill:0.778,mae:237}};
-    var r2ByFuel = {E5RON92:0.88, DO005S:0.93};
-    var sk = skillByFuel[state.fuel], r2 = r2ByFuel[state.fuel];
+    // Accuracy comes from the API, which reads fuel_backtest — the table the
+    // pipeline refits every cycle. These used to be constants typed into this
+    // file; they drifted from the real figures within a week and nothing could
+    // have caught it. Never reintroduce a hardcoded copy here.
+    var val = d.validation;
     statRow.innerHTML = [
       tile("Giá kỳ hiện tại", money(lastRetail)+" đ/l", "Công bố "+toVN(lastDate)),
       tile("Hệ số truyền dẫn (k)", kVal != null ? kVal.toFixed(1) : "—", "VND/L trên mỗi USD/thùng, p<0.0001"),
-      tile("R² (full-sample)", r2.toFixed(2), r2<0.8 ? "2 kỳ can thiệp BOG kéo xuống — xem ghi chú" : "Ổn định qua permutation test"),
-      tile("Skill vs random-walk", "+"+(sk.skill*100).toFixed(0)+"%", "MAE "+sk.mae+" đ/l, out-of-sample"),
+      val ? tile("Sai số công thức", money(val.mae)+" đ/l",
+                 "MAE walk-forward trên " + val.n + " kỳ")
+          : tile("Sai số công thức", "—", "Chưa có kết quả backtest"),
+      // Labelled as ex-post on purpose. The backtest feeds the model the world
+      // price MOIT publishes in the same bulletin as the retail price, so calling
+      // this a forecast accuracy would overstate what the buyer is getting.
+      val ? tile("Độ chính xác công thức (ex-post)",
+                 (val.skill_vs_rw >= 0 ? "+" : "") + (val.skill_vs_rw*100).toFixed(0)+"%",
+                 "So với giả định giá không đổi — đo khi đã biết giá thế giới kỳ đó")
+          : tile("Độ chính xác công thức (ex-post)", "—", "Chưa có kết quả backtest"),
     ].join("");
     document.getElementById("foot-left").textContent = "Lịch sử: " + allHist.length + " kỳ điều hành (" + toVN(allHist[0][0]) + " → " + toVN(lastDate) + "), đang xem " + hist.length + " kỳ";
     document.getElementById("foot-right").textContent = "Nguồn world price: bản tin MOIT (MOPS thật) · Model: delta-world-v1";
