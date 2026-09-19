@@ -179,7 +179,14 @@ def discover_new(latest_known: date | None, today: date | None = None,
     found: dict[date, str] = {}
 
     for index_url in (MOIT_SEARCH_URL,) + tuple(indexes):
-        html, _ = fetch(index_url)
+        # moit.gov.vn drops connections from foreign datacenter IPs (the same
+        # reason prod moved to a VN box). One unreachable source must fall
+        # through to the next, not kill discovery — staleness is what pages.
+        try:
+            html, _ = fetch(index_url)
+        except Exception as exc:
+            print(f"discovery source unreachable ({index_url}): {exc}")
+            continue
         for m in re.finditer(r'href="([^"]*dieu-hanh-(?:gia-)?xang-dau-ngay[^"]+\.html)"', html):
             href = m.group(1)
             url = href if href.startswith("http") else "https://moit.gov.vn" + href
@@ -210,7 +217,10 @@ def discover_new(latest_known: date | None, today: date | None = None,
             if d in found:
                 continue
             for url in _bulletin_urls(d):
-                page, status = fetch(url)
+                try:
+                    page, status = fetch(url)
+                except Exception:
+                    continue  # same reason as the discovery sources above
                 if status == 200 and _published_on(page, d):
                     found[d] = url
                     break
