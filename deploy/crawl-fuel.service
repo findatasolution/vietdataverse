@@ -1,0 +1,16 @@
+# Box-side MOIT fuel crawl — see deploy/crawl-fuel.sh for why it is not in CI.
+# Install: cp deploy/crawl-fuel.{service,timer} /etc/systemd/system/
+#          systemctl daemon-reload && systemctl enable --now crawl-fuel.timer
+[Unit]
+Description=Viet Dataverse — MOIT fuel cycle crawl + model refresh
+Documentation=file:///root/vietdataverse/deploy/crawl-fuel.sh
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/root/vietdataverse/deploy/crawl-fuel.sh
+# Output goes to the journal: journalctl -u crawl-fuel.service
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=1200

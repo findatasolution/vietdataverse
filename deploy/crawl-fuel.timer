@@ -1,0 +1,21 @@
+# MOIT fuel cycle — one pass a day at 16:30 VN (09:30 UTC).
+#
+# MOIT announces at ~15:00 VN on the cycle day, so 16:30 VN is the same
+# afternoon with margin. Daily rather than weekly on purpose: the cadence went
+# 7d -> 14d -> 7d during 2026 alone, and a daily pass costs one discovery round
+# while surviving the next schedule change without a code edit.
+#
+# Round minutes are fine here: systemd fires when asked. The `:07`-style odd
+# minutes elsewhere in the repo exist only to dodge GitHub's congested slots.
+[Unit]
+Description=Timer for the Viet Dataverse MOIT fuel crawl
+
+[Timer]
+OnCalendar=*-*-* 09:30:00 UTC
+# Catch up after a box reboot rather than silently skipping the slot.
+Persistent=true
+AccuracySec=1min
+Unit=crawl-fuel.service
+
+[Install]
+WantedBy=timers.target
