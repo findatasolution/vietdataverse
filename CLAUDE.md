@@ -267,6 +267,17 @@ while `fuel-pipeline.yml` stayed green — `STALE_AFTER_DAYS` was 25 days agains
 7-day cadence, so 21 days of silence never paged anyone; it is now **17**. Worse, had the category scan found such a link,
 `_period_from_url()` would have `sys.exit`ed on it (no 4-digit year to parse).
 
+**The scheduled fuel crawl runs on the VN box, not in CI (2026-09-19).**
+`moit.gov.vn` refuses GitHub runners — three consecutive `fuel-pipeline.yml` runs
+logged RemoteDisconnected on the search endpoint, SSLEOFError on one category page
+and `[Errno 101] Network is unreachable` on the other, all from a US runner IP. A
+run that cannot reach the source can only conclude "no newer cycle", which is
+precisely how 09-03, 09-10 and 09-17 were missed while CI stayed green.
+`deploy/crawl-fuel.{sh,service,timer}` now does it daily at 16:30 VN (MOIT
+announces ~15:00 on the cycle day), mirroring the gold/silver box pattern, and
+refits backtest+forecast only when the newest period actually moved.
+`fuel-pipeline.yml` stays scheduled as a backstop for when the box is down.
+
 **Discovery is now search-first, not pattern-first** (the standing decision from
 2026-09-16: options 2+3 — a free data source plus search — are how this data gets
 found, and that applies to the scheduled crawl, not just one-off backfills).

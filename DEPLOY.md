@@ -155,6 +155,18 @@ systemctl start crawl-fallback.service      # optional: run once now
 journalctl -u crawl-fallback.service -n 50 --no-pager
 ```
 
+**MOIT fuel crawl — `deploy/crawl-fuel.*`, same deal, daily 16:30 VN.** Added
+2026-09-19 after `moit.gov.vn` was shown to refuse GitHub runners outright
+(RemoteDisconnected, SSL EOF, "Network is unreachable" across three runs), so
+`fuel-pipeline.yml` could only ever report "no newer cycle" — which is how three
+real cycles were missed while CI stayed green. Install exactly as above with
+`crawl-fuel` in place of `crawl-fallback`.
+
+Neither unit needs a manual SSH step any more: **Actions → "Box — run a crawl
+now"** takes a `unit` argument, copies the unit files from the box's checkout,
+reloads systemd, enables the timer, runs the service synchronously and prints
+the journal.
+
 `crawl_gold_silver.py` exits non-zero whenever its Yahoo Finance section fails,
 and Yahoo blocks index tickers from datacenter IPs — so a non-zero exit here is
 expected and does **not** mean the domestic crawl failed. The script re-probes
