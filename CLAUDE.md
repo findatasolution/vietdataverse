@@ -278,6 +278,34 @@ announces ~15:00 on the cycle day), mirroring the gold/silver box pattern, and
 refits backtest+forecast only when the newest period actually moved.
 `fuel-pipeline.yml` stays scheduled as a backstop for when the box is down.
 
+**One writer, one watchdog (restructured 2026-09-19).** The model used to be
+recomputed in two places for the same data: `deploy/crawl-fuel.sh` on the box
+(only when a new cycle actually landed) and a `model` job in `fuel-pipeline.yml`
+(every Thursday regardless). On 2026-09-19 that produced two identical refits
+hours apart, and over its life left 23 forecast runs and 22 backtest runs for
+roughly a dozen real cycles. Same conclusion this repo already reached for gold
+on 2026-09-14 — *"Two writers on the same rows bought nothing."*
+
+- **The box is the only writer.** It crawls MOIT and recomputes `fuel_backtest`
+  + `fuel_forecast`, and only when `max(period)` actually moved.
+- **`fuel-pipeline.yml` crawls Yahoo, triggers the box, then checks the result.**
+  Its `model` job is gone. The new `freshness-check` job runs
+  `crawl_tools/check_fuel_freshness.py` with `if: always()`, so it reports even
+  when a crawl job failed — "the crawl failed *and* the data is 3 weeks old" is
+  the report worth having.
+- Schedule moved from `'0 2 * * 4'` (weekly, on a round minute — breaking this
+  repo's own GitHub-cron rule) to `'23 2 * * *'` (daily, 09:23 VN).
+
+`check_fuel_freshness.py` asks three things and exits non-zero on any: has a new
+cycle failed to appear past `CYCLE_STALE_DAYS` (17); has either world series
+stopped advancing past `WORLD_STALE_DAYS` (6); and **was the model actually
+rebuilt after the newest cycle** — it compares `fuel_forecast`'s newest
+`breakdown->>'last_known_cycle'` against `max(period)` in `fuel_price_cycle`.
+That third check is the one nothing else can make: a fresh price cycle with a
+stale forecast means the box crawled but the refit failed, and the API would
+keep serving forecasts built without the newest cycle. Judgement lives in a pure
+`evaluate()` covered by `tests/fuel/test_fuel_freshness.py`.
+
 **Discovery is now search-first, not pattern-first** (the standing decision from
 2026-09-16: options 2+3 — a free data source plus search — are how this data gets
 found, and that applies to the scheduled crawl, not just one-off backfills).

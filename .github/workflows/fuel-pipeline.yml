@@ -1,16 +1,33 @@
 name: Fuel Pipeline
 
-# Medallion extract→land + transform→load for the fuel-forecast product (Plan 1).
-# NOTE: requires repo secrets FUEL_FORECAST_DB + R2_* and a provisioned Neon DB.
-# The `model` job (forecast + backtest) is added in Plan 2 with `needs: extract-land`.
+# ONE writer, one watchdog (restructured 2026-09-19).
+#
+# Before this, the model was recomputed in two places for the same data: the box
+# (deploy/crawl-fuel.sh, only when a new cycle actually landed) and a `model` job
+# here (every Thursday, whether anything had changed or not). On 2026-09-19 that
+# produced two identical refits hours apart, and over its life it left 23 forecast
+# runs and 22 backtest runs for roughly a dozen real price cycles — noise that
+# makes "which run is current" harder to answer for no benefit.
+#
+# This repo already settled the same question for gold on 2026-09-14: "Two writers
+# on the same rows bought nothing." So:
+#   - The BOX owns fuel_price_cycle AND the model refit. It alone writes.
+#   - THIS WORKFLOW crawls Yahoo (which answers GitHub fine, unlike moit.gov.vn),
+#     triggers the box, and then CHECKS the result. It never refits the model.
+# The check is the point: a crawl that writes nothing and exits 0 is the exact
+# failure that kept the MOIT table frozen for two months while CI stayed green.
 
 on:
   schedule:
-    - cron: '0 2 * * 4'   # 09:00 VN Thursday (MOIT announces ~15:00 the prior cycle day)
+    # Daily at 09:23 VN. Daily because fuel_world_daily is daily data and the MOIT
+    # cadence has changed twice in 2026; :23 because GitHub drops scheduled runs on
+    # congested round minutes (measured 2026-08-09: 4-8 of 9 daily runs fired, 32
+    # min late on average). The previous '0 2 * * 4' broke that rule and was weekly.
+    - cron: '23 2 * * *'
   workflow_dispatch:
 
 jobs:
-  extract-land:
+  world-crawl:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +35,9 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements-fuel.txt
-      - name: World futures → Bronze/Silver
+      - name: Brent/RBOB futures -> Bronze/Silver
+        # Exits non-zero if any instrument's newest row is more than
+        # STALE_AFTER_DAYS old, so a silently frozen series turns this red.
         run: python crawl_tools/crawl_fuel_world.py
         env:
           FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}
@@ -26,17 +45,21 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET_RAW: ${{ secrets.R2_BUCKET_RAW }}
-      # MOIT is crawled ON THE BOX, not here: moit.gov.vn refuses GitHub runners
-      # (RemoteDisconnected / SSL EOF / "Network is unreachable", three runs on
-      # 2026-09-19 from a US runner IP). A crawl step here could only ever report
-      # "no newer cycle" — which is how 09-03, 09-10 and 09-17 were all missed
-      # while this workflow stayed green. So Actions triggers, the VN box crawls.
-      # deploy/crawl-fuel.timer already runs it daily; this is the weekly backstop
-      # that turns the run red if the box path has stopped working.
+
+  moit-crawl-on-box:
+    runs-on: ubuntu-latest
+    steps:
+      # moit.gov.vn refuses GitHub runners outright (RemoteDisconnected on the
+      # search endpoint, SSLEOFError and "Network is unreachable" on the two
+      # category pages, three runs on 2026-09-19 from a US runner IP). A crawl
+      # step here could only ever conclude "no newer cycle" -- which is how the
+      # 09-03, 09-10 and 09-17 cycles were all missed while this stayed green.
+      # deploy/crawl-fuel.timer already runs daily on the box; this is the
+      # backstop that turns the run red when that path stops working.
       - name: Skip if server secrets not configured
         id: guard
         run: echo "ready=${{ secrets.DEPLOY_HOST != '' }}" >> "$GITHUB_OUTPUT"
-      - name: MOIT announcement → trigger the box crawl
+      - name: Trigger the box crawl (it refits the model itself if data moved)
         if: steps.guard.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -55,8 +78,12 @@ jobs:
             echo "unit exit status: $status"
             [ "$status" = "0" ]
 
-  model:
-    needs: extract-land
+  freshness-check:
+    # Runs even when a crawl job failed: the point is to report the state of the
+    # data, and "the crawl failed AND the data is 3 weeks old" is the report worth
+    # having. Deliberately not `needs`-gated on success.
+    needs: [world-crawl, moit-crawl-on-box]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,11 +91,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements-fuel.txt
-      - name: Walk-forward backtest (dual model) → fuel_backtest
-        run: python be/fuel/backtest.py
-        env:
-          FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}
-      - name: Generate forecast fan → fuel_forecast
-        run: python be/fuel/forecast.py
+      - name: Is the served data actually current?
+        run: python crawl_tools/check_fuel_freshness.py
         env:
           FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}

@@ -43,3 +43,39 @@ def test_validate_per_instrument_units():
     # RBOB is USD/gallon — a barrel-scale value must be rejected
     assert not cw.validate([{"period": date(2026, 7, 9), "instrument": "RBOB", "close": 70.0}])
     assert not cw.validate([])
+
+
+# --- staleness guard (added 2026-09-19) ------------------------------------
+# The crawl can write rows, exit 0, and still be frozen: yfinance re-serving an
+# unchanged history upserts identical rows forever. Row counts cannot see that;
+# only the newest stored date can. Same failure that kept the MOIT crawl green
+# for two months.
+from datetime import date
+
+
+def test_fresh_series_reports_nothing():
+    today = date(2026, 9, 19)
+    assert cw.staleness_report(
+        {"BRENT": date(2026, 9, 18), "RBOB": date(2026, 9, 18)}, today) == []
+
+
+def test_long_weekend_is_not_stale():
+    # Fri 2026-09-11 close, checked the following Thu: 5 days, under the threshold.
+    assert cw.staleness_report({"BRENT": date(2026, 9, 11)}, date(2026, 9, 16)) == []
+
+
+def test_frozen_series_is_reported():
+    out = cw.staleness_report({"BRENT": date(2026, 9, 1)}, date(2026, 9, 19))
+    assert len(out) == 1 and "BRENT" in out[0] and "18 days old" in out[0]
+
+
+def test_missing_instrument_is_reported():
+    out = cw.staleness_report({"BRENT": date(2026, 9, 18), "RBOB": None},
+                              date(2026, 9, 19))
+    assert out == ["RBOB: no rows at all"]
+
+
+def test_each_stale_instrument_listed_separately():
+    out = cw.staleness_report({"BRENT": date(2026, 8, 1), "RBOB": date(2026, 8, 2)},
+                              date(2026, 9, 19))
+    assert len(out) == 2
