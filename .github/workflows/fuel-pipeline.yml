@@ -33,9 +33,11 @@ jobs:
       # while this workflow stayed green. So Actions triggers, the VN box crawls.
       # deploy/crawl-fuel.timer already runs it daily; this is the weekly backstop
       # that turns the run red if the box path has stopped working.
+      - name: Skip if server secrets not configured
+        id: guard
+        run: echo "ready=${{ secrets.DEPLOY_HOST != '' }}" >> "$GITHUB_OUTPUT"
       - name: MOIT announcement → trigger the box crawl
-        id: box
-        if: ${{ secrets.DEPLOY_HOST != '' }}
+        if: steps.guard.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
