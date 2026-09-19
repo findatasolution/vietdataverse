@@ -134,7 +134,7 @@ Backend dependencies: `pip install -r be/requirements.txt`. Crawlers: `pip insta
 | `USER_DB` | Users, payments, KM (sellers, products, wallet, library) | knowledge_* |
 | `KNOWLEDGE_MARKET_DB` | Knowledge Marketplace + wallet (separate Neon DB from `USER_DB`, despite the row above — `get_engine_knowledge()` in `be/core/engines.py`) | `knowledge_products`, `seller_earnings`, `credit_balance`, `credit_ledger`, `platform_products`, `platform_subscriptions`, `platform_subscription_events` |
 | `HELPER_DB` | Internal ops/DQ tables | — |
-| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; wallet-billed consumer subscription, not the originally-envisioned B2B corporate API — see "Platform subscriptions + Fuel Forecast gated API" below; gated endpoint and product page are live, but not yet open to real paying customers pending NĐ169 legal review) | `fuel_price_cycle`, `fuel_world_daily`, `fuel_forecast`, `fuel_backtest` |
+| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; wallet-billed consumer subscription, not the originally-envisioned B2B corporate API — see "Platform subscriptions + Fuel Forecast gated API" below; gated endpoint and product page are live, but not yet open to real paying customers pending NĐ169 legal review) | `fuel_price_cycle` (Silver, the model's only input), `fuel_forecast` (Gold, served by the API), `fuel_backtest` (Gold, currently write-only), `fuel_world_daily` (Brent/RBOB, no consumer) — full audit under "`FUEL_FORECAST_DB` — what each table is for" |
 
 ### Table naming convention
 
@@ -394,14 +394,45 @@ crawler against Platts without a signed commercial agreement — there is nothin
 publicly reachable to point it at, unlike the MOIT-bulletin workaround this
 project already uses for historical MOPS values.
 
-**`fuel_world_daily` (Brent/RBOB, crawled by `crawl_fuel_world.py`) has zero
-consumers now** — nothing in `be/fuel/` reads it anymore. Left running (free,
-harmless, no license issue) as raw world-oil-price context data in case it's
-useful for a future dashboard/UI panel; it is not wiring into the forecasting
-model again without a specific, deliberate reason given it's exactly the proxy
-that failed. `fuel_formula_params` (schema table) has never had a code writer or
-reader — dead since it was created; not dropped from the DB, but do not build
-against it without first re-checking this note.
+### `FUEL_FORECAST_DB` — what each table is for (audited 2026-09-19)
+
+Four tables, and **the model reads exactly one of them**. The audit below is
+row counts and code references as measured, not as designed.
+
+| Table | Rows | Layer | Written by | Read by |
+|---|---|---|---|---|
+| `fuel_price_cycle` | 234 (117 cycles × 2 fuels, 2022-01-21 → 2026-09-17) | Silver | `crawl_moit_fuel.py` | `be/fuel/backtest.py`, `be/fuel/forecast.py`, `be/routers/fuel_forecast.py` |
+| `fuel_forecast` | 552 | Gold | `be/fuel/forecast.py` | `be/routers/fuel_forecast.py` (the paid API) |
+| `fuel_backtest` | 70 | Gold | `be/fuel/backtest.py` | **nothing** |
+| `fuel_world_daily` | 1,102 (Brent + RBOB, 551 each) | Silver | `crawl_fuel_world.py` | **nothing** |
+
+**`fuel_price_cycle` is the entire input to the model**, and only two of its
+columns are: `world_avg_price` (the MOPS window average MOIT publishes) and
+`retail_price`. `delta-world-v1` fits `Δretail = k·Δworld` on consecutive rows
+of those two columns and reads nothing else, from any table. `base_price`,
+`bog_contrib`, `bog_use` and `taxes` were dropped from this table 2026-09-15
+for never having been parsed (`be/migrations/fix_fuel_price_cycle_drop_unused_cols.py`).
+
+**`fuel_backtest` is write-only, and that is a real gap, not a tidy-up item.**
+The pipeline refits it every time a new cycle lands, but no endpoint queries it
+and `fe/pages/fuel-forecast.html` **hardcodes the accuracy figures in
+JavaScript** (`skillByFuel`, `r2ByFuel`). So the numbers a paying visitor reads
+are a snapshot someone typed, disconnected from the table that validates them —
+they already drifted once (page says skill 0.745/0.778; the 2026-09-19 refit
+gives 0.741/0.765). Either serve these from `fuel_backtest` or stop presenting
+them as live validation; do not fix the drift by editing the constants again.
+
+**`fuel_world_daily` (Brent/RBOB) has had zero consumers since 2026-09-10** —
+it fed `structural-v1`, which was deleted for losing to random walk precisely
+because Brent/RBOB are a poor proxy for Singapore MOPS. The crawler still runs
+(free, no license issue) and the rows are kept as raw world-price context for a
+possible future UI panel. **Do not wire it back into the model** without a
+specific, deliberate reason: it is exactly the proxy that already failed.
+
+**`fuel_formula_params` was dropped 2026-09-19.** It held Nghị định 80 tax/fee
+parameters for `structural-v1`, had zero rows from the day it was created, and
+no code ever read or wrote it. `be/fuel/schema.sql` keeps a comment where it
+stood so this doesn't get rediscovered and recreated.
 
 ## GitHub Actions Workflows
 

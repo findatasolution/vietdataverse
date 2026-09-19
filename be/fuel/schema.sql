@@ -33,19 +33,8 @@ CREATE TABLE IF NOT EXISTS fuel_world_daily (
 );
 CREATE INDEX IF NOT EXISTS idx_fuel_world_daily_period ON fuel_world_daily (period);
 
--- Nghị định 80 formula parameters, versioned (change when tax/fee policy changes).
-CREATE TABLE IF NOT EXISTS fuel_formula_params (
-  id SERIAL PRIMARY KEY,
-  effective_from DATE NOT NULL,
-  fuel VARCHAR(12) NOT NULL,
-  import_pct NUMERIC NOT NULL,                    -- e.g. 0.10
-  excise_pct NUMERIC NOT NULL,                    -- 0.10 RON95 / 0.08 E5 / 0.0 diesel
-  env_vnd NUMERIC NOT NULL,                       -- environmental tax, VND/L (fixed)
-  vat_pct NUMERIC NOT NULL,                       -- e.g. 0.10
-  business_cost_norm NUMERIC NOT NULL,            -- VND/L
-  profit_norm NUMERIC NOT NULL,                   -- VND/L
-  freight_premium NUMERIC NOT NULL,               -- USD/barrel (freight + premium)
-  import_weight_pct NUMERIC NOT NULL DEFAULT 100,
-  domestic_weight_pct NUMERIC NOT NULL DEFAULT 0,
-  UNIQUE (fuel, effective_from)
-);
+-- fuel_formula_params was dropped from the DB 2026-09-19. It held the Nghị định 80
+-- tax/fee parameters for structural-v1, the two-stage model deleted 2026-09-10; it
+-- never had a single row and no code ever read or wrote it. Do not recreate it
+-- without first re-reading why structural-v1 failed (CLAUDE.md, "Fuel forecast
+-- model") — the formula it parameterises is not what delta-world-v1 uses.
