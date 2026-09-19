@@ -73,20 +73,31 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
     log "image built"
 fi
 
-# Newest cycle in Silver, as "YYYY-MM-DD" or "-". Used before and after the
+# Newest cycle in Silver, as "YYYY-MM-DD" or "none". Used before and after the
 # crawl: the same query against the same DB, so no clock arithmetic is involved.
+# No SQL string literal here on purpose — bash single quotes cannot contain one,
+# and the first version wrote "-" with double quotes, which Postgres reads as a
+# column name. That query errored, both probes came back empty and compared
+# equal, so the model would never have refitted after a new cycle landed.
 latest_period() {
     docker run --rm --env-file "$CRAWL_ENV" -v "$APP_DIR:/repo:ro" -w /repo/crawl_tools \
         "$IMAGE" python -c '
 import os
 from sqlalchemy import create_engine, text
 with create_engine(os.environ["FUEL_FORECAST_DB"]).connect() as c:
-    print(c.execute(text("SELECT coalesce(max(period)::text, \"-\") FROM fuel_price_cycle")).scalar())
-' 2>/dev/null | tail -1
+    print(c.execute(text("SELECT max(period) FROM fuel_price_cycle")).scalar() or "none")
+' 2>&1 | tail -1
 }
 
+# An unreadable probe must not look like "nothing changed" — that is the failure
+# this function already caused once. Refit instead: wasteful, never silent.
+valid_probe() { printf '%s' "$1" | grep -qE '^([0-9]{4}-[0-9]{2}-[0-9]{2}|none)$'; }
+
 before=$(latest_period)
-log "latest cycle before crawl: ${before:--}"
+if ! valid_probe "$before"; then
+    log "WARNING: could not read latest cycle ($before) — will refit the model regardless"
+fi
+log "latest cycle before crawl: $before"
 
 docker run --rm \
     --env-file "$CRAWL_ENV" \
@@ -98,9 +109,9 @@ crawl_rc=${PIPESTATUS[0]}
 [ "$crawl_rc" -ne 0 ] && log "crawl_moit_fuel.py exited $crawl_rc (past the staleness threshold, or a bad parse)"
 
 after=$(latest_period)
-log "latest cycle after crawl: ${after:--}"
+log "latest cycle after crawl: $after"
 
-if [ "$after" = "$before" ]; then
+if [ "$after" = "$before" ] && valid_probe "$before" && valid_probe "$after"; then
     log "no new cycle — leaving fuel_backtest/fuel_forecast untouched"
     exit "$crawl_rc"
 fi
