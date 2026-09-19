@@ -134,7 +134,7 @@ Backend dependencies: `pip install -r be/requirements.txt`. Crawlers: `pip insta
 | `USER_DB` | Users, payments, KM (sellers, products, wallet, library) | knowledge_* |
 | `KNOWLEDGE_MARKET_DB` | Knowledge Marketplace + wallet (separate Neon DB from `USER_DB`, despite the row above — `get_engine_knowledge()` in `be/core/engines.py`) | `knowledge_products`, `seller_earnings`, `credit_balance`, `credit_ledger`, `platform_products`, `platform_subscriptions`, `platform_subscription_events` |
 | `HELPER_DB` | Internal ops/DQ tables | — |
-| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; wallet-billed consumer subscription, not the originally-envisioned B2B corporate API — see "Platform subscriptions + Fuel Forecast gated API" below; gated endpoint and product page are live, but not yet open to real paying customers pending NĐ169 legal review) | `fuel_price_cycle` (Silver, the model's only input), `fuel_forecast` (Gold, served by the API), `fuel_backtest` (Gold, currently write-only), `fuel_world_daily` (Brent/RBOB, no consumer) — full audit under "`FUEL_FORECAST_DB` — what each table is for" |
+| `FUEL_FORECAST_DB` | Fuel-forecast product (isolated; wallet-billed consumer subscription, not the originally-envisioned B2B corporate API — see "Platform subscriptions + Fuel Forecast gated API" below; gated endpoint and product page are live, but not yet open to real paying customers pending NĐ169 legal review) | `fuel_price_cycle` (Silver — giá điều hành MOIT theo kỳ + giá MOPS, **nguồn duy nhất của model**), `fuel_world_daily` (Silver — Brent/RBOB theo ngày từ Yahoo), `fuel_forecast` (Gold — kịch bản bán cho khách), `fuel_backtest` (Gold — điểm số validation). Mô tả từng cột, đơn vị và dải giá trị: xem "`FUEL_FORECAST_DB` — data dictionary" |
 
 ### Table naming convention
 
@@ -394,45 +394,139 @@ crawler against Platts without a signed commercial agreement — there is nothin
 publicly reachable to point it at, unlike the MOIT-bulletin workaround this
 project already uses for historical MOPS values.
 
-### `FUEL_FORECAST_DB` — what each table is for (audited 2026-09-19)
+### `FUEL_FORECAST_DB` — data dictionary (audited 2026-09-19)
 
-Four tables, and **the model reads exactly one of them**. The audit below is
-row counts and code references as measured, not as designed.
+Four tables. Two hold **crawled source data** (Silver), two hold **model output**
+(Gold). Schema files: `be/fuel/schema.sql` (Silver), `be/fuel/schema_gold.sql`
+(Gold). Every table carries the repo-standard `id / period-or-run_ts /
+crawl_time / source / group_name` shape described under "Required columns".
 
-| Table | Rows | Layer | Written by | Read by |
-|---|---|---|---|---|
-| `fuel_price_cycle` | 234 (117 cycles × 2 fuels, 2022-01-21 → 2026-09-17) | Silver | `crawl_moit_fuel.py` | `be/fuel/backtest.py`, `be/fuel/forecast.py`, `be/routers/fuel_forecast.py` |
-| `fuel_forecast` | 552 | Gold | `be/fuel/forecast.py` | `be/routers/fuel_forecast.py` (the paid API) |
-| `fuel_backtest` | 70 | Gold | `be/fuel/backtest.py` | **nothing** |
-| `fuel_world_daily` | 1,102 (Brent + RBOB, 551 each) | Silver | `crawl_fuel_world.py` | **nothing** |
+---
 
-**`fuel_price_cycle` is the entire input to the model**, and only two of its
-columns are: `world_avg_price` (the MOPS window average MOIT publishes) and
-`retail_price`. `delta-world-v1` fits `Δretail = k·Δworld` on consecutive rows
-of those two columns and reads nothing else, from any table. `base_price`,
-`bog_contrib`, `bog_use` and `taxes` were dropped from this table 2026-09-15
-for never having been parsed (`be/migrations/fix_fuel_price_cycle_drop_unused_cols.py`).
+#### `fuel_price_cycle` — giá điều hành xăng dầu trong nước, theo kỳ
 
-**`fuel_backtest` is write-only, and that is a real gap, not a tidy-up item.**
-The pipeline refits it every time a new cycle lands, but no endpoint queries it
-and `fe/pages/fuel-forecast.html` **hardcodes the accuracy figures in
-JavaScript** (`skillByFuel`, `r2ByFuel`). So the numbers a paying visitor reads
-are a snapshot someone typed, disconnected from the table that validates them —
-they already drifted once (page says skill 0.745/0.778; the 2026-09-19 refit
-gives 0.741/0.765). Either serve these from `fuel_backtest` or stop presenting
-them as live validation; do not fix the drift by editing the constants again.
+**What it is.** One row per price-management cycle per fuel. This is the
+regulated retail ceiling price MOIT sets, together with the world reference
+price it used to set it. **It is the only input to the forecasting model.**
 
-**`fuel_world_daily` (Brent/RBOB) has had zero consumers since 2026-09-10** —
-it fed `structural-v1`, which was deleted for losing to random walk precisely
-because Brent/RBOB are a poor proxy for Singapore MOPS. The crawler still runs
-(free, no license issue) and the rows are kept as raw world-price context for a
-possible future UI panel. **Do not wire it back into the model** without a
-specific, deliberate reason: it is exactly the proxy that already failed.
+**Source.** Bộ Công Thương price-management bulletins, e.g.
+`https://moit.gov.vn/tin-tuc/thong-bao/mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-17-9.html`
+— parsed from prose by `crawl_tools/moit_parser.py`. Raw HTML is archived to
+Cloudflare R2 (Bronze) with a sha256 so a parser change can be replayed.
+Crawled by `crawl_tools/crawl_moit_fuel.py`, **from the VN box** (moit.gov.vn
+refuses GitHub runners).
 
-**`fuel_formula_params` was dropped 2026-09-19.** It held Nghị định 80 tax/fee
-parameters for `structural-v1`, had zero rows from the day it was created, and
-no code ever read or wrote it. `be/fuel/schema.sql` keeps a comment where it
-stood so this doesn't get rediscovered and recreated.
+**Grain.** `(fuel, period)` — UNIQUE. Cadence is set by the regulator and has
+changed twice in 2026: weekly Thursday → ~14 days → weekly again.
+
+| Column | Type | Unit / meaning | Observed range |
+|---|---|---|---|
+| `period` | DATE | Ngày công bố kỳ điều hành (MOIT announces ~15:00 VN) | 2022-01-21 → 2026-09-17 |
+| `fuel` | VARCHAR(12) | `E5RON92` (xăng sinh học) or `DO005S` (dầu diesel 0,05S). RON95 dropped 2026-09-15 | 2 values |
+| `retail_price` | NUMERIC | **VND/lít** — giá bán lẻ tối đa MOIT ấn định | E5RON92 18.233–31.302; DO005S 16.809–37.899 |
+| `world_avg_price` | NUMERIC | **USD/thùng** — bình quân MOPS (Mean of Platts Singapore) của **xăng dầu thành phẩm**, cửa sổ ~7 ngày, do chính MOIT công bố trong bản tin | E5RON92 70,9–149,6; DO005S 76,8–218,9 |
+| `source` | TEXT | URL bản tin cụ thể của kỳ đó | moit.gov.vn/… |
+
+**Rows.** 234 = 117 cycles × 2 fuels.
+
+**Do not confuse `world_avg_price` with Brent.** It is refined-product MOPS,
+quoted per fuel — on 2026-09-17 it read 141,1 (E5RON92) and 182,6 (DO005S)
+while Brent crude closed at 104,8. This is the number inside the regulator's
+formula; Brent is not.
+
+`base_price`, `bog_contrib`, `bog_use` and `taxes` were dropped 2026-09-15 for
+never having been parsed (`be/migrations/fix_fuel_price_cycle_drop_unused_cols.py`).
+
+---
+
+#### `fuel_world_daily` — giá dầu thế giới theo ngày (hợp đồng tương lai)
+
+**What it is.** Daily settlement prices of two exchange-traded futures, used as
+free world-oil-price context. **Not the price in the regulator's formula.**
+
+**Source.** Yahoo Finance via `yfinance` — `BZ=F` (Brent crude) and `RB=F`
+(RBOB gasoline). Crawled by `crawl_tools/crawl_fuel_world.py`, weekly on
+GitHub Actions; each run re-downloads `period="2y"` and upserts, so a missed
+run self-heals (0 calendar gaps > 4 days across 551 days).
+
+**Grain.** `(instrument, period)` — UNIQUE, weekdays only.
+
+| Column | Type | Unit / meaning | Observed range |
+|---|---|---|---|
+| `period` | DATE | Trading day | 2024-07-12 → 2026-09-18 |
+| `instrument` | VARCHAR(12) | `BRENT` (dầu thô Brent) or `RBOB` (xăng kỳ hạn Mỹ). `SGGO` (Singapore Gasoil, the true diesel benchmark) is a stub — needs a licensed ICE/CME feed | 2 values |
+| `close` | NUMERIC | **BRENT: USD/thùng. RBOB: USD/gallon** — units differ per instrument, validated against per-instrument bounds in `crawl_fuel_world.py` | BRENT 58,92–118,35; RBOB 1,68–3,77 |
+
+**Rows.** 1.102 = 551 days × 2 instruments.
+
+**History.** It fed `structural-v1` (Brent → MOPS → Nghị định 80 formula),
+deleted 2026-09-10 for losing to random walk. A 2026-09-19 experiment found a
+*different* framing does work — the 7-day change in the Brent window average
+before an announcement beats random walk on Δretail (walk-forward skill +0.29
+to +0.34, Wilcoxon p<0.05, n=50) — but nothing in production consumes this
+table yet. **Do not reinstate the old level-on-level framing.**
+
+---
+
+#### `fuel_forecast` — kịch bản dự báo bán cho khách (Gold)
+
+**What it is.** The product output. Not a point forecast: each row is a
+**world-conditional scenario** — "if the world price moves by X, retail moves by
+k·X". `base` always equals the last known retail price unchanged.
+
+**Written by** `be/fuel/forecast.py`; **read by** `be/routers/fuel_forecast.py`.
+
+**Grain.** `(run_ts, fuel, target_cycle, scenario)` — UNIQUE. One `run_ts` per
+refit; 23 runs stored, kept as history rather than overwritten.
+
+| Column | Type | Unit / meaning |
+|---|---|---|
+| `run_ts` | TIMESTAMP | When the forecast was generated. Latest run is the one served |
+| `target_cycle` | DATE | Kỳ điều hành được dự báo |
+| `horizon` | INT | 1–4 cycles ahead |
+| `scenario` | VARCHAR(6) | `low` / `base` / `high` — the 80% world-shift band |
+| `point`, `lo`, `hi` | NUMERIC | VND/lít |
+| `breakdown` | JSONB | `k_vnd_per_usd_bbl`, `sigma_world_usd_bbl`, `resid_std_vnd_l`, `cycle_days_used`, `last_known_cycle/retail`, `assumed_world_delta_usd_bbl`, `bands` (50/80/95% nested fan), `disclaimer`. Free tier receives only `disclaimer` |
+| `model_version` | VARCHAR(40) | `delta-world-v1` (216 rows) — plus **336 stale `structural-v1` rows from 2026-07-12→09-10**, kept as history of a deleted model. Always filter by `model_version` or by latest `run_ts` |
+
+---
+
+#### `fuel_backtest` — điểm số validation của model (Gold)
+
+**What it is.** Walk-forward accuracy of the model, recomputed every time a new
+cycle lands. Each row is a snapshot of how the model scored at that moment with
+the data it had — **it cannot be reconstructed after the fact**, which is why
+this table is kept even though it is small.
+
+**Written by** `be/fuel/backtest.py`; **read by** `be/routers/fuel_forecast.py`
+(the `validation` block in the API response, since 2026-09-19).
+
+**Grain.** `(run_ts, fuel, horizon, model_version)` — UNIQUE. 22 runs stored.
+
+| Column | Type | Unit / meaning |
+|---|---|---|
+| `mae`, `rmse` | NUMERIC | VND/lít |
+| `coverage` | NUMERIC | Tỉ lệ kỳ thực tế rơi trong khoảng [lo, hi]. Nominal ~80%, measured 0.87–0.89 |
+| `n` | INT | Số điểm kiểm định walk-forward (currently 111) |
+| `skill_vs_rw` | NUMERIC | `1 − MAE/MAE_randomwalk`, algebraically `1 − MASE`. 0 = ties random walk |
+| `model_version` | VARCHAR(40) | `delta-world-v1` (42 rows), `structural-v1` (28 stale rows) |
+
+**These numbers are ex-post, and the API says so.** `walk_forward_delta` feeds
+the model the `world_avg_price` MOIT publishes *in the same bulletin* as the
+retail price, so `skill_vs_rw` measures how mechanical the regulator's formula
+is — not how well anything is predicted before an announcement. The API returns
+`conditioning: "ex_post"` alongside the figures and the page labels the tile
+accordingly. Until 2026-09-19 the page carried these as hardcoded JavaScript
+constants that had already drifted from the table; **never reintroduce a typed
+copy of a number this table computes.**
+
+---
+
+#### Dropped
+
+**`fuel_formula_params`** (dropped 2026-09-19) held Nghị định 80 tax/fee
+parameters for `structural-v1`. Zero rows from the day it was created, no code
+ever read or wrote it. `be/fuel/schema.sql` keeps a comment where it stood.
 
 ## GitHub Actions Workflows
 
