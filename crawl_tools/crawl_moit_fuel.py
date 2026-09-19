@@ -34,6 +34,16 @@ MOIT_NEWS_INDEXES = (
     "https://moit.gov.vn/tin-tuc/thi-truong-trong-nuoc",
     "https://moit.gov.vn/tin-tuc/phat-trien-nang-luong",
 )
+
+# Primary discovery: MOIT's own site search. Category listings drop bulletins and
+# slug templates keep changing (2026-07 moved category, 2026-09 dropped the year),
+# so anything that depends on knowing the URL in advance breaks silently. Search
+# is server-rendered, needs no API key, and returns the bulletins whatever they
+# are named or filed under.
+MOIT_SEARCH_URL = (
+    "https://moit.gov.vn/?page=search&keyword="
+    "%C4%91i%E1%BB%81u%20h%C3%A0nh%20gi%C3%A1%20x%C4%83ng%20d%E1%BA%A7u"  # "điều hành giá xăng dầu"
+)
 UA = {"User-Agent": "Mozilla/5.0 (compatible; VietDataverse/1.0)"}
 
 
@@ -142,12 +152,11 @@ def _slug_day_month(url: str) -> tuple[int, int] | None:
 PROBE_WINDOW_DAYS = 21
 
 # Hard alert threshold, independent of whether a new cycle was found this run.
-# Confirmed real-world gaps: weekly (~7d) pre-2026-07, ~14d from 2026-08-13 onward.
-# 25 days gives headroom over both without masking a genuine multi-week freeze —
-# this exact bug (2026-07-09 -> 2026-08-27, a 49-day freeze) is what this threshold
-# exists to catch, since discover_latest() alone can silently find nothing new
-# under a legitimate biweekly cadence and that must NOT be treated as failure.
-STALE_AFTER_DAYS = 25
+# Cadence went back to weekly on 2026-09-03, so 25 days was far too slack: the
+# 2026-09-03 -> 09-17 miss sat at 21 days of silence and would never have paged.
+# 17 days = two missed weekly cycles plus slack, still above the ~14-day cadence
+# of Aug 2026 in case it returns.
+STALE_AFTER_DAYS = 17
 
 
 def discover_new(latest_known: date | None, today: date | None = None,
@@ -169,11 +178,15 @@ def discover_new(latest_known: date | None, today: date | None = None,
     today = today or date.today()
     found: dict[date, str] = {}
 
-    for index_url in indexes:
+    for index_url in (MOIT_SEARCH_URL,) + tuple(indexes):
         html, _ = fetch(index_url)
-        for m in re.finditer(r'href="([^"]*dieu-hanh-gia-xang-dau-ngay[^"]+\.html)"', html):
+        for m in re.finditer(r'href="([^"]*dieu-hanh-(?:gia-)?xang-dau-ngay[^"]+\.html)"', html):
             href = m.group(1)
             url = href if href.startswith("http") else "https://moit.gov.vn" + href
+            # Search also returns the /van-ban-phap-luat/ mirror of each cycle —
+            # a different document type that moit_parser.py is not written for.
+            if "/tin-tuc/" not in url:
+                continue
             day_month, published = _slug_day_month(url), None
             page, status = fetch(url)
             if status == 200:

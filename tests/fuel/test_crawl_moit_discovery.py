@@ -21,6 +21,25 @@ YEARLESS_0903 = "https://moit.gov.vn/tin-tuc/thong-bao/mot-so-thong-tin-ve-viec-
 YEARLESS_0910 = "https://moit.gov.vn/tin-tuc/thong-bao/mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-10-9.html"
 
 
+SEARCH = crawler.MOIT_SEARCH_URL
+
+
+def test_search_finds_bulletins_no_url_pattern_would_have_guessed():
+    """Discovery must not depend on guessing slugs — that is what keeps breaking."""
+    results = ('<a href="/tin-tuc/thong-bao/mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-10-9.html">a</a>'
+               '<a href="/tin-tuc/mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-17-9.html">b</a>'
+               '<a href="/van-ban-phap-luat/van-ban-dieu-hanh/thong-bao-dieu-hanh-gia-xang-dau-ngay-17-9-2026.html">c</a>')
+    fetch = _fake_fetch({
+        SEARCH: results,
+        YEARLESS_0910: _page("2026-09-10"),
+        "https://moit.gov.vn/tin-tuc/mot-so-thong-tin-ve-viec-dieu-hanh-gia-xang-dau-ngay-17-9.html": _page("2026-09-17"),
+    })
+    found = crawler.discover_new(date(2026, 9, 3), today=date(2026, 9, 17), fetch=fetch, indexes=())
+    assert [d for d, _ in found] == [date(2026, 9, 10), date(2026, 9, 17)]
+    # the van-ban-phap-luat mirror is a different document type; parse_moit is not written for it
+    assert all("/tin-tuc/" in url for _, url in found)
+
+
 def test_published_date_is_read_from_article_meta():
     assert crawler._published_date(_page("2026-09-10")) == date(2026, 9, 10)
     assert crawler._published_date("<p>no meta</p>") is None

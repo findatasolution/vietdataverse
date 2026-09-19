@@ -263,13 +263,20 @@ Same silent-freeze shape as 2026-09-08, new cause. From 2026-09-03 MOIT filed th
 bulletins under `/tin-tuc/thong-bao/` with **no year in the slug**
 (`...-dieu-hanh-gia-xang-dau-ngay-10-9.html`). `_bulletin_url()` only probed
 `/tin-tuc/...-ngay-D-M-YYYY.html`, so 2026-09-03, 09-10 and 09-17 were all missed
-while `fuel-pipeline.yml` stayed green — `STALE_AFTER_DAYS` (25) would not have
-fired until 09-21. Worse, had the category scan found such a link,
+while `fuel-pipeline.yml` stayed green — `STALE_AFTER_DAYS` was 25 days against a
+7-day cadence, so 21 days of silence never paged anyone; it is now **17**. Worse, had the category scan found such a link,
 `_period_from_url()` would have `sys.exit`ed on it (no 4-digit year to parse).
 
-`discover_new()` (replaces `discover_latest()`) now probes every combination of
-three category prefixes x three slug templates, **including the year-less one**,
-and returns **every** new cycle oldest-first — the old code crawled only the
+**Discovery is now search-first, not pattern-first** (the standing decision from
+2026-09-16: options 2+3 — a free data source plus search — are how this data gets
+found, and that applies to the scheduled crawl, not just one-off backfills).
+`discover_new()` queries **MOIT's own site search** (`MOIT_SEARCH_URL`,
+server-rendered, no API key) before anything else, so a renamed slug or a new
+category no longer hides a cycle; results under `/van-ban-phap-luat/` are skipped
+because that mirror is a different document type `moit_parser.py` cannot read.
+Category scan and the URL probe stay as fallbacks: the probe still covers every
+combination of three category prefixes x three slug templates, **including the
+year-less one**. It returns **every** new cycle oldest-first — the old code crawled only the
 newest, so any cycle skipped in between was lost for good. A year-less URL keeps
 resolving to last year's article, so a hit only counts when the page's own
 `article:published_time` meta is the cycle day (or the day after); that meta is
