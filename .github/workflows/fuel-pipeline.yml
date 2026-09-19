@@ -26,14 +26,32 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET_RAW: ${{ secrets.R2_BUCKET_RAW }}
-      - name: MOIT announcement → Bronze/Silver
-        run: python crawl_tools/crawl_moit_fuel.py
-        env:
-          FUEL_FORECAST_DB: ${{ secrets.FUEL_FORECAST_DB }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_RAW: ${{ secrets.R2_BUCKET_RAW }}
+      # MOIT is crawled ON THE BOX, not here: moit.gov.vn refuses GitHub runners
+      # (RemoteDisconnected / SSL EOF / "Network is unreachable", three runs on
+      # 2026-09-19 from a US runner IP). A crawl step here could only ever report
+      # "no newer cycle" — which is how 09-03, 09-10 and 09-17 were all missed
+      # while this workflow stayed green. So Actions triggers, the VN box crawls.
+      # deploy/crawl-fuel.timer already runs it daily; this is the weekly backstop
+      # that turns the run red if the box path has stopped working.
+      - name: MOIT announcement → trigger the box crawl
+        id: box
+        if: ${{ secrets.DEPLOY_HOST != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          command_timeout: 25m
+          script: |
+            set -uo pipefail
+            systemctl start --wait crawl-fuel.service || true
+            journalctl -u crawl-fuel.service -n 40 --no-pager || true
+            # The unit's own exit status decides this step: a stale or unparseable
+            # crawl exits non-zero inside crawl_moit_fuel.py and must surface here.
+            status=$(systemctl show crawl-fuel.service -p ExecMainStatus --value)
+            echo "unit exit status: $status"
+            [ "$status" = "0" ]
 
   model:
     needs: extract-land
