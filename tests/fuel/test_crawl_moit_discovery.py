@@ -40,6 +40,23 @@ def test_search_finds_bulletins_no_url_pattern_would_have_guessed():
     assert all("/tin-tuc/" in url for _, url in found)
 
 
+def test_a_blocked_host_degrades_instead_of_killing_the_run():
+    """moit.gov.vn refuses GitHub runners intermittently; discovery must survive it."""
+    listing = f'<a href="{YEARLESS_0910}">a</a><a href="{YEARLESS_0903}">b</a>'
+    def fetch(url):
+        if url == SEARCH:
+            raise OSError("Connection aborted")          # search blocked
+        if url == "index":
+            return (listing, 200)                        # listing reachable
+        if url == YEARLESS_0910:
+            raise OSError("SSL EOF")                     # one article blocked
+        if url == YEARLESS_0903:
+            return (_page("2026-09-03"), 200)            # the other is fine
+        return NOT_FOUND
+    found = crawler.discover_new(date(2026, 9, 1), today=date(2026, 9, 3), fetch=fetch, indexes=("index",))
+    assert found == [(date(2026, 9, 3), YEARLESS_0903)]
+
+
 def test_published_date_is_read_from_article_meta():
     assert crawler._published_date(_page("2026-09-10")) == date(2026, 9, 10)
     assert crawler._published_date("<p>no meta</p>") is None

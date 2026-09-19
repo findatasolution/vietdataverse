@@ -194,8 +194,11 @@ def discover_new(latest_known: date | None, today: date | None = None,
             # a different document type that moit_parser.py is not written for.
             if "/tin-tuc/" not in url:
                 continue
-            day_month, published = _slug_day_month(url), None
-            page, status = fetch(url)
+            day_month, published, page = _slug_day_month(url), None, ""
+            try:
+                page, status = fetch(url)
+            except Exception:
+                continue  # flaky/blocked host — try the next candidate
             if status == 200:
                 published = _published_date(page)
             if not day_month or not published:
