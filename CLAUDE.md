@@ -200,7 +200,7 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 | GDP / IIP / Xuất nhập khẩu | NSO monthly & quarterly bulletin | `vn_gso_gdp_quarterly`, `vn_gso_iip_monthly`, `vn_gso_trade_monthly` | Monthly / Quarterly |
 | Global | Yahoo Finance (GC=F, SI=F, ^IXIC) | `global_macro` | Daily |
 | Fuel (domestic) | Bộ Công Thương price-management announcements | `fuel_price_cycle` | ~Biweekly (cadence changed 2026-08, was weekly Thu) |
-| Fuel (world) | Yahoo Finance (BZ=F Brent, RB=F RBOB) | `fuel_world_daily` | Daily |
+| Fuel (world) | Yahoo Finance (BZ=F Brent, RB=F RBOB) | `fuel_world_daily` | Daily (crawled daily, full history re-pulled each run) |
 | VN30 (profile/price/financials/ratios) — crawled but **not served anywhere**, internal cross-check only | `vnstock3` (wraps SSI/TCBS) — license restriction, see below | `vn30_*` | Daily/Quarterly |
 
 ### VN30 data source (`vnstock3`) — REV-01 gỡ khỏi API/FE hoàn tất (2026-09-10)
@@ -422,6 +422,63 @@ crawler against Platts without a signed commercial agreement — there is nothin
 publicly reachable to point it at, unlike the MOIT-bulletin workaround this
 project already uses for historical MOPS values.
 
+### Fuel price forecasting is a solved market — VPI (found 2026-09-20)
+
+**Viện Dầu khí Việt Nam (VPI)**, a research institute under Petrovietnam,
+publishes a fuel-price forecast **before every price-management cycle**, for all
+five fuel types, using an artificial neural network with supervised learning. It
+is free, and it is carried by VietnamPlus, BNews (TTXVN), PetroTimes, Thời báo
+Tài chính, HTV, PVOIL and provincial papers. A transport company needs only to
+search for it.
+
+**Measured against our own `fuel_price_cycle` rows** (VPI forecasts collected
+from state media, paired with the cycle they targeted):
+
+| Model | E5RON92 MAE | DO005S MAE |
+|---|---|---|
+| **VPI** | **70** (n=4) | **62** (n=2) |
+| `delta-world-v1` — ex-post, *knows* the cycle's MOPS | 199 | 236 |
+| `brent-nowcast-v1` — genuine pre-announcement forecast | 513 | 600 |
+| Random walk (price unchanged) | 692 | 959 |
+
+VPI is **7–10× more accurate than our pre-announcement model**, and ~3× more
+accurate than the ex-post one that gets to see the answer. Individual errors ran
+0.03%–1.10%; one was 5 VND/L. Small n, and media may only publish the cycles VPI
+got right — but a 7–10× gap is not sampling noise.
+
+**Why they win:** VPI models the stabilisation-fund decision itself ("dự báo …
+mức trích lập và chi sử dụng Quỹ bình ổn"), which is precisely the largest
+remaining error source for us and the one we cannot address.
+
+**Consequence:** do not position this product as a fuel-price forecast. That
+applies to `delta-world-v1` (currently on sale) as well as to any successor.
+Two directions survive, because VPI does **not** offer them: a clean queryable
+history (117 cycles + the MOPS figure MOIT publishes), and **scoring forecasts
+against outcomes** — storing VPI's published forecast each cycle and publishing
+how accurate it turned out to be. Nobody does that, VPI included.
+
+**Acquiring VPI's data — checked 2026-09-20, no clean route yet.**
+`vpi.pvn.vn` redirects to a Gamma site-builder page: no data portal, no API, no
+RSS, no downloads, only `contact@vpi.pvn.vn`. VPI publishes *press releases*,
+not data. News articles are reachable and parseable (bnews.vn returns 200 and a
+simple regex extracts the figures), and lead time is comfortable — measured
+25–45 hours before the cycle across four articles. But: bnews' `/rss/kinh-te.rss`
+500s and article URLs carry unguessable numeric ids, so discovery would rely on
+search or category scraping — the exact fragility that broke the MOIT crawler
+twice in 2026, now with a third party's CMS instead of our source's.
+
+Legally there are three tiers, and only the middle one is clearly settled:
+Điều 15 Luật SHTT excludes "tin tức thời sự thuần tuý" from copyright, so the
+**figures** are likely usable with attribution; the **article text** is a
+copyrighted journalistic work and is not; and **systematic aggregation inside a
+paid product** plausibly triggers Nghị định 72/2013's licence for a "trang thông
+tin điện tử tổng hợp", which VDV does not hold. Not legal advice — the third
+tier needs a lawyer. The clean path is to ask VPI directly; it has not been
+tried.
+
+Full analysis: `docs/research/2026-09-19-fuel-model-report.md` and the local
+`model.ipynb`.
+
 ### `FUEL_FORECAST_DB` — data dictionary (audited 2026-09-19)
 
 Four tables. Two hold **crawled source data** (Silver), two hold **model output**
@@ -473,26 +530,53 @@ never having been parsed (`be/migrations/fix_fuel_price_cycle_drop_unused_cols.p
 free world-oil-price context. **Not the price in the regulator's formula.**
 
 **Source.** Yahoo Finance via `yfinance` — `BZ=F` (Brent crude) and `RB=F`
-(RBOB gasoline). Crawled by `crawl_tools/crawl_fuel_world.py`, weekly on
-GitHub Actions; each run re-downloads `period="2y"` and upserts, so a missed
-run self-heals (0 calendar gaps > 4 days across 551 days).
+(RBOB gasoline). Crawled by `crawl_tools/crawl_fuel_world.py`, daily on GitHub
+Actions; each run re-downloads `period="max"` and upserts, so a missed run
+self-heals. The crawler exits non-zero past `STALE_AFTER_DAYS` (6) so a frozen
+series cannot report success — the shape that kept the MOIT table green for two
+months.
 
 **Grain.** `(instrument, period)` — UNIQUE, weekdays only.
 
 | Column | Type | Unit / meaning | Observed range |
 |---|---|---|---|
-| `period` | DATE | Trading day | 2024-07-12 → 2026-09-18 |
+| `period` | DATE | Trading day | BRENT 2007-07-30, RBOB 2000-11-01 → 2026-09-18 |
 | `instrument` | VARCHAR(12) | `BRENT` (dầu thô Brent) or `RBOB` (xăng kỳ hạn Mỹ). `SGGO` (Singapore Gasoil, the true diesel benchmark) is a stub — needs a licensed ICE/CME feed | 2 values |
-| `close` | NUMERIC | **BRENT: USD/thùng. RBOB: USD/gallon** — units differ per instrument, validated against per-instrument bounds in `crawl_fuel_world.py` | BRENT 58,92–118,35; RBOB 1,68–3,77 |
+| `close` | NUMERIC | **BRENT: USD/thùng. RBOB: USD/gallon** — units differ per instrument, validated against per-instrument bounds in `crawl_fuel_world.py` | BRENT 19,33–146,08; RBOB 0,41–4,28 |
 
-**Rows.** 1.102 = 551 days × 2 instruments.
+**Rows.** 11.265 = 4.764 BRENT + 6.501 RBOB. One calendar gap > 5 days.
+
+**The window was `"2y"` until 2026-09-19**, an arbitrary limit of ours that
+started the table at 2024-07-12 while `fuel_price_cycle` goes back to
+2022-01-21 — so only 74 of 117 cycles had world-price features. Widening it
+also forced the validation bounds open: the old floors (Brent 20,0 / RBOB 0,5)
+rejected the **real** April-2020 COVID crash (Brent settled 19,33 on 2020-04-21,
+RBOB 0,41 on 2020-03-23), and because `validate()` is all-or-nothing those five
+genuine rows discarded the entire backfill. Do not narrow the bounds back to
+whatever the recent window happens to span.
 
 **History.** It fed `structural-v1` (Brent → MOPS → Nghị định 80 formula),
-deleted 2026-09-10 for losing to random walk. A 2026-09-19 experiment found a
-*different* framing does work — the 7-day change in the Brent window average
-before an announcement beats random walk on Δretail (walk-forward skill +0.29
-to +0.34, Wilcoxon p<0.05, n=50) — but nothing in production consumes this
-table yet. **Do not reinstate the old level-on-level framing.**
+deleted 2026-09-10 for losing to random walk. A 2026-09-19/20 experiment found a
+*different* framing does work: the cycle-over-cycle change in the Brent 7-day
+window average, observed **before** the announcement, beats random walk on
+Δretail — walk-forward n=91, skill +0.265 (E5RON92) and +0.379 (DO005S),
+Diebold-Mariano p=0.003 and p<0.0001, directional accuracy 84% and 89%.
+**Do not reinstate the old level-on-level framing.**
+
+Three things bound how far that result can be taken, and all three are settled:
+
+- **It is nowcasting, not forecasting.** Skill decays 0.26 → 0.10 → 0.02 → −0.01
+  across 1 to 4 cycles ahead and is gone at one month; a monthly-horizon model
+  loses to random walk outright. It works because the MOPS reference window is
+  nearly complete by the time the forecast is made — exactly what
+  `docs/research/2026-07-10-fuel-forecast-feasibility.md` §3.2 predicted.
+- **XGBoost loses to one-feature OLS** on both fuels. At 115 observations,
+  depth-3 trees score negative skill. Tested four configurations before
+  concluding this.
+- **VPI already does it far better, for free** — see "Fuel price forecasting is
+  a solved market" below.
+
+Nothing in production consumes this table.
 
 ---
 
