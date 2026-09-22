@@ -2257,6 +2257,51 @@
             }
         }
 
+        // Best-effort fetch of the world gold/silver series to overlay on the
+        // domestic detail chart's right axis. Deliberately separate from
+        // loadChartData(): a failure here must never block the domestic chart,
+        // which is the primary content — so this swallows every error and
+        // returns null rather than throwing.
+        //
+        // Reuses the SAME cache key shape loadChartData('global', period) would
+        // use, so opening the domestic gold chart and the "Thị trường quốc tế"
+        // section for the same period only fetches global-macro once.
+        async function fetchWorldOverlay(period) {
+            const cacheKey = `global-${period}-SJC-ACB`;
+            if (chartCache[cacheKey]) return chartCache[cacheKey];
+            try {
+                const prefetchKey = `global-${period}`;
+                if (window._prefetchPromises && window._prefetchPromises[prefetchKey]) {
+                    const data = await window._prefetchPromises[prefetchKey];
+                    delete window._prefetchPromises[prefetchKey];
+                    if (data) chartCache[cacheKey] = data;
+                    return data || null;
+                }
+                const file = staticFileFor('global', period);
+                if (file) {
+                    const sres = await fetch(`./data/${file}`);
+                    if (sres.ok) {
+                        const data = await sres.json();
+                        chartCache[cacheKey] = data;
+                        return data;
+                    }
+                }
+                const base = window.APP_CONFIG.API_BASE_URL;
+                if (base) {
+                    const res = await fetchWithTimeout(
+                        `${base}/${CHART_API_ENDPOINTS.global}?period=${period}`,
+                        { headers: await _authHeaders() }, 20000
+                    );
+                    if (res.ok) {
+                        const data = await res.json();
+                        chartCache[cacheKey] = data;
+                        return data;
+                    }
+                }
+            } catch (_) { /* best-effort — domestic chart renders without the overlay */ }
+            return null;
+        }
+
         async function loadChartData(chartType, period = '1m', goldType = 'SJC', bankCode = 'ACB') {
             const base = window.APP_CONFIG.API_BASE_URL;
             if (!chartType) return;
@@ -2267,7 +2312,9 @@
             const cacheKey = `${chartType}-${period}-${goldType}-${bankCode}`;
             if (chartCache[cacheKey]) {
                 console.log(`[${chartType}] Using cached data`);
-                renderChart(chartType, chartCache[cacheKey], period);
+                const worldData = (chartType === 'gold' || chartType === 'silver')
+                    ? await fetchWorldOverlay(period) : null;
+                renderChart(chartType, chartCache[cacheKey], period, worldData);
                 return;
             }
 
@@ -2314,7 +2361,12 @@
                     data = await res.json();
                 }
 
-                if (data) { chartCache[cacheKey] = data; renderChart(chartType, data, period); }
+                if (data) {
+                    chartCache[cacheKey] = data;
+                    const worldData = (chartType === 'gold' || chartType === 'silver')
+                        ? await fetchWorldOverlay(period) : null;
+                    renderChart(chartType, data, period, worldData);
+                }
                 else { throw new Error('No data source available'); }
 
             } catch (e) {
@@ -2340,7 +2392,7 @@
         /* =========================================================
            RENDER CHART WITH CHART.JS
         ========================================================= */
-        function renderChart(chartType, apiData, period) {
+        function renderChart(chartType, apiData, period, worldData) {
             const canvas = document.getElementById(`${chartType}Chart`);
             if (!canvas) {
                 console.error(`Canvas not found for ${chartType}Chart`);
@@ -2357,7 +2409,7 @@
             // Parse data based on chart type
             let chartData;
             if (chartType === 'gold' || chartType === 'silver') {
-                chartData = parseGoldSilverData(apiData, chartType);
+                chartData = parseGoldSilverData(apiData, chartType, worldData);
             } else if (chartType === 'td') {
                 chartData = parseTDData(apiData);
             } else if (chartType === 'sbv') {
@@ -2523,7 +2575,7 @@
             }
         }
 
-        function parseGoldSilverData(apiData, chartType) {
+        function parseGoldSilverData(apiData, chartType, worldData) {
             // API format: { success: true, data: { dates: [...], buy_prices: [...], sell_prices: [...] } }
             if (!apiData || !apiData.data || !apiData.data.dates) {
                 console.warn(`No data for ${chartType}`);
@@ -2539,68 +2591,120 @@
             // warm palette but actually has contrast.
             const color = chartType === 'gold' ? '#2f5fde' : '#4d4c48';
 
+            const datasets = [
+                {
+                    label: 'Giá mua vào',
+                    data: buyPrices,
+                    yAxisID: 'y',
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    pointRadius: 0, pointHoverRadius: 4,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    // Truncated axis (prices are never near zero): an area fill would imply
+                    // magnitude measured from 0 and exaggerate every move.
+                    fill: false
+                },
+                {
+                    label: 'Giá bán ra',
+                    data: sellPrices,
+                    yAxisID: 'y',
+                    borderColor: color + 'CC',
+                    backgroundColor: 'transparent',
+                    pointRadius: 0, pointHoverRadius: 4,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    borderDash: [5, 5]
+                }
+            ];
+
+            // World reference line for the SAME metal — its own market, its own
+            // unit (USD/oz vs domestic VND/lượng). This is deliberately NOT the
+            // "no dual axes" case in CLAUDE.md's chart-honesty rules: that rule
+            // bans two DIFFERENT commodities sharing one rebased axis, because it
+            // implies a correlation the data never showed. Here it is one metal
+            // in two markets, and the domestic/world GAP is exactly the number VN
+            // readers look for ("giá vàng trong nước cao hơn thế giới bao nhiêu")
+            // — a second, real-unit axis states that gap directly instead of
+            // hiding it behind an index rebase.
+            //
+            // Plotted as {x,y} points rather than an array aligned to `dates`:
+            // the world series (Yahoo, weekdays) and the domestic series (crawled
+            // most days) don't share the same calendar, and the time scale places
+            // each dataset by its own x values regardless.
+            const worldSeries = worldData && worldData.data &&
+                (chartType === 'gold' ? worldData.data.gold_prices : worldData.data.silver_prices);
+            if (worldSeries && worldData.data.dates) {
+                datasets.push({
+                    label: chartType === 'gold' ? 'Vàng thế giới (USD/oz)' : 'Bạc thế giới (USD/oz)',
+                    data: worldData.data.dates.map((d, i) => ({ x: d, y: worldSeries[i] })),
+                    yAxisID: 'yWorld',
+                    borderColor: '#d97757',
+                    backgroundColor: 'transparent',
+                    pointRadius: 0, pointHoverRadius: 4,
+                    borderWidth: 1.5,
+                    borderDash: [2, 3],
+                    tension: 0.4,
+                    fill: false
+                });
+            }
+
+            const scales = {
+                // Time scale, explicit day unit: a plain category axis here
+                // rendered a single collapsed "Aug 2026" tick instead of daily
+                // dates once enough points accumulated — Chart.js's category
+                // scale doesn't reformat date strings, but leaving unit
+                // undetermined let it fall back to a coarse auto-picked unit.
+                x: {
+                    type: 'time',
+                    time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy', displayFormats: { day: 'dd/MM' } },
+                    ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+                    grid: { display: false }
+                },
+                y: {
+                    position: 'left',
+                    title: { display: true, text: 'Trong nước (VND/lượng)', color: '#87867f', font: { size: 10 } },
+                    ticks: { color: '#87867f', callback: formatVndAxis },
+                    grid: { display: false }
+                }
+            };
+            if (worldSeries) {
+                scales.yWorld = {
+                    type: 'linear',
+                    position: 'right',
+                    title: { display: true, text: 'Thế giới (USD/oz)', color: '#87867f', font: { size: 10 } },
+                    ticks: { color: '#87867f', callback: formatNumVi },
+                    grid: { display: false }
+                };
+            }
+
             return {
                 type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [
-                        {
-                            label: 'Giá mua vào',
-                            data: buyPrices,
-                            borderColor: color,
-                            backgroundColor: color + '20',
-                            pointRadius: 0, pointHoverRadius: 4,
-                            borderWidth: 2,
-                            tension: 0.4,
-                            // Truncated axis (prices are never near zero): an area fill would imply
-                            // magnitude measured from 0 and exaggerate every move.
-                            fill: false
-                        },
-                        {
-                            label: 'Giá bán ra',
-                            data: sellPrices,
-                            borderColor: color + 'CC',
-                            backgroundColor: 'transparent',
-                            pointRadius: 0, pointHoverRadius: 4,
-                            borderWidth: 2,
-                            tension: 0.4,
-                            borderDash: [5, 5]
-                        }
-                    ]
-                },
+                data: { labels: dates, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    // 'nearest' + axis:'x', not 'index': the world dataset has its
+                    // own {x,y} points on a different calendar than the domestic
+                    // arrays, so there is no shared array index for 'index' mode
+                    // to group by. 'nearest' finds each dataset's closest point to
+                    // the hovered x independently, which is what mismatched-date
+                    // series need.
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
                     plugins: {
                         legend: {
                             display: true,
                             labels: { color: '#87867f', usePointStyle: true, pointStyle: 'line', boxWidth: 28 }
                         },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false,
                             callbacks: {
-                                label: ctx => `${ctx.dataset.label}: ${formatNumVi(ctx.parsed.y)}`
+                                label: ctx => ctx.dataset.yAxisID === 'yWorld'
+                                    ? `${ctx.dataset.label}: ${formatNumVi(Math.round(ctx.parsed.y * 100) / 100)}`
+                                    : `${ctx.dataset.label}: ${formatNumVi(ctx.parsed.y)}`
                             }
                         }
                     },
-                    scales: {
-                        // Time scale, explicit day unit: a plain category axis here
-                        // rendered a single collapsed "Aug 2026" tick instead of daily
-                        // dates once enough points accumulated — Chart.js's category
-                        // scale doesn't reformat date strings, but leaving unit
-                        // undetermined let it fall back to a coarse auto-picked unit.
-                        x: {
-                            type: 'time',
-                            time: { unit: 'day', tooltipFormat: 'dd/MM/yyyy', displayFormats: { day: 'dd/MM' } },
-                            ticks: { color: '#87867f', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
-                            grid: { display: false }
-                        },
-                        y: {
-                            ticks: { color: '#87867f', callback: formatVndAxis },
-                            grid: { display: false }
-                        }
-                    }
+                    scales
                 }
             };
         }
