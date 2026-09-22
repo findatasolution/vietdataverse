@@ -1222,19 +1222,30 @@ năm {year}", an explicit year-end target — both anchored at Dec 31 of
 label preserving which framing the source actually used). The high/low rays
 are hidden from the legend (`_lbmaLegend: false`, filtered in
 `plugins.legend.labels.filter`) to avoid 3 near-identical coral entries
-crowding it; all 3 still tooltip normally.
+crowding it; all 3 still tooltip normally. **Tooltip text is deliberately
+short** — `Dự đoán LBMA (cao nhất) cho cuối năm 2026: 5.100 USD/oz`, no
+analyst-count/publish-date parenthetical; a user found the first version
+("khảo sát 16 chuyên gia, công bố 11/08/2026") too busy for a hover box.
 
-**The x-axis widens to fit the target date, it does not clip the rays away.**
-This chart is otherwise purely historical — dates never extend past "today" —
-so a naive `scales.x.max = dates[dates.length-1]` would clip the entire
-future-pointing ray segment to nothing, since only the shared starting point
-would fall inside the visible range. `chartXMax` starts at the domestic
-series' own last date and is widened to the LBMA target date when one is
-present and later. **Consequence to expect, not a bug**: on a short period
-(7 ngày/1 tháng) this compresses the real price history into a narrow strip
-on the left, with most of the visible width given to the (mostly empty) future
-span leading to the fan on the right — an honest consequence of literally
-connecting "now" to a months-away target, not a rendering defect.
+**Only rendered on `1y`/`all`, not `7d`/`1m`.** This chart is otherwise
+purely historical — dates never extend past "today" — so showing a ray
+pointing months into the future needs the x-axis widened well past the
+domestic series' own last date (`chartXMax`, widened only when an LBMA
+target exists and is later). On a short period that compresses the real
+recent price history into a narrow strip on the left with most of the width
+given to a mostly-empty future span — confirmed by a user screenshot to be
+worse than just not showing it there. `fetchLbmaSurvey()` is skipped
+entirely (not just the render) for `7d`/`1m`, so those periods are back to
+exactly their pre-LBMA behaviour, including no extra network request.
+
+**No median — LBMA doesn't publish one.** Checked directly against the raw
+page text (`grep -i median`): zero occurrences in either report. LBMA's
+survey gives exactly 3 numbers (average/high/low from ~16-28 opinions), and
+a real median would need each individual analyst's forecast — precisely the
+per-analyst data this project deliberately does not scrape (see
+"aggregate-only" below). Do not compute a median from the per-analyst
+listing without first getting LBMA's written permission for that data at
+all; that permission question is unresolved, not merely unasked.
 
 **Not a fan chart.** A user asked why this isn't a percentile fan chart
 (median + Pct10-Pct90 bands, like the one already live on

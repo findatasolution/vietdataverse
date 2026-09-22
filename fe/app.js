@@ -2336,7 +2336,12 @@
                 console.log(`[${chartType}] Using cached data`);
                 const worldData = (chartType === 'gold' || chartType === 'silver')
                     ? await fetchWorldOverlay(period) : null;
-                const lbmaData = (chartType === 'gold') ? await fetchLbmaSurvey() : null;
+                // LBMA forecast rays only on 1 năm/Tất cả — see the note above
+                // fetchLbmaSurvey() for why a short window can't show them
+                // meaningfully anyway; skipping the fetch there too, not just
+                // the render, avoids a pointless network request.
+                const lbmaData = (chartType === 'gold' && (period === '1y' || period === 'all'))
+                    ? await fetchLbmaSurvey() : null;
                 renderChart(chartType, chartCache[cacheKey], period, worldData, lbmaData);
                 return;
             }
@@ -2388,7 +2393,8 @@
                     chartCache[cacheKey] = data;
                     const worldData = (chartType === 'gold' || chartType === 'silver')
                         ? await fetchWorldOverlay(period) : null;
-                    const lbmaData = (chartType === 'gold') ? await fetchLbmaSurvey() : null;
+                    const lbmaData = (chartType === 'gold' && (period === '1y' || period === 'all'))
+                        ? await fetchLbmaSurvey() : null;
                     renderChart(chartType, data, period, worldData, lbmaData);
                 }
                 else { throw new Error('No data source available'); }
@@ -2710,7 +2716,6 @@
                 const latest = lbmaSurveys.reduce((a, b) => (a.published_date > b.published_date ? a : b));
                 const periodLabel = latest.survey_type === 'annual'
                     ? `TB cả năm ${latest.survey_year}` : `cuối năm ${latest.survey_year}`;
-                const [py, pm, pd] = latest.published_date.split('-');
                 const nowDate = wDates[wDates.length - 1];
                 const nowPrice = worldSeries[worldSeries.length - 1];
                 const targetDate = `${latest.survey_year}-12-31`;
@@ -2735,8 +2740,7 @@
                         tension: 0,
                         fill: false,
                         _lbmaLegend: r.legend,
-                        _lbmaTooltip: `Dự đoán LBMA (${r.key}) cho ${periodLabel} (khảo sát `
-                            + `${latest.n_analysts} chuyên gia, công bố ${pd}/${pm}/${py}): `
+                        _lbmaTooltip: `Dự đoán LBMA (${r.key}) cho ${periodLabel}: `
                             + `${formatNumVi(r.price)} USD/oz`
                     });
                 }
