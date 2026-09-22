@@ -499,6 +499,50 @@ def generate_global_data():
         print(f"  Error generating global macro data: {e}")
 
 
+def generate_lbma_survey_data():
+    """LBMA gold forecast survey (aggregate only — avg/high/low/n_analysts,
+    never per-analyst). See crawl_tools/crawl_lbma_gold_survey.py and
+    CLAUDE.md's "LBMA gold forecast survey" section for why this is
+    aggregate-only. Small, irregular-cadence table (2x/year) — one file with
+    every row, no period slicing needed."""
+    print("\n--- Generating LBMA Gold Forecast Survey Data ---")
+
+    if not engine_global:
+        print("  GLOBAL_INDICATOR_DB not set, skipping LBMA survey")
+        return
+
+    try:
+        with engine_global.connect() as conn:
+            rows = conn.execute(text("""
+                SELECT survey_type, survey_year, published_date, n_analysts,
+                       avg_price, high_price, low_price, source_url
+                FROM global_lbma_gold_forecast
+                ORDER BY published_date ASC
+            """)).fetchall()
+
+        data = {
+            'count': len(rows),
+            'surveys': [
+                {
+                    'survey_type': r[0],
+                    'survey_year': r[1],
+                    'published_date': r[2].strftime('%Y-%m-%d') if hasattr(r[2], 'strftime') else str(r[2]),
+                    'n_analysts': r[3],
+                    'avg_price': num(r[4]),
+                    'high_price': num(r[5]),
+                    'low_price': num(r[6]),
+                    'source_url': r[7],
+                }
+                for r in rows
+            ],
+        }
+        save_json('lbma_gold_survey.json', data)
+        print(f"  lbma_gold_survey.json: {len(rows)} rows")
+
+    except Exception as e:
+        print(f"  Error generating LBMA survey data: {e}")
+
+
 # ============================================================
 # MANIFEST FILE
 # ============================================================
@@ -621,6 +665,7 @@ def main():
         generate_fxrate_data()
         generate_termdepo_data()
         generate_global_data()
+        generate_lbma_survey_data()
         generate_market_pulse_data()
         generate_cpi_data()
         generate_gdp_data()

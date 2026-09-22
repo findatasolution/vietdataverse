@@ -1,0 +1,42 @@
+name: LBMA Gold Forecast Survey Crawl
+
+# LBMA publishes only twice a year (annual survey ~mid-January, mid-year
+# snapshot ~ late July/August), so weekly is more than responsive enough — no
+# reason to run this daily. lbma.org.uk is a UK site with no anti-foreign-IP
+# behaviour (unlike moit.gov.vn/nso.gov.vn), so this runs on GitHub Actions
+# directly; no box dependency.
+#
+# discover_and_crawl() probes both report types every run: the current and
+# next calendar year for the annual survey (so a January publish is caught the
+# very next scheduled run), and the fixed mid-year article URL (detected by its
+# own published-date stamp advancing, not by a new URL appearing — see
+# crawl_lbma_gold_survey.py's module docstring). Both are idempotent upserts,
+# so running weekly year-round is harmless — most weeks it finds nothing new.
+#
+# :19, not :00/:30 — GitHub drops/delays scheduled runs on congested round
+# minutes (measured 2026-08-09 on the old gold/silver schedule).
+
+on:
+  schedule:
+    - cron: '19 3 * * 0'   # Sunday 03:19 UTC
+  workflow_dispatch:
+
+jobs:
+  crawl-lbma-survey:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 sqlalchemy psycopg2-binary python-dotenv
+
+      - name: Discover + crawl both report types
+        env:
+          GLOBAL_INDICATOR_DB: ${{ secrets.GLOBAL_INDICATOR_DB }}
+        run: |
+          cd crawl_tools
+          python crawl_lbma_gold_survey.py

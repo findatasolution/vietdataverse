@@ -61,6 +61,8 @@
                 sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
+                lbmaSurveyTitle: 'Dự đoán chuyên gia quốc tế (LBMA)',
+                lbmaSurveyDisclaimer: 'Tổng hợp thống kê (trung bình/thấp nhất/cao nhất), không phải khuyến nghị đầu tư. Dự đoán chuyên gia có sai số lớn — trung bình khảo sát LBMA năm 2025 là 2.735 USD/oz, thực tế đóng cửa 3.432 USD/oz.',
                 silverChart: 'Lịch sử giá bạc (Phú Quý)',
                 sbvChart: 'Lịch sử lãi suất liên ngân hàng',
                 tdChart: 'Lịch sử lãi suất gửi tiết kiệm (NHTM)',
@@ -301,6 +303,8 @@
                 sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
+                lbmaSurveyTitle: 'International expert forecasts (LBMA)',
+                lbmaSurveyDisclaimer: 'Aggregate statistics (average/low/high), not investment advice. Expert forecasts carry wide error — the 2025 LBMA survey averaged $2,735/oz; the actual close was $3,432/oz.',
                 silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
                 tdChart: 'Commercial Banks Term Deposit History',
@@ -1710,7 +1714,8 @@
                 const goldType = document.getElementById('goldTypeSelect')?.value || 'SJC';
                 Promise.all([
                     loadChartData('gold', '1m', goldType),
-                    loadChartData('silver', '1m')
+                    loadChartData('silver', '1m'),
+                    loadLbmaSurvey()
                 ]);
             } else if (sectionKey === 'currency') {
                 const bankCode = document.getElementById('bankTypeSelect')?.value || 'ACB';
@@ -2475,6 +2480,99 @@
            It now loads data/sbv_policy_all.json (45 decision points back to 2002,
            ~1KB) and renders a STEP chart on its own horizon, with the current level
            and the last decision date underneath. */
+        /* LBMA gold forecast survey panel — 2-4 sparse points (a survey every
+           ~6 months), fetched once and cached like the policy-rate panel above.
+           AGGREGATE ONLY (avg/high/low across 16-28 analysts), never the
+           per-analyst breakdown — see CLAUDE.md's "LBMA gold forecast survey"
+           section. Loaded alongside the gold/silver section, not gated by
+           period switching: there is no "period" for a report published
+           twice a year. */
+        let _lbmaSurveyData = null;
+
+        async function loadLbmaSurvey() {
+            if (!_lbmaSurveyData) {
+                try {
+                    const r = await fetch('./data/lbma_gold_survey.json');
+                    if (!r.ok) throw new Error(r.status);
+                    _lbmaSurveyData = (await r.json()).data;
+                } catch (e) {
+                    console.warn('[lbma-survey] unavailable:', e);
+                    return;
+                }
+            }
+            renderLbmaSurvey();
+        }
+
+        function renderLbmaSurvey() {
+            const canvas = document.getElementById('lbmaSurveyChart');
+            const loadingEl = document.getElementById('lbmaSurveyLoading');
+            if (!canvas || !_lbmaSurveyData || !_lbmaSurveyData.surveys) return;
+            if (loadingEl) loadingEl.style.display = 'none';
+
+            const rows = _lbmaSurveyData.surveys;
+            if (!rows.length) return;
+
+            const typeLabel = { annual: 'Khảo sát đầu năm', midyear: 'Khảo sát giữa năm' };
+            const labels = rows.map(r => {
+                const [y, m] = r.published_date.split('-');
+                return `${typeLabel[r.survey_type] || r.survey_type} T${Number(m)}/${y} (${r.n_analysts} CG)`;
+            });
+
+            if (chartInstances['lbmaSurvey']) chartInstances['lbmaSurvey'].destroy();
+            chartInstances['lbmaSurvey'] = new Chart(canvas.getContext('2d'), {
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Khoảng dự đoán (thấp-cao)',
+                            data: rows.map(r => [r.low_price, r.high_price]),
+                            backgroundColor: '#d9775740',
+                            borderColor: '#d97757',
+                            borderWidth: 1,
+                            borderSkipped: false,
+                            barThickness: 16
+                        },
+                        {
+                            type: 'scatter',
+                            label: 'Trung bình',
+                            data: rows.map((r, i) => ({ x: r.avg_price, y: i })),
+                            backgroundColor: '#2f5fde',
+                            pointRadius: 5,
+                            pointStyle: 'circle',
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.dataset.type === 'scatter'
+                                    ? `Trung bình: ${formatNumVi(ctx.raw.x)} USD/oz`
+                                    : `Khoảng: ${formatNumVi(ctx.raw[0])} – ${formatNumVi(ctx.raw[1])} USD/oz`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'USD/oz', color: '#87867f', font: { size: 9 } },
+                            ticks: { color: '#87867f', callback: formatNumVi },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#87867f', font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
         let _policyData = null;
         let _policyPeriod = 'all';
 
