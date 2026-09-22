@@ -1186,12 +1186,47 @@ and the domestic series don't share a calendar; tooltip interaction is
 assumes datasets share array positions, which two differently-sampled
 time series don't.
 
-### LBMA gold forecast survey — aggregate only (2026-09-22)
+### LBMA gold forecast survey — aggregate only (2026-09-22, redesigned same day)
 
-A small supplementary panel inside the domestic gold chart-card shows the
-range and average of LBMA's professional-analyst gold price forecasts —
-**aggregate statistics only (avg/high/low/n_analysts), never the per-analyst
-listing.**
+The domestic gold chart draws a dashed horizontal reference line at LBMA's
+latest professional-analyst gold price forecast — **aggregate statistics only
+(avg/high/low/n_analysts), never the per-analyst listing.**
+
+**Redesigned same day: not a separate chart.** The first version was a
+standalone mixed bar+scatter mini-chart below the main chart
+(`.lbma-survey-panel`, `renderLbmaSurvey()`) — it rendered empty in practice
+(Chart.js's `indexAxis:'y'` bar controller and a `type:'scatter'` dataset
+don't share a compatible category/linear y-scale without extra configuration
+neither dataset declared) and was confusing even when it did render — a user
+looking at it asked "are these two dates when the report was published? for
+what period?" with no way to tell from the chart alone. **Replaced with a
+dashed reference line drawn directly on the gold chart's existing `yWorld`
+axis** (see the world-overlay note above) — the same pattern as CLAUDE.md's
+chart-honesty rules already establish for the SBV policy rate overlaid on the
+interbank chart: a reference level plotted alongside the real series, not a
+separate visualization the reader has to cross-reference by eye.
+
+**Only the latest report is drawn, never all of them stacked.** The line
+picks the row with the max `published_date` from `fe/data/lbma_gold_survey.json`
+every time the chart renders — so when `crawl_lbma_gold_survey.py` finds a
+newer report, the line updates on the next page load automatically. There is
+no separate "refresh the line" step and nothing to remember to do by hand.
+The label and tooltip name the period it forecasts explicitly (`annual` →
+"TB cả năm {year}"; `midyear` → "cuối năm {year}", matching how each report
+actually phrases its own forecast — see the table below) plus the exact
+figure, so hovering answers "predicts what, for when" without follow-up
+questions.
+
+**Not a fan chart.** A user asked why this isn't a percentile fan chart
+(median + Pct10-Pct90 bands, like the one already live on
+`fuel-forecast.html`). LBMA's survey gives exactly 3 numbers per report
+(avg/low/high from ~16-28 opinions) — there is no underlying distribution to
+draw percentiles from, and interpolating one would be exactly the kind of
+fake precision this project's chart-honesty rules exist to prevent. A real
+fan chart for gold would need the same kind of proper statistical model
+`delta-world-v1` is for fuel (computed variance, backtested, Wilcoxon-tested)
+built from VDV's own dense gold crawl data — a new modeling project, not a
+chart change, and not started.
 
 **Why aggregate-only.** LBMA also publishes each analyst's individual
 forecast as a named "card" (analyst, firm, their own range and average), but
@@ -1226,29 +1261,36 @@ the same reason: a page that doesn't confirm what it's describing isn't safe
 to trust. Stores to `global_lbma_gold_forecast` (`GLOBAL_INDICATOR_DB`,
 migration 018), `UNIQUE (survey_type, survey_year)`, `ON CONFLICT DO UPDATE`.
 
-**`.github/workflows/lbma-gold-survey-crawl.yml`** — weekly (Sunday), not
-daily: LBMA publishes twice a year, so weekly is more than responsive enough.
-Runs on plain GitHub Actions, no VN box needed — unlike MOIT/GSO,
-`lbma.org.uk` is a UK site with no anti-foreign-IP behaviour (confirmed by
-direct `curl` from this session). `discover_and_crawl()` probes both report
-types every run; most weeks find nothing new and exit 0. A `SourceMismatch`
-(LBMA redesigned the page, regex no longer matches) is the only thing that
-turns the workflow red — matches this project's established "silent no-op
-on nothing-new, loud failure on a real break" philosophy.
+**`.github/workflows/lbma-gold-survey-crawl.yml`** — **monthly** (1st of the
+month), not weekly or daily: LBMA publishes twice a year, so even weekly was
+more responsiveness than needed; monthly is enough to catch a new report
+within the same month it's published. Runs on plain GitHub Actions, no VN box
+needed — unlike MOIT/GSO, `lbma.org.uk` is a UK site with no anti-foreign-IP
+behaviour (confirmed by direct `curl` from this session). `discover_and_crawl()`
+probes both report types every run; most months find nothing new and exit 0.
+A `SourceMismatch` (LBMA redesigned the page, regex no longer matches) is the
+only thing that turns the workflow red — matches this project's established
+"silent no-op on nothing-new, loud failure on a real break" philosophy. Also
+added to `generate-static-data.yml`'s `workflow_run` trigger list, so a new
+row automatically regenerates `fe/data/lbma_gold_survey.json` — the FE forecast
+line updates the next time anyone loads the page, with no manual step.
 
 **`generate_lbma_survey_data()`** (`be/generate_static_data.py`) writes
 `fe/data/lbma_gold_survey.json` — every row, no period slicing (irregular,
 low-volume data has no periods to slice). No dedicated API endpoint, same
 precedent as `fe/data/sbv_policy_all.json`: FE reads the static file directly.
 
-**FE**: `fe/app.js` `loadLbmaSurvey()`/`renderLbmaSurvey()`, a small
-floating-bar + average-point Chart.js panel nested inside the gold
-`chart-card` in `_tab_data_portal.html` (`.lbma-survey-panel`), loaded once
-alongside the gold-silver section. Carries an explicit disclaimer citing
+**FE**: `fe/app.js` `fetchLbmaSurvey()` (fetched once, cached, called from
+`loadChartData('gold', …)` only — this is gold-specific, unlike
+`fetchWorldOverlay()` which also serves silver) feeds a dashed-line dataset
+built inside `parseGoldSilverData()`, on the `yWorld` axis, only when the world
+overlay itself is present (no `yWorld` scale, no line to attach to). The
+`_tab_data_portal.html` gold chart-card carries only a one-line disclaimer
+caption underneath (`.lbma-survey-disclaimer`) — no separate canvas — citing
 LBMA's own 2025 forecast-vs-actual miss ($2,735 forecast average vs $3,432
-actual close) — consistent with Hướng B (2026-07, "no dự đoán/dự báo,
-fact/comparison only"): showing a wide range with a stated error history,
-not a single confident number.
+actual close), consistent with Hướng B (2026-07, "no dự đoán/dự báo,
+fact/comparison only"): a stated error history next to the number, not a bare
+confident line.
 
 ### `fe/data/sbv_policy_all.json`
 

@@ -2022,26 +2022,9 @@ html {
     text-decoration: underline;
 }
 
-/* LBMA gold forecast survey — small supplementary panel inside the gold
-   chart-card, not a standalone chart-card of its own. It shows 2-4 sparse,
-   irregularly-timed points (a survey every ~6 months), so it does not belong
-   on the same time axis as the hourly/daily domestic-vs-world chart above it. */
-.lbma-survey-panel {
-    margin-top: 0.9rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid var(--border-cream, #f0eee6);
-}
-
-.lbma-survey-title {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--charcoal, #4d4c48);
-    margin: 0 0 0.5rem;
-}
-
+/* LBMA gold forecast survey — the survey line itself is drawn directly on the
+   gold chart (Chart.js dataset, fe/app.js parseGoldSilverData), not a
+   separate panel. This is just the disclaimer caption underneath. */
 .lbma-survey-disclaimer {
     font-size: 0.7rem;
     line-height: 1.5;

@@ -7,6 +7,7 @@ on:
       - "Bank Term Deposit Crawl"
       - "SBV Rates Crawl (Daily)"
       - "Exchange Rate Crawl (Daily)"
+      - "LBMA Gold Forecast Survey Crawl"
     types:
       - completed
   workflow_dispatch:

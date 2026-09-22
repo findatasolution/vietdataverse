@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="/fe/images/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=0d633a3e59">
+    <link rel="stylesheet" href="style.css?v=b3f11110da">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#2f5fde">
     <meta name="msapplication-TileImage" content="https://vietdataverse.online/fe/images/icon-512.png">
@@ -76,7 +76,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=0d633a3e59" as="style">
+    <link rel="preload" href="style.css?v=b3f11110da" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -863,33 +863,18 @@
                             </div>
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
 
-                            <!-- LBMA gold forecast survey — AGGREGATE ONLY (avg/high/low across
-                                 16-28 analysts per report), never per-analyst. See CLAUDE.md's
-                                 "LBMA gold forecast survey" section: the per-analyst listing is
-                                 LBMA's own proprietary compiled data and is not reproduced here.
-                                 Two reports so far (annual ~Jan, mid-year ~Jul); more accumulate
-                                 as crawl_lbma_gold_survey.py finds them. -->
-                            <div class="lbma-survey-panel" id="lbmaSurveyPanel">
-                                <h4 class="lbma-survey-title">
-                                    <span data-i18n="lbmaSurveyTitle">Dự đoán chuyên gia quốc tế (LBMA)</span>
-                                    <span class="chart-info-icon" data-tooltip="Khảo sát chuyên gia phân tích vàng do LBMA (London Bullion Market Association) thực hiện, khoảng tháng 1 và tháng 7-8 mỗi năm.">ⓘ</span>
-                                </h4>
-                                <div class="chart-container" style="height:140px">
-                                    <canvas id="lbmaSurveyChart"></canvas>
-                                    <div class="chart-loading" id="lbmaSurveyLoading">
-                                        <div class="chart-skeleton"><div class="skeleton-bars">
-                                            <div class="skeleton skeleton-bar" style="height:50%"></div>
-                                            <div class="skeleton skeleton-bar" style="height:65%"></div>
-                                        </div></div>
-                                    </div>
-                                </div>
-                                <p class="lbma-survey-disclaimer" data-i18n="lbmaSurveyDisclaimer">
-                                    Tổng hợp thống kê (trung bình/thấp nhất/cao nhất), không phải khuyến nghị đầu tư.
-                                    Dự đoán chuyên gia có sai số lớn — trung bình khảo sát LBMA năm 2025 là 2.735 USD/oz,
-                                    thực tế đóng cửa 3.432 USD/oz.
-                                </p>
-                                <small class="chart-source"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.lbma.org.uk/prices-and-data/lbma-annual-precious-metals-forecast-survey" target="_blank" rel="noopener">LBMA Forecast Survey</a></small>
-                            </div>
+                            <!-- LBMA gold forecast survey is drawn as a dashed reference line
+                                 directly on the chart above (yWorld axis) — see
+                                 fe/app.js parseGoldSilverData(). This is only the disclaimer
+                                 caption; there is no separate chart/canvas for it any more (the
+                                 earlier mixed bar+scatter mini-chart rendered empty and was hard
+                                 to read — replaced 2026-09-22). AGGREGATE ONLY, see CLAUDE.md's
+                                 "LBMA gold forecast survey" section. -->
+                            <p class="lbma-survey-disclaimer" data-i18n="lbmaSurveyDisclaimer">
+                                Đường chấm chấm: dự đoán chuyên gia quốc tế (LBMA), tổng hợp thống kê — không phải khuyến nghị đầu tư.
+                                Dự đoán chuyên gia có sai số lớn — trung bình khảo sát LBMA năm 2025 là 2.735 USD/oz,
+                                thực tế đóng cửa 3.432 USD/oz.
+                            </p>
                         </div>
 
                         <!-- Silver Price Chart -->
@@ -2113,7 +2098,7 @@
     </div>
 
     <script src="pages/data-journey.js?v=f4b75c63f6" defer></script>
-    <script src="app.js?v=ef123f9ea0" defer></script>
+    <script src="app.js?v=911281cb43" defer></script>
     <script src="app.overview.js?v=19c8311719" defer></script>
     <script src="app.knowledge.js?v=2026091601" defer></script>
 
