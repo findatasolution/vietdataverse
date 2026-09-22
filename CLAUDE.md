@@ -1186,36 +1186,55 @@ and the domestic series don't share a calendar; tooltip interaction is
 assumes datasets share array positions, which two differently-sampled
 time series don't.
 
-### LBMA gold forecast survey — aggregate only (2026-09-22, redesigned same day)
+### LBMA gold forecast survey — aggregate only (2026-09-22, redesigned twice same day)
 
-The domestic gold chart draws a dashed horizontal reference line at LBMA's
-latest professional-analyst gold price forecast — **aggregate statistics only
+The domestic gold chart draws **3 dashed rays** — high/average/low — from the
+world price's latest actual point out to a year-end target, using LBMA's
+latest professional-analyst gold price forecast. **Aggregate statistics only
 (avg/high/low/n_analysts), never the per-analyst listing.**
 
-**Redesigned same day: not a separate chart.** The first version was a
-standalone mixed bar+scatter mini-chart below the main chart
-(`.lbma-survey-panel`, `renderLbmaSurvey()`) — it rendered empty in practice
-(Chart.js's `indexAxis:'y'` bar controller and a `type:'scatter'` dataset
-don't share a compatible category/linear y-scale without extra configuration
-neither dataset declared) and was confusing even when it did render — a user
-looking at it asked "are these two dates when the report was published? for
-what period?" with no way to tell from the chart alone. **Replaced with a
-dashed reference line drawn directly on the gold chart's existing `yWorld`
-axis** (see the world-overlay note above) — the same pattern as CLAUDE.md's
-chart-honesty rules already establish for the SBV policy rate overlaid on the
-interbank chart: a reference level plotted alongside the real series, not a
-separate visualization the reader has to cross-reference by eye.
+**Two redesigns, same day, both from direct user feedback:**
 
-**Only the latest report is drawn, never all of them stacked.** The line
-picks the row with the max `published_date` from `fe/data/lbma_gold_survey.json`
-every time the chart renders — so when `crawl_lbma_gold_survey.py` finds a
-newer report, the line updates on the next page load automatically. There is
-no separate "refresh the line" step and nothing to remember to do by hand.
-The label and tooltip name the period it forecasts explicitly (`annual` →
-"TB cả năm {year}"; `midyear` → "cuối năm {year}", matching how each report
-actually phrases its own forecast — see the table below) plus the exact
-figure, so hovering answers "predicts what, for when" without follow-up
-questions.
+1. The first version was a standalone mixed bar+scatter mini-chart below the
+   main chart (`.lbma-survey-panel`, `renderLbmaSurvey()`) — it rendered
+   empty in practice (Chart.js's `indexAxis:'y'` bar controller and a
+   `type:'scatter'` dataset don't share a compatible category/linear y-scale
+   without extra configuration neither dataset declared), and was confusing
+   even when it did render: a user looking at it couldn't tell whether the
+   two dates were publish dates or which period each forecast covered.
+   Replaced with a single flat dashed reference line on the gold chart's
+   `yWorld` axis, at the latest report's average — same pattern as the SBV
+   policy rate overlaid on the interbank chart.
+2. The user then asked for something more specific: connect *today's* price
+   to the *forecast's* high/average/low, rather than one flat level. That is
+   the current design — 3 rays fanning from `(latest world date, latest world
+   price)` to `(year-end of the survey's target year, high|avg|low)`.
+
+**Only the latest report is drawn, never all of them stacked.** Every render
+picks the row with the max `published_date` from
+`fe/data/lbma_gold_survey.json` — so when `crawl_lbma_gold_survey.py` finds a
+newer report, the rays update on the next page load automatically. There is
+no separate "refresh" step. Each ray's label/tooltip names which one it is
+(cao nhất/trung bình/thấp nhất) and the period it forecasts (`annual` → "TB
+cả năm {year}", an annual average, not a point estimate; `midyear` → "cuối
+năm {year}", an explicit year-end target — both anchored at Dec 31 of
+`survey_year` as the chart's one necessary endpoint either way, with the
+label preserving which framing the source actually used). The high/low rays
+are hidden from the legend (`_lbmaLegend: false`, filtered in
+`plugins.legend.labels.filter`) to avoid 3 near-identical coral entries
+crowding it; all 3 still tooltip normally.
+
+**The x-axis widens to fit the target date, it does not clip the rays away.**
+This chart is otherwise purely historical — dates never extend past "today" —
+so a naive `scales.x.max = dates[dates.length-1]` would clip the entire
+future-pointing ray segment to nothing, since only the shared starting point
+would fall inside the visible range. `chartXMax` starts at the domestic
+series' own last date and is widened to the LBMA target date when one is
+present and later. **Consequence to expect, not a bug**: on a short period
+(7 ngày/1 tháng) this compresses the real price history into a narrow strip
+on the left, with most of the visible width given to the (mostly empty) future
+span leading to the fan on the right — an honest consequence of literally
+connecting "now" to a months-away target, not a rendering defect.
 
 **Not a fan chart.** A user asked why this isn't a percentile fan chart
 (median + Pct10-Pct90 bands, like the one already live on
@@ -1282,15 +1301,19 @@ precedent as `fe/data/sbv_policy_all.json`: FE reads the static file directly.
 
 **FE**: `fe/app.js` `fetchLbmaSurvey()` (fetched once, cached, called from
 `loadChartData('gold', …)` only — this is gold-specific, unlike
-`fetchWorldOverlay()` which also serves silver) feeds a dashed-line dataset
-built inside `parseGoldSilverData()`, on the `yWorld` axis, only when the world
-overlay itself is present (no `yWorld` scale, no line to attach to). The
-`_tab_data_portal.html` gold chart-card carries only a one-line disclaimer
-caption underneath (`.lbma-survey-disclaimer`) — no separate canvas — citing
-LBMA's own 2025 forecast-vs-actual miss ($2,735 forecast average vs $3,432
-actual close), consistent with Hướng B (2026-07, "no dự đoán/dự báo,
-fact/comparison only"): a stated error history next to the number, not a bare
-confident line.
+`fetchWorldOverlay()` which also serves silver) feeds the 3-ray datasets built
+inside `parseGoldSilverData()`, on the `yWorld` axis, only when the world
+overlay itself is present (no `yWorld` scale, no ray to attach to) — a real
+`ReferenceError` bug caught and fixed in the same pass: the first cut of this
+code referenced the `lbmaData` parameter inside `parseGoldSilverData()`
+without declaring it in the function signature, which would have thrown on
+every gold *and* silver chart render (the crash sits above the
+`chartType === 'gold'` check). The `_tab_data_portal.html` gold chart-card
+carries only a one-line disclaimer caption underneath
+(`.lbma-survey-disclaimer`) — no separate canvas — citing LBMA's own 2025
+forecast-vs-actual miss ($2,735 forecast average vs $3,432 actual close),
+consistent with Hướng B (2026-07, "no dự đoán/dự báo, fact/comparison only"):
+a stated error history next to the numbers, not a bare confident line.
 
 ### `fe/data/sbv_policy_all.json`
 

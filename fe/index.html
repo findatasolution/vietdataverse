@@ -863,17 +863,19 @@
                             </div>
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
 
-                            <!-- LBMA gold forecast survey is drawn as a dashed reference line
+                            <!-- LBMA gold forecast survey is drawn as 3 rays (high/avg/low)
+                                 from the world price's latest point to a year-end target,
                                  directly on the chart above (yWorld axis) — see
                                  fe/app.js parseGoldSilverData(). This is only the disclaimer
-                                 caption; there is no separate chart/canvas for it any more (the
-                                 earlier mixed bar+scatter mini-chart rendered empty and was hard
-                                 to read — replaced 2026-09-22). AGGREGATE ONLY, see CLAUDE.md's
-                                 "LBMA gold forecast survey" section. -->
+                                 caption; there is no separate chart/canvas for it (an earlier
+                                 mixed bar+scatter mini-chart rendered empty and was hard to
+                                 read; a flat single-line version after that didn't show which
+                                 period it forecast — both replaced 2026-09-22). AGGREGATE ONLY,
+                                 see CLAUDE.md's "LBMA gold forecast survey" section. -->
                             <p class="lbma-survey-disclaimer" data-i18n="lbmaSurveyDisclaimer">
-                                Đường chấm chấm: dự đoán chuyên gia quốc tế (LBMA), tổng hợp thống kê — không phải khuyến nghị đầu tư.
-                                Dự đoán chuyên gia có sai số lớn — trung bình khảo sát LBMA năm 2025 là 2.735 USD/oz,
-                                thực tế đóng cửa 3.432 USD/oz.
+                                3 đường chấm chấm: dự đoán cao nhất/trung bình/thấp nhất của chuyên gia quốc tế (LBMA) cho kỳ tới —
+                                tổng hợp thống kê, không phải khuyến nghị đầu tư. Dự đoán chuyên gia có sai số lớn — trung bình khảo
+                                sát LBMA năm 2025 là 2.735 USD/oz, thực tế đóng cửa 3.432 USD/oz.
                             </p>
                         </div>
 
@@ -2098,7 +2100,7 @@
     </div>
 
     <script src="pages/data-journey.js?v=f4b75c63f6" defer></script>
-    <script src="app.js?v=911281cb43" defer></script>
+    <script src="app.js?v=707ac953af" defer></script>
     <script src="app.overview.js?v=19c8311719" defer></script>
     <script src="app.knowledge.js?v=2026091601" defer></script>
 
