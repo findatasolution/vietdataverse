@@ -61,7 +61,7 @@
                 sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
-                lbmaSurveyDisclaimer: '3 đường chấm chấm: dự đoán cao nhất/trung bình/thấp nhất của chuyên gia quốc tế (LBMA) cho kỳ tới — tổng hợp thống kê, không phải khuyến nghị đầu tư. Dự đoán chuyên gia có sai số lớn — trung bình khảo sát LBMA năm 2025 là 2.735 USD/oz, thực tế đóng cửa 3.432 USD/oz.',
+                lbmaSurveyDisclaimer: 'Nến chấm chấm: dự đoán cao/thấp/trung bình của chuyên gia quốc tế (LBMA) cho 2 kỳ gần nhất — không phải khuyến nghị đầu tư.',
                 silverChart: 'Lịch sử giá bạc (Phú Quý)',
                 sbvChart: 'Lịch sử lãi suất liên ngân hàng',
                 tdChart: 'Lịch sử lãi suất gửi tiết kiệm (NHTM)',
@@ -302,7 +302,7 @@
                 sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
-                lbmaSurveyDisclaimer: '3 dashed lines: international expert (LBMA) high/average/low forecast for the coming period — aggregate statistics, not investment advice. Expert forecasts carry wide error — the 2025 LBMA survey averaged $2,735/oz; the actual close was $3,432/oz.',
+                lbmaSurveyDisclaimer: 'Dotted candles: international expert (LBMA) high/low/average forecast for the 2 most recent reports — not investment advice.',
                 silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
                 tdChart: 'Commercial Banks Term Deposit History',
@@ -2694,54 +2694,96 @@
             // international experts expect. AGGREGATE ONLY — see CLAUDE.md's
             // "LBMA gold forecast survey" section.
             //
-            // Only the LATEST report is drawn — never all of them at once. When
-            // a newer report lands (crawl_lbma_gold_survey.py, monthly), this
-            // picks it up automatically on the next page load; there is no
-            // separate "update" step, because this always reads
-            // fe/data/lbma_gold_survey.json fresh and always takes the max
-            // published_date, so an old line is replaced, not accumulated.
+            // The 2 most recent reports are drawn — not all of them, and not
+            // just the latest. When a newer report lands
+            // (crawl_lbma_gold_survey.py, monthly), it enters this top-2 and
+            // the oldest of the previous two drops off automatically, on the
+            // next page load — this always reads fe/data/lbma_gold_survey.json
+            // fresh and always re-sorts by published_date, so there is no
+            // separate "update" step and nothing accumulates without bound.
             //
-            // Three rays from the world series' latest actual point (not
-            // "today"'s calendar date, which may lag it over a weekend) out to
-            // the forecast's high/average/low at the end of the period it
-            // covers — "cuối năm {year}" for the mid-year snapshot's explicit
-            // year-end target, "TB cả năm {year}" (an annual average, not a
-            // point estimate) approximated at the same year-end x for the
-            // annual survey, since a single chart needs one endpoint either
-            // way and the label still says which it is.
+            // Each report is a "candle": a thin wick bar (low->high) plus a
+            // marker at the average, at the end of the period it covers —
+            // "cuối năm {year}" for the mid-year snapshot's explicit year-end
+            // target; the annual survey's own number is an AVERAGE ACROSS THE
+            // YEAR, not a point estimate, so it is placed at that year's
+            // mid-point (July 1) instead of year-end — both a more honest
+            // placement and, this year, what keeps the two candles from
+            // landing on the exact same date. Two thin dotted lines fan out
+            // from the world series' latest actual point (not "today"'s
+            // calendar date, which may lag it over a weekend) to each
+            // candle's high and low, so the candle reads as where a
+            // continuing trend could plausibly end up, not a disconnected box.
+            //
+            // No real candlestick plugin: LBMA's report gives exactly 3
+            // numbers (avg/high/low), not the 4 (open/high/low/close) a real
+            // OHLC candle needs, and faking a 4th would be exactly the kind
+            // of precision this project's chart-honesty rules exist to
+            // prevent. This is Chart.js's own floating-bar (a bar dataset
+            // with data: [{x, y: [low, high]}]) for the wick, plus a
+            // 'scatter' dataset for the average marker — both are core
+            // Chart.js features, not an extra plugin.
             const lbmaSurveys = lbmaData && lbmaData.data && lbmaData.data.surveys;
             const wDates = worldData && worldData.data && worldData.data.dates;
             if (chartType === 'gold' && worldSeries && wDates && wDates.length
                 && lbmaSurveys && lbmaSurveys.length) {
-                const latest = lbmaSurveys.reduce((a, b) => (a.published_date > b.published_date ? a : b));
-                const periodLabel = latest.survey_type === 'annual'
-                    ? `TB cả năm ${latest.survey_year}` : `cuối năm ${latest.survey_year}`;
+                const recent = [...lbmaSurveys]
+                    .sort((a, b) => (a.published_date < b.published_date ? 1 : -1))
+                    .slice(0, 2);
                 const nowDate = wDates[wDates.length - 1];
                 const nowPrice = worldSeries[worldSeries.length - 1];
-                const targetDate = `${latest.survey_year}-12-31`;
-                if (targetDate > chartXMax) chartXMax = targetDate;
 
-                const rays = [
-                    { key: 'cao nhất', price: latest.high_price, dash: [2, 3], width: 1, alpha: '80', legend: false },
-                    { key: 'trung bình', price: latest.avg_price, dash: [6, 3], width: 1.5, alpha: 'FF', legend: true },
-                    { key: 'thấp nhất', price: latest.low_price, dash: [2, 3], width: 1, alpha: '80', legend: false },
-                ];
-                for (const r of rays) {
-                    if (nowPrice === null || nowPrice === undefined || r.price === null) continue;
+                for (const r of recent) {
+                    if (nowPrice === null || nowPrice === undefined) break;
+                    const periodLabel = r.survey_type === 'annual'
+                        ? `TB cả năm ${r.survey_year}` : `cuối năm ${r.survey_year}`;
+                    // Both anchored at year-end — NOT the annual survey's own
+                    // mid-year, which would sit in the PAST as soon as the
+                    // calendar passes July 1 (a "forecast" line running
+                    // backward from "now"). The 1-day offset is cosmetic only,
+                    // purely so two same-year candles don't land on the exact
+                    // same pixel column; `periodLabel` still says "TB cả năm"
+                    // so the text never claims this x is a real target date.
+                    const targetDate = r.survey_type === 'annual'
+                        ? `${r.survey_year}-12-30` : `${r.survey_year}-12-31`;
+                    if (targetDate > chartXMax) chartXMax = targetDate;
+                    const [py, pm] = r.published_date.split('-');
+                    const shortLabel = `Dự đoán LBMA T${Number(pm)}/${py}`;
+                    const tooltipBase = `Dự đoán LBMA T${Number(pm)}/${py} cho ${periodLabel}`;
+
+                    // Fan lines to the wick's own top/bottom — same tooltip as
+                    // the wick, so hovering near either reads the same info
+                    // rather than a half-explained thin dotted line.
+                    for (const [edge, price] of [['cao nhất', r.high_price], ['thấp nhất', r.low_price]]) {
+                        datasets.push({
+                            label: shortLabel, type: 'line',
+                            data: [{ x: nowDate, y: nowPrice }, { x: targetDate, y: price }],
+                            yAxisID: 'yWorld',
+                            borderColor: '#d9775780', backgroundColor: 'transparent',
+                            borderWidth: 1, borderDash: [2, 3], pointRadius: 0, tension: 0, fill: false,
+                            _lbmaLegend: false,
+                            _lbmaTooltip: `${tooltipBase}: khoảng ${formatNumVi(r.low_price)}–${formatNumVi(r.high_price)} USD/oz`
+                        });
+                    }
+                    // Wick: the full low-high range at the target date.
                     datasets.push({
-                        label: `Dự đoán LBMA (${r.key}) — ${periodLabel}: ${formatNumVi(r.price)} USD/oz`,
-                        data: [{ x: nowDate, y: nowPrice }, { x: targetDate, y: r.price }],
+                        label: shortLabel, type: 'bar',
+                        data: [{ x: targetDate, y: [r.low_price, r.high_price] }],
                         yAxisID: 'yWorld',
-                        borderColor: `#d97757${r.alpha}`,
-                        backgroundColor: 'transparent',
-                        borderWidth: r.width,
-                        borderDash: r.dash,
-                        pointRadius: 0,
-                        tension: 0,
-                        fill: false,
-                        _lbmaLegend: r.legend,
-                        _lbmaTooltip: `Dự đoán LBMA (${r.key}) cho ${periodLabel}: `
-                            + `${formatNumVi(r.price)} USD/oz`
+                        backgroundColor: '#d9775780', borderColor: '#d97757', borderWidth: 1,
+                        barThickness: 3, categoryPercentage: 1, barPercentage: 1,
+                        _lbmaLegend: false,
+                        _lbmaTooltip: `${tooltipBase}: khoảng ${formatNumVi(r.low_price)}–${formatNumVi(r.high_price)} USD/oz`
+                    });
+                    // Average marker — the one entry that shows in the legend.
+                    datasets.push({
+                        label: shortLabel, type: 'scatter',
+                        data: [{ x: targetDate, y: r.avg_price }],
+                        yAxisID: 'yWorld',
+                        backgroundColor: '#d97757', borderColor: '#d97757',
+                        pointStyle: 'rectRot', pointRadius: 6, pointHoverRadius: 7,
+                        _lbmaLegend: true,
+                        _lbmaTooltip: `${tooltipBase} (trung bình): ${formatNumVi(r.avg_price)} USD/oz`
                     });
                 }
             }

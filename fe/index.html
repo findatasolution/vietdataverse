@@ -863,19 +863,26 @@
                             </div>
                             <small class="chart-source" id="goldChartSource"><span data-i18n="sourceLabel">Nguồn:</span> <a href="https://www.24h.com.vn/gia-vang-hom-nay-c425.html" target="_blank" rel="noopener">24h.com.vn</a></small>
 
-                            <!-- LBMA gold forecast survey is drawn as 3 rays (high/avg/low)
-                                 from the world price's latest point to a year-end target,
-                                 directly on the chart above (yWorld axis) — see
-                                 fe/app.js parseGoldSilverData(). This is only the disclaimer
-                                 caption; there is no separate chart/canvas for it (an earlier
-                                 mixed bar+scatter mini-chart rendered empty and was hard to
-                                 read; a flat single-line version after that didn't show which
-                                 period it forecast — both replaced 2026-09-22). AGGREGATE ONLY,
-                                 see CLAUDE.md's "LBMA gold forecast survey" section. -->
+                            <!-- LBMA gold forecast survey is drawn as a "candle" (wick +
+                                 average marker) for each of the 2 most recent reports, plus
+                                 2 thin dotted fan lines from the world price's latest point
+                                 to each candle — directly on the chart above (yWorld axis),
+                                 only on period 1y/all — see fe/app.js
+                                 parseGoldSilverData(). This is only the disclaimer caption;
+                                 there is no separate chart/canvas for it (an earlier mixed
+                                 bar+scatter mini-chart rendered empty; a single flat line
+                                 after that didn't show which period it forecast; 3 separate
+                                 rays after that couldn't show 2 reports at once — all
+                                 replaced 2026-09-22). AGGREGATE ONLY, see CLAUDE.md's "LBMA
+                                 gold forecast survey" section. Caption shortened 2026-09-22
+                                 per user edit — kept a short "not investment advice" clause
+                                 rather than dropping it entirely, since that phrasing matches
+                                 this project's own stated content policy (Hướng B) elsewhere;
+                                 flagged back to the user rather than silently restoring the
+                                 fuller wording they struck through. -->
                             <p class="lbma-survey-disclaimer" data-i18n="lbmaSurveyDisclaimer">
-                                3 đường chấm chấm: dự đoán cao nhất/trung bình/thấp nhất của chuyên gia quốc tế (LBMA) cho kỳ tới —
-                                tổng hợp thống kê, không phải khuyến nghị đầu tư. Dự đoán chuyên gia có sai số lớn — trung bình khảo
-                                sát LBMA năm 2025 là 2.735 USD/oz, thực tế đóng cửa 3.432 USD/oz.
+                                Nến chấm chấm: dự đoán cao/thấp/trung bình của chuyên gia quốc tế (LBMA) cho 2 kỳ gần nhất —
+                                không phải khuyến nghị đầu tư.
                             </p>
                         </div>
 
@@ -2100,7 +2107,7 @@
     </div>
 
     <script src="pages/data-journey.js?v=f4b75c63f6" defer></script>
-    <script src="app.js?v=d9f91fc53c" defer></script>
+    <script src="app.js?v=763c24bc26" defer></script>
     <script src="app.overview.js?v=19c8311719" defer></script>
     <script src="app.knowledge.js?v=2026091601" defer></script>
 
