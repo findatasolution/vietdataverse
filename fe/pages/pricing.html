@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script src="site-analytics.js" defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Giá | Viet Dataverse</title>
@@ -650,8 +651,9 @@
 
     <!-- Header -->
     <p class="pricing-subtitle"></p>
-    <h1 class="pricing-title">Đưa dữ liệu vào công việc</h1>
-    <p class="pricing-subtitle">Thử dữ liệu trước. Chỉ nâng cấp khi bạn cần hạn mức API cao hơn cho bảng tính, dashboard hoặc ứng dụng.</p>
+    <h1 class="pricing-title">API cho báo cáo cập nhật định kỳ</h1>
+    <p class="pricing-subtitle">Kết nối dữ liệu Việt Nam vào Excel, dashboard hoặc ứng dụng. Dùng thử miễn phí; gói 45.000đ/30 ngày dành cho quy trình cần nhiều lượt cập nhật hơn.</p>
+    <p class="pricing-subtitle"><a href="excel.html#starter">Thử mẫu kết nối Excel: tỷ giá, CPI và GDP →</a></p>
     <section id="purchase-context" class="journey-tools" hidden></section>
     <p id="plan-status" class="journey-status" role="status">Đang kiểm tra giá và hạn mức hiện hành…</p>
 
@@ -936,8 +938,8 @@
                 <div id="co-guest-normal-card">
                     <button class="co-choice-card" id="co-guest-toggle-btn" onclick="coToggleGuestForm(this)">
                         <div class="co-choice-body">
-                            <div class="co-choice-title">Không cần tài khoản</div>
-                            <div class="co-choice-sub">Nhập email để nhận thông tin kích hoạt</div>
+                            <div class="co-choice-title">Thanh toán bằng email</div>
+                            <div class="co-choice-sub">Dùng email này để đăng nhập và lấy API key sau thanh toán</div>
                         </div>
                         <div class="co-choice-price">
                             <span id="co-guest-price-display">45.000₫</span>
@@ -975,6 +977,7 @@
 
 <script src="data-journey.js"></script>
 <script src="pricing-journey.js"></script>
+<script src="checkout-feedback.js"></script>
 <script>
     const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:8000'
@@ -1058,58 +1061,7 @@
     let _coCurrentStep   = null;
 
     // ── PayOS redirect handler ────────────────────────────────
-    (async function handleRedirect() {
-        const params    = new URLSearchParams(window.location.search);
-        const payment   = params.get('payment');
-        const orderCode = params.get('order');
-        if (!payment) return;
-
-        const banner = document.getElementById('result-banner');
-
-        if (payment === 'success' && orderCode) {
-            banner.className = 'success';
-            banner.innerHTML = `
-                <div class="result-icon">⏳</div>
-                <div class="result-title" style="color:var(--terracotta)">Đang xác nhận thanh toán…</div>
-                <p class="result-desc">Vui lòng chờ trong giây lát.</p>`;
-            try {
-                const res  = await fetch(`${API}/api/v1/payment/verify-order/${orderCode}`, { method: 'POST' });
-                if (!res.ok) throw new Error('Payment verification unavailable');
-                const data = await res.json();
-                if (data.activated || data.already_paid) {
-                    banner.innerHTML = `
-                        <div class="result-icon">🎉</div>
-                        <div class="result-title">Thanh toán thành công!</div>
-                        <p class="result-desc">API Supper Lite đã được kích hoạt.<br>Đăng nhập để xem trạng thái tài khoản.</p>
-                        <div class="result-actions">
-                            <a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Tiếp tục với dữ liệu đã chọn</a>
-                            <button class="btn-cta-sm" onclick="login(window.VDPricing?.resumeHref())">Đăng nhập để tiếp tục</button>
-                        </div>`;
-                } else {
-                    banner.innerHTML = `
-                        <div class="result-icon">⏳</div>
-                        <div class="result-title" style="color:var(--terracotta)">Đang xử lý thanh toán</div>
-                        <p class="result-desc">Giao dịch đang được xác nhận (thường dưới 5 phút).<br>API Supper Lite sẽ tự động kích hoạt sau khi xử lý xong.</p>
-                        <div class="result-actions"><a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Trở lại dữ liệu đã chọn</a></div>`;
-                }
-            } catch {
-                banner.innerHTML = `
-                    <div class="result-icon">⏳</div>
-                    <div class="result-title">Chưa xác minh được thanh toán</div>
-                    <p class="result-desc">Chưa thể xác nhận quyền lợi đã kích hoạt. Vui lòng kiểm tra tài khoản hoặc tải lại để thử xác minh; không thanh toán lại nếu đã bị trừ tiền.</p>
-                    <div class="result-actions"><a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Trở lại dữ liệu đã chọn</a></div>`;
-            }
-        } else if (payment === 'cancelled') {
-            banner.className = 'cancelled';
-            banner.innerHTML = `
-                <div class="result-icon">✕</div>
-                <div class="result-title">Thanh toán đã huỷ</div>
-                <p class="result-desc">Bạn có thể thử lại bất cứ lúc nào.</p>
-                <div class="result-actions"><a class="btn-home" href="${window.VDPricing?.resumeHref() || '/index.html'}">Trở lại dữ liệu đã chọn</a></div>`;
-        }
-
-        // Keep the order query so reloading can safely retry verification.
-    })();
+    window.VDCheckout.confirmReturn(API);
 
     // ── Auth on load ──────────────────────────────────────────
     async function initPage() {
@@ -1177,6 +1129,7 @@
 
     async function _openOverlay() {
         if (!window.VDPricing?.ready()) return;
+        window.VDAnalytics?.track('begin_checkout', {plan: _currentPlan().key, currency: 'VND', value: _studentVerified ? _currentPlan().amountStudent : _currentPlan().amount});
         try { _coIsAuth = await isAuthenticated(); } catch { _coIsAuth = false; }
         document.getElementById('checkout-overlay').style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -1285,9 +1238,9 @@
             document.getElementById('co-guest-period-display').textContent    = p.period;
             document.getElementById('co-guest-stu-price-display').textContent = `${p.displayStudent}₫`;
             document.getElementById('co-guest-stu-period-display').textContent= p.period;
-            // Reset guest form to collapsed state
-            document.getElementById('co-guest-form').style.display = 'none';
-            document.getElementById('co-guest-toggle-btn').classList.remove('selected');
+            // Keep the primary email checkout visible.
+            document.getElementById('co-guest-form').style.display = 'block';
+            document.getElementById('co-guest-toggle-btn').classList.add('selected');
         }
 
         if (step === 'email') setTimeout(() => document.getElementById('co-stu-email').focus(), 60);
@@ -1380,9 +1333,11 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
+            window.VDAnalytics?.track('checkout_redirect', {plan: data.plan, currency: 'VND', value: data.amount});
             window.location.href = data.checkout_url;
         } catch (e) {
             if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+            window.VDAnalytics?.track('checkout_error', {step: 'create_order'});
             _showCoError(errId, e.message);
         }
     }
@@ -1415,9 +1370,11 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'Lỗi tạo đơn hàng');
+            window.VDAnalytics?.track('checkout_redirect', {plan: data.plan, currency: 'VND', value: data.amount});
             window.location.href = data.checkout_url;
         } catch (e) {
             btn.disabled = false; btn.classList.remove('loading');
+            window.VDAnalytics?.track('checkout_error', {step: 'guest_order'});
             _showCoError('co-err-guest', e.message);
         }
     }

@@ -39,7 +39,7 @@ let chrome, ws;
             const {requestId,request}=msg.params;
             let response = {};
             if(request.url.endsWith('/payment/plans')) response = plans;
-            else if(request.url.includes('/payment/verify-order/')) response = {activated:true};
+            else if(request.url.includes('/payment/verify-order/')) response = {success:true, activated:true, status:'paid', order_type:'subscription', plan:'pro_monthly', amount:45000};
             else if(request.url.includes('/fuel-forecast/')) response = {success:true,data:{fuel:'E5RON92',tier:'free',history:[{period:'2022-01-21',retail_price:23595},{period:'2026-08-27',retail_price:21763}],forecast:[]}};
             await send('Fetch.fulfillRequest',{requestId,responseCode:(planFailure && request.url.endsWith('/payment/plans') || verifyFailure && request.url.includes('/payment/verify-order/'))?503:200,
                 responseHeaders:[{name:'Content-Type',value:'application/json'},{name:'Access-Control-Allow-Origin',value:'*'}],body:Buffer.from(JSON.stringify(response)).toString('base64')});

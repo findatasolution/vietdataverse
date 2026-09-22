@@ -124,7 +124,7 @@ def _verify_payos_webhook(body: dict) -> bool:
     """
     data = body.get("data", {}) or {}
     received_sig = body.get("signature") or data.get("signature", "")
-    if not received_sig:
+    if not isinstance(received_sig, str) or not received_sig:
         return False
 
     def _fmt(v):
@@ -237,7 +237,7 @@ def _activate_premium(session, user_id: int, plan: str):
     new_level  = plan_info["level"]  # "premium" | "premium_developer"
 
     row = session.execute(
-        text("SELECT premium_expiry FROM users WHERE user_id = :uid"),
+        text("SELECT premium_expiry FROM users WHERE user_id = :uid FOR UPDATE"),
         {"uid": user_id},
     ).fetchone()
 
@@ -278,7 +278,51 @@ def _query_payos_order(order_code: int) -> dict:
         headers=headers,
         timeout=15,
     )
+    resp.raise_for_status()
     return resp.json()
+
+
+def _settle_paid_order(order_code: int, amount: int, payos_ref: str = "") -> dict:
+    """Settle once across webhook/return-page races; never infer the product."""
+    session = _session()
+    try:
+        order = session.execute(text("""
+            SELECT user_id, plan, status, order_type, credit_amount, amount, payos_ref
+            FROM payment_orders WHERE order_code = :oc FOR UPDATE
+        """), {"oc": order_code}).fetchone()
+        if not order:
+            return {"success": True, "unknown_order": True}
+        user_id, plan, status, order_type, credits, expected, saved_ref = order
+        if type(amount) is not int or amount != expected:
+            raise HTTPException(status_code=409, detail="Số tiền thanh toán không khớp đơn hàng")
+        if saved_ref and payos_ref and saved_ref != payos_ref:
+            raise HTTPException(status_code=409, detail="Mã thanh toán không khớp đơn hàng")
+        kind = order_type or "subscription"
+        result = {"success": True, "activated": False, "already_paid": status == "paid",
+                  "status": "paid", "order_type": kind, "plan": plan, "amount": expected}
+        if status == "paid":
+            return result
+        if kind == "credit_topup":
+            if not credits or credits <= 0:
+                raise HTTPException(status_code=409, detail="Đơn nạp credits không hợp lệ")
+            from services.credit import credit_topup
+            # The wallet DB has its own transaction. Its idempotency key also
+            # makes a retry safe if this payment transaction fails to commit.
+            credit_topup(user_id=user_id, credits=credits,
+                         idem_key=f"payos:{order_code}", note=f"PayOS topup order={order_code}")
+        elif kind == "subscription" and plan in SUBSCRIPTION_PLANS:
+            expiry = _activate_premium(session, user_id, plan)
+            result.update(activated=True, premium_expiry=expiry.isoformat())
+        else:
+            raise HTTPException(status_code=409, detail="Loại đơn hàng không được hỗ trợ")
+        session.execute(text("""
+            UPDATE payment_orders SET status = 'paid', updated_at = NOW(),
+                payos_ref = COALESCE(payos_ref, :ref) WHERE order_code = :oc
+        """), {"oc": order_code, "ref": payos_ref or None})
+        session.commit()
+        return result
+    finally:
+        session.close()
 
 
 # ============================================================
@@ -599,157 +643,51 @@ async def create_payment_order_guest(body: GuestOrderRequest):
 
 @router.post("/verify-order/{order_code}")
 async def verify_order(order_code: int):
-    """
-    Chủ động query PayOS API để kiểm tra trạng thái thanh toán và kích hoạt Premium.
-    Gọi endpoint này sau khi user redirect về từ PayOS (không cần auth).
-    """
+    """Confirm through PayOS, then share the webhook's idempotent settlement."""
     if not all([PAYOS_CLIENT_ID, PAYOS_API_KEY]):
-        raise HTTPException(status_code=500, detail="PayOS chưa được cấu hình")
-
+        raise HTTPException(status_code=503, detail="PayOS chưa được cấu hình")
     try:
-        resp_data = _query_payos_order(order_code)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Không thể kết nối PayOS: {e}")
-
-    if resp_data.get("code") != "00":
-        raise HTTPException(status_code=502, detail=f"PayOS lỗi: {resp_data.get('desc')}")
-
-    payos_data = resp_data["data"]
-    payos_status = payos_data.get("status")
-    payos_ref    = payos_data.get("id", "")  # PayOS's own payment link ID
-
-    session = _session()
-    try:
-        order = session.execute(
-            text("SELECT user_id, plan, status FROM payment_orders WHERE order_code = :oc"),
-            {"oc": order_code},
-        ).fetchone()
-
-        if not order:
-            raise HTTPException(status_code=404, detail=f"Order {order_code} không tìm thấy trong DB")
-
-        user_id, plan, current_status = order
-
-        # Lưu payos_ref nếu chưa có
-        if payos_ref:
-            session.execute(
-                text("UPDATE payment_orders SET payos_ref = :ref WHERE order_code = :oc AND payos_ref IS NULL"),
-                {"ref": payos_ref, "oc": order_code},
-            )
-
-        if current_status == "paid":
-            session.commit()
-            return {"success": True, "activated": False, "already_paid": True, "status": "paid"}
-
-        if payos_status == "PAID":
-            new_expiry = _activate_premium(session, user_id, plan)
-            session.execute(text("""
-                UPDATE payment_orders SET status = 'paid', updated_at = NOW()
-                WHERE order_code = :oc
-            """), {"oc": order_code})
-            session.commit()
-            print(f"[verify-order] ✅ Premium activated user_id={user_id} đến {new_expiry}")
-            return {
-                "success":        True,
-                "activated":      True,
-                "premium_expiry": new_expiry.isoformat(),
-                "status":         "paid",
-            }
-
-        # Chưa thanh toán hoặc bị huỷ
-        session.commit()
-        return {"success": True, "activated": False, "status": payos_status}
-
-    finally:
-        session.close()
+        response = _query_payos_order(order_code)
+    except Exception:
+        raise HTTPException(status_code=502, detail="Chưa thể kết nối PayOS. Vui lòng thử lại.")
+    data = response.get("data")
+    if response.get("code") != "00" or not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail="Chưa xác minh được đơn hàng qua PayOS")
+    if data.get("orderCode") != order_code:
+        raise HTTPException(status_code=502, detail="PayOS trả về đơn hàng không khớp")
+    if data.get("status") != "PAID":
+        return {"success": True, "activated": False, "status": data.get("status")}
+    if (type(data.get("amount")) is not int or type(data.get("amountPaid")) is not int
+            or data["amountPaid"] < data["amount"]):
+        raise HTTPException(status_code=409, detail="Chưa xác nhận đủ số tiền thanh toán")
+    result = _settle_paid_order(order_code, data["amount"], data.get("id", ""))
+    if result.get("unknown_order"):
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
+    return result
 
 
 @router.post("/payos-webhook")
 async def payos_webhook(request: Request):
-    """
-    Nhận webhook từ PayOS sau khi user thanh toán thành công.
-    PayOS gửi: { code, desc, success, data: { orderCode, amount, status, ..., signature } }
-    Không yêu cầu Auth header — PayOS tự gọi.
-
-    Branches:
-      order_type='credit_topup'  → credit knowledge wallet via services.credit.credit_topup
-      order_type='subscription'  → activate premium (existing flow)
-      (null / unknown)           → fallback to subscription flow for backward compat
-    """
+    """Accept signed payOS code=00 callbacks (which have no status field)."""
+    if not PAYOS_CHECKSUM_KEY:
+        raise HTTPException(status_code=503, detail="Chưa cấu hình xác minh PayOS")
     try:
         body = await request.json()
     except Exception:
         raise HTTPException(status_code=400, detail="Body không hợp lệ")
-
-    # Xác minh chữ ký HMAC
-    if PAYOS_CHECKSUM_KEY and not _verify_payos_webhook(body):
+    if not isinstance(body, dict) or not isinstance(body.get("data"), dict):
+        raise HTTPException(status_code=400, detail="Body không hợp lệ")
+    if not _verify_payos_webhook(body):
         raise HTTPException(status_code=400, detail="Chữ ký không hợp lệ")
-
-    data       = body.get("data", {})
-    order_code = data.get("orderCode")
-    status     = data.get("status")
-
-    # Chỉ xử lý khi status là PAID
-    if status != "PAID" or not order_code:
+    data = body["data"]
+    # Only the signed nested code determines transaction success.
+    if data.get("code") != "00":
         return {"success": True}
-
-    session = _session()
-    try:
-        order = session.execute(
-            text("""
-                SELECT user_id, plan, status, order_type, credit_amount
-                FROM payment_orders WHERE order_code = :oc
-            """),
-            {"oc": order_code},
-        ).fetchone()
-
-        if not order:
-            print(f"[payos-webhook] order_code không tìm thấy: {order_code}")
-            return {"success": True}
-
-        user_id, plan, current_status, order_type, credit_amount = order
-
-        if current_status == "paid":
-            # Đã xử lý rồi — idempotency
-            return {"success": True}
-
-        # Mark order paid first (idempotency anchor)
-        session.execute(text("""
-            UPDATE payment_orders
-            SET status = 'paid', updated_at = NOW()
-            WHERE order_code = :oc
-        """), {"oc": order_code})
-
-        # ── Branch on order_type ───────────────────────────────────────────
-        if order_type == "credit_topup":
-            credits = credit_amount or 0
-            if credits > 0:
-                from services.credit import credit_topup
-                result = credit_topup(
-                    user_id=user_id,
-                    credits=credits,
-                    idem_key=f"payos:{order_code}",
-                    note=f"PayOS topup order={order_code}",
-                )
-                print(
-                    f"[payos-webhook] credit_topup user_id={user_id} "
-                    f"credits={credits} balance={result['balance']} "
-                    f"duplicate={result['duplicate']}"
-                )
-            else:
-                print(f"[payos-webhook] credit_topup order={order_code} has 0 credits — skipping")
-        else:
-            # subscription (default) flow — same as before
-            new_expiry = _activate_premium(session, user_id, plan)
-            print(f"[payos-webhook] subscription user_id={user_id} đến {new_expiry}")
-
-        session.commit()
-
-    finally:
-        session.close()
-
+    order_code = data.get("orderCode")
+    if type(order_code) is not int or order_code <= 0 or data.get("currency") != "VND":
+        raise HTTPException(status_code=400, detail="Thông tin giao dịch không hợp lệ")
+    _settle_paid_order(order_code, data.get("amount"), data.get("paymentLinkId", ""))
     return {"success": True}
-
 
 
 @router.get("/status")

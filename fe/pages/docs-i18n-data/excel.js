@@ -1,4 +1,10 @@
 window.DOCS_I18N_EN = {
+  "ex.starter.toc": "Ready-to-use connection examples",
+  "ex.starter.title": "Report connections: FX, CPI and GDP",
+  "ex.starter.intro": "Choose a dataset, copy the example and paste it into Excel. Examples are free; the 45,000 VND / 30-day API plan increases capacity when your workflow outgrows the free quota.",
+  "ex.starter.steps": "<li>In Excel with Power Query: Data → Get Data → From Other Sources → Blank Query → Advanced Editor.</li><li>Paste the example and replace YOUR_API_KEY inside Excel. Choose Anonymous if Excel asks for credentials.</li><li>Select Done → Close &amp; Load. Use Data → Refresh All for subsequent updates.</li>",
+  "ex.starter.note": "The central exchange rate is not a bank buy/sell rate. The CPI example requests up to 60 months; FX requests one year; GDP returns the current API coverage, up to 200 rows. Freshness depends on the source. Do not share workbooks containing your API key.",
+
   "ex.toc.label": "Contents",
   "ex.toc.overview": "What you'll get",
   "ex.toc.token": "Step 1 — Get an API token",

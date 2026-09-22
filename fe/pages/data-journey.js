@@ -244,7 +244,7 @@
         if (status) status.textContent = t('Đã chạm hạn mức hoặc giới hạn tốc độ API. Chờ rồi thử lại; xem trang API key để kiểm tra quota trước khi nâng cấp.', 'API quota or rate limit reached. Retry later; check API key usage before upgrading.');
         document.getElementById('dataset-tools')?.scrollIntoView({behavior: 'smooth'});
     }
-    window.VDJourney = {catalog, byId, selectedDataset, snapshot, coverage, rowsOf, csv, cleanContext, remember, recalled, route, show, hide, buildDiscovery, updateContext, refresh, downloadError, name, t, el, link, api};
+    window.VDJourney = {catalog, byId, selectedDataset, snapshot, coverage, rowsOf, csv, cleanContext, remember, recalled, route, pricingLink, show, hide, buildDiscovery, updateContext, refresh, downloadError, name, t, el, link, api};
     document.addEventListener('DOMContentLoaded', buildDiscovery);
     document.addEventListener('click', e => {
         if (e.target.closest('.filter-btn[data-period], .filter-btn[data-macro-period], .filter-btn[data-policy-period]')) {
