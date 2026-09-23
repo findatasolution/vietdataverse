@@ -40,6 +40,14 @@ PERIODS = {
     'all': 3650  # ~10 years
 }
 
+# Every period the FE's chart period-picker offers a button for. "all" was
+# missing from the generator loops until 2026-09-23 even though PERIODS has
+# always defined it, so "Tất cả" was the one button with no static file behind
+# it: fe/app.js fell through to the metered live API, which 401s every
+# anonymous visitor, and the chart read "Không tải được dữ liệu" for anyone not
+# logged in. Keep this list and fe/app.js's staticFileFor() in step.
+CHART_PERIODS = ['7d', '1m', '1y', 'all']
+
 
 def num(value):
     """Serialize a numeric column, preserving 'no data' as null.
@@ -91,7 +99,7 @@ def generate_gold_data():
 
     # Generate for each type and period
     for gold_type in types_to_generate:
-        for period in ['7d', '1m', '1y']:
+        for period in CHART_PERIODS:
             date_filter = get_date_filter(period)
 
             with engine_crawl.connect() as conn:
@@ -146,7 +154,7 @@ def generate_silver_data():
     """Generate static JSON for silver prices."""
     print("\n--- Generating Silver Data ---")
 
-    for period in ['7d', '1m', '1y']:
+    for period in CHART_PERIODS:
         date_filter = get_date_filter(period)
 
         with engine_crawl.connect() as conn:
@@ -185,7 +193,7 @@ def generate_sbv_data():
     """Generate static JSON for SBV interbank rates."""
     print("\n--- Generating SBV Interbank Data ---")
 
-    for period in ['7d', '1m', '1y']:
+    for period in CHART_PERIODS:
         date_filter = get_date_filter(period)
 
         with engine_crawl.connect() as conn:
@@ -299,7 +307,7 @@ def generate_termdepo_data():
     print(f"  Banks: {banks}")
 
     for bank in banks:
-        for period in ['7d', '1m', '1y']:
+        for period in CHART_PERIODS:
             date_filter = get_date_filter(period)
 
             with engine_crawl.connect() as conn:
@@ -415,7 +423,7 @@ def generate_fxrate_data():
     ]
 
     for bank, currency in combos:
-        for period in ['7d', '1m', '1y']:
+        for period in CHART_PERIODS:
             date_filter = get_date_filter(period)
 
             try:
@@ -465,7 +473,7 @@ def generate_global_data():
         return
 
     try:
-        for period in ['7d', '1m', '1y']:
+        for period in CHART_PERIODS:
             date_filter = get_date_filter(period)
 
             with engine_global.connect() as conn:

@@ -62,7 +62,7 @@
                 sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
-                lbmaSurveyDisclaimer: 'Nến chấm chấm: dự đoán cao/thấp/trung bình của chuyên gia quốc tế (LBMA) cho 2 kỳ gần nhất — không phải khuyến nghị đầu tư.',
+                lbmaSurveyDisclaimer: 'Nến chấm chấm: dự đoán cao/thấp/trung bình của chuyên gia quốc tế (LBMA), kỳ báo cáo gần nhất — không phải khuyến nghị đầu tư.',
                 silverChart: 'Lịch sử giá bạc (Phú Quý)',
                 sbvChart: 'Lịch sử lãi suất liên ngân hàng',
                 tdChart: 'Lịch sử lãi suất gửi tiết kiệm (NHTM)',
@@ -304,7 +304,7 @@
                 sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
-                lbmaSurveyDisclaimer: 'Dotted candles: international expert (LBMA) high/low/average forecast for the 2 most recent reports — not investment advice.',
+                lbmaSurveyDisclaimer: 'Dotted candle: international expert (LBMA) high/low/average forecast, most recent report — not investment advice.',
                 silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
                 tdChart: 'Commercial Banks Term Deposit History',
@@ -2250,7 +2250,13 @@
         // match generate_static_data.py's save_json() calls exactly; verify
         // there with `ls fe/data/` before changing either side.
         function staticFileFor(chartType, period, goldType, bankCode) {
-            if (period === 'all') return null;
+            // "Tất cả" used to return null here, so it was the one period with
+            // no static file to fall back on: it went straight to the metered
+            // live API, which 401s every anonymous visitor (verified against
+            // prod 2026-09-23 — /api/v1/gold?period=all → 401), and the chart
+            // showed "Không tải được dữ liệu" for everyone not logged in.
+            // be/generate_static_data.py now writes an `all` file for each of
+            // the six charts that offer the button.
             switch (chartType) {
                 case 'gold':   return `gold_${goldType.replace(/ /g, '_')}_${period}.json`;
                 case 'silver': return `silver_${period}.json`;
@@ -2696,24 +2702,28 @@
             // international experts expect. AGGREGATE ONLY — see CLAUDE.md's
             // "LBMA gold forecast survey" section.
             //
-            // The 2 most recent reports are drawn — not all of them, and not
-            // just the latest. When a newer report lands
-            // (crawl_lbma_gold_survey.py, monthly), it enters this top-2 and
-            // the oldest of the previous two drops off automatically, on the
+            // ONLY the single most recent report is drawn (2026-09-23, user
+            // decision — it used to be the 2 most recent). The older report
+            // is not just redundant, it distorts the chart: January 2026's
+            // annual survey spans 3.450–7.150 USD/oz, roughly three times the
+            // world price's own visible range, so its wick alone stretched the
+            // right-hand axis far past anything the real series does and
+            // flattened that series into a band. The newest report is also
+            // simply the better estimate — it is the one made with the most
+            // information. When a newer report lands
+            // (crawl_lbma_gold_survey.py, monthly) it takes this slot on the
             // next page load — this always reads fe/data/lbma_gold_survey.json
             // fresh and always re-sorts by published_date, so there is no
             // separate "update" step and nothing accumulates without bound.
             //
-            // Each report is a "candle": a thin wick bar (low->high) plus a
-            // marker at the average, at the end of the period it covers —
-            // "cuối năm {year}" for the mid-year snapshot's explicit year-end
-            // target; the annual survey's own number is an AVERAGE ACROSS THE
-            // YEAR, not a point estimate, so it is placed at that year's
-            // mid-point (July 1) instead of year-end — both a more honest
-            // placement and, this year, what keeps the two candles from
-            // landing on the exact same date. Two thin dotted lines fan out
+            // The report is a "candle": a thin wick bar (low->high) plus a
+            // marker at the average, placed at the end of the year it covers.
+            // `periodLabel` still distinguishes what that number means — the
+            // mid-year snapshot targets year-end, the annual survey's figure
+            // is an AVERAGE ACROSS THE YEAR — so the text never claims the
+            // x-position is a per-day target. Two thin dotted lines fan out
             // from the world series' latest actual point (not "today"'s
-            // calendar date, which may lag it over a weekend) to each
+            // calendar date, which may lag it over a weekend) to the
             // candle's high and low, so the candle reads as where a
             // continuing trend could plausibly end up, not a disconnected box.
             //
@@ -2731,7 +2741,7 @@
                 && lbmaSurveys && lbmaSurveys.length) {
                 const recent = [...lbmaSurveys]
                     .sort((a, b) => (a.published_date < b.published_date ? 1 : -1))
-                    .slice(0, 2);
+                    .slice(0, 1);
                 const nowDate = wDates[wDates.length - 1];
                 const nowPrice = worldSeries[worldSeries.length - 1];
 
@@ -2739,15 +2749,13 @@
                     if (nowPrice === null || nowPrice === undefined) break;
                     const periodLabel = r.survey_type === 'annual'
                         ? `TB cả năm ${r.survey_year}` : `cuối năm ${r.survey_year}`;
-                    // Both anchored at year-end — NOT the annual survey's own
-                    // mid-year, which would sit in the PAST as soon as the
+                    // Year-end for both report types — NOT the annual survey's
+                    // own mid-year, which would sit in the PAST as soon as the
                     // calendar passes July 1 (a "forecast" line running
-                    // backward from "now"). The 1-day offset is cosmetic only,
-                    // purely so two same-year candles don't land on the exact
-                    // same pixel column; `periodLabel` still says "TB cả năm"
-                    // so the text never claims this x is a real target date.
-                    const targetDate = r.survey_type === 'annual'
-                        ? `${r.survey_year}-12-30` : `${r.survey_year}-12-31`;
+                    // backward from "now"). `periodLabel` still says "TB cả
+                    // năm" for that type, so the text never claims this x is a
+                    // real per-day target.
+                    const targetDate = `${r.survey_year}-12-31`;
                     if (targetDate > chartXMax) chartXMax = targetDate;
                     const [py, pm] = r.published_date.split('-');
                     const shortLabel = `Dự đoán LBMA T${Number(pm)}/${py}`;
@@ -2822,6 +2830,16 @@
                 scales.yWorld = {
                     type: 'linear',
                     position: 'right',
+                    // Chart.js forces beginAtZero on a linear axis as soon as a
+                    // BAR dataset is attached to it (verified against 4.4.1:
+                    // same data, no bar → 3.800–5.200; with the LBMA wick bar →
+                    // 0–6.000). The LBMA candle's wick is exactly such a bar, so
+                    // adding it silently rebased this axis at zero and squashed
+                    // the world-gold line into the top third of the chart, while
+                    // 7 ngày/1 tháng — which draw no candle — stayed correctly
+                    // auto-fitted. Gold has never been near 0 USD/oz; this axis
+                    // is truncated by design, same as the domestic one.
+                    beginAtZero: false,
                     title: { display: true, text: 'Thế giới (USD/oz)', color: '#87867f', font: { size: 10 } },
                     ticks: { color: '#87867f', callback: formatNumVi },
                     grid: { display: false }
