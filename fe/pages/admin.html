@@ -11,6 +11,9 @@
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="/fe/auth.js" defer></script>
+    <!-- Analysis tabs (Tổng quan / API / Tiền / Data Health). Kept out of
+         this file's inline script: that is operations code, this is reporting. -->
+    <script src="/fe/pages/admin-report.js" defer></script>
     <style>
         body { margin: 0; background: var(--parchment); }
         .admin-nav {
@@ -235,14 +238,54 @@
         <div class="kpi-card"><div class="kpi-label">API thành công</div><div class="kpi-value" id="api-successful">—</div><div class="kpi-sub" id="api-unique-users">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Qua API key</div><div class="kpi-value" id="api-key-calls">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Qua FE / Bearer</div><div class="kpi-value" id="api-bearer-calls">—</div></div>
-        <div class="kpi-card"><div class="kpi-label">Public anonymous</div><div class="kpi-value" id="api-public-anonymous">—</div><div class="kpi-sub">API public gọi không đăng nhập</div></div>
-        <div class="kpi-card"><div class="kpi-label">Anonymous / key lỗi</div><div class="kpi-value" id="api-anonymous">—</div><div class="kpi-sub">Theo dõi từ 05/07/2026</div></div>
+        <div class="kpi-card"><div class="kpi-label">Public anonymous</div><div class="kpi-value" id="api-public-anonymous">—</div><div class="kpi-sub">API public gọi không đăng nhập · ghi được từ 23/09/2026</div></div>
+        <div class="kpi-card"><div class="kpi-label">Anonymous / key lỗi</div><div class="kpi-value" id="api-anonymous">—</div><div class="kpi-sub">Thực sự ghi được từ 23/09/2026</div></div>
         <div class="kpi-card"><div class="kpi-label">Request bị từ chối</div><div class="kpi-value" id="api-rejected">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Active subscribers</div><div class="kpi-value" id="active-subs">—</div><div class="kpi-sub" id="tier-breakdown"></div></div>
         <div class="kpi-card"><div class="kpi-label">Tổng users</div><div class="kpi-value" id="total-users">—</div></div>
         <div class="kpi-card"><div class="kpi-label">Lượt truy cập web (GA4)</div><div class="kpi-value" id="ga4-pageviews">—</div><div class="kpi-sub" id="ga4-sub">—</div></div>
     </div>
 
+    <!-- Tabs -->
+    <!-- Tabs. Order is the reading order of the business question: is anyone
+         arriving (Tổng quan) → are they using it (API) → who are they (Users) →
+         did money move (Tiền) → is the data still arriving (Data Health) →
+         what did they say (Góp ý). -->
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Tổng quan</button>
+        <button class="tab-btn" data-tab="api" onclick="switchTab('api')">API</button>
+        <button class="tab-btn" data-tab="users" onclick="switchTab('users')">Users</button>
+        <button class="tab-btn" data-tab="money" onclick="switchTab('money')">Tiền</button>
+        <button class="tab-btn" data-tab="data" onclick="switchTab('data')">Data Health</button>
+        <button class="tab-btn" data-tab="feedback" onclick="switchTab('feedback')">Góp ý</button>
+    </div>
+
+    <!-- Tổng quan tab: acquisition funnel + the signup trend that used to sit
+         above the tab bar. -->
+    <div class="tab-panel active" id="tab-overview">
+        <div id="report-funnel"></div>
+    <!-- Signup trend chart -->
+    <div class="chart-wrap">
+        <div class="chart-header">
+            <span class="chart-title" id="signup-chart-title">Đăng ký mới · 24 giờ qua</span>
+        </div>
+        <canvas id="signup-chart" height="80"></canvas>
+    </div>
+
+    </div>
+
+    <!-- API tab -->
+    <div class="tab-panel" id="tab-api">
+        <div id="report-api"></div>
+    </div>
+
+    <!-- Data Health tab -->
+    <div class="tab-panel" id="tab-data">
+        <div id="report-data"></div>
+    </div>
+
+    <!-- Góp ý tab -->
+    <div class="tab-panel" id="tab-feedback">
     <!-- Experience feedback -->
     <div class="section-h" style="margin-top:0;">Góp ý trải nghiệm</div>
     <div class="kpi-grid">
@@ -259,23 +302,10 @@
         </table>
     </div>
 
-    <!-- Signup trend chart -->
-    <div class="chart-wrap">
-        <div class="chart-header">
-            <span class="chart-title" id="signup-chart-title">Đăng ký mới · 24 giờ qua</span>
-        </div>
-        <canvas id="signup-chart" height="80"></canvas>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('users')">Users</button>
-        <button class="tab-btn" onclick="switchTab('orders')">Payment Orders</button>
-        <button class="tab-btn" onclick="switchTab('stats')">API Activity</button>
     </div>
 
     <!-- Users tab -->
-    <div class="tab-panel active" id="tab-users">
+    <div class="tab-panel" id="tab-users">
         <div class="search-bar">
             <input class="search-input" id="user-q" placeholder="Tìm theo email…" oninput="debounceLoadUsers()">
             <select class="filter-select" id="user-level-filter" onchange="loadUsers()">
@@ -307,7 +337,12 @@
     </div>
 
     <!-- Orders tab -->
-    <div class="tab-panel" id="tab-orders">
+    <!-- Tiền tab. The aggregates render into #report-money above the existing
+         raw order table, which stays exactly as it was — the table is for
+         looking up one order, the aggregates for seeing the shape. -->
+    <div class="tab-panel" id="tab-money">
+        <div id="report-money"></div>
+        <div class="section-h" style="font-size:14px;margin-top:24px;">Đơn hàng chi tiết</div>
         <div class="search-bar">
             <select class="filter-select" id="order-status-filter" onchange="loadOrders()">
                 <option value="">Tất cả status</option>
@@ -336,20 +371,6 @@
     </div>
 
     <!-- Stats tab -->
-    <div class="tab-panel" id="tab-stats">
-        <div style="overflow-x:auto;">
-            <table class="admin-table" id="stats-table">
-                <thead><tr><th>#</th><th>Endpoint</th><th>Calls</th><th>Thành công</th><th>Từ chối</th><th>Public anonymous</th><th>Anonymous / lỗi</th><th>Unique users</th></tr></thead>
-                <tbody id="stats-body"></tbody>
-            </table>
-        </div>
-        <div class="section-h" id="top-keys-title" style="font-size:14px;margin-top:28px;">Top API Keys · 24 giờ qua</div>
-        <table class="admin-table" id="top-keys-table">
-            <thead><tr><th>#</th><th>Email</th><th>Requests</th></tr></thead>
-            <tbody id="top-keys-body"></tbody>
-        </table>
-    </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
@@ -445,20 +466,50 @@ async function setReportPeriod(period, btnEl) {
     });
     try {
         await Promise.all([loadDashboard(period), loadSignupTrend(period)]);
-        if (document.getElementById('tab-stats').classList.contains('active')) await loadStats();
+        // Re-fetch whichever analysis tab is on screen. The other tabs are
+        // marked dirty instead of refetched: a period change must not fire six
+        // queries the admin may never look at.
+        _loadedTabs.delete(_activeTab);
+        await loadTab(_activeTab);
+        _loadedTabs = new Set([_activeTab]);
     } finally {
         document.querySelectorAll('.report-period-btn').forEach(btn => { btn.disabled = false; });
     }
 }
 
+// Tabs are lazy: a tab is fetched the first time it is opened, and again only
+// when the report period changes. Indexing .tab-btn by position (the old
+// approach) broke the moment a tab was added — each button now names its own
+// tab via data-tab.
+let _activeTab = 'overview';
+let _loadedTabs = new Set();
+
+async function loadTab(name) {
+    if (_loadedTabs.has(name)) return;
+    _loadedTabs.add(name);
+    window.VDAdminReport.token = _token;
+    try {
+        if (name === 'overview') await window.VDAdminReport.loadOverview(_reportPeriod);
+        if (name === 'api')      await window.VDAdminReport.loadApi(_reportPeriod);
+        if (name === 'money')    await Promise.all([window.VDAdminReport.loadMoney(_reportPeriod), loadOrders()]);
+        if (name === 'data')     await window.VDAdminReport.loadDataHealth();
+        if (name === 'users' && !document.getElementById('users-body').children.length) await loadUsers();
+    } catch (e) {
+        // A tab that fails must stay retryable, not be remembered as loaded.
+        _loadedTabs.delete(name);
+        throw e;
+    }
+}
+
 function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach((b, i) => {
-        b.classList.toggle('active', ['users','orders','stats'][i] === name);
+    _activeTab = name;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === name);
     });
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    if (name === 'orders' && !document.getElementById('orders-body').children.length) loadOrders();
-    if (name === 'stats'  && !document.getElementById('stats-body').children.length)  loadStats();
+    const panel = document.getElementById('tab-' + name);
+    if (panel) panel.classList.add('active');
+    loadTab(name);
 }
 
 // ── Dashboard KPIs ──────────────────────────────────────────────────────────
@@ -473,7 +524,6 @@ async function loadDashboard(period = _reportPeriod) {
     if (requestId !== _reportRequestId) return;
     const periodLabel = d.period?.label || period;
     document.getElementById('report-period-label').textContent = `Báo cáo · ${periodLabel}`;
-    document.getElementById('top-keys-title').textContent = `Top API Keys · ${periodLabel}`;
     document.getElementById('revenue-period').textContent = fmt(d.revenue.period_total || 0);
     document.getElementById('new-users-period').textContent = (d.subscribers.new_in_period || 0).toLocaleString('vi-VN');
     document.getElementById('unique-logins-period').textContent = (d.logins?.unique_in_period || 0).toLocaleString('vi-VN');
@@ -735,36 +785,6 @@ async function reverifyOrder(orderCode) {
     }
 }
 
-// ── Stats ───────────────────────────────────────────────────────────────────
-
-async function loadStats() {
-    const res = await fetch(`${API}/api/v1/admin/dashboard?period=${encodeURIComponent(_reportPeriod)}`, {
-        headers: { Authorization: `Bearer ${_token}` }
-    });
-    if (!res.ok) return;
-    const d = await res.json();
-
-    document.getElementById('stats-body').innerHTML = d.top_endpoints.map((ep, i) => `
-        <tr>
-            <td style="color:var(--text-tertiary)">${i + 1}</td>
-            <td style="font-family:monospace;font-size:12px;">${ep.endpoint}</td>
-            <td>${ep.calls.toLocaleString('vi-VN')}</td>
-            <td>${ep.successful.toLocaleString('vi-VN')}</td>
-            <td>${ep.rejected.toLocaleString('vi-VN')}</td>
-            <td>${ep.public_anonymous.toLocaleString('vi-VN')}</td>
-            <td>${ep.anonymous_or_invalid.toLocaleString('vi-VN')}</td>
-            <td>${ep.unique_users.toLocaleString('vi-VN')}</td>
-        </tr>
-    `).join('') || '<tr><td colspan="8" style="color:var(--text-tertiary);text-align:center;padding:24px;">Chưa có dữ liệu</td></tr>';
-
-    document.getElementById('top-keys-body').innerHTML = d.top_api_keys.map((k, i) => `
-        <tr>
-            <td style="color:var(--text-tertiary)">${i + 1}</td>
-            <td>${k.email}</td>
-            <td>${k.requests.toLocaleString('vi-VN')}</td>
-        </tr>
-    `).join('') || '<tr><td colspan="3" style="color:var(--text-tertiary);text-align:center;padding:24px;">Chưa có dữ liệu</td></tr>';
-}
 
 // ── Export CSV ───────────────────────────────────────────────────────────────
 
@@ -831,8 +851,8 @@ async function initAdmin() {
         loadEl.style.display = 'none';
         document.getElementById('admin-app').style.display = 'block';
         loadDashboard();
-        loadUsers();
         loadSignupTrend();
+        loadTab('overview');   // Users is no longer the landing tab
     } catch {
         loadEl.style.display = 'none';
         document.getElementById('access-denied').style.display = 'block';

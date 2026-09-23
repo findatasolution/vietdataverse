@@ -762,7 +762,70 @@ verified on prod immediately after (65 → 68, both 401s present).
 that never arrives. The bare `except: pass` now logs with `exc_info` — the
 silence is why this lasted months.
 
-`/pages/admin.html` (Auth0 login + `is_admin`/`user_level='admin'`, backed by `/api/v1/admin/*` with `admin_audit_log`) is the **only** admin/reporting surface. The secret-link report `GET /api/v1/report?key=<REPORT_SECRET>` (`be/routers/report_dashboard.py`) was removed on 2026-08-06: it duplicated data the admin dashboard already showed, put a credential in the URL (Caddy access logs, browser history, `Referer`), had no per-person revocation or audit trail, and fell back to `WEBHOOK_INTERNAL_SECRET` — the same secret GitHub Actions sends on every crawl webhook. Do not reintroduce secret-in-URL admin surfaces; add new reporting as an `/api/v1/admin/*` endpoint plus a section in `admin.html`.
+`/pages/admin.html` (Auth0 login + `is_admin`/`user_level='admin'`, backed by `/api/v1/admin/*` with `admin_audit_log`) is the **only** admin/reporting surface.
+
+### Admin report — 6 tab phân tích (2026-09-23)
+
+`/pages/admin.html` giờ là 6 tab, thứ tự đúng theo câu hỏi kinh doanh: **Tổng
+quan → API → Users → Tiền → Data Health → Góp ý**. Dải KPI và bộ chọn kỳ
+(24h/7d/YTD) nằm trên tab bar vì chúng là bối cảnh chung.
+
+**Chia đôi code theo trách nhiệm.** `be/routers/admin.py` giữ *thao tác* (liệt
+kê user, sửa user, reverify đơn); `be/routers/admin_report.py` (mới) giữ *phân
+tích* — 4 endpoint chỉ-đọc `GET /api/v1/admin/report/{funnel,api,money,data-health}`.
+Phía FE cũng vậy: `fe/pages/admin-report.js` (mới) render 4 tab phân tích, phần
+inline script của `admin.html` giữ nguyên phần thao tác.
+
+**Tab nạp lười.** Mỗi tab fetch đúng 1 lần ở lần mở đầu tiên; đổi kỳ báo cáo chỉ
+refetch **tab đang mở**, các tab khác bị đánh dấu bẩn. `switchTab()` cũ nhận diện
+tab bằng **vị trí** trong `.tab-btn` (`['users','orders','stats'][i]`) — thêm tab
+là hỏng ngay; giờ mỗi nút mang `data-tab` của chính nó.
+
+**Tab cũ "API Activity" (`#tab-stats`) đã bị xoá**, nội dung được tab API mới bao
+trùm rộng hơn. Kéo theo `loadStats()` bị xoá và một dòng trong `loadDashboard()`
+ghi vào `#top-keys-title` — phần tử vừa bị xoá — cũng phải bỏ (đã bắt được bằng
+test headless, không phải đọc code). `/api/v1/admin/dashboard` vẫn trả
+`top_endpoints` / `top_api_keys` nhưng **không còn ai đọc**; dọn sau, đừng dựa vào.
+
+**Những gì report CỐ Ý không hiển thị:**
+- **Không có ô latency.** `api_call_log` không có cột thời gian phản hồi. Ô trống
+  thì thật thà, ô bịa thì không.
+- **Số 0 phải nói rõ là "chưa đo" hay "không có ai".** Mọi khối có thể rỗng về
+  mặt cấu trúc đều mang `note` riêng; tab API in kèm mốc `recording_since` của
+  lượt gọi ẩn danh.
+- **Tỉ lệ phễu > 100% bị chặn.** Bậc "đã gọi API bằng key" không phải tập con của
+  "đã tạo API key" (phiên FE dùng Bearer, không cần key; và có người từng gọi
+  bằng key nay đã bị xoá khỏi `api_keys`). Bản đầu in "400%"; giờ tỉ lệ để trống
+  kèm cảnh báo.
+
+**Ngưỡng Data Health đặt theo nhịp thật, không phải số tròn.** Bản đầu đặt 45
+ngày cho nhóm tháng khiến CPI và IIP báo "late" ngay hôm đầu — vì kỳ `2026-08`
+nghĩa là số liệu tháng 8, NSO công bố đầu tháng 9, nên ngày 23/9 nó "già" 53 ngày
+một cách bình thường. Đã nâng lên 70/75. **Report báo động giả thì sẽ bị bỏ qua —
+đúng số phận của con DQ agent gửi email.** Ngưỡng xăng dầu dùng lại đúng con số
+của crawler (`CYCLE_STALE_DAYS`=17, `WORLD_STALE_DAYS`=6) để hai nơi không mâu
+thuẫn. "Tuổi" tính từ **kỳ dữ liệu mới nhất**, không phải lần crawl cuối — một
+crawler chạy đều trong khi nguồn ngừng cập nhật vẫn phải hiện ra.
+
+**Cột thời gian mỗi bảng mỗi khác** (`vn_macro_*` dùng `date`, `vn_gso_*_monthly`
+dùng `period` VARCHAR(7), fuel Gold dùng `run_ts`, `vn_gso_gdp_quarterly` **không
+có** cột kỳ nên phải lấy `crawl_time` và nhãn nói rõ là "theo lần crawl"). Registry
+`DATA_HEALTH_TABLES` ghi biểu thức riêng cho từng bảng — **đừng đoán tên cột, hãy
+introspect**.
+
+**Bẫy hai DB cùng tên bảng.** `USER_DB` và `KNOWLEDGE_MARKET_DB` đều có
+`knowledge_products` / `knowledge_purchases` / `seller_profiles`. Bản trong
+`USER_DB` **rỗng hoàn toàn** (0 dòng, kiểm 2026-09-23); dữ liệu thật chỉ ở
+`KNOWLEDGE_MARKET_DB` (26 sản phẩm, 6 lượt mua, 2 người bán). Query nhầm DB thì
+trả 0 mà không báo lỗi — đúng kiểu report nói dối một cách lặng lẽ.
+
+**Test**: `tests/journey/admin_tabs.test.cjs` stub toàn bộ auth + `/api/v1/admin/*`
+trong headless Chrome, kiểm 6 tab render, nạp đúng 1 lần mỗi tab, đổi kỳ chỉ
+refetch tab đang mở, và 0 lỗi console. Fixture phải khớp shape thật của server
+(`{data, total}` cho list, `subscribers.total_users`, `signup-trend` trả
+`{granularity, data:[{bucket,count}]}`) — fixture sai shape thì test không chứng
+minh được gì. Lưu ý khi đọc bộ đếm request: mỗi lời gọi cross-origin sinh **2** sự
+kiện `Fetch.requestPaused` (preflight `OPTIONS` + `GET` thật). The secret-link report `GET /api/v1/report?key=<REPORT_SECRET>` (`be/routers/report_dashboard.py`) was removed on 2026-08-06: it duplicated data the admin dashboard already showed, put a credential in the URL (Caddy access logs, browser history, `Referer`), had no per-person revocation or audit trail, and fell back to `WEBHOOK_INTERNAL_SECRET` — the same secret GitHub Actions sends on every crawl webhook. Do not reintroduce secret-in-URL admin surfaces; add new reporting as an `/api/v1/admin/*` endpoint plus a section in `admin.html`.
 
 ### Platform subscriptions + Fuel Forecast gated API (2026-09-10)
 
