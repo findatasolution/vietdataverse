@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -10,6 +11,8 @@ from sqlalchemy import text
 from auth import verify_auth0_token, get_user_level, get_user_is_admin, NAMESPACE, AUTH0_DOMAIN
 from quota import check_and_consume
 from services.identity import resolve_identity
+
+logger = logging.getLogger(__name__)
 
 
 def _userinfo_fetcher(token: str):
@@ -38,7 +41,15 @@ async def _log_api_call(
                 VALUES (:uid, :kid, :ep, :sc)
             """), {"uid": user_id, "kid": key_id, "ep": endpoint, "sc": status_code})
     except Exception:
-        pass  # logging failure must never break the request
+        # A failed write must never break the request — but it must not be
+        # invisible either. A bare `pass` here hid a NotNullViolation on
+        # api_call_log.user_id for months (migration 019): every anonymous call
+        # failed to log, so the admin dashboard's "Public anonymous" and
+        # "Anonymous / lỗi" columns read 0 and looked like "nobody is calling"
+        # instead of "nothing is being recorded". exc_info so the next such
+        # failure names itself in the container log.
+        logger.warning("api_call_log write failed for %s (status %s)",
+                       endpoint, status_code, exc_info=True)
 
 
 async def _auth_via_api_key(request: Request, api_key: str) -> bool:

@@ -1,0 +1,18 @@
+-- Migration 019 — api_call_log.user_id must be nullable (USER_DB)
+--
+-- Vì sao cần: bảng api_call_log được tạo TAY trước khi có migration 011.
+-- Migration 011 khai `user_id INT` (nullable) nhưng dùng CREATE TABLE IF NOT
+-- EXISTS, mà lệnh đó KHÔNG sửa bảng đã tồn tại — nên DB thật vẫn giữ
+-- `user_id INTEGER NOT NULL` suốt từ đó, khác hẳn file migration.
+--
+-- Hậu quả đo được (2026-09-23, trên prod): mọi lượt gọi ẩn danh đều ném
+-- NotNullViolation và bị `except Exception: pass` trong middleware._log_api_call
+-- nuốt im lặng. api_call_log có 65 dòng, 0 dòng user_id NULL, 0 dòng status 401,
+-- 0 dòng /api/v1/gold-analysis — tức là:
+--   * không một lượt gọi bị từ chối nào được ghi lại (401/429), và
+--   * hai cột "Public anonymous" / "Anonymous / lỗi" của admin dashboard
+--     luôn bằng 0 về mặt cấu trúc, không phải vì không có ai gọi.
+-- Đó đúng là con số quan trọng nhất trước khi đi bán: có ai gõ cửa API không.
+--
+-- Idempotent: DROP NOT NULL chạy lại trên cột đã nullable là no-op.
+ALTER TABLE api_call_log ALTER COLUMN user_id DROP NOT NULL;
