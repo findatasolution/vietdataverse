@@ -30,6 +30,8 @@ skill) — once that's automated and covers enough tickers, a new router can rea
 from it instead of vn30_income_stmt_quarterly etc.
 """
 
+import csv
+import io
 import json
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import Response
@@ -47,6 +49,30 @@ def _json_response(data: dict) -> Response:
                     headers={"Content-Length": str(len(raw))})
 
 
+def _records_to_csv(records: list) -> Response:
+    """Row-oriented payload (list of dicts) → CSV.
+
+    The macro endpoints answer a list of records, unlike market_data.py's
+    parallel-array shape, so they need their own converter rather than sharing
+    that module's. Header comes from the first record's key order — these
+    endpoints build every record from the same SELECT, so the keys are uniform;
+    a missing key in a later record writes an empty cell rather than shifting
+    the row.
+    """
+    output = io.StringIO()
+    if not records:
+        return Response(content=b"", media_type="text/csv",
+                        headers={"Content-Length": "0"})
+    header = list(records[0].keys())
+    writer = csv.writer(output)
+    writer.writerow(header)
+    for rec in records:
+        writer.writerow([rec.get(k, "") for k in header])
+    raw = output.getvalue().encode("utf-8")
+    return Response(content=raw, media_type="text/csv",
+                    headers={"Content-Length": str(len(raw))})
+
+
 # ─────────────────────────────────────────────────────────────
 # MACRO: CPI (Free)
 # ─────────────────────────────────────────────────────────────
@@ -57,6 +83,7 @@ async def get_macro_cpi(
     view: str = Query(default="annual", description="'annual' = 1 point/year | 'monthly' = 1 point/month"),
     years: int = Query(default=20, ge=1, le=30),
     _auth: None = Depends(authenticate_user_optional),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     """Vietnam CPI data from GSO (vn_gso_cpi_monthly). Source: nso.gov.vn"""
     try:
@@ -87,6 +114,8 @@ async def get_macro_cpi(
                 data = [{"period": r[0], "yoy_pct": float(r[1]), "months": r[2]}
                         for r in rows]
 
+        if format == "csv":
+            return _records_to_csv(data)
         return _json_response({
             "success": True, "view": view, "source": "www.nso.gov.vn",
             "count": len(data), "data": data,
@@ -103,6 +132,7 @@ async def get_macro_cpi(
 async def get_macro_gdp(
     request: Request,
     _auth: None = Depends(authenticate_user_optional),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     """Vietnam GDP quarterly data — free access. Source: nso.gov.vn."""
     try:
@@ -122,6 +152,8 @@ async def get_macro_gdp(
             "gdp_billion_vnd": r[3], "growth_yoy_pct": r[4],
         } for r in rows]
 
+        if format == "csv":
+            return _records_to_csv(data)
         return _json_response({
             "success": True, "source": "www.nso.gov.vn",
             "count": len(data), "data": data,
@@ -139,6 +171,7 @@ async def get_macro_trade(
     request: Request,
     months: int = Query(default=12, ge=1, le=60),
     _auth: None = Depends(authenticate_user_optional),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     """Vietnam monthly import/export data — free access. Source: nso.gov.vn."""
     try:
@@ -160,6 +193,8 @@ async def get_macro_trade(
             "yoy_import_pct": r[5],
         } for r in reversed(rows)]
 
+        if format == "csv":
+            return _records_to_csv(data)
         return _json_response({
             "success": True, "source": "www.nso.gov.vn",
             "count": len(data), "data": data,

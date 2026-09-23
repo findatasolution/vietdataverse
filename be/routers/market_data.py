@@ -34,6 +34,33 @@ def _json_response(data: dict) -> Response:
                     headers={"Content-Length": str(len(raw))})
 
 
+def _columns_to_csv(data: dict, rename: dict = None) -> Response:
+    """Turn this module's column-oriented payload into CSV.
+
+    Every endpoint here answers the same shape — parallel arrays keyed by
+    column name, `dates` first (`{"dates": [...], "buy_prices": [...]}`) — so
+    one converter serves all of them instead of a bespoke block per endpoint.
+
+    `rename` exists for one reason: /gold shipped CSV first, with the headers
+    `date,buy_price,sell_price`. Those are in other people's Google Sheets
+    formulas already, so gold passes a map to keep its output byte-identical.
+    New endpoints use their payload's own key names, with `dates` → `date`.
+    """
+    keys = [k for k in data if isinstance(data.get(k), list)]
+    if not keys:
+        # Truly empty, not a lone CRLF from an empty header row — that renders
+        # as one blank cell in Google Sheets. Matches _records_to_csv([]).
+        return Response(content=b"", media_type="text/csv",
+                        headers={"Content-Length": "0"})
+    # `dates` leads, then the remaining series in payload order.
+    keys.sort(key=lambda k: 0 if k == "dates" else 1)
+    rename = rename or {}
+    header = [rename.get(k, "date" if k == "dates" else k) for k in keys]
+    length = min(len(data[k]) for k in keys)
+    rows = [[data[k][i] for k in keys] for i in range(length)]
+    return _csv_response(header, rows)
+
+
 def _csv_response(header: list, rows: list) -> Response:
     """Plain CSV response — usable directly with Google Sheets IMPORTDATA() (no auth needed)."""
     output = io.StringIO()
@@ -83,13 +110,16 @@ async def get_gold_data(
         rows = list(reversed(rows))  # chronological order
 
         if format == "csv":
-            csv_rows = [
-                [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]),
-                 _num(r[1]),
-                 _num(r[2])]
-                for r in rows
-            ]
-            return _csv_response(["date", "buy_price", "sell_price"], csv_rows)
+            # Same three legacy headers as before (date/buy_price/sell_price),
+            # now produced by the shared converter — see _columns_to_csv.
+            # Built from `rows` right here: the `dates`/`buy`/`sell` lists are
+            # only computed further down, past the pagination branch.
+            return _columns_to_csv(
+                {"dates": [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0])
+                           for r in rows],
+                 "buy_prices": [_num(r[1]) for r in rows],
+                 "sell_prices": [_num(r[2]) for r in rows]},
+                rename={"dates": "date", "buy_prices": "buy_price", "sell_prices": "sell_price"})
 
         if page is not None:
             page_rows, total = _paginate(rows, page, limit)
@@ -140,6 +170,7 @@ async def get_silver_data(
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
     page: int = Query(None, ge=1),
     limit: int = Query(30, ge=1, le=500),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -162,9 +193,12 @@ async def get_silver_data(
                                    "pages": (total + limit - 1) // limit, "period": period})
 
         dates = [r[0].strftime("%Y-%m-%d") if hasattr(r[0], "strftime") else str(r[0]) for r in rows]
-        return _json_response({"success": True,
-                               "data": {"dates": dates, "buy_prices": [float(r[1]) if r[1] else 0 for r in rows],
-                                        "sell_prices": [float(r[2]) if r[2] else 0 for r in rows]},
+        payload = {"dates": dates,
+                   "buy_prices": [float(r[1]) if r[1] else 0 for r in rows],
+                   "sell_prices": [float(r[2]) if r[2] else 0 for r in rows]}
+        if format == "csv":
+            return _columns_to_csv(payload)
+        return _json_response({"success": True, "data": payload,
                                "period": period, "count": len(dates)})
     except HTTPException:
         raise
@@ -176,6 +210,7 @@ async def get_silver_data(
 async def get_sbv_interbank_data(
     request: Request,
     period: str = Query("1m", description="Time period: 7d, 1m, 1y, all"),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -202,15 +237,18 @@ async def get_sbv_interbank_data(
         rediscount  = [float(r[6]) if r[6] else None for r in rows]
         refinancing = [float(r[7]) if r[7] else None for r in rows]
 
+        payload = {
+            "dates": dates[::-1],
+            "overnight": overnight[::-1], "month_1": month_1[::-1],
+            "month_3": month_3[::-1],     "month_6": month_6[::-1],
+            "month_9": month_9[::-1],
+            "rediscount": rediscount[::-1], "refinancing": refinancing[::-1],
+        }
+        if format == "csv":
+            return _columns_to_csv(payload)
         return _json_response({
             "success": True,
-            "data": {
-                "dates": dates[::-1],
-                "overnight": overnight[::-1], "month_1": month_1[::-1],
-                "month_3": month_3[::-1],     "month_6": month_6[::-1],
-                "month_9": month_9[::-1],
-                "rediscount": rediscount[::-1], "refinancing": refinancing[::-1],
-            },
+            "data": payload,
             "period": period, "count": len(dates),
         })
     except HTTPException:
@@ -228,6 +266,7 @@ async def get_sbv_central_rate(
     currency: str = Query("USD", description="Currency code"),
     page: int = Query(None, ge=1),
     limit: int = Query(30, ge=1, le=500),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     try:
         bank_upper     = bank.upper()
@@ -273,9 +312,11 @@ async def get_sbv_central_rate(
                                    "pages": (total + limit - 1) // limit,
                                    "bank": bank_upper, "currency": currency_upper, "period": period})
 
-        return _json_response({"success": True,
-                               "data": {"dates": dates[::-1], "usd_vnd_rate": rates[::-1],
-                                        "buy_cash": buy_cash[::-1], "sell_rate": sell[::-1]},
+        payload = {"dates": dates[::-1], "usd_vnd_rate": rates[::-1],
+                   "buy_cash": buy_cash[::-1], "sell_rate": sell[::-1]}
+        if format == "csv":
+            return _columns_to_csv(payload)
+        return _json_response({"success": True, "data": payload,
                                "period": period, "bank": bank_upper, "currency": currency_upper, "count": len(dates)})
     except HTTPException:
         raise
@@ -290,6 +331,7 @@ async def get_term_deposit_data(
     bank: str = Query("ACB", description="Bank code"),
     page: int = Query(None, ge=1),
     limit: int = Query(30, ge=1, le=500),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -324,10 +366,12 @@ async def get_term_deposit_data(
                                    "total": total, "page": page, "limit": limit,
                                    "pages": (total + limit - 1) // limit, "bank": bank, "period": period})
 
-        return _json_response({"success": True,
-                               "data": {"dates": dates[::-1], "term_1m": term_1m[::-1],
-                                        "term_3m": term_3m[::-1], "term_6m": term_6m[::-1],
-                                        "term_12m": term_12m[::-1], "term_24m": term_24m[::-1]},
+        payload = {"dates": dates[::-1], "term_1m": term_1m[::-1],
+                   "term_3m": term_3m[::-1], "term_6m": term_6m[::-1],
+                   "term_12m": term_12m[::-1], "term_24m": term_24m[::-1]}
+        if format == "csv":
+            return _columns_to_csv(payload)
+        return _json_response({"success": True, "data": payload,
                                "bank": bank, "period": period, "count": len(dates)})
     except HTTPException:
         raise
@@ -357,6 +401,7 @@ async def get_global_macro_data(
     symbol: str = Query(None, description="Filter by symbol: GC=F, SI=F, ^IXIC"),
     page: int = Query(None, ge=1),
     limit: int = Query(30, ge=1, le=500),
+    format: str = Query("json", description="json or csv (csv works with Google Sheets IMPORTDATA)"),
 ):
     try:
         date_filter = get_date_filter(period)
@@ -382,9 +427,11 @@ async def get_global_macro_data(
                                    "total": total, "page": page, "limit": limit,
                                    "pages": (total + limit - 1) // limit, "period": period})
 
-        return _json_response({"success": True,
-                               "data": {"dates": dates, "gold_prices": gold,
-                                        "silver_prices": silver, "nasdaq_prices": nasdaq},
+        payload = {"dates": dates, "gold_prices": gold,
+                   "silver_prices": silver, "nasdaq_prices": nasdaq}
+        if format == "csv":
+            return _columns_to_csv(payload)
+        return _json_response({"success": True, "data": payload,
                                "period": period, "count": len(dates)})
     except HTTPException:
         raise
