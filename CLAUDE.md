@@ -1200,15 +1200,15 @@ and the domestic series don't share a calendar; tooltip interaction is
 assumes datasets share array positions, which two differently-sampled
 time series don't.
 
-### LBMA gold forecast survey — aggregate only (2026-09-22, redesigned four times)
+### LBMA gold forecast survey — aggregate only (2026-09-22, redesigned five times)
 
-The domestic gold chart draws one **"candle"** (a thin low-high wick + a
-diamond marker at the average) for the **single most recently published**
-LBMA report, plus 2 thin dotted fan lines connecting it back to the world
-price's latest actual point. **Aggregate statistics only
-(avg/high/low/n_analysts), never the per-analyst listing.**
+The domestic gold chart draws the **single most recently published** LBMA
+report as **3 markers** — thấp nhất / trung bình / cao nhất, the exact 3
+numbers LBMA publishes — at year-end of the year it covers, each with a thin
+dotted ray back to the world price's latest actual point. **Aggregate
+statistics only (avg/high/low/n_analysts), never the per-analyst listing.**
 
-**Four redesigns, all from direct user feedback:**
+**Five redesigns, all from direct user feedback:**
 
 1. First version: a standalone mixed bar+scatter mini-chart below the main
    chart (`.lbma-survey-panel`, `renderLbmaSurvey()`) — rendered empty in
@@ -1238,19 +1238,32 @@ price's latest actual point. **Aggregate statistics only
    range — so its wick alone pushed `yWorld` to 0–8.000 while the real
    series lives in 3.800–5.200, flattening it into a band. The newest report
    is also simply the better estimate: it is the one made with the most
-   information. This is the current design.
+   information.
+5. **2026-09-23, same session — the wick bar removed entirely**, leaving 3
+   markers (low/avg/high) plus one dotted ray to each. The user's words:
+   *"bỏ thanh bar này đi, cho tôi 3 điểm min, max, avg … sao cho bắt đầu
+   bằng 0 được"*. Two independent reasons this is right, not just a
+   preference: a bar dataset forces `beginAtZero` on its value axis (below),
+   and a filled low→high span implies a continuum of outcomes the survey
+   never measured — LBMA reports 3 summary statistics over ~16–28 analyst
+   opinions, not a traded range. This is the current design.
 
-**Why a real candle needs faking, and how.** LBMA's report gives exactly 3
-numbers (avg/high/low), not the 4 (open/high/low/close) a real OHLC candle
-needs — inventing a 4th would be exactly the kind of fake precision this
-project's chart-honesty rules exist to prevent, and no candlestick plugin is
-loaded anyway. The "candle" here is two ordinary Chart.js dataset types
-mixed into the line chart: a `type: 'bar'` floating bar
-(`data: [{x, y: [low, high]}]`, `barThickness` fixed in pixels so a single
-isolated bar on a continuous time scale doesn't get an arbitrary auto-width)
-for the wick, and a `type: 'scatter'` point (`pointStyle: 'rectRot'`, a
-rotated square) at the average. Both plot on the existing `yWorld` axis, no
-new scale needed.
+**Not a candle, and no bar of any kind.** A candlestick needs 4 numbers
+(open/high/low/close); LBMA publishes 3, and inventing a 4th would be exactly
+the fake precision this project's chart-honesty rules exist to prevent. The
+2026-09-22 design faked it anyway with a `type: 'bar'` floating bar
+(`data: [{x, y: [low, high]}]`) as the wick; that lasted one day — see
+redesign 5 above. What ships is a single `type: 'scatter'` dataset holding
+the 3 points (`pointStyle: ['circle','rectRot','circle']`,
+`pointRadius: [4,6,4]` — the average is the larger diamond) plus 3 thin
+dotted `line` datasets as rays. All plot on the existing `yWorld` axis; no
+new scale, no plugin.
+
+**The 3 markers share one dataset, so the tooltip is per-point.** One dataset
+means one legend entry and one colour, but the points mean 3 different
+things, so the tooltip callback reads `dataset._lbmaPointTooltips[dataIndex]`
+when present and falls back to the dataset-wide `_lbmaTooltip` (what the rays
+use) otherwise.
 
 **Most recent report only, sorted and sliced fresh every render.** `recent =
 [...lbmaSurveys].sort(...).slice(0, 1)` — when a newer report lands
@@ -1258,17 +1271,18 @@ new scale needed.
 next page load. There is no separate "prune" step and nothing accumulates
 without bound.
 
-**A bar dataset silently forces `beginAtZero` on its value axis — set it
-`false` explicitly.** The candle's wick is a `type: 'bar'` dataset, and that
-alone made `yWorld` start at 0 (verified against Chart.js 4.4.1 in headless
-Chrome: identical data, no bar → axis 3.800–5.200; with the wick bar →
-0–6.000, no `beginAtZero` written anywhere). Live, that read as the 1-year
-gold chart having a 0–8.000 USD/oz right axis while 7 ngày/1 tháng — which
-draw no candle — auto-fitted correctly. `scales.yWorld.beginAtZero = false`
-in `parseGoldSilverData()` is what keeps the axis truncated, which is the
-honest choice here: gold has never been near 0 USD/oz, and the domestic axis
-is truncated for the same reason. **Any future bar dataset added to a price
-axis needs the same line.**
+**A bar dataset silently forces `beginAtZero` on its value axis.** This is
+why the wick is gone, and it is worth knowing before adding any bar to a
+price chart: verified against Chart.js 4.4.1 in headless Chrome — identical
+data, no bar → axis 3.800–5.200; add one floating bar → 0–6.000, with
+`beginAtZero` written nowhere. Live, that showed as the 1-year gold chart
+carrying a 0–8.000 USD/oz right axis while 7 ngày/1 tháng — which draw no
+forecast — auto-fitted correctly. `scales.yWorld.beginAtZero = false` stays
+in `parseGoldSilverData()` as a guard even though nothing attaches a bar
+today: gold has never been near 0 USD/oz, this axis is truncated by design
+(as the domestic one is), and the line makes that explicit if a bar ever
+comes back. **Measured after the fix: 1 tháng 4.300–4.750, 1 năm
+3.600–5.600, Tất cả 1.000–6.000.**
 
 **Target x is year-end for both report types — deliberately not the annual
 survey's own "mid-year" framing.** The annual survey's number is an average
@@ -1277,25 +1291,25 @@ at July 1 of `survey_year` as a more honest placement. That broke as soon as
 the calendar passed July 1: the "forecast" line ran *backward* in time from
 "now" to a target already in the past. Both report types now anchor at
 `{year}-12-31`, whichever type the report is. (There used to be a cosmetic
-1-day offset for `annual` so two same-year candles didn't land on the
-identical pixel column; with only one candle drawn there is nothing to
+1-day offset for `annual` so two same-year forecasts didn't land on the
+identical pixel column; with only one report drawn there is nothing to
 collide with, so it is gone.) `periodLabel` still says "TB cả năm {year}"
 for the annual one, so the tooltip text never claims the x-position is a
 real per-day target.
 
-**Legend shows one entry for the candle** (`Dự đoán LBMA T{month}/{year}`,
-from the report's own `published_date`) — the wick and the two fan lines are
-`_lbmaLegend: false` and hidden from the legend via
-`plugins.legend.labels.filter`, since 4 near-identical coral entries would be
-clutter; all still tooltip normally, sharing the same text as the candle. Tooltip text is short and does not repeat the analyst
+**Legend shows one entry for the forecast** (`Dự đoán LBMA T{month}/{year}`,
+from the report's own `published_date`) — the 3 rays are `_lbmaLegend: false`
+and hidden via `plugins.legend.labels.filter`, since 4 near-identical coral
+entries would be clutter; they still tooltip normally, each naming its own
+edge. Tooltip text is short and does not repeat the analyst
 count/publish date — trimmed once already for being "too busy for a hover
 box" (see the 2nd redesign above).
 
 **Only rendered on `1y`/`all`, not `7d`/`1m`.** This chart is otherwise
-purely historical — dates never extend past "today" — so a candle pointing
-months into the future needs the x-axis widened well past the domestic
-series' own last date (`chartXMax`, widened to the candle's target when that
-is later). `fetchLbmaSurvey()` is skipped entirely (not just the render)
+purely historical — dates never extend past "today" — so markers pointing
+months into the future need the x-axis widened well past the domestic
+series' own last date (`chartXMax`, widened to the forecast's target when
+that is later). `fetchLbmaSurvey()` is skipped entirely (not just the render)
 for `7d`/`1m`, so those periods are back to exactly their pre-LBMA
 behaviour, including no extra network request.
 
@@ -1385,9 +1399,9 @@ precedent as `fe/data/sbv_policy_all.json`: FE reads the static file directly.
 **FE**: `fe/app.js` `fetchLbmaSurvey()` (fetched once, cached, called from
 `loadChartData('gold', …)` only when `period` is `1y`/`all` — this is
 gold-specific, unlike `fetchWorldOverlay()` which also serves silver) feeds
-the candle datasets built inside `parseGoldSilverData()`, on the `yWorld`
+the forecast datasets built inside `parseGoldSilverData()`, on the `yWorld`
 axis, only when the world overlay itself is present (no `yWorld` scale, no
-candle to attach to) — a real `ReferenceError` bug was caught and fixed in
+axis to attach them to) — a real `ReferenceError` bug was caught and fixed in
 an earlier pass of this same feature: the first cut of this code referenced
 the `lbmaData` parameter inside `parseGoldSilverData()` without declaring it
 in the function signature, which would have thrown on every gold *and*

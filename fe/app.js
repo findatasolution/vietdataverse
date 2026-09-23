@@ -62,7 +62,7 @@
                 sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
-                lbmaSurveyDisclaimer: 'Nến chấm chấm: dự đoán cao/thấp/trung bình của chuyên gia quốc tế (LBMA), kỳ báo cáo gần nhất — không phải khuyến nghị đầu tư.',
+                lbmaSurveyDisclaimer: '3 điểm bên phải: dự đoán cao nhất/trung bình/thấp nhất của chuyên gia quốc tế (LBMA), kỳ báo cáo gần nhất — không phải khuyến nghị đầu tư.',
                 silverChart: 'Lịch sử giá bạc (Phú Quý)',
                 sbvChart: 'Lịch sử lãi suất liên ngân hàng',
                 tdChart: 'Lịch sử lãi suất gửi tiết kiệm (NHTM)',
@@ -304,7 +304,7 @@
                 sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
-                lbmaSurveyDisclaimer: 'Dotted candle: international expert (LBMA) high/low/average forecast, most recent report — not investment advice.',
+                lbmaSurveyDisclaimer: 'The 3 points at right: international expert (LBMA) high/average/low forecast, most recent report — not investment advice.',
                 silverChart: 'Silver Price History (Vietnam)',
                 sbvChart: 'SBV Interbank Rates History',
                 tdChart: 'Commercial Banks Term Deposit History',
@@ -2716,25 +2716,26 @@
             // fresh and always re-sorts by published_date, so there is no
             // separate "update" step and nothing accumulates without bound.
             //
-            // The report is a "candle": a thin wick bar (low->high) plus a
-            // marker at the average, placed at the end of the year it covers.
-            // `periodLabel` still distinguishes what that number means — the
-            // mid-year snapshot targets year-end, the annual survey's figure
-            // is an AVERAGE ACROSS THE YEAR — so the text never claims the
-            // x-position is a per-day target. Two thin dotted lines fan out
-            // from the world series' latest actual point (not "today"'s
-            // calendar date, which may lag it over a weekend) to the
-            // candle's high and low, so the candle reads as where a
-            // continuing trend could plausibly end up, not a disconnected box.
+            // The report is drawn as exactly the 3 numbers LBMA publishes —
+            // thấp nhất / trung bình / cao nhất — as 3 markers at the end of
+            // the year it covers, with a thin dotted ray running to each from
+            // the world series' latest actual point (not "today"'s calendar
+            // date, which may lag it over a weekend) so each marker reads as
+            // where a continuing trend could plausibly end up rather than a
+            // disconnected dot at the right edge. `periodLabel` distinguishes
+            // what the numbers mean — the mid-year snapshot targets year-end,
+            // the annual survey's figure is an AVERAGE ACROSS THE YEAR — so
+            // the text never claims the x-position is a per-day target.
             //
-            // No real candlestick plugin: LBMA's report gives exactly 3
-            // numbers (avg/high/low), not the 4 (open/high/low/close) a real
-            // OHLC candle needs, and faking a 4th would be exactly the kind
-            // of precision this project's chart-honesty rules exist to
-            // prevent. This is Chart.js's own floating-bar (a bar dataset
-            // with data: [{x, y: [low, high]}]) for the wick, plus a
-            // 'scatter' dataset for the average marker — both are core
-            // Chart.js features, not an extra plugin.
+            // Not a candle, and deliberately not a bar of any kind. A
+            // low->high floating bar was tried (2026-09-22) and removed the
+            // next day: any bar dataset forces `beginAtZero` on its value
+            // axis, which wrecked the world-price scale (see the yWorld
+            // comment below). It was also the wrong mark — LBMA's report is 3
+            // summary statistics over ~16-28 analyst opinions, not a traded
+            // range, and drawing a filled span implies a continuum of
+            // outcomes the survey never measured. 3 points state what is
+            // known and nothing more.
             const lbmaSurveys = lbmaData && lbmaData.data && lbmaData.data.surveys;
             const wDates = worldData && worldData.data && worldData.data.dates;
             if (chartType === 'gold' && worldSeries && wDates && wDates.length
@@ -2761,10 +2762,13 @@
                     const shortLabel = `Dự đoán LBMA T${Number(pm)}/${py}`;
                     const tooltipBase = `Dự đoán LBMA T${Number(pm)}/${py} cho ${periodLabel}`;
 
-                    // Fan lines to the wick's own top/bottom — same tooltip as
-                    // the wick, so hovering near either reads the same info
-                    // rather than a half-explained thin dotted line.
-                    for (const [edge, price] of [['cao nhất', r.high_price], ['thấp nhất', r.low_price]]) {
+                    // One thin dotted ray per forecast point, from the world
+                    // series' latest actual value out to that point, so each
+                    // marker reads as "where a continuing trend could end up"
+                    // rather than three disconnected dots at the right edge.
+                    for (const [edge, price] of [['cao nhất', r.high_price],
+                                                 ['trung bình', r.avg_price],
+                                                 ['thấp nhất', r.low_price]]) {
                         datasets.push({
                             label: shortLabel, type: 'line',
                             data: [{ x: nowDate, y: nowPrice }, { x: targetDate, y: price }],
@@ -2772,28 +2776,43 @@
                             borderColor: '#d9775780', backgroundColor: 'transparent',
                             borderWidth: 1, borderDash: [2, 3], pointRadius: 0, tension: 0, fill: false,
                             _lbmaLegend: false,
-                            _lbmaTooltip: `${tooltipBase}: khoảng ${formatNumVi(r.low_price)}–${formatNumVi(r.high_price)} USD/oz`
+                            _lbmaTooltip: `${tooltipBase} (${edge}): ${formatNumVi(price)} USD/oz`
                         });
                     }
-                    // Wick: the full low-high range at the target date.
-                    datasets.push({
-                        label: shortLabel, type: 'bar',
-                        data: [{ x: targetDate, y: [r.low_price, r.high_price] }],
-                        yAxisID: 'yWorld',
-                        backgroundColor: '#d9775780', borderColor: '#d97757', borderWidth: 1,
-                        barThickness: 3, categoryPercentage: 1, barPercentage: 1,
-                        _lbmaLegend: false,
-                        _lbmaTooltip: `${tooltipBase}: khoảng ${formatNumVi(r.low_price)}–${formatNumVi(r.high_price)} USD/oz`
-                    });
-                    // Average marker — the one entry that shows in the legend.
+                    // The forecast itself: exactly the 3 numbers LBMA
+                    // publishes — thấp nhất / trung bình / cao nhất — as 3
+                    // markers at the target date, average as a larger diamond.
+                    //
+                    // These used to be a floating-BAR "wick" spanning low->high
+                    // plus a diamond at the average. Dropped 2026-09-23: a bar
+                    // dataset makes Chart.js force `beginAtZero` on whatever
+                    // linear axis it is attached to, which rebased the world
+                    // axis at 0 and flattened the real price series (see
+                    // CLAUDE.md). A bar was also never the honest mark here —
+                    // LBMA gives 3 opinions-summary numbers, not a traded
+                    // low/high range, so 3 points state exactly what is known
+                    // and nothing more.
                     datasets.push({
                         label: shortLabel, type: 'scatter',
-                        data: [{ x: targetDate, y: r.avg_price }],
+                        data: [
+                            { x: targetDate, y: r.low_price },
+                            { x: targetDate, y: r.avg_price },
+                            { x: targetDate, y: r.high_price }
+                        ],
                         yAxisID: 'yWorld',
                         backgroundColor: '#d97757', borderColor: '#d97757',
-                        pointStyle: 'rectRot', pointRadius: 6, pointHoverRadius: 7,
+                        pointStyle: ['circle', 'rectRot', 'circle'],
+                        pointRadius: [4, 6, 4], pointHoverRadius: [5, 7, 5],
                         _lbmaLegend: true,
-                        _lbmaTooltip: `${tooltipBase} (trung bình): ${formatNumVi(r.avg_price)} USD/oz`
+                        // Per-point text: the 3 markers share one dataset (one
+                        // legend entry, one colour) but mean 3 different
+                        // things, so the tooltip callback reads this by index
+                        // rather than the dataset-wide _lbmaTooltip.
+                        _lbmaPointTooltips: [
+                            `${tooltipBase} (thấp nhất): ${formatNumVi(r.low_price)} USD/oz`,
+                            `${tooltipBase} (trung bình): ${formatNumVi(r.avg_price)} USD/oz`,
+                            `${tooltipBase} (cao nhất): ${formatNumVi(r.high_price)} USD/oz`
+                        ]
                     });
                 }
             }
@@ -2830,15 +2849,18 @@
                 scales.yWorld = {
                     type: 'linear',
                     position: 'right',
-                    // Chart.js forces beginAtZero on a linear axis as soon as a
-                    // BAR dataset is attached to it (verified against 4.4.1:
-                    // same data, no bar → 3.800–5.200; with the LBMA wick bar →
-                    // 0–6.000). The LBMA candle's wick is exactly such a bar, so
-                    // adding it silently rebased this axis at zero and squashed
-                    // the world-gold line into the top third of the chart, while
-                    // 7 ngày/1 tháng — which draw no candle — stayed correctly
-                    // auto-fitted. Gold has never been near 0 USD/oz; this axis
-                    // is truncated by design, same as the domestic one.
+                    // Guard, and the reason the LBMA forecast is drawn with
+                    // points rather than a bar: Chart.js forces beginAtZero on
+                    // a linear axis as soon as a BAR dataset is attached to it
+                    // (verified against 4.4.1 — same data, no bar → 3.800–5.200;
+                    // with one floating bar → 0–6.000, nothing declared
+                    // anywhere). That rebased this axis at zero and squashed
+                    // the world-gold line into the top third, while 7 ngày/
+                    // 1 tháng — which draw no forecast — stayed auto-fitted.
+                    // Gold has never been near 0 USD/oz; this axis is truncated
+                    // by design, same as the domestic one. Keep this line even
+                    // though no bar is attached today — it costs nothing and
+                    // makes the intent explicit if one ever comes back.
                     beginAtZero: false,
                     title: { display: true, text: 'Thế giới (USD/oz)', color: '#87867f', font: { size: 10 } },
                     ticks: { color: '#87867f', callback: formatNumVi },
@@ -2875,7 +2897,9 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: ctx => ctx.dataset._lbmaTooltip
+                                label: ctx => ctx.dataset._lbmaPointTooltips
+                                    ? ctx.dataset._lbmaPointTooltips[ctx.dataIndex]
+                                    : ctx.dataset._lbmaTooltip
                                     ? ctx.dataset._lbmaTooltip
                                     : ctx.dataset.yAxisID === 'yWorld'
                                         ? `${ctx.dataset.label}: ${formatNumVi(Math.round(ctx.parsed.y * 100) / 100)}`
