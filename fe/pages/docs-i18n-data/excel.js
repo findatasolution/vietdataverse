@@ -22,7 +22,7 @@ window.DOCS_I18N_EN = {
 
   "ex.token.h2": "Step 1 — Get an API token",
   "ex.token.step1": "\n        <div class=\"doc-step-num\">1</div>\n        <div class=\"doc-step-body\">Open the <a href=\"/pages/developer.html\" style=\"color:var(--terracotta);\"><strong>Developer page</strong></a> and log in (sign up free if you don't have an account).</div>\n      ",
-  "ex.token.step2": "\n        <div class=\"doc-step-num\">2</div>\n        <div class=\"doc-step-body\">Free accounts get an API key instantly, with a limit of <strong>1,000 requests/month</strong>.</div>\n      ",
+  "ex.token.step2": "\n        <div class=\"doc-step-num\">2</div>\n        <div class=\"doc-step-body\">Free accounts get an API key instantly, with a limit of <strong>2 requests/month</strong> — enough to try it. The API Supper Lite plan at 45,000đ/month gives <strong>1,000 requests/month</strong>.</div>\n      ",
   "ex.token.step3": "\n        <div class=\"doc-step-num\">3</div>\n        <div class=\"doc-step-body\">Click <strong>\"Copy\"</strong> to get the full key (~43 characters). Keep it secret.</div>\n      ",
 
   "ex.connect.h2": "Step 2 — Connect with Power Query",

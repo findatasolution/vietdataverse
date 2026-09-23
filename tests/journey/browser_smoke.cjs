@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, '../..');
 const chromePath = process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const artifacts = fs.mkdtempSync(path.join(os.tmpdir(), 'vd-journey-'));
 const mime = {'.html':'text/html', '.js':'application/javascript', '.css':'text/css', '.json':'application/json', '.png':'image/png', '.webp':'image/webp'};
-const plans = {success:true, data:[{key:'free',amount:0,days:null,monthly:1000,burst_per_sec:2},{key:'pro_monthly',amount:45000,days:30,monthly:10000,burst_per_sec:10},{key:'pro_yearly',amount:450000,days:365,monthly:10000,burst_per_sec:10}]};
+const plans = {success:true, data:[{key:'free',amount:0,days:null,monthly:2,burst_per_sec:2},{key:'pro_monthly',amount:45000,days:30,monthly:1000,burst_per_sec:10},{key:'pro_yearly',amount:450000,days:365,monthly:1000,burst_per_sec:10}]};
 const server = http.createServer((req,res) => {
     const pathname = new URL(req.url, 'http://localhost').pathname;
     const file = path.resolve(root, '.' + pathname);
@@ -58,7 +58,10 @@ let chrome, ws;
     await until('window.VDPricing?.ready()');
     await until("document.querySelector('#pricing-catalog a[href$=\"fuel-forecast.html\"]')?.closest('article')?.textContent.includes('2022-01-21 → 2026-08-27')");
     assert.equal(await evaluate("document.querySelectorAll('#pricing-catalog article').length"),11);
-    assert.match(await evaluate("document.getElementById('paid-quota').textContent"),/10\.000/);
+    // Quota of the paid plan, as pricing.html renders it from /plans. 1.000/month
+    // since 2026-09-23 (was 10.000). The pattern includes the unit so it cannot
+    // accidentally match a price like 450.000đ elsewhere in the node.
+    assert.match(await evaluate("document.getElementById('paid-quota').textContent"),/1\.000 request/);
     assert.match(await evaluate('VDPricing.resumeHref()'),/chart\/gold\?period=1y/);
     await evaluate("switchBilling('yearly')");
     assert.match(await evaluate("document.getElementById('billing-footer-note').textContent"),/450\.000đ cho 365 ngày/);

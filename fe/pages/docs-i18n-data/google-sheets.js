@@ -19,7 +19,7 @@ window.DOCS_I18N_EN = {
   "ghs.token.h2": "Step 1 — Get an API token",
   "ghs.token.p": "An API token (also called an API key) is a string that proves you're allowed to pull data.",
   "ghs.token.step1": "\n        <a class=\"login-link\" href=\"#\" style=\"color:var(--terracotta);\">Log in</a> and open the <a href=\"/pages/developer.html\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--terracotta);\"><strong>Developer page</strong></a> to get a key.\n      ",
-  "ghs.token.step2": "\n        Free accounts get an API key instantly, with a limit of <strong>1,000 requests/month</strong> — no plan purchase needed.\n      ",
+  "ghs.token.step2": "\n        Free accounts get an API key instantly, with a limit of <strong>2 requests/month</strong> — no plan purchase needed. For real use, the API Supper Lite plan at 45,000đ/month gives <strong>1,000 requests/month</strong>.\n      ",
   "ghs.token.step3": "\n        Click <strong>\"Create API key\"</strong>. The full key appears <strong>right after creation</strong> — a string of ~43 characters (letters, digits, <code>-</code> and <code>_</code>), for example:\n        <pre><code>Ab3xY7zK-mN0pQ2rS4tU6vW8xZ_1aB3cD5eF7gH9iJ</code></pre>\n      ",
   "ghs.token.step4": "\n        Click the <strong>Copy</strong> icon to copy the token. Paste it somewhere safe for now — you'll use it in Step 2.\n      ",
   "ghs.token.warn1": "\n        <strong>Keep your token secret.</strong> Anyone with the token can pull data against your quota.\n        Don't share a Google Sheets file containing your token with strangers, and never post it online.\n      ",

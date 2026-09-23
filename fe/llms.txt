@@ -4,7 +4,7 @@
 
 > Vietnam financial & macroeconomic data platform: gold, silver, bank deposit rates, USD/VND FX, CPI/inflation, global macro indicators. Free via REST API (JSON/CSV) and static files. Includes a knowledge-pack marketplace for AI agents and a 1-second market-sentiment feed.
 
-Truy cập API: header `X-API-Key: <key>` hoặc query `?api_key=<key>`. Gói free 1.000 request/tháng. Tham số chung: `?format=json|csv`, `&limit=`, `&page=`. Base URL: https://vietdataverse.online (API cùng origin; OpenAPI tại https://api.vietdataverse.online/docs). Hai endpoint `market-pulse` và `gold-analysis` mở công khai, không cần key.
+Truy cập API: header `X-API-Key: <key>` hoặc query `?api_key=<key>`. Gói free 2 request/tháng (dùng thử); gói API Supper Lite 45.000đ/tháng được 1.000 request/tháng. Tham số chung: `?format=json|csv`, `&limit=`, `&page=`. Base URL: https://vietdataverse.online (API cùng origin; OpenAPI tại https://api.vietdataverse.online/docs). Hai endpoint `market-pulse` và `gold-analysis` mở công khai, không cần key.
 
 ## Datasets (Open Data)
 

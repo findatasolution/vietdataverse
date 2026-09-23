@@ -46,19 +46,29 @@ PAYOS_BASE_URL     = "https://api-merchant.payos.vn"
 
 FRONTEND_URL       = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 
+# ĐÚNG 2 gói bán, cộng với free (free không nằm ở đây vì không có gì để thanh
+# toán — nó là mặc định của mọi tài khoản; /plans ghép nó vào từ quota.py).
+#
+# Rút gọn 2026-09-23 theo quyết định sản phẩm: 4 gói legacy
+# (premium_monthly/premium_yearly/dev_monthly/dev_yearly) đã bị XOÁ HẲN, không
+# phải "giữ để replay webhook" như trước. Kiểm tra trước khi xoá: 0 user đang ở
+# các gói đó (users.current_plan chỉ có 1 hàng 'dev_monthly' và đó là tài khoản
+# admin, vốn unlimited theo level). Các đơn payment_orders cũ trỏ tới gói legacy
+# đều đang 'pending' và giờ sẽ bị từ chối bằng 409 "Loại đơn hàng không được hỗ
+# trợ" nếu ai đó reverify — đúng ý: gói không còn tồn tại thì không được kích
+# hoạt lại. Đơn 'paid' duy nhất mang plan 'monthly', một key chưa bao giờ có
+# trong dict này, nên không có gì thay đổi với nó.
+#
+# Giá 45k/tháng từ 2026-09-16 (trước là 99k). Gói năm giữ dạng "trả 10 tháng
+# dùng 12": 45_000 x 10. Tier sinh viên KHÔNG phải một gói riêng —
+# create_payment() chia đôi số tiền của gói đang chọn, nên 45k/450k thành
+# 22.5k/225k cho tài khoản .edu.vn đã xác minh.
+#
+# Hạn mức gọi API của hai gói này nằm ở be/quota.py (level premium_developer),
+# không nằm ở đây.
 SUBSCRIPTION_PLANS = {
-    # ── Active plans ──────────────────────────────────────────────────────────
-    # Priced 45k/month from 2026-09-16 (was 99k). Yearly keeps the "pay 10, get 12"
-    # shape the FE's -15% toggle is built on: 45_000 x 10. The student tier is not a
-    # plan of its own — create_payment() halves whichever amount applies, so 45k/450k
-    # become 22.5k/225k for a verified .edu.vn account.
     "pro_monthly": {"amount": 45_000,  "days": 30,  "level": "premium_developer", "name": "API Supper Lite Monthly"},
     "pro_yearly":  {"amount": 450_000, "days": 365, "level": "premium_developer", "name": "API Supper Lite Yearly"},
-    # ── Legacy plans (kept for existing subscriptions / webhook replay) ───────
-    "premium_monthly": {"amount": 99_000,    "days": 30,  "level": "premium",           "name": "Premium 1 Thang"},
-    "premium_yearly":  {"amount": 990_000,   "days": 360, "level": "premium",           "name": "Premium 1 Nam"},
-    "dev_monthly":     {"amount": 375_000,   "days": 30,  "level": "premium_developer", "name": "Dev Premium 1 Thang"},
-    "dev_yearly":      {"amount": 4_500_000, "days": 360, "level": "premium_developer", "name": "Dev Premium 1 Nam"},
 }
 
 
@@ -233,8 +243,17 @@ def _activate_premium(session, user_id: int, plan: str):
       - Set users.current_plan = plan (cho quota lookup trong middleware).
       - Reactivate mọi api_keys của user (để renew không bắt gen key mới).
     """
-    plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["premium_monthly"])
-    new_level  = plan_info["level"]  # "premium" | "premium_developer"
+    # Không có fallback. Trước đây dòng này là
+    #     SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["premium_monthly"])
+    # — một plan lạ sẽ âm thầm được kích hoạt như gói legacy premium_monthly.
+    # Với catalog chỉ còn 2 gói thì fallback đó vừa là KeyError lúc import-time
+    # chờ sẵn, vừa là hành vi sai: gói không tồn tại thì phải báo lỗi, không
+    # được cấp quyền. Caller duy nhất (webhook) đã chặn bằng
+    # `plan in SUBSCRIPTION_PLANS` rồi, nên nhánh này chỉ bắt lỗi lập trình.
+    plan_info = SUBSCRIPTION_PLANS.get(plan)
+    if plan_info is None:
+        raise ValueError(f"Không kích hoạt được gói không tồn tại: {plan!r}")
+    new_level = plan_info["level"]  # hiện chỉ còn "premium_developer"
 
     row = session.execute(
         text("SELECT premium_expiry FROM users WHERE user_id = :uid FOR UPDATE"),

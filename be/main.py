@@ -68,6 +68,13 @@ def _is_tracked_public(path: str) -> bool:
     return any(path.startswith(p) for p in TRACKED_PUBLIC_PREFIXES)
 
 
+def _free_monthly_quota() -> str:
+    """Hạn mức tháng của tier free, đọc từ nơi thực sự enforce nó."""
+    from quota import QUOTA_BY_LEVEL
+    monthly = QUOTA_BY_LEVEL["free"]["monthly"]
+    return f"{monthly:,}".replace(",", ".")
+
+
 @app.middleware("http")
 async def meter_open_data(request, call_next):
     from fastapi import HTTPException
@@ -104,8 +111,12 @@ async def meter_open_data(request, call_next):
                     status_code=401,
                     content={
                         "success": False,
-                        "detail": "Cần đăng nhập. Tài khoản miễn phí được 1.000 request/tháng — "
-                                  "đăng nhập hoặc lấy API key tại /pages/developer.html.",
+                        # Số lấy thẳng từ quota.py — chỗ enforce. Trước đây câu
+                        # này viết tay "1.000 request/tháng" và sẽ nói sai ngay
+                        # lần đổi hạn mức đầu tiên.
+                        "detail": f"Cần đăng nhập. Tài khoản miễn phí được "
+                                  f"{_free_monthly_quota()} request/tháng — "
+                                  f"đăng nhập hoặc lấy API key tại /pages/developer.html.",
                     },
                 )
         except HTTPException as exc:

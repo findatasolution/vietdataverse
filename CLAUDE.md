@@ -701,7 +701,66 @@ This does **not** change the rule that `uptime-check.yml` must stay off-box — 
 /api/v1/fuel-forecast/{fuel} # Fuel Forecast product, gated by subscription
 ```
 
-Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated in `be/main.py`: anonymous or invalid credentials return `401`, while free and paid API keys and valid FE Bearer sessions are metered. Public `gold-analysis` / `market-pulse` calls and rejected metered calls are tracked without storing IP, token, raw API key, or user-agent. Admin performance reporting at `/pages/admin.html` supports `24h`, `7d`, and `YTD` periods.
+Open-data routes under gold/silver/SBV/term-deposit/global/VN30/macro are gated in `be/main.py`: anonymous or invalid credentials return `401`, while free and paid API keys and valid FE Bearer sessions are metered. Public `gold-analysis` / `market-pulse` calls and rejected metered calls are tracked without storing IP, token, raw API key, or user-agent — **they were not actually recorded until 2026-09-23**, see "Quota & gói cước" below. Admin performance reporting at `/pages/admin.html` supports `24h`, `7d`, and `YTD` periods.
+
+### Quota & gói cước (rút còn 2 gói, 2026-09-23)
+
+**`be/quota.py` is the single source of truth.** `/api/v1/plans` and
+`pricing.html` both derive from it through `get_quota()`; `be/main.py`'s 401
+message now interpolates it too rather than restating the number in prose.
+
+| Tier | Trước | Sau |
+|---|---|---|
+| `free` | 1.000 req/tháng | **2** |
+| `premium_developer` (gói bán: 45k/tháng, 450k/năm) | 10.000 | **1.000** |
+| `admin` | unlimited | unlimited |
+
+**The catalog is exactly two paid rows now** — `pro_monthly` (45.000đ/30d) and
+`pro_yearly` (450.000đ/365d), both `premium_developer`. The four legacy plans
+(`premium_monthly`, `premium_yearly`, `dev_monthly`, `dev_yearly`) were deleted
+from `SUBSCRIPTION_PLANS`, and `QUOTA_BY_PLAN` is now empty — both live plans
+share one level, so the yearly plan differs only in billing period, not in
+monthly quota. Checked before deleting: no user sits on a legacy plan. The one
+`users.current_plan='dev_monthly'` row is the admin account, and since
+`get_quota()` consults the plan **before** the level, that override had been
+capping the admin at 10.000 despite `admin` meaning unlimited — removing it
+fixes that.
+
+Old `payment_orders` rows naming a deleted plan are all `pending`; a reverify
+on one now returns `409 "Loại đơn hàng không được hỗ trợ"`, which is the
+intended outcome. `_activate_premium()` no longer falls back to
+`SUBSCRIPTION_PLANS["premium_monthly"]` for an unknown plan — that silently
+granted a legacy plan, and after the deletion it would have been a latent
+`KeyError`; it raises instead.
+
+**free = 2 applies to logged-in FE sessions too**, not only third-party API
+keys — `_auth_via_bearer` shares the same counter. Charts don't consume it
+(they read `fe/data/*.json`), but a CSV download does, so a free account that
+downloads 3 CSVs in a month hits 429. This is a deliberate product decision,
+not an oversight.
+
+**Display copy lives in 9 places** and must be changed with the constant:
+`be/main.py`'s 401 detail (now derived — leave it that way), `fe/llms.txt`,
+`api-docs.html`, `google-sheets.html`, `excel.html`, `developer.html`, the
+three `fe/pages/docs-i18n-data/*.js` EN dictionaries, plus the `plans` fixture
+in `tests/journey/browser_smoke.cjs` and `.claude/rules/DESIGN.md` §13.6/13.7.
+`pricing.html` needs no change — it fetches `/plans`.
+
+**`api_call_log` recorded no anonymous call at all until 2026-09-23.** The
+table was created by hand before migration 011; that migration declares
+`user_id INT` but uses `CREATE TABLE IF NOT EXISTS`, which does not alter an
+existing table, so production kept `user_id INTEGER NOT NULL`. Every anonymous
+insert raised `NotNullViolation` into a bare `except: pass`. Measured before
+the fix: 65 rows over three months, 0 with `user_id IS NULL`, 0 with status
+401, 0 for `/api/v1/gold-analysis`. The admin dashboard's "Public anonymous"
+and "Anonymous / lỗi" columns were therefore structurally 0 — reading as
+"nobody is calling" when the truth was "nothing is being recorded".
+`be/migrations/019_api_call_log_nullable_user.sql` drops the constraint;
+verified on prod immediately after (65 → 68, both 401s present).
+`tests/journey/test_api_call_log_schema.py` guards the drift by querying
+`information_schema` directly, because no application code can observe a row
+that never arrives. The bare `except: pass` now logs with `exc_info` — the
+silence is why this lasted months.
 
 `/pages/admin.html` (Auth0 login + `is_admin`/`user_level='admin'`, backed by `/api/v1/admin/*` with `admin_audit_log`) is the **only** admin/reporting surface. The secret-link report `GET /api/v1/report?key=<REPORT_SECRET>` (`be/routers/report_dashboard.py`) was removed on 2026-08-06: it duplicated data the admin dashboard already showed, put a credential in the URL (Caddy access logs, browser history, `Referer`), had no per-person revocation or audit trail, and fell back to `WEBHOOK_INTERNAL_SECRET` — the same secret GitHub Actions sends on every crawl webhook. Do not reintroduce secret-in-URL admin surfaces; add new reporting as an `/api/v1/admin/*` endpoint plus a section in `admin.html`.
 
