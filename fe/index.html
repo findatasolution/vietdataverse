@@ -652,9 +652,12 @@
                             <h1 class="data-hero-title" data-i18n="mainTitle">Dữ liệu Kinh tế cho Tài chính Vận hành</h1>
                             <p class="data-hero-sub" data-i18n-html="mainSubtitle"><strong>Tìm đúng dữ liệu. Thử miễn phí. Kết nối vào công việc.</strong> Kiểm tra nguồn, phạm vi lịch sử và dữ liệu mẫu trước khi tải file hoặc dùng Excel / API.</p>
                             <div class="data-hero-cta">
-                                <a href="#data/portal" id="discover-data" class="btn-data-primary"><span data-i18n="dataHeroCTASignIn">Khám phá dữ liệu</span></a>
-                                <a href="pages/excel.html#starter" class="btn-data-secondary"><span data-i18n="dataHeroCTADocs">Thử mẫu kết nối Excel</span></a>
-                                <a href="pages/pricing.html" class="btn-data-secondary"><span data-i18n="dataHeroCTAPaid">Gói API 45.000đ / 30 ngày</span></a>
+                                <!-- Two CTAs, each naming the thing it opens. "Khám phá dữ liệu"
+                                     was removed (2026-09-23): it linked to #data/portal, the page
+                                     the visitor is already on, and the dataset catalog it scrolled
+                                     to now lives on the Excel page instead. -->
+                                <a href="pages/excel.html" class="btn-data-primary"><span data-i18n="dataHeroCTADocs">Refresh Excel</span></a>
+                                <a href="pages/api-docs.html" class="btn-data-secondary"><span data-i18n="dataHeroCTAPaid">API</span></a>
                             </div>
                         </div>
                         <picture class="data-hero-art">
@@ -663,7 +666,11 @@
                         </picture>
                     </section>
 
-                    <section id="data-discovery" class="journey-discovery" aria-label="Dataset catalog"></section>
+                    <!-- The dataset catalog ("Bạn cần dữ liệu cho việc gì?") moved to
+                         pages/excel.html on 2026-09-23: picking a dataset and getting it
+                         into Excel is one task, and it was split across two pages.
+                         data-journey.js builds it into #data-discovery wherever that id
+                         exists, so the move needed no JS change. -->
 
                     <!-- ── Market Ticker Strip ── -->
                     <div class="ticker-strip">
@@ -2109,7 +2116,7 @@
     </div>
 
     <script src="pages/data-journey.js?v=1551630c04" defer></script>
-    <script src="app.js?v=da6de5a795" defer></script>
+    <script src="app.js?v=05f05aecd8" defer></script>
     <script src="app.overview.js?v=19c8311719" defer></script>
     <script src="app.knowledge.js?v=2026091601" defer></script>
 

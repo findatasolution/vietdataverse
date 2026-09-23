@@ -111,9 +111,18 @@ let chrome, ws;
     await until("document.getElementById('result-banner')?.textContent.includes('Chưa xác minh')");
     assert.equal(await evaluate("document.getElementById('result-banner').textContent.includes('Thanh toán thành công')"),false);
     verifyFailure=false;
-    await navigate(origin+'/fe/index.html#data/portal');
+    // The dataset catalog moved from the index hero to pages/excel.html on
+    // 2026-09-23 — picking a dataset and getting it into Excel is one task.
+    // Check it renders there, and that a dataset link still routes back to the
+    // index chart route, which is what makes the two pages one flow.
+    await navigate(origin+'/fe/pages/excel.html');
     await until("document.querySelectorAll('#data-discovery [data-dataset-id]').length === 10");
-    await evaluate("document.querySelector('#data-discovery [data-dataset-id=gdp]').click()");
+    assert.match(await evaluate("document.querySelector('#data-discovery [data-dataset-id=gdp]').getAttribute('href')"),/index\.html#data\/portal\/chart\/gdp/);
+    assert.equal(await evaluate("document.querySelectorAll('#download a[href$=\".xlsm\"], #download a[href$=\"developer.html\"]').length"),2);
+    await navigate(origin+'/fe/index.html#data/portal');
+    assert.equal(await evaluate("document.getElementById('data-discovery')"),null);
+    assert.equal(await evaluate("[...document.querySelectorAll('.data-hero-cta a')].map(a=>a.textContent.trim()).join('|')"),'Refresh Excel|API');
+    await navigate(origin+'/fe/index.html#data/portal/chart/gdp?period=1y&method=download');
     await until("document.querySelector('#dataset-tools .journey-status')?.textContent.includes('-Q')");
     await evaluate("updateLanguage('en')");
     await until("document.querySelector('#dataset-intro h2')?.textContent === 'GDP growth'");

@@ -74,6 +74,8 @@
   <nav class="doc-toc">
     <div class="doc-toc-inner">
       <div class="doc-toc-label" data-i18n="ex.toc.label">Nội dung</div>
+      <a class="doc-toc-item" href="#data-discovery" data-i18n="ex.toc.catalog">Chọn bộ dữ liệu</a>
+      <a class="doc-toc-item" href="#download" data-i18n="ex.toc.download">Tải file Excel dựng sẵn</a>
       <a class="doc-toc-item" href="#overview" data-i18n="ex.toc.overview">Bạn sẽ làm được gì</a>
       <a class="doc-toc-item" href="#starter" data-i18n="ex.starter.toc">Mẫu kết nối dùng ngay</a>
       <a class="doc-toc-item" href="#token" data-i18n="ex.toc.token">Bước 1 — Lấy API token</a>
@@ -91,6 +93,47 @@
       Kéo dữ liệu tài chính Việt Nam — vàng, bạc, tỷ giá, lãi suất, CPI, dữ liệu toàn cầu — thẳng vào <strong>Microsoft Excel</strong>
       bằng <strong>Power Query</strong>, không cần code. Dữ liệu nạp thành Table và làm mới được bằng một nút bấm.
     </p>
+
+    <!-- Dataset catalog, moved here from the index hero on 2026-09-23. Picking
+         a dataset and getting it into Excel is ONE task; it used to be split
+         across two pages. data-journey.js (already loaded at the bottom of this
+         file) fills #data-discovery on DOMContentLoaded wherever that id
+         exists, so nothing else had to change. -->
+    <section id="data-discovery" class="journey-discovery doc-section" aria-label="Dataset catalog"></section>
+
+    <!-- Download card. Deliberately the FIRST thing on the page: most people
+         want the finished file, not a tutorial on building one. The Power
+         Query guide below stays for anyone who wants to wire their own. -->
+    <section id="download" class="doc-section">
+      <h2 data-i18n="ex.dl.h2">Tải file Excel dựng sẵn</h2>
+      <p data-i18n="ex.dl.p">
+        File đã có sẵn <strong>9 bộ dữ liệu</strong> — vàng SJC, bạc, lãi suất liên ngân hàng, tỷ giá,
+        tiền gửi, thị trường thế giới, CPI, GDP, xuất nhập khẩu. Tải về, dán API key vào ô vàng,
+        bấm <strong>Cập nhật dữ liệu</strong>. Không cần cài gì thêm.
+      </p>
+      <p class="journey-actions">
+        <a class="btn-primary" href="/fe/downloads/VietDataverse-Data.xlsm" download
+           data-i18n="ex.dl.btn">⬇ Tải VietDataverse-Data.xlsm</a>
+        <!-- "My key" goes to the Developer page, where the key is created and
+             revoked. Not a login link: a visitor who is not signed in gets the
+             page's own sign-in state there, which is the flow DESIGN.md 13.4
+             prescribes for a key-fetching link. -->
+        <a class="btn-data-secondary" href="/pages/developer.html"
+           data-i18n="ex.dl.key">🔑 My key</a>
+      </p>
+      <div class="doc-warn" data-i18n="ex.dl.warn">
+        <strong>Lần đầu mở file phải bỏ chặn macro.</strong> Windows chặn macro trong mọi file tải từ
+        internet. Đóng Excel → chuột phải vào file → <strong>Properties</strong> → tick
+        <strong>Unblock</strong> → OK → mở lại. Làm một lần duy nhất. Không làm thì nút bấm sẽ không
+        phản ứng gì.
+      </div>
+      <div class="doc-info" data-i18n="ex.dl.info">
+        Hạn mức tính theo API key của bạn: key hết hạn hoặc bị thu hồi sẽ báo lỗi 401, hết lượt gọi
+        trong tháng báo 429. Gói miễn phí 2 lượt/tháng — đủ để thử, chạy thật thì cần gói trả phí.
+        Trên macOS nút bấm không chạy (Excel cho Mac thiếu thư viện HTTP mà macro dùng); dùng
+        Power Query theo hướng dẫn bên dưới.
+      </div>
+    </section>
 
     <section id="overview" class="doc-section">
       <h2 data-i18n="ex.overview.h2">Bạn sẽ làm được gì</h2>

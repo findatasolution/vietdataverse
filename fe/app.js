@@ -56,9 +56,8 @@
                 logoutBtn: 'Đăng xuất',
                 mainTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 mainSubtitle: '<strong>Tìm đúng dữ liệu. Thử miễn phí. Kết nối vào công việc.</strong> Kiểm tra nguồn, phạm vi lịch sử và dữ liệu mẫu trước khi tải file hoặc dùng Excel / API.',
-                dataHeroCTASignIn: 'Khám phá dữ liệu',
-                dataHeroCTADocs: 'Thử mẫu kết nối Excel',
-                dataHeroCTAPaid: 'Gói API 45.000đ / 30 ngày',
+                dataHeroCTADocs: 'Refresh Excel',
+                dataHeroCTAPaid: 'API',
                 sectionTitle: 'Dữ liệu Kinh tế cho Tài chính Vận hành',
                 sectionSubtitle: 'Bộ dữ liệu kinh tế vĩ mô Việt Nam chất lượng cao công khai và truy cập miễn phí cho mục đích nghiên cứu. Chi tiết về schemas và parameters tại',
                 goldChart: 'Lịch sử giá vàng trong nước',
@@ -298,9 +297,8 @@
                 logoutBtn: 'Log out',
                 mainTitle: 'Viet economic data for operational finance',
                 mainSubtitle: '<strong>Find the right data. Try it free. Put it to work.</strong> Inspect sources, history coverage and sample records before downloading or connecting Excel / API.',
-                dataHeroCTASignIn: 'Explore datasets',
-                dataHeroCTADocs: 'Try Excel connections',
-                dataHeroCTAPaid: 'API plan · 45,000 VND / 30 days',
+                dataHeroCTADocs: 'Refresh Excel',
+                dataHeroCTAPaid: 'API',
                 sectionTitle: 'Viet economic data for operational finance',
                 sectionSubtitle: 'Transparent, high-quality Vietnamese macroeconomic datasets for research and analysis. All data sources are publicly documented and freely accessible. More details about parameters with',
                 goldChart: 'Gold Price History (Vietnam)',
@@ -1281,7 +1279,6 @@
 
             function ovShowOverview() {
                 window.VDJourney?.hide();
-                document.getElementById('data-discovery')?.removeAttribute('hidden');
                 document.querySelector('.data-hero')?.removeAttribute('hidden');
                 const root = document.getElementById('data-charts');
                 const bar = document.getElementById('ov-detail-bar');
@@ -1334,7 +1331,6 @@
                     button.classList.toggle('active', (button.dataset.period || button.dataset.macroPeriod || button.dataset.policyPeriod) === chart.detailPeriod);
                 });
                 if (datasetId === 'termdepo' && context?.bank) document.getElementById('bankTypeSelect').value = context.bank;
-                document.getElementById('data-discovery')?.setAttribute('hidden', '');
                 document.querySelector('.data-hero')?.setAttribute('hidden', '');
 
                 if (overview) overview.unmount(); // destroy mini instances while a detail is open
@@ -1456,12 +1452,6 @@
                 e.preventDefault();
                 history.pushState(null, '', '#data/portal');
                 ovShowOverview();
-            });
-            document.getElementById('discover-data')?.addEventListener('click', e => {
-                e.preventDefault();
-                history.pushState(null, '', '#data/portal');
-                ovShowOverview();
-                document.getElementById('data-discovery')?.scrollIntoView({behavior: 'smooth', block: 'start'});
             });
             document.getElementById('ov-prev')?.addEventListener('click', () => {
                 const order = window._ovSectionOrder, pos = window._ovSectionPos;

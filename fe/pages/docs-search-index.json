@@ -276,8 +276,20 @@
   {
     "page": "excel.html",
     "pageTitle": "Excel (Power Query)",
+    "heading": "Tải file Excel dựng sẵn",
+    "anchor": "download"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
     "heading": "Bạn sẽ làm được gì",
     "anchor": "overview"
+  },
+  {
+    "page": "excel.html",
+    "pageTitle": "Excel (Power Query)",
+    "heading": "Mẫu kết nối báo cáo: tỷ giá, CPI và GDP",
+    "anchor": "starter"
   },
   {
     "page": "excel.html",

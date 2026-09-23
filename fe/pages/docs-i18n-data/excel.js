@@ -1,4 +1,14 @@
 window.DOCS_I18N_EN = {
+  "ex.toc.catalog": "Choose a dataset",
+  "ex.dl.key": "\ud83d\udd11 My key",
+
+  "ex.toc.download": "Download the ready-made workbook",
+  "ex.dl.h2": "Download the ready-made workbook",
+  "ex.dl.p": "The file ships with <strong>9 datasets</strong> \u2014 SJC gold, silver, interbank rates, FX, term deposits, world markets, CPI, GDP and trade. Download it, paste your API key into the yellow cell, press <strong>C\u1eadp nh\u1eadt d\u1eef li\u1ec7u</strong>. Nothing else to install.",
+  "ex.dl.btn": "\u2b07 Download VietDataverse-Data.xlsm",
+  "ex.dl.warn": "<strong>Unblock the file the first time you open it.</strong> Windows blocks macros in every file downloaded from the internet. Close Excel \u2192 right-click the file \u2192 <strong>Properties</strong> \u2192 tick <strong>Unblock</strong> \u2192 OK \u2192 reopen. Once only. Skip it and the button simply does nothing.",
+  "ex.dl.info": "Limits follow your API key: an expired or revoked key returns 401, running out of monthly calls returns 429. The free tier allows 2 calls per month \u2014 enough to try it; real use needs a paid plan. On macOS the button does not work (Excel for Mac lacks the HTTP library the macro uses) \u2014 use Power Query as described below.",
+
   "ex.starter.toc": "Ready-to-use connection examples",
   "ex.starter.title": "Report connections: FX, CPI and GDP",
   "ex.starter.intro": "Choose a dataset, copy the example and paste it into Excel. Examples are free; the 45,000 VND / 30-day API plan increases capacity when your workflow outgrows the free quota.",
