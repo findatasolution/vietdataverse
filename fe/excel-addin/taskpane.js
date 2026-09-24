@@ -1,12 +1,13 @@
 'use strict';
 
 var API_BASE = 'https://api.vietdataverse.online/api/v1';
-var _period = '30d';
+var _period = '1y';
 var _apiKey = '';
 
 Office.onReady(function (info) {
     if (info.host === Office.HostType.Excel) {
         _loadSavedKey();
+        _loadWorkbookPeriod();
     }
 });
 
@@ -32,7 +33,10 @@ function saveApiKey() {
 
 async function _verifyKey(key) {
     try {
-        var res = await fetch(API_BASE + '/gold?limit=1', {
+        // Key validation is deliberately unmetered. Using a data endpoint here
+        // would consume one of the free tier's two monthly calls before the
+        // user even refreshes a workbook.
+        var res = await fetch(API_BASE + '/developer/verify-key', {
             headers: { 'X-API-Key':key }
         });
         if (res.ok) {
@@ -72,6 +76,29 @@ function setPeriod(btn, p) {
     _period = p;
     document.querySelectorAll('.btn-period').forEach(function (b) { b.classList.remove('active'); });
     btn.classList.add('active');
+}
+
+async function _loadWorkbookPeriod() {
+    try {
+        await Excel.run(async function (ctx) {
+            var sheets = ctx.workbook.worksheets;
+            sheets.load('items/name');
+            await ctx.sync();
+            var cover = sheets.items.find(function (sheet) { return sheet.name === 'Bắt đầu'; });
+            if (!cover) return;
+            var periodCell = cover.getRange('C7');
+            periodCell.load('values');
+            await ctx.sync();
+            var period = String(periodCell.values[0][0] || '');
+            if (!/^(7d|1m|1y|all)$/.test(period)) return;
+            _period = period;
+            document.querySelectorAll('.btn-period').forEach(function (button) {
+                button.classList.toggle('active', button.getAttribute('data-p') === period);
+            });
+        });
+    } catch (error) {
+        // The add-in also works in arbitrary workbooks, which have no VDV cover.
+    }
 }
 
 // ── Fetch data from API ───────────────────────────────────────────────────────
@@ -116,6 +143,128 @@ async function _fetchData() {
     } catch (e) {
         return { error: 'Không kết nối được API.' };
     }
+}
+
+function _excelDateSerial(value) {
+    var match = typeof value === 'string' && value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value;
+    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])) / 86400000 + 25569;
+}
+
+function _workbookRows(item) {
+    var dateColumns = [];
+    (item.headers || []).forEach(function (_, column) {
+        if ((item.rows || []).some(function (row) {
+            return typeof row[column] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row[column]);
+        })) dateColumns.push(column);
+    });
+    return {
+        dateColumns: dateColumns,
+        values: (item.rows || []).map(function (row) {
+            return row.map(_excelDateSerial);
+        })
+    };
+}
+
+async function _fetchWorkbookData() {
+    if (!_apiKey) return { error: 'Chưa nhập API key. Nhập key ở trên rồi nhấn Lưu.' };
+    try {
+        var response = await fetch(API_BASE + '/excel/refresh-data?period=' + encodeURIComponent(_period), {
+            headers: { 'X-API-Key': _apiKey }
+        });
+        var payload = await response.json();
+        if (!response.ok) return { error: payload.detail || ('Lỗi ' + response.status) };
+        return { data: payload };
+    } catch (error) {
+        return { error: 'Không kết nối được API.' };
+    }
+}
+
+async function refreshWorkbook() {
+    var button = document.getElementById('btn-refresh-workbook');
+    button.disabled = true;
+    button.textContent = '⏳ Đang tải dữ liệu...';
+    _setRefreshStatus('Đang gọi API cho toàn bộ workbook...', 'info');
+
+    var result = await _fetchWorkbookData();
+    if (result.error) {
+        _setRefreshStatus('⚠️ ' + result.error, 'err');
+        button.disabled = false;
+        button.textContent = '↻ Refresh toàn bộ workbook';
+        return;
+    }
+
+    var payload = result.data;
+    try {
+        await Excel.run(async function (ctx) {
+            var sheets = ctx.workbook.worksheets;
+            var tables = ctx.workbook.tables;
+            sheets.load('items/name');
+            tables.load('items/name');
+            await ctx.sync();
+
+            var sheetByName = {};
+            sheets.items.forEach(function (sheet) { sheetByName[sheet.name] = sheet; });
+            var tableByName = {};
+            tables.items.forEach(function (table) { tableByName[table.name] = table; });
+
+            payload.data.forEach(function (item) {
+                if (item.error || !item.headers || item.headers.length === 0) return;
+                var sheet = sheetByName[item.sheet] || sheets.add(item.sheet);
+                sheetByName[item.sheet] = sheet;
+                var built = _workbookRows(item);
+                var rowCount = Math.max(1, built.values.length);
+                var target = sheet.getRangeByIndexes(3, 0, rowCount + 1, item.headers.length);
+                var table = tableByName[item.table];
+
+                if (table) {
+                    table.getRange().clear('Contents');
+                    table.resize(target);
+                } else {
+                    table = sheet.tables.add(target, true);
+                    table.name = item.table;
+                    table.style = 'TableStyleMedium2';
+                    tableByName[item.table] = table;
+                }
+
+                var values = [item.headers].concat(built.values);
+                if (built.values.length === 0) values.push(item.headers.map(function () { return ''; }));
+                target.values = values;
+                built.dateColumns.forEach(function (column) {
+                    var dateRange = sheet.getRangeByIndexes(4, column, built.values.length, 1);
+                    dateRange.numberFormat = built.values.map(function () { return ['dd/mm/yyyy']; });
+                });
+                sheet.getUsedRange().format.autofitColumns();
+            });
+
+            var cover = sheetByName['Bắt đầu'];
+            if (cover) {
+                cover.getRange('C7').values = [[payload.period]];
+                cover.getRange('C8').values = [[new Date(payload.refreshed_at).toLocaleString('vi-VN')]];
+            }
+            await ctx.sync();
+        });
+
+        var failures = payload.data.filter(function (item) { return item.error; });
+        if (failures.length) {
+            _setRefreshStatus('Đã cập nhật ' + (payload.count - failures.length) + '/' + payload.count +
+                              ' bộ dữ liệu. Thử lại các bộ còn lỗi.', 'err');
+        } else {
+            _setRefreshStatus('✓ Đã refresh ' + payload.count + ' bộ dữ liệu trong file.', 'ok');
+        }
+    } catch (error) {
+        console.error('[vd-excel-refresh]', error);
+        _setRefreshStatus('⚠️ Không ghi được dữ liệu vào workbook: ' + (error.message || error), 'err');
+    }
+
+    button.disabled = false;
+    button.textContent = '↻ Refresh toàn bộ workbook';
+}
+
+function _setRefreshStatus(message, cls) {
+    var element = document.getElementById('refresh-status');
+    element.textContent = message;
+    element.className = 'status-msg ' + (cls || '');
 }
 
 // ── Build rows for Excel ──────────────────────────────────────────────────────

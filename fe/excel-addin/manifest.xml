@@ -11,7 +11,7 @@
   <ProviderName>Viet Dataverse</ProviderName>
   <DefaultLocale>vi-VN</DefaultLocale>
   <DisplayName DefaultValue="Viet Dataverse Data"/>
-  <Description DefaultValue="Nhập dữ liệu tài chính Việt Nam trực tiếp vào Excel — vàng, bạc, tỷ giá, lãi suất, CPI, VN30."/>
+  <Description DefaultValue="Nhập và refresh dữ liệu tài chính Việt Nam trực tiếp trong Excel trên Mac, Windows và web."/>
   <IconUrl DefaultValue="https://vietdataverse.online/fe/images/favicon-32x32.png"/>
   <HighResolutionIconUrl DefaultValue="https://vietdataverse.online/fe/images/icon-80.png"/>
   <SupportUrl DefaultValue="https://vietdataverse.online"/>
@@ -61,7 +61,7 @@
                     <bt:Image size="80" resid="Icon.80x80"/>
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>ButtonId1</TaskpaneId>
+                  <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url"/>
                   </Action>
                 </Control>
@@ -86,11 +86,11 @@
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Bắt đầu với Viet Dataverse"/>
         <bt:String id="CommandsGroup.Label" DefaultValue="Viet Dataverse"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Nhập dữ liệu VN"/>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Mở panel nhập dữ liệu tài chính Việt Nam"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Refresh dữ liệu VN"/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Mở panel refresh dữ liệu Viet Dataverse trong workbook"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="Nhập dữ liệu vàng, tỷ giá, lãi suất, CPI, VN30 trực tiếp vào sheet."/>
+        <bt:String id="GetStarted.Description" DefaultValue="Nhập hoặc refresh dữ liệu vàng, bạc, tỷ giá, lãi suất và vĩ mô trực tiếp trong workbook."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

@@ -26,6 +26,17 @@
 
   <hr class="divider"/>
 
+  <div id="section-workbook" class="section workbook-refresh">
+    <div class="workbook-title">Workbook Viet Dataverse</div>
+    <p class="workbook-copy">Cập nhật đồng thời mọi bảng dữ liệu trong file đang mở. Công thức và biểu đồ dùng các bảng này được giữ nguyên.</p>
+    <button id="btn-refresh-workbook" class="btn-primary btn-full" onclick="refreshWorkbook()">
+      ↻ Refresh toàn bộ workbook
+    </button>
+    <div id="refresh-status" class="status-msg hidden"></div>
+  </div>
+
+  <hr class="divider"/>
+
   <!-- Data selector -->
   <div id="section-data" class="section">
     <label class="label">Loại dữ liệu</label>
@@ -84,9 +95,9 @@
 
     <label class="label" style="margin-top:12px">Khoảng thời gian</label>
     <div class="period-btns">
-      <button class="btn-period active" data-p="30d" onclick="setPeriod(this,'30d')">30 ngày</button>
-      <button class="btn-period" data-p="90d" onclick="setPeriod(this,'90d')">90 ngày</button>
-      <button class="btn-period" data-p="1y" onclick="setPeriod(this,'1y')">1 năm</button>
+      <button class="btn-period" data-p="7d" onclick="setPeriod(this,'7d')">7 ngày</button>
+      <button class="btn-period" data-p="1m" onclick="setPeriod(this,'1m')">1 tháng</button>
+      <button class="btn-period active" data-p="1y" onclick="setPeriod(this,'1y')">1 năm</button>
       <button class="btn-period" data-p="all" onclick="setPeriod(this,'all')">Tất cả</button>
     </div>
 

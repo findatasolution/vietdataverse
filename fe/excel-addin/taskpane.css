@@ -105,6 +105,10 @@ body {
   margin: 0;
 }
 
+.workbook-refresh { background: #eef4ff; }
+.workbook-title { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+.workbook-copy { color: #5e5d59; font-size: 12px; line-height: 1.45; margin-bottom: 10px; }
+
 .sub-opts { margin-top: 10px; }
 .sub-opts.hidden { display: none; }
 

@@ -16,7 +16,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, admin_report, developer, vn30_data, student_verify, knowledge, wallet, seller, reports, takedown, webhooks, feedback, subscription, fuel_forecast
+from routers import market_data, analysis, auth_routes, interest, admin, admin_report, developer, excel_export, vn30_data, student_verify, knowledge, wallet, seller, reports, takedown, webhooks, feedback, subscription, fuel_forecast
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -47,6 +47,9 @@ METERED_PREFIXES = (
     "/api/v1/global",          # global + global-macro
     "/api/v1/macro",           # macro (CPI/GDP/trade) — chart CPI công khai giờ
                                # đọc data/cpi_*.json nên gate live endpoint an toàn.
+    "/api/v1/excel",           # file Excel dựng sẵn — gate y hệt dữ liệu bên trong
+                               # nó, nên key hết hạn/hết quota là bị chặn TRƯỚC khi
+                               # workbook được dựng, không phải kiểm tra riêng.
 )
 
 TRACKED_PUBLIC_PREFIXES = (
@@ -179,6 +182,7 @@ app.include_router(analysis.router)
 app.include_router(auth_routes.router)
 app.include_router(interest.router)
 app.include_router(admin.router)
+app.include_router(excel_export.router)   # /api/v1/excel/workbook
 app.include_router(admin_report.router)   # /api/v1/admin/report/* — các tab phân tích
 app.include_router(developer.router)
 app.include_router(vn30_data.router)

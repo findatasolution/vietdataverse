@@ -101,37 +101,47 @@
          exists, so nothing else had to change. -->
     <section id="data-discovery" class="journey-discovery doc-section" aria-label="Dataset catalog"></section>
 
-    <!-- Download card. Deliberately the FIRST thing on the page: most people
-         want the finished file, not a tutorial on building one. The Power
-         Query guide below stays for anyone who wants to wire their own. -->
+    <!-- Download card. The FIRST thing after the dataset catalog: most people
+         want the finished file, not a tutorial on building one.
+
+         The workbook is built server-side, already filled with data. Refresh
+         uses the cross-platform Office.js add-in, not VBA. -->
     <section id="download" class="doc-section">
-      <h2 data-i18n="ex.dl.h2">Tải file Excel dựng sẵn</h2>
+      <h2 data-i18n="ex.dl.h2">Tải file Excel có sẵn dữ liệu</h2>
       <p data-i18n="ex.dl.p">
-        File đã có sẵn <strong>9 bộ dữ liệu</strong> — vàng SJC, bạc, lãi suất liên ngân hàng, tỷ giá,
-        tiền gửi, thị trường thế giới, CPI, GDP, xuất nhập khẩu. Tải về, dán API key vào ô vàng,
-        bấm <strong>Cập nhật dữ liệu</strong>. Không cần cài gì thêm.
+        Một file <code>.xlsx</code> gồm <strong>9 bộ dữ liệu</strong> — vàng SJC, bạc, lãi suất liên
+        ngân hàng, tỷ giá, tiền gửi, thị trường thế giới, CPI, GDP, xuất nhập khẩu — đã điền sẵn số,
+        ngày là ngày thật, số là số thật. Mở được trên Excel (Windows, Mac, web), Numbers,
+        LibreOffice và Google Sheets. Trên Excel Mac, Windows và web, Viet Dataverse Add-in có thể
+        refresh trực tiếp các bảng trong chính file này — không macro, không cảnh báo bảo mật.
       </p>
-      <p class="journey-actions">
-        <a class="btn-primary" href="/fe/downloads/VietDataverse-Data.xlsm" download
-           data-i18n="ex.dl.btn">⬇ Tải VietDataverse-Data.xlsm</a>
-        <!-- "My key" goes to the Developer page, where the key is created and
-             revoked. Not a login link: a visitor who is not signed in gets the
-             page's own sign-in state there, which is the flow DESIGN.md 13.4
-             prescribes for a key-fetching link. -->
-        <a class="btn-data-secondary" href="/pages/developer.html"
-           data-i18n="ex.dl.key">🔑 My key</a>
-      </p>
-      <div class="doc-warn" data-i18n="ex.dl.warn">
-        <strong>Lần đầu mở file phải bỏ chặn macro.</strong> Windows chặn macro trong mọi file tải từ
-        internet. Đóng Excel → chuột phải vào file → <strong>Properties</strong> → tick
-        <strong>Unblock</strong> → OK → mở lại. Làm một lần duy nhất. Không làm thì nút bấm sẽ không
-        phản ứng gì.
+      <div class="journey-actions" style="align-items:flex-end;flex-wrap:wrap;gap:12px;">
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+          <span data-i18n="ex.dl.keylabel">API key của bạn</span>
+          <input id="xl-key" type="text" spellcheck="false" autocomplete="off"
+                 placeholder="vdv_..." style="min-width:280px;padding:8px 10px;font-family:monospace;">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;">
+          <span data-i18n="ex.dl.periodlabel">Khoảng thời gian</span>
+          <select id="xl-period" style="padding:8px 10px;">
+            <option value="7d">7 ngày</option>
+            <option value="1m">1 tháng</option>
+            <option value="1y" selected>1 năm</option>
+            <option value="all">Tất cả</option>
+          </select>
+        </label>
+        <a id="xl-download" class="btn-primary" href="#" data-i18n="ex.dl.btn">⬇ Tải file Excel</a>
+        <a class="btn-data-secondary" href="/pages/developer.html" data-i18n="ex.dl.key">🔑 My key</a>
       </div>
+      <p id="xl-hint" style="font-size:13px;color:var(--text-tertiary);margin-top:10px;"
+         data-i18n="ex.dl.hint">Dán API key vào ô trên để bật nút tải.</p>
       <div class="doc-info" data-i18n="ex.dl.info">
-        Hạn mức tính theo API key của bạn: key hết hạn hoặc bị thu hồi sẽ báo lỗi 401, hết lượt gọi
-        trong tháng báo 429. Gói miễn phí 2 lượt/tháng — đủ để thử, chạy thật thì cần gói trả phí.
-        Trên macOS nút bấm không chạy (Excel cho Mac thiếu thư viện HTTP mà macro dùng); dùng
-        Power Query theo hướng dẫn bên dưới.
+        Hạn mức tính theo key của bạn: key hết hạn hoặc bị thu hồi trả lỗi 401, hết lượt gọi trong
+        tháng trả 429. Mỗi lần tải tính là <strong>một</strong> lượt gọi, bất kể chọn khoảng thời gian
+        nào. Gói miễn phí 2 lượt/tháng. Key được gửi bằng header và không được lưu trong file.
+        Cài <a href="/excel-addin/manifest.xml" download="vietdataverse-excel-addin.xml">Viet Dataverse Add-in</a>
+        một lần, sau đó bấm <strong>Refresh toàn bộ workbook</strong> ngay trong Excel. Mỗi lần refresh
+        cũng chỉ tính một lượt gọi dù file có 9 bộ dữ liệu.
       </div>
     </section>
 
@@ -308,6 +318,7 @@
 
 <script src="data-journey.js"></script>
 <script src="excel-starter.js"></script>
+<script src="excel-download.js"></script>
 <script src="docs-i18n-data/excel.js"></script>
 <script src="docs-i18n.js"></script>
 <script src="docs-sidebar.js"></script>

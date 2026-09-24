@@ -118,7 +118,23 @@ let chrome, ws;
     await navigate(origin+'/fe/pages/excel.html');
     await until("document.querySelectorAll('#data-discovery [data-dataset-id]').length === 10");
     assert.match(await evaluate("document.querySelector('#data-discovery [data-dataset-id=gdp]').getAttribute('href')"),/index\.html#data\/portal\/chart\/gdp/);
-    assert.equal(await evaluate("document.querySelectorAll('#download a[href$=\".xlsm\"], #download a[href$=\"developer.html\"]').length"),2);
+    // The download button carries no href until a key is pasted: the workbook
+    // is built per request and gated on that key, so a click without one would
+    // only bounce off a 401 and look like a broken site.
+    assert.equal(await evaluate("document.getElementById('xl-download').getAttribute('href')"),null);
+    await evaluate("document.getElementById('xl-key').value='vdv_smoke';document.getElementById('xl-key').dispatchEvent(new Event('input'))");
+    assert.equal(await evaluate("document.getElementById('xl-download').getAttribute('href')"),null);
+    assert.equal(await evaluate("document.getElementById('xl-download').getAttribute('aria-disabled')"),null);
+    await evaluate("window.__excelDownload=null;window.fetch=async(url,options)=>{window.__excelDownload={url,key:options.headers['X-API-Key']};return new Response(new Blob(['xlsx']),{status:200,headers:{'Content-Disposition':'attachment; filename=VDV.xlsx'}})};document.getElementById('xl-download').click()");
+    await until('window.__excelDownload !== null');
+    assert.equal(await evaluate("window.__excelDownload.key"),'vdv_smoke');
+    assert.equal(await evaluate("window.__excelDownload.url.includes('api_key=')"),false);
+    assert.equal(await evaluate("document.querySelectorAll('#download a[href$=\"developer.html\"]').length"),1);
+    for (const width of [390,768,1366]) {
+        await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<640});
+        assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Excel page overflow at '+width);
+        const screenshot=await send('Page.captureScreenshot');fs.writeFileSync(path.join(artifacts,`excel-${width}.png`),Buffer.from(screenshot.data,'base64'));
+    }
     await navigate(origin+'/fe/index.html#data/portal');
     assert.equal(await evaluate("document.getElementById('data-discovery')"),null);
     assert.equal(await evaluate("[...document.querySelectorAll('.data-hero-cta a')].map(a=>a.textContent.trim()).join('|')"),'Refresh Excel|API');
