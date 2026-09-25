@@ -1020,6 +1020,42 @@ to `SELECT user_level, is_admin FROM users WHERE email = <token email claim>`
 without any verification, so a self-registered unverified login claiming an admin's
 email got `is_admin=true` on the request. It also stored `user_level` in `user_id`.
 
+### `/auth/me` inserted a blank email and locked out every new account (found + fixed 2026-09-25)
+
+**One poisoned row blocked all signups for 87 days.** An Auth0 **access** token
+carries an `email` claim only when the Action adding `{NAMESPACE}/email` is
+installed on the API — it is not, so `be/middleware.py`'s
+`payload.get(f"{NAMESPACE}/email") or payload.get("email", "")` resolved to `""`.
+`/auth/me` then created the user with that empty string, and its duplicate guard
+was written `if email and session.query(User).filter_by(email=email).first()` —
+`""` is falsy, so the guard **skipped itself** on exactly the value that needed
+checking. `users.email` is UNIQUE: the first blank insert succeeded (user_id 10,
+`google-oauth2|1068495…`, 2026-06-30) and every later identity collided with it
+forever, getting `500 UniqueViolation` from `/me`.
+
+**Nothing pointed at the real cause.** `/api/v1/payment/status` returns `200`
+without a `users` row, so only `/me` failed; and `fe/pages/developer.html`
+wrapped its whole init in a bare `catch {}` that rendered "Vui lòng đăng nhập" —
+telling signed-in users to do the thing they had already done. That page now
+prints the server's actual error under the login card, and logs it.
+
+**Fixed:** `resolve_signup_email()` (pure, tested in `tests/auth/test_signup_email.py`)
+falls back to Auth0 `/userinfo` — which needs no Action — when the claim is
+missing, and `/me` returns **400** rather than inserting a blank. Migration
+`020_users_email_not_blank.sql` (applied to prod 2026-09-25) parks the stranded
+row on `unknown-<user_id>@users.vietdataverse.invalid` (`.invalid` is RFC 2606
+reserved, so it can never resolve or receive mail) and adds
+`CHECK (btrim(email) <> '')` so the defect is unrepresentable. The row was
+**repaired, not deleted** — its `auth0_id` is a real Google identity and
+`resolve_identity()` finds that person by `auth0_id`; `/me` swaps the placeholder
+for their real address on their next sign-in, unless another row already holds
+that email (that still needs a deliberate admin link, never a silent merge).
+
+**Rule this leaves behind:** never let a falsy-but-present value skip a
+uniqueness guard. `if email and <lookup>` reads as "check when we have one" but
+means "skip when it is empty" — and empty is exactly the value a UNIQUE column
+can only hold once.
+
 ### GA4 Reporting API (2026-09)
 
 `admin_dashboard` (`be/routers/admin.py`) now returns a `website_traffic` field (active users, pageviews, sessions, new users for the selected `24h`/`7d`/`ytd` period) sourced from GA4 property `522974314` via `be/core/ga4.py`. Site-side `gtag.js` tracking (`fe/partials/_layout_head.html`, two Measurement IDs `G-YB3PKHN2E5`/`G-B9BHYSYDES` — both data streams under this one property) already existed; this adds server-side *read* access so the number shows up in `admin.html` instead of requiring a manual login to analytics.google.com.

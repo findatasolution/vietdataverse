@@ -19,6 +19,58 @@ def _get_session():
     return sessionmaker(bind=get_engine_user())()
 
 
+# Migration 020 parks an account whose email was lost to the blank-email defect
+# on an address under this domain. `.invalid` is reserved by RFC 2606, so it can
+# never resolve, be mistaken for a real inbox, or receive mail.
+PLACEHOLDER_EMAIL_DOMAIN = "@users.vietdataverse.invalid"
+
+
+def is_placeholder_email(email: str) -> bool:
+    return (email or "").endswith(PLACEHOLDER_EMAIL_DOMAIN)
+
+
+def resolve_signup_email(claim_email, fetch_userinfo_email) -> str:
+    """The email a brand-new users row should carry, or "" if we cannot tell.
+
+    An Auth0 *access* token carries an email claim only when the Action adding
+    `{NAMESPACE}/email` is installed. Treating its absence as "" and inserting
+    that was the 2026-06-30 defect: users.email is UNIQUE, so one blank row
+    inserted fine and then every later identity collided with it forever.
+    /userinfo needs no Action, so it is asked only when the claim is missing —
+    a brand-new signup is rare, and a present claim must not cost a round-trip.
+    """
+    email = (claim_email or "").strip()
+    if email:
+        return email
+    return (fetch_userinfo_email() or "").strip()
+
+
+def _email_from_userinfo(request: Request) -> str:
+    """Ask Auth0 who the bearer is when the access token carries no email claim.
+
+    The claim is present only when the Auth0 Action adding `{NAMESPACE}/email`
+    is installed on the API; otherwise `request.state.user["email"]` is "".
+    /userinfo is authoritative and needs no Action, so it is the fallback that
+    keeps a blank email out of the UNIQUE `users.email` column.
+    """
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
+        return ""
+    try:
+        import requests
+        from auth import AUTH0_DOMAIN
+        resp = requests.get(
+            f"https://{AUTH0_DOMAIN}/userinfo",
+            headers={"Authorization": header},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        return (resp.json().get("email") or "").strip()
+    except Exception as exc:
+        print(f"[_email_from_userinfo] failed: {type(exc).__name__}: {exc}")
+        return ""
+
+
 _LOGIN_SESSION_GAP = timedelta(minutes=30)
 
 
@@ -163,12 +215,36 @@ async def get_current_user_info(request: Request):
         session = _get_session()
         db_user = session.query(User).filter_by(auth0_id=auth0_id).first()
 
+        if db_user and is_placeholder_email(db_user.email):
+            # Migration 020 parked this account rather than deleting it, because
+            # its auth0_id is a real identity. Restore the real address the first
+            # time its owner signs in again — unless another row already holds
+            # that email, which needs a deliberate admin link, not a silent merge.
+            real_email = _email_from_userinfo(request)
+            if real_email and not session.query(User).filter_by(email=real_email).first():
+                db_user.email = real_email
+                session.commit()
+
         if not db_user:
             # authenticate_user already claimed a matching account if Auth0 verified
             # this identity's email (services/identity.py). An account that still
             # holds the email belongs to another identity — linking needs an admin.
-            email = user.get("email", "")
-            if email and session.query(User).filter_by(email=email).first():
+            #
+            # An access token carries an email claim only when the Auth0 Action
+            # adding `{NAMESPACE}/email` is installed; without it the claim is
+            # "". Inserting that empty string succeeded exactly once and then
+            # collided with itself forever — users.email is UNIQUE — so every
+            # later identity got a 500 from this endpoint. Ask Auth0 instead of
+            # inventing an empty email.
+            email = resolve_signup_email(user.get("email"),
+                                         lambda: _email_from_userinfo(request))
+            if not email:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Không lấy được email từ Auth0 cho tài khoản này. "
+                           "Hãy đăng xuất rồi đăng nhập lại; nếu vẫn lỗi, liên hệ hỗ trợ.",
+                )
+            if session.query(User).filter_by(email=email).first():
                 raise HTTPException(
                     status_code=409,
                     detail="Email này đã gắn với một tài khoản đăng nhập bằng cách khác. "

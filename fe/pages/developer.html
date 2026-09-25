@@ -307,6 +307,7 @@
         <div class="state-title">Vui lòng đăng nhập</div>
         <div class="state-sub">Đăng nhập để lấy API key miễn phí — tài khoản miễn phí được cấp ngay 2 request/tháng.</div>
         <button class="btn-upgrade" onclick="login()">Đăng nhập</button>
+        <div class="state-sub" id="access-denied-detail" style="display:none;margin-top:16px;color:#b53333;"></div>
     </div>
 
     <!-- Expired subscription banner -->
@@ -453,9 +454,18 @@ const data = await res.json();</div>
             document.getElementById('guide-card').style.display = 'block';
 
             await loadKeyInfo(token);
-        } catch {
+        } catch (err) {
+            // Distinguish "not signed in" from "signed in, but a backend step
+            // failed". Collapsing both into the login card hid a 500 from /me
+            // behind a message telling the user to do what they had done.
             loadEl.style.display = 'none';
             document.getElementById('access-denied').style.display = 'block';
+            const detail = document.getElementById('access-denied-detail');
+            if (detail && err && err.message) {
+                detail.textContent = 'Bạn đã đăng nhập, nhưng máy chủ từ chối: ' + err.message;
+                detail.style.display = 'block';
+            }
+            console.error('[developer] initPage failed:', err);
         }
     }
 
