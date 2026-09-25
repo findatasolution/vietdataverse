@@ -8,7 +8,7 @@ Base journey implemented on 2026-09-17. API/Excel purchase improvements and PayO
 - `/fe/index.html#data/portal/chart/<id>`: the single dataset detail route shared by catalog cards and overview charts.
 - Detail route query (inside the hash): `period`, `bank`, `method`. Values are allowlisted. Invalid datasets fall back to the overview.
 - `/pages/pricing.html?id=<id>&period=<period>&bank=<bank>&method=<method>`: compare subscription limits in dataset context. Both `/pages` and `/fe/pages` aliases remain supported.
-- Excel, Sheets and API-key guides are linked from dataset detail. Only gold advertises the Sheets CSV connector. Policy rates currently have no dedicated API endpoint.
+- Excel, Sheets and API-key guides are linked from dataset detail. The Google Sheets template connector is maintained in `integrations/google-sheets/`: users authorize its bound script once, save their API key in per-user properties, then refresh all nine datasets with one metered API call. The existing IMPORTDATA guide remains available for the simple gold-only formula flow. Policy rates currently have no dedicated API endpoint.
 
 ## What visitors can do
 
@@ -19,6 +19,7 @@ Base journey implemented on 2026-09-17. API/Excel purchase improvements and PayO
 5. After server-verified payment, open API-key management, the Excel starter, or return to the same dataset, chart period, bank and method. Pending confirmation is polled four times (1.5-second intervals); a manual retry remains available. Context contains no credentials and expires after 24 hours in session storage. No automatic download or API-key rotation occurs.
 6. `/pages/excel.html#starter` offers free, ready-to-paste Power Query examples and public snapshot previews for central USD/VND, monthly CPI and quarterly GDP. API keys are entered in Excel only, via the `X-API-Key` header. FX requests one year (up to 500 rows), CPI up to 60 observations, and GDP the existing API coverage (up to 200 rows); GDP has no `years` parameter. Numeric columns are explicitly typed. A multi-page response fails visibly instead of silently dropping rows. No workbook or exclusive dataset is sold.
 7. The existing API Supper Lite product remains 45,000 VND / 30 days (450,000 VND / 365 days; verified students pay half). Open Data links directly to pricing and the Excel examples. Guest checkout opens the email field immediately and explains that the same email must be used for subsequent login. No new price, plan, schema or paid product was introduced.
+8. The Google Sheets connector is implemented locally with one `Code.gs` file and native prompts, with no separate HTML/sidebar file: **Viet Dataverse → Thiết lập API key** saves a verified key in `PropertiesService.getUserProperties()`, and **Refresh toàn bộ dữ liệu** calls `/api/v1/excel/refresh-data` once before updating the nine managed tabs in place. The key is sent only through `X-API-Key`; it is not written to cells or appended to URLs. **Delivery remains pending as of 2026-09-25:** the native test workbook exists, but its cover still says `Chưa kết nối` and inspected data tabs contain placeholders. Current bound-script installation, authenticated refresh, and copy/refresh behavior have not been verified. See `integrations/google-sheets/README.md` for the exact workbook and release checks; do not present the test workbook as a working customer template.
 
 ## Source of truth
 
@@ -61,6 +62,7 @@ python3 tests/journey/test_payment_settlement.py
 node tests/journey/checkout.test.cjs
 node tests/journey/analytics.test.cjs
 node tests/journey/excel_starter.test.cjs
+node tests/journey/google_sheets_connector.test.cjs
 node tests/journey/browser_smoke.cjs
 ```
 
