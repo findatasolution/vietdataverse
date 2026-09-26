@@ -22,7 +22,6 @@ Truy cập API: header `X-API-Key: <key>` hoặc query `?api_key=<key>`. Gói fr
 - [API Docs](https://vietdataverse.online/pages/api-docs.html): xác thực, tham số, catalog đầy đủ, ví dụ curl
 - [OpenAPI / Swagger](https://api.vietdataverse.online/openapi.json): định nghĩa máy đọc được
 - [Google Sheets — IMPORTDATA (CSV)](https://vietdataverse.online/pages/google-sheets.html): kéo dữ liệu vào Sheets
-- [Excel — Power Query (CSV/JSON)](https://vietdataverse.online/pages/excel.html): kéo dữ liệu vào Excel
 
 ## Agent Market (Knowledge & Skill packs)
 

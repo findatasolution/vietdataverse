@@ -17,9 +17,6 @@ window.DOCS_I18N_EN = {
   "docs.card.appscript.h3": "Google Sheets — VDV functions (Apps Script)",
   "docs.card.appscript.p": "Create a short function like <code>=VDV_GOLD(\"SJC\",\"1m\")</code>, enter your token once via the menu. Includes how to handle Google's \"unverified app\" warning.",
 
-  "docs.card.excel.h3": "Pull data into Excel (Power Query)",
-  "docs.card.excel.p": "Pull gold, silver, FX rates, interest rates, CPI… into Microsoft Excel with Power Query — no code, no Google warnings.",
-
   "docs.card.seller.p": "Register as a seller, upload a Knowledge Pack, the auto-validation process, pricing, payouts, and what to watch out for.",
   "docs.card.buyer.p": "Search for and buy Knowledge Packs, top up credits, manage your library, how to use a pack with an AI agent.",
 

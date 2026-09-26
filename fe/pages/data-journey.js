@@ -176,7 +176,7 @@
                 if (sample && sample.rows.length) { const details = el('details'); details.append(el('summary', t('Xem các bản ghi gần nhất', 'Inspect recent records')), table(sample.rows)); content.append(details); }
             } else {
                 content.append(el('p', method === 'excel'
-                    ? t('Kết nối bằng Power Query; sử dụng API key của tài khoản miễn phí để thử trước.', 'Connect with Power Query and try your free account API key first.')
+                    ? t('Copy file Google Sheets mẫu rồi dán API key vào một ô; dùng key miễn phí để thử trước.', 'Copy the Google Sheets template and paste your API key into one cell; try it with your free key first.')
                     : t('API có quota theo tháng. Dùng key hiện có; không cần tạo lại sau khi nâng cấp.', 'API usage is metered monthly. Keep your existing key after upgrading.')));
                 if (d.endpoint) {
                     const requestURL = new URL(`${api}/${d.endpoint}`);
@@ -191,8 +191,7 @@
                             else await window.login(new URL(developer.href).pathname);
                         } catch (_) { status.textContent = t('Chưa thể mở trang API key. Vui lòng thử lại.', 'Unable to open API keys. Please retry.'); }
                     };
-                    content.append(link(t('Hướng dẫn Excel', 'Excel guide'), new URL('excel.html', scriptURL)), document.createTextNode(' '), developer);
-                    if (d.id === 'gold') content.append(document.createTextNode(' '), link('Google Sheets', new URL('google-sheets.html', scriptURL)));
+                    content.append(link(t('Hướng dẫn Google Sheets', 'Google Sheets guide'), new URL('google-sheets.html', scriptURL)), document.createTextNode(' '), developer);
                 } else content.append(el('p', t('Bộ này hiện cung cấp snapshot công khai, chưa có endpoint API riêng.', 'This dataset currently has a public snapshot, not a dedicated API endpoint.')));
             }
             const note = el('aside', null, 'journey-upgrade');
@@ -202,7 +201,8 @@
             upgrade.addEventListener('click', () => { upgrade.href = pricingLink(active); track('dataset_upgrade_view', active); }); note.append(upgrade); content.append(note);
         }
         ['download', 'excel', 'api'].forEach(method => {
-            const labels = {download: t('Tải file', 'Download'), excel: 'Excel / Sheets', api: 'API'};
+            // 'excel' stays as the query value: it is in links already shared.
+            const labels = {download: t('Tải file', 'Download'), excel: 'Google Sheets', api: 'API'};
             const b = el('button', labels[method], 'btn-data-secondary'); b.type = 'button'; b.dataset.method = method;
             b.onclick = () => select(method); methods.append(b);
         });

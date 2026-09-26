@@ -23,8 +23,6 @@ PAGES = [
     ("docs.html", "Tổng quan"),
     ("api-docs.html", "API Reference"),
     ("google-sheets.html", "Google Sheets"),
-    ("google-sheets-appscript.html", "Sheets — hàm VDV"),
-    ("excel.html", "Excel (Power Query)"),
     ("guide-seller.html", "Seller Guide"),
     ("guide-buyer.html", "Buyer Guide"),
     ("knowledge-pack-spec.html", "Tạo Knowledge Pack"),

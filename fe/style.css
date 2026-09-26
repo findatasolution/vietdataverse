@@ -5457,9 +5457,3 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
     color: #fff;
 }
 
-/* Excel starter uses the existing standalone guide and journey components. */
-#excel-starter-controls label { display: block; margin: 16px 0 8px; }
-#excel-starter-controls select { min-height: 44px; max-width: 100%; padding: 8px 12px; background: var(--ivory); color: var(--near-black); border: 1px solid var(--border-warm); border-radius: 8px; font: inherit; }
-#excel-starter-controls textarea { display: block; box-sizing: border-box; width: 100%; max-width: 100%; resize: vertical; color: var(--near-black); border: 1px solid var(--border-warm); font: 12px/1.6 monospace; }
-#excel-starter-controls .journey-actions > * { min-height: 44px; white-space: normal; }
-#excel-starter-controls .journey-table { width: 100%; }

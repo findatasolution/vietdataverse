@@ -1,6 +1,6 @@
 # Open Data customer journey
 
-Base journey implemented on 2026-09-17. API/Excel purchase improvements and PayOS settlement fixes implemented locally on 2026-09-23; deployment of these changes and a real payment smoke test remain pending.
+Base journey implemented on 2026-09-17. Narrowed to two delivery flows — the raw API and Google Sheets — on 2026-09-25; the Excel page, Office.js add-in and `/api/v1/excel/workbook` were removed. A real payment smoke test remains pending.
 
 ## Entry points and routes
 
@@ -8,7 +8,7 @@ Base journey implemented on 2026-09-17. API/Excel purchase improvements and PayO
 - `/fe/index.html#data/portal/chart/<id>`: the single dataset detail route shared by catalog cards and overview charts.
 - Detail route query (inside the hash): `period`, `bank`, `method`. Values are allowlisted. Invalid datasets fall back to the overview.
 - `/pages/pricing.html?id=<id>&period=<period>&bank=<bank>&method=<method>`: compare subscription limits in dataset context. Both `/pages` and `/fe/pages` aliases remain supported.
-- Excel, Sheets and API-key guides are linked from dataset detail. The Google Sheets template connector is maintained in `integrations/google-sheets/`: users authorize its bound script once, save their API key in per-user properties, then refresh all nine datasets with one metered API call. The existing IMPORTDATA guide remains available for the simple gold-only formula flow. Policy rates currently have no dedicated API endpoint.
+- Google Sheets and API-key guides are linked from dataset detail. `fe/pages/google-sheets.html` is the single spreadsheet page: the copyable template first, hand-written `IMPORTDATA` formulas second. Policy rates currently have no dedicated API endpoint.
 
 ## What visitors can do
 
@@ -16,10 +16,10 @@ Base journey implemented on 2026-09-17. API/Excel purchase improvements and PayO
 2. Inspect snapshot date coverage, record count and recent rows; download the public snapshot as CSV without authentication.
 3. Use the existing authenticated history download, or inspect the dataset-specific API request and integration guides.
 4. Compare paid access if API usage outgrows the free quota. Pricing does not claim exclusive history, unlimited API, realtime delivery or priority download speed.
-5. After server-verified payment, open API-key management, the Excel starter, or return to the same dataset, chart period, bank and method. Pending confirmation is polled four times (1.5-second intervals); a manual retry remains available. Context contains no credentials and expires after 24 hours in session storage. No automatic download or API-key rotation occurs.
-6. `/pages/excel.html#starter` offers free, ready-to-paste Power Query examples and public snapshot previews for central USD/VND, monthly CPI and quarterly GDP. API keys are entered in Excel only, via the `X-API-Key` header. FX requests one year (up to 500 rows), CPI up to 60 observations, and GDP the existing API coverage (up to 200 rows); GDP has no `years` parameter. Numeric columns are explicitly typed. A multi-page response fails visibly instead of silently dropping rows. No workbook or exclusive dataset is sold.
-7. The existing API Supper Lite product remains 45,000 VND / 30 days (450,000 VND / 365 days; verified students pay half). Open Data links directly to pricing and the Excel examples. Guest checkout opens the email field immediately and explains that the same email must be used for subsequent login. No new price, plan, schema or paid product was introduced.
-8. The Google Sheets connector is implemented locally with one `Code.gs` file and native prompts, with no separate HTML/sidebar file: **Viet Dataverse → Thiết lập API key** saves a verified key in `PropertiesService.getUserProperties()`, and **Refresh toàn bộ dữ liệu** calls `/api/v1/excel/refresh-data` once before updating the nine managed tabs in place. The key is sent only through `X-API-Key`; it is not written to cells or appended to URLs. **Delivery remains pending as of 2026-09-25:** the native test workbook exists, but its cover still says `Chưa kết nối` and inspected data tabs contain placeholders. Current bound-script installation, authenticated refresh, and copy/refresh behavior have not been verified. See `integrations/google-sheets/README.md` for the exact workbook and release checks; do not present the test workbook as a working customer template.
+5. After server-verified payment, open API-key management, the Google Sheets template, or return to the same dataset, chart period, bank and method. Pending confirmation is polled four times (1.5-second intervals); a manual retry remains available. Context contains no credentials and expires after 24 hours in session storage. No automatic download or API-key rotation occurs.
+6. `/pages/google-sheets.html` is the only spreadsheet guide. The template is nine `IMPORTDATA` formulas reading one key cell; the page also documents writing a formula by hand for a single dataset. No workbook or exclusive dataset is sold.
+7. The existing API Supper Lite product remains 45,000 VND / 30 days (450,000 VND / 365 days; verified students pay half). Open Data links directly to pricing and the Google Sheets template. Guest checkout opens the email field immediately and explains that the same email must be used for subsequent login. No new price, plan, schema or paid product was introduced.
+8. The Google Sheets template is a copyable spreadsheet, not an Apps Script. Nine tabs each hold one `IMPORTDATA` formula reading the API key from cell `C4` of the `Bắt đầu` tab, so copying the file and pasting a key is the whole flow — no installation, no OAuth consent, and none of the "Google hasn't verified this app" warning a bound script shows every customer. Generated by `integrations/google-sheets/build_template.py`; publishing the rebuilt `.xlsx` into the live file is a manual import (the Drive connector cannot convert `.xlsx` to a Google Sheet). Each tab is one metered call, so the 2-request free tier cannot fill the file — deliberate.
 
 ## Source of truth
 
@@ -35,7 +35,7 @@ Base journey implemented on 2026-09-17. API/Excel purchase improvements and PayO
 
 Dataset events use the existing `gtag` when available: `dataset_detail_view`, `dataset_download_success` (preview CSV triggered), `dataset_upgrade_view`. They do not prove the downloaded file was opened or an integration succeeded.
 
-Pricing and Excel now load `fe/pages/site-analytics.js`, targeting the existing primary tag `G-YB3PKHN2E5` only on `vietdataverse.online`/`www.vietdataverse.online`. These pages send a sanitized page view (no URL query/hash) and `excel_query_copy`, `begin_checkout`, `checkout_redirect`, `checkout_error`, and `purchase`. Purchase value/plan come from server verification; transaction ID is the order code, with session-storage reload deduplication. This browser event is not an accounting ledger: ad blockers, disabled JS, abandoned return pages or cleared storage affect it. Reconcile revenue with paid backend orders.
+Pricing and Google Sheets now load `fe/pages/site-analytics.js`, targeting the existing primary tag `G-YB3PKHN2E5` only on `vietdataverse.online`/`www.vietdataverse.online`. These pages send a sanitized page view (no URL query/hash) and `begin_checkout`, `checkout_redirect`, `checkout_error`, and `purchase`. Purchase value/plan come from server verification; transaction ID is the order code, with session-storage reload deduplication. This browser event is not an accounting ledger: ad blockers, disabled JS, abandoned return pages or cleared storage affect it. Reconcile revenue with paid backend orders.
 
 This scoped addition does not reconfigure GA4 or change the SPA's legacy tags. The property still contains other hostnames, and old SPA tracking still needs its separate privacy/attribution cleanup. Use a production-host filter for analysis. `dataset` has not been registered as a GA4 custom dimension; the historical Data API cannot break down that parameter. The primary tag mapping to a stream could not be independently read through the Admin API (403); its ID is reused from the existing SPA loader.
 
@@ -61,14 +61,12 @@ python3 tests/journey/test_public_plans.py
 python3 tests/journey/test_payment_settlement.py
 node tests/journey/checkout.test.cjs
 node tests/journey/analytics.test.cjs
-node tests/journey/excel_starter.test.cjs
-node tests/journey/google_sheets_connector.test.cjs
 node tests/journey/browser_smoke.cjs
 ```
 
 Browser tests use an isolated temporary Chrome profile and mocked API responses, never real payments. Set `CHROME_BIN` on non-macOS environments. Screenshots are written to the printed temporary directory. Test deployment of `/payment/plans` before publishing the new pricing UI. Verify a real free-account download, Auth0 return and PayOS sandbox/approved payment separately before declaring production checkout verified.
 
 
-2026-09-23 verification: local unit/regression tests and JS/Python syntax checks pass; HTML rebuilt and overview checks pass. Payment tests use signed fixtures and a lock-aware fake session, not a live PostgreSQL integration. Browser UI checks at 390/768/1366 and executing the examples in Excel remain pending: computer-use permissions were unavailable and the in-app browser was unavailable. No real PayOS order/payment, production deployment, API-key usage or marketing publication was performed.
+2026-09-23 verification: local unit/regression tests and JS/Python syntax checks pass; HTML rebuilt and overview checks pass. Payment tests use signed fixtures and a lock-aware fake session, not a live PostgreSQL integration. Browser UI checks at 390/768/1366 and executing the template in Google Sheets remain pending: computer-use permissions were unavailable and the in-app browser was unavailable. No real PayOS order/payment, production deployment, API-key usage or marketing publication was performed.
 
 The root `CLAUDE.md` GA4 section still incorrectly says an External/Testing OAuth refresh token never expires. Google limits these tokens to seven days for Analytics scopes. Root `CLAUDE.md` is user/Claude-maintained and was not edited by Codex; this known documentation correction remains with its owner.

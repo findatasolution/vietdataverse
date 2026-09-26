@@ -1,58 +1,69 @@
-# Viet Dataverse Google Sheets connector
+# Viet Dataverse — Google Sheets template
 
-This directory contains the source for the Apps Script intended to be bound to
-the Viet Dataverse Google Sheets template.
+A customer copies one file, pastes an API key into one cell, and has nine
+datasets that keep themselves up to date. There is no third step.
 
-## Delivery status — 2026-09-25
+## How it works
 
-The [template workbook](https://docs.google.com/spreadsheets/d/1UGILO_Mk02qWYx1BLk5DRE8yoNEXT9cTGIS57EOiwds/edit)
-exists with a cover and nine dataset tabs, and is shared `anyone with link ->
-reader`, which is what a copyable template needs.
+`build_template.py` generates a workbook whose nine data tabs each hold a single
+formula in `A1`:
 
-Verified: the bound script is installed and the **Viet Dataverse** menu renders
-in the spreadsheet. Local connector tests pass.
+```
+=IF('Bắt đầu'!$C$4="", "← Dán API key…", IMPORTDATA("…&format=csv&api_key="&'Bắt đầu'!$C$4))
+```
 
-Not yet verified: an authenticated refresh end to end, and refresh after a Drive
-copy. Both were blocked until 2026-09-25 by a backend defect unrelated to this
-connector — `/auth/me` returned 500 for every new account, so no API key could
-be issued (see root `CLAUDE.md`, "`/auth/me` inserted a blank email"). That is
-fixed; the refresh check still has to be run.
+`IMPORTDATA` is built into Google Sheets. Nothing is installed, nothing is
+authorized, and every tab reads its key from the same cell, so one paste fills
+the whole file.
 
-Release checks, in order: refresh all nine tabs with a valid user key, confirm
-the cover's `Trạng thái` cell turns from `Chưa kết nối` into
-`Đã cập nhật 9 bộ dữ liệu`, then make a Drive copy **from a different Google
-account** and confirm it (a) keeps the menu and (b) starts with no inherited
-API key. Record the live result here before handing the link to anyone.
+## Why there is no Apps Script
 
-Two known cosmetic gaps: the cover's `C7` still reads "Thiết lập kết nối" while
-the menu item is "Thiết lập API key", and the Apps Script project name is shown
-to every customer on the OAuth consent screen, so it must not be left as
-"Untitled project".
+An earlier version of this connector was a bound Apps Script with a
+**Viet Dataverse** menu (`Code.gs`, removed 2026-09-25 — see git history).
 
-`Viet-Dataverse-Google-Sheets-Template.xlsx` is a layout artifact only — an
-`.xlsx` cannot carry a bound Apps Script, so it is not the template.
-**`build-template.mjs` does not run in this repo**: it imports
-`@oai/artifact-tool`, which exists only in the authoring sandbox it was written
-in, and this repo has no npm toolchain at all. It is kept as the record of how
-the layout was produced, not as a build step.
+It worked, and it could not ship. A bound script travels with a Drive copy and
+becomes *the copier's own* script project, so Google showed every customer
+"Google hasn't verified this app", naming **the customer** as the developer, on
+a script they had just unknowingly acquired. No project setting removes that.
+The only fix is publishing a verified Google Workspace Marketplace add-on —
+weeks of review, a privacy policy, a demo video and a maintained GCP project.
 
-## User flow
+Do not reintroduce a bound script as a copyable template. If the Sheets channel
+ever justifies it, do the Marketplace route properly: customers then *install*
+an add-on instead of copying a file, which is a better product anyway.
 
-1. Make a copy of the published template.
-2. Open **Viet Dataverse → Thiết lập API key**.
-3. Authorize the script once, paste a valid API key, and choose a period in the native prompts.
-4. Use **Viet Dataverse → Refresh toàn bộ dữ liệu** whenever fresh data is needed.
+## Quota
 
-The API key is stored in Apps Script `UserProperties`. It is scoped to the
-current Google user and is never written into spreadsheet cells or request
-URLs. A refresh sends the key in `X-API-Key` and updates the nine managed data
-tabs without deleting or recreating them.
+Each tab is one metered API call, so opening the file with all nine tabs costs
+nine. Free tier is 2 requests/month — not enough to fill the file once, which is
+deliberate: the template is a reason to buy API Supper Lite (1.000/month ≈ 110
+opens). A customer who needs fewer datasets deletes the `A1` formula on the tabs
+they do not want.
 
-## Bound-script files
+## Rebuilding
 
-- `Code.gs`: menu, native setup prompts, settings, API calls, and data writes.
-- `appsscript.json`: V8 runtime and the minimum spreadsheet/external-request scopes.
+```bash
+python3 integrations/google-sheets/build_template.py
+```
 
-Keep the single script file bound to the template spreadsheet. A normal Drive
-copy keeps the bound script, so each customer receives the refresh menu in
-their copy without adding any other Apps Script files.
+Then publish the generated `.xlsx` into the live template spreadsheet:
+
+1. Open the [template](https://docs.google.com/spreadsheets/d/1UGILO_Mk02qWYx1BLk5DRE8yoNEXT9cTGIS57EOiwds/edit)
+2. **File → Import → Upload** the `.xlsx` → **Replace spreadsheet**
+3. Check the cover reads `Bắt đầu` and a data tab's `A1` shows the prompt text,
+   not `#ERROR!` — Google parses the formulas on import, so a bad formula is
+   visible immediately.
+
+Keeping the same file id matters: its `/copy` link is published in
+`fe/pages/google-sheets.html`, `api-docs.html` and `account.html`, and it is
+already shared `anyone with link → reader`.
+
+The Google Drive connector available to this repo's agents cannot convert
+`.xlsx` to a Google Sheet ("Invalid conversion requested"), so the import step
+is manual.
+
+## Endpoints
+
+Queries mirror `_datasets()` in `be/routers/sheets_export.py`. Both must change
+together if a dataset's parameters change. Every query was verified to return
+CSV against the live databases on 2026-09-25.

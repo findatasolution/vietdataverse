@@ -207,7 +207,7 @@ Store pattern: `INSERT ... ON CONFLICT DO NOTHING|UPDATE`. Never `MAX(id)+1` (us
 
 `crawl_vn30_price.py`, `crawl_vn30_financials.py`, `crawl_vn30_profile.py`, `crawl_vn30_ratios.py` all source from the `vnstock3` Python library, which wraps SSI/TCBS's internal (not publicly documented) endpoints. **`vnstock3`'s license explicitly prohibits any commercial use, including indirect use — "activities where Vnstock directly or indirectly contributes to generating revenue or cash flow for an organization" — without the author's written consent** ([license](https://github.com/thinh-vu/vnstock/blob/main/LICENSE.md)). Viet Dataverse is a commercial organization, so this applies **even to the free tier** — the restriction is on organizational use, not on whether a specific dataset is sold. The restriction travels with the data's chain of custody (exchange → licensed vendor → any redistributor), not with which field or endpoint serves it — so this covers `vn30_company_profile` (ticker/name/sector/ICB) and `vn_macro_vnindex_daily` (VN-Index) too, not just the price/ratio tables.
 
-**Done 2026-09-10**: `be/routers/vn30_data.py` no longer defines any `/vn30/*` or `/market/vnindex` endpoint — the file now serves only `macro/cpi`, `macro/gdp`, `macro/trade` (GSO-sourced, unrelated to vnstock3). `be/routers/developer.py`'s endpoint catalog, `be/routers/webhooks.py`'s `VALID_EVENTS`, `be/generate_static_data.py` (dropped `generate_vnindex_data()`), and every FE surface that referenced VN30/VN-Index data or endpoints (`app.js`, `app.overview.js`, `fe/partials/_tab_data_portal.html` — including its "Chứng khoán" overview section, now removed since VN-Index was its only chart — `fe/pages/api-docs.html` + its EN i18n data, `fe/pages/account.html` webhook picker, `fe/excel-addin/`, `fe/llms.txt`, `_layout_head.html`'s JSON-LD FAQ) were all updated in the same pass. Open Data overview grid is now 9 tiles / 4 sections (was 10/5) until a clean VN-Index source lands — see `fe/check_overview.py`, whose invariants were updated to match.
+**Done 2026-09-10**: `be/routers/vn30_data.py` no longer defines any `/vn30/*` or `/market/vnindex` endpoint — the file now serves only `macro/cpi`, `macro/gdp`, `macro/trade` (GSO-sourced, unrelated to vnstock3). `be/routers/developer.py`'s endpoint catalog, `be/routers/webhooks.py`'s `VALID_EVENTS`, `be/generate_static_data.py` (dropped `generate_vnindex_data()`), and every FE surface that referenced VN30/VN-Index data or endpoints (`app.js`, `app.overview.js`, `fe/partials/_tab_data_portal.html` — including its "Chứng khoán" overview section, now removed since VN-Index was its only chart — `fe/pages/api-docs.html` + its EN i18n data, `fe/pages/account.html` webhook picker, `fe/excel-addin/` (since removed), `fe/llms.txt`, `_layout_head.html`'s JSON-LD FAQ) were all updated in the same pass. Open Data overview grid is now 9 tiles / 4 sections (was 10/5) until a clean VN-Index source lands — see `fe/check_overview.py`, whose invariants were updated to match.
 
 **Crawl pipeline is untouched and keeps running** — `crawl_vn30_*.py` + their GitHub Actions workflows still populate `vn30_company_profile` / `vn30_ohlcv_daily` / `vn30_ratio_daily` / `vn30_income_stmt_quarterly` / `vn30_balance_sheet_quarterly` / `vn30_cashflow_quarterly` / `vn_macro_vnindex_daily` in `CRAWLING_CORP_DB` exactly as before — this is the "internal-only, for cross-checking BCTC-derived ROE/ROA/EPS" reference decided 2026-09-08, and removing the public router doesn't touch it. Only the read path (the API/FE) is gone; nothing reads those tables anymore.
 
@@ -741,7 +741,7 @@ not an oversight.
 
 **Display copy lives in 9 places** and must be changed with the constant:
 `be/main.py`'s 401 detail (now derived — leave it that way), `fe/llms.txt`,
-`api-docs.html`, `google-sheets.html`, `excel.html`, `developer.html`, the
+`api-docs.html`, `google-sheets.html`, `developer.html`, the
 three `fe/pages/docs-i18n-data/*.js` EN dictionaries, plus the `plans` fixture
 in `tests/journey/browser_smoke.cjs` and `.claude/rules/DESIGN.md` §13.6/13.7.
 `pricing.html` needs no change — it fetches `/plans`.
@@ -1056,6 +1056,39 @@ uniqueness guard. `if email and <lookup>` reads as "check when we have one" but
 means "skip when it is empty" — and empty is exactly the value a UNIQUE column
 can only hold once.
 
+### Two delivery flows only — API and Google Sheets (2026-09-25)
+
+The product was narrowed to the raw API and one Google Sheets template. The
+Excel page, the Office.js add-in (`fe/excel-addin/`), `/api/v1/excel/workbook`
+and its `.xlsx` generation are **deleted**, along with the older
+`google-sheets-appscript.html` (`=VDV_GOLD()` custom function) guide.
+
+**`be/routers/excel_export.py` is now `be/routers/sheets_export.py`, but the
+route is still `/api/v1/excel/refresh-data` — do not rename that path.** It is
+compiled into every copy of the Sheets template already sitting in customers'
+Drives, which are not ours to update, and it anchors the `/api/v1/excel` entry
+in `METERED_PREFIXES`. The Office-host CORS allowlist went with the add-in,
+including its `"null"` origin — worth noting, since `"null"` is what any
+sandboxed iframe or `file://` page sends, so it was widening CORS for a feature
+that no longer exists.
+
+**The Sheets template is nine `IMPORTDATA` formulas, not an Apps Script.** A
+bound script was built first and could not ship: a Drive copy makes the script
+*the copier's own* project, so Google shows every customer "Google hasn't
+verified this app" naming **the customer** as the developer. No project setting
+removes it; only a verified Workspace Marketplace add-on would. `IMPORTDATA`
+needs no authorization at all, so copy-file-then-paste-key is genuinely two
+steps. Generated by `integrations/google-sheets/build_template.py`.
+
+**Quota is the real constraint, and it is deliberate.** Each tab is one metered
+call, so opening the file costs nine. Free tier (2/month) cannot fill the file
+once; API Supper Lite (1.000/month) is ~110 opens. The template is the reason to
+buy the plan.
+
+**One formula bug worth remembering:** the "paste your key" placeholder is
+embedded inside a formula string literal, so a double quote inside it silently
+breaks all nine formulas. `build_template.py` carries a comment on that line.
+
 ### GA4 Reporting API (2026-09)
 
 `admin_dashboard` (`be/routers/admin.py`) now returns a `website_traffic` field (active users, pageviews, sessions, new users for the selected `24h`/`7d`/`ytd` period) sourced from GA4 property `522974314` via `be/core/ga4.py`. Site-side `gtag.js` tracking (`fe/partials/_layout_head.html`, two Measurement IDs `G-YB3PKHN2E5`/`G-B9BHYSYDES` — both data streams under this one property) already existed; this adds server-side *read* access so the number shows up in `admin.html` instead of requiring a manual login to analytics.google.com.
@@ -1228,9 +1261,9 @@ automatically.
 
 | File | Size | Consumers |
 |---|---|---|
-| `favicon-16x16.png` | 16 | `<link rel=icon>` in `_layout_head.html` + every `fe/pages/*.html`; Excel add-in `Icon.16x16` |
-| `favicon-32x32.png` | 32 | same, 32px slot; Excel add-in `IconUrl` / `Icon.32x32` |
-| `icon-80.png` | 80 | Excel add-in `HighResolutionIconUrl` / `Icon.80x80` |
+| `favicon-16x16.png` | 16 | `<link rel=icon>` in `_layout_head.html` + every `fe/pages/*.html` |
+| `favicon-32x32.png` | 32 | same, 32px slot |
+| `icon-80.png` | 80 | no consumer since the Excel add-in was removed 2026-09-25; still generated |
 | `apple-touch-icon.png` | 180 | iOS home screen; `manifest.json` |
 | `icon-192.png` | 192 | `manifest.json`; the header brand mark (`.app-brand-icon` img) |
 | `icon-512.png` | 512 | `manifest.json`, `msapplication-TileImage`, JSON-LD `logo`, `sitemap.xml` `image:loc` |
@@ -1252,7 +1285,7 @@ Three things to know before touching these:
   reachable at both `/fe/pages/x.html` and `/pages/x.html`, and a parent-relative
   path resolves differently on each — the same trap that killed `../auth.js` (see
   "Where production actually serves from"). Absolute-URL contexts (og/twitter,
-  JSON-LD, manifest, sitemap, Excel add-in manifest) use
+  JSON-LD, manifest, sitemap) use
   `https://vietdataverse.online/fe/images/…`.
 
 `fe/tools/make_icons.py` needs Pillow. It is an authoring-time tool — not loaded by

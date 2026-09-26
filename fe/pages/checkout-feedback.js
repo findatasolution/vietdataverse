@@ -29,7 +29,7 @@
             const actions = node('div', '', 'result-actions');
             if (success) {
                 actions.append(link('Lấy / kiểm tra API key', 'developer.html', 'btn-cta-sm'),
-                    link('Mẫu kết nối Excel', 'excel.html#starter', 'btn-data-secondary'));
+                    link('File Google Sheets mẫu', 'google-sheets.html#template', 'btn-data-secondary'));
             }
             actions.append(link('Trở lại dữ liệu đã chọn', window.VDPricing?.resumeHref() || '../index.html#data/portal'));
             if (retry) {

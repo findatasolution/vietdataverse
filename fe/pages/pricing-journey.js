@@ -54,7 +54,7 @@
             const root = document.getElementById('purchase-context'); root.hidden = false;
             const d = J.selectedDataset(context);
             root.append(J.el('h2', 'Dữ liệu bạn đang quan tâm: ' + J.name(d)),
-                J.el('p', `Cách dùng: ${context.method === 'excel' ? 'Excel / Sheets' : context.method === 'api' ? 'API' : 'Tải file'} · Kỳ biểu đồ: ${context.period || 'mặc định'}`),
+                J.el('p', `Cách dùng: ${context.method === 'excel' ? 'Google Sheets' : context.method === 'api' ? 'API' : 'Tải file'} · Kỳ biểu đồ: ${context.period || 'mặc định'}`),
                 J.el('p', 'Miễn phí để kiểm tra dữ liệu và thử API. Nâng cấp tăng hạn mức gọi API; không mở thêm lịch sử độc quyền.'),
                 J.link('Tiếp tục dùng miễn phí với dataset này', resumeHref()));
             const range = J.el('p', 'Đang kiểm tra phạm vi bản xem trước…'); root.append(range);
@@ -65,7 +65,7 @@
             const item = J.el('article', null, 'journey-dataset');
             item.append(J.link(J.name(d), J.route({id: d.id}), ''), J.el('small', `${d.source} · ${d.unit}`));
             const range = J.el('small', 'Đang kiểm tra snapshot…'); item.append(range);
-            item.append(J.el('small', d.endpoint ? 'CSV snapshot · Excel Power Query · API' : 'CSV snapshot · Chưa có API riêng'));
+            item.append(J.el('small', d.endpoint ? 'CSV snapshot · Google Sheets · API' : 'CSV snapshot · Chưa có API riêng'));
             grid.append(item);
             J.snapshot(d).then(s => { range.textContent = J.coverage(s.rows); }).catch(() => { range.textContent = 'Snapshot tạm không khả dụng'; });
         });

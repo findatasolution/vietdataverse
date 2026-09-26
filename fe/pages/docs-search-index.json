@@ -14,18 +14,6 @@
   {
     "page": "docs.html",
     "pageTitle": "Tổng quan",
-    "heading": "Google Sheets — hàm VDV (Apps Script)",
-    "anchor": null
-  },
-  {
-    "page": "docs.html",
-    "pageTitle": "Tổng quan",
-    "heading": "Lấy dữ liệu vào Excel (Power Query)",
-    "anchor": null
-  },
-  {
-    "page": "docs.html",
-    "pageTitle": "Tổng quan",
     "heading": "Seller Guide",
     "anchor": null
   },
@@ -136,213 +124,49 @@
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
-    "heading": "Bạn sẽ làm được gì",
-    "anchor": "overview"
+    "heading": "File mẫu — chỉ 2 bước",
+    "anchor": "template"
   },
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
-    "heading": "Bước 1 — Lấy API token",
-    "anchor": "token"
+    "heading": "Lấy API key",
+    "anchor": "key"
   },
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
-    "heading": "Bước 2 — Viết công thức trong Google Sheets",
-    "anchor": "formula"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
-    "heading": "Bước 3 — Đổi loại vàng & khoảng thời gian",
-    "anchor": "customize"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
-    "heading": "Không chỉ có vàng — các bộ dữ liệu khác",
+    "heading": "Chín bộ dữ liệu trong file",
     "anchor": "datasets"
   },
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
-    "heading": "Bước 4 — Cập nhật dữ liệu",
+    "heading": "Dữ liệu cập nhật khi nào",
     "anchor": "refresh"
   },
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
+    "heading": "Hạn mức",
+    "anchor": "quota"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
+    "heading": "Tự viết công thức (không dùng file mẫu)",
+    "anchor": "manual"
+  },
+  {
+    "page": "google-sheets.html",
+    "pageTitle": "Google Sheets",
     "heading": "Lỗi thường gặp",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
-    "heading": "Ô hiện #ERROR! hoặc \"Could not fetch url\"",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
-    "heading": "Ô hiện một dòng chữ {\"success\": false ... 401}",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
-    "heading": "Ô hiện lỗi liên quan đến 429 / hết quota",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
-    "heading": "Dữ liệu không tự cập nhật",
     "anchor": "troubleshoot"
   },
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
     "heading": "Google Sheets",
-    "anchor": null,
-    "isPage": true
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Khi nào nên dùng cách này?",
-    "anchor": "why"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Lưu ý về cảnh báo \"ứng dụng chưa xác minh\"",
-    "anchor": "warning"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Bước 1 — Dán script vào Apps Script",
-    "anchor": "install"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Bước 2 — Nhập key & cấp quyền (qua cảnh báo Google)",
-    "anchor": "authorize"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Bước 3 — Dùng hàm",
-    "anchor": "use"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Lỗi thường gặp",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "#ERROR! Chưa có API key",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Viet Dataverse lỗi 401",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Ô vẫn #ERROR sau khi nhập key",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Dữ liệu không tự cập nhật",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "google-sheets-appscript.html",
-    "pageTitle": "Sheets — hàm VDV",
-    "heading": "Sheets — hàm VDV",
-    "anchor": null,
-    "isPage": true
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Tải file Excel có sẵn dữ liệu",
-    "anchor": "download"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Bạn sẽ làm được gì",
-    "anchor": "overview"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Mẫu kết nối báo cáo: tỷ giá, CPI và GDP",
-    "anchor": "starter"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Bước 1 — Lấy API token",
-    "anchor": "token"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Bước 2 — Kết nối bằng Power Query",
-    "anchor": "connect"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Bước 3 — Làm mới dữ liệu",
-    "anchor": "refresh"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Danh sách bộ dữ liệu",
-    "anchor": "datasets"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Lỗi thường gặp",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Báo lỗi 401 / \"Access to the resource is forbidden\"",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Power Query hỏi đăng nhập (Organizational / Windows…)",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Dữ liệu JSON nằm trong 1 cột data",
-    "anchor": "troubleshoot"
-  },
-  {
-    "page": "excel.html",
-    "pageTitle": "Excel (Power Query)",
-    "heading": "Excel (Power Query)",
     "anchor": null,
     "isPage": true
   },

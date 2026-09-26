@@ -32,7 +32,8 @@ IMAGES = FE / "images"
 SIZES = {
     "favicon-16x16.png": 16,
     "favicon-32x32.png": 32,
-    "icon-80.png": 80,          # Excel add-in ribbon (fe/excel-addin/manifest.xml)
+    "icon-80.png": 80,          # kept for a future 80px slot; no consumer since
+                                # the Excel add-in was removed 2026-09-25
     "apple-touch-icon.png": 180,
     "icon-192.png": 192,        # PWA manifest + site header brand mark
     "icon-512.png": 512,        # PWA manifest, JSON-LD logo, msapplication tile

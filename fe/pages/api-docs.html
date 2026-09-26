@@ -533,17 +533,16 @@ print(get_vn_cpi_context("YOUR_API_KEY"))</div>
 
                 <details style="background:var(--pure-white);border:1px solid var(--border-cream);border-radius:10px;overflow:hidden;" data-i18n="ad.faq5">
                     <summary style="padding:14px 18px;cursor:pointer;font-weight:500;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
-                        Tôi muốn nhập dữ liệu thẳng vào Excel — không cần code
-                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">excel add-in</span>
+                        Tôi muốn dùng dữ liệu trong bảng tính — không cần code
+                        <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">google sheets</span>
                     </summary>
                     <div style="padding:0 18px 18px;border-top:1px solid var(--border-cream);">
-                        <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 10px;">Cài Excel Add-in một lần để nhập một bộ dữ liệu hoặc refresh toàn bộ file Viet Dataverse ngay trong Excel Mac, Windows và web.</p>
+                        <p style="font-size:13px;color:var(--text-secondary);margin:12px 0 10px;">Copy file Google Sheets mẫu về Drive của bạn, dán API key vào một ô. Chín bộ dữ liệu tự đổ về và tự cập nhật.</p>
                         <ol style="font-size:13px;color:var(--text-secondary);line-height:2;padding-left:18px;margin-bottom:12px;">
-                            <li>Vào <a href="/pages/account.html" style="color:var(--terracotta)">trang Account</a> → tải <strong>manifest.xml</strong></li>
-                            <li>Excel → <strong>Insert → Get Add-ins → Upload My Add-in</strong> → chọn file vừa tải</li>
-                            <li>Mở panel "Viet Dataverse", nhập API key, rồi chọn <strong>Refresh toàn bộ workbook</strong> hoặc nhập riêng một bộ dữ liệu</li>
+                            <li>Mở <a href="https://docs.google.com/spreadsheets/d/1UGILO_Mk02qWYx1BLk5DRE8yoNEXT9cTGIS57EOiwds/copy" target="_blank" rel="noopener" style="color:var(--terracotta)">file mẫu</a> → nhấn <strong>Tạo bản sao</strong></li>
+                            <li>Ở tab <strong>Bắt đầu</strong>, dán API key vào ô <strong>C4</strong></li>
                         </ol>
-                        <p style="font-size:12px;color:var(--text-tertiary);">File dựng sẵn refresh 9 bộ dữ liệu trong một lượt API; không dùng VBA.</p>
+                        <p style="font-size:12px;color:var(--text-tertiary);">Dùng hàm <code>IMPORTDATA</code> có sẵn của Google Sheets — không cài tiện ích, không có màn hình cấp quyền. <a href="/pages/google-sheets.html" style="color:var(--terracotta)">Hướng dẫn đầy đủ →</a></p>
                     </div>
                 </details>
 

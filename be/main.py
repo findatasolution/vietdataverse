@@ -16,7 +16,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, admin_report, developer, excel_export, vn30_data, student_verify, knowledge, wallet, seller, reports, takedown, webhooks, feedback, subscription, fuel_forecast
+from routers import market_data, analysis, auth_routes, interest, admin, admin_report, developer, sheets_export, vn30_data, student_verify, knowledge, wallet, seller, reports, takedown, webhooks, feedback, subscription, fuel_forecast
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -47,9 +47,9 @@ METERED_PREFIXES = (
     "/api/v1/global",          # global + global-macro
     "/api/v1/macro",           # macro (CPI/GDP/trade) — chart CPI công khai giờ
                                # đọc data/cpi_*.json nên gate live endpoint an toàn.
-    "/api/v1/excel",           # file Excel dựng sẵn — gate y hệt dữ liệu bên trong
-                               # nó, nên key hết hạn/hết quota là bị chặn TRƯỚC khi
-                               # workbook được dựng, không phải kiểm tra riêng.
+    "/api/v1/excel",           # refresh-data của Google Sheets — gate y hệt dữ liệu
+                               # bên trong nó. Tên đường dẫn giữ chữ "excel" vì nó đã
+                               # nằm trong mọi bản copy template khách đang dùng.
 )
 
 TRACKED_PUBLIC_PREFIXES = (
@@ -182,7 +182,7 @@ app.include_router(analysis.router)
 app.include_router(auth_routes.router)
 app.include_router(interest.router)
 app.include_router(admin.router)
-app.include_router(excel_export.router)   # /api/v1/excel/workbook
+app.include_router(sheets_export.router)  # /api/v1/excel/refresh-data (Google Sheets)
 app.include_router(admin_report.router)   # /api/v1/admin/report/* — các tab phân tích
 app.include_router(developer.router)
 app.include_router(vn30_data.router)
@@ -212,10 +212,6 @@ if os.path.exists(_fe):
 if os.path.exists(_fe_pages):
     app.mount("/pages", StaticFiles(directory=_fe_pages, html=True), name="fe_pages")
 
-# Excel Add-in static files — served at /excel-addin/
-_excel_addin = os.path.join(_root, "fe", "excel-addin")
-if os.path.exists(_excel_addin):
-    app.mount("/excel-addin", StaticFiles(directory=_excel_addin), name="excel_addin")
 
 
 # ── SEO / AEO: crawler files served at ROOT ───────────────────────────────────

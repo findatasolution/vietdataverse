@@ -11,15 +11,11 @@ _raw_cors_origins = os.getenv(
     "CORS_ALLOW_ORIGINS",
     "https://vietdataverse.online,https://www.vietdataverse.online,http://localhost:3000,http://localhost:5500,http://localhost:8000,http://localhost:8080,http://127.0.0.1:5500,http://127.0.0.1:8080"
 )
-_office_origins = [
-    # Office Add-in host domains — required for Excel/Word add-ins to call API
-    "https://appsforoffice.microsoft.com",
-    "https://officeapps.live.com",
-    "https://excel.officeapps.live.com",
-    "https://word.officeapps.live.com",
-    "null",  # Office desktop sideload sends Origin: null
-]
-ALLOW_ORIGINS = [o.strip() for o in _raw_cors_origins.split(",") if o.strip()] + _office_origins
+# The Office Add-in host allowlist was dropped on 2026-09-25 with the Excel
+# flow. It included "null", which Office desktop sideload sends as its Origin —
+# a value any sandboxed iframe or file:// page can also send, so keeping it for
+# a feature that no longer exists would widen CORS for nothing.
+ALLOW_ORIGINS = [o.strip() for o in _raw_cors_origins.split(",") if o.strip()]
 
 # Allowlists for exchange rate endpoint (prevents column-name injection)
 ALLOWED_BANKS = frozenset(["SBV", "BID", "TCB", "VCB", "ACB", "VPB", "MBB", "STB", "TPB", "HDB"])
