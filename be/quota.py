@@ -39,19 +39,25 @@ except Exception:  # pragma: no cover — fallback cho môi trường thiếu tz
 #
 # Hạ mức 2026-09-23 theo quyết định sản phẩm: catalog rút còn ĐÚNG 2 gói —
 # free và Light Dev (45k/tháng, 450k/năm, cùng level premium_developer).
-#   free              1.000 -> 2      (dùng thử, không phải để chạy thật)
+#   free              1.000 -> 2 -> 20 (xem ghi chú dưới)
 #   premium_developer 10.000 -> 1.000
 # Con số này là nguồn sự thật duy nhất: /api/v1/plans, pricing.html và mọi
 # chỗ hiển thị đều đọc từ đây qua get_quota(). Đổi ở đây thì phải đổi cả chữ
 # hiển thị đang hardcode (xem CLAUDE.md mục "Quota & gói cước").
 #
-# LƯU Ý về free = 2: phiên FE đã đăng nhập đi qua CÙNG bộ đếm này
+# Nâng 2 -> 20 ngày 2026-09-26. Lý do đo được, không phải cảm tính: file mẫu
+# Google Sheets gọi 9 endpoint cho MỘT lần mở, nên ở mức 2 thì mọi tài khoản
+# free mở file đều thấy 2 tab có dữ liệu và 7 tab trả 429 — xác nhận trong
+# api_call_log ngày 2026-09-26. Một file hỏng không bán được gói nào; 20 lượt
+# cho khách mở đủ ~2 lần để thấy nó chạy thật, vẫn quá ít để dùng hàng ngày.
+#
+# LƯU Ý: phiên FE đã đăng nhập đi qua CÙNG bộ đếm này
 # (_auth_via_bearer trong middleware.py), không riêng API key bên thứ ba. Chart
 # không tiêu quota vì đọc fe/data/*.json tĩnh, nhưng tải CSV thì có — một user
-# free tải 3 file CSV trong tháng là chạm 429. Đây là hành vi đã được chọn có
+# free tải 21 file CSV trong tháng là chạm 429. Đây là hành vi đã được chọn có
 # chủ ý, không phải sót.
 QUOTA_BY_LEVEL = {
-    "free":              {"monthly": 2,       "burst_per_sec": 2},
+    "free":              {"monthly": 20,      "burst_per_sec": 2},
     # Level legacy: không gói nào còn cấp level này nữa (premium_monthly/yearly
     # đã bị xoá khỏi SUBSCRIPTION_PLANS). Giữ lại ánh xạ để một hàng users cũ —
     # nếu có — suy biến về mức của gói trả phí thay vì mất hẳn quyền gọi API

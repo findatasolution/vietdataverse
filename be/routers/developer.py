@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from middleware import authenticate_user
 from core.engines import get_engine_user
-from quota import read_usage
+from quota import get_quota, read_usage
 
 router = APIRouter(prefix="/api/v1/developer", tags=["developer"])
 
@@ -216,10 +216,16 @@ async def list_endpoints():
     Không yêu cầu auth — dùng cho trang api-docs.html public.
     """
     return {
+        # Derived from be/quota.py, never retyped. This block published
+        # 1.000/10.000/100.000 for three days after the 2026-09-23 repricing
+        # because it was a hand-kept copy of numbers that live elsewhere.
         "quota": {
-            "free":        {"monthly_requests": 1_000,    "burst_per_sec": 2},
-            "dev_monthly": {"monthly_requests": 10_000,   "burst_per_sec": 10},
-            "dev_yearly":  {"monthly_requests": 100_000,  "burst_per_sec": 20},
+            "free":        {"monthly_requests": get_quota("free", None)["monthly"],
+                            "burst_per_sec": get_quota("free", None)["burst_per_sec"]},
+            "pro_monthly": {"monthly_requests": get_quota("premium_developer", None)["monthly"],
+                            "burst_per_sec": get_quota("premium_developer", None)["burst_per_sec"]},
+            "pro_yearly":  {"monthly_requests": get_quota("premium_developer", None)["monthly"],
+                            "burst_per_sec": get_quota("premium_developer", None)["burst_per_sec"]},
             "auth_header": "X-API-Key",
             "note": "Mọi endpoint dữ liệu cần API key (free hoặc trả phí). Đăng nhập để tạo key.",
             "error_codes": {

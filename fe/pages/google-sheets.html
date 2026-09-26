@@ -27,8 +27,8 @@
       },
       {
         "@type": "HowToStep",
-        "name": "Dán API key vào ô C4",
-        "text": "Ở tab Bắt đầu, dán API key vào ô C4. Chín tab dữ liệu tự đổ về ngay lập tức.",
+        "name": "Dán API key vào ô C6",
+        "text": "Ở tab Bắt đầu, dán API key vào ô C6. Chín tab dữ liệu tự đổ về ngay lập tức.",
         "url": "https://vietdataverse.online/pages/developer.html"
       }
     ]
@@ -99,7 +99,7 @@
       <a class="doc-toc-item" href="#template">File mẫu — 2 bước</a>
       <a class="doc-toc-item" href="#key">Lấy API key</a>
       <a class="doc-toc-item" href="#datasets">Chín bộ dữ liệu</a>
-      <a class="doc-toc-item" href="#refresh">Dữ liệu cập nhật khi nào</a>
+      <a class="doc-toc-item" href="#refresh">Làm mới dữ liệu</a>
       <a class="doc-toc-item" href="#quota">Hạn mức</a>
       <a class="doc-toc-item" href="#manual">Tự viết công thức</a>
       <a class="doc-toc-item" href="#troubleshoot">Lỗi thường gặp</a>
@@ -124,7 +124,7 @@
 
       <ol class="gs-steps">
         <li><strong>Nhấn “Tạo bản sao”.</strong> Google mở hộp thoại xác nhận, bấm nút là xong. Bản sao là của bạn, sửa thoải mái.</li>
-        <li><strong>Dán API key vào ô <code>C4</code> của tab “Bắt đầu”.</strong> Chín tab dữ liệu tự đổ về ngay.</li>
+        <li><strong>Dán API key vào ô <code>C6</code> của tab “Bắt đầu”.</strong> Chín tab dữ liệu tự đổ về ngay, mỗi tab kèm một biểu đồ.</li>
       </ol>
 
       <div class="doc-info">
@@ -144,7 +144,7 @@
         <a href="developer.html" target="_blank" rel="noopener">Mở trang Developer</a>
       </p>
       <div class="doc-warning">
-        Key nằm trong ô <code>C4</code> của bản sao của bạn, nên <strong>ai xem được file thì xem được key</strong>.
+        Key nằm trong ô <code>C6</code> của bản sao của bạn, nên <strong>ai xem được file thì xem được key</strong>.
         Đừng chia sẻ file cho người lạ. Nếu lỡ lộ, vào trang Developer tạo key mới — key cũ mất hiệu lực ngay.
       </div>
     </section>
@@ -172,14 +172,22 @@
     </section>
 
     <section id="refresh" class="doc-section">
-      <h2>Dữ liệu cập nhật khi nào</h2>
+      <h2>Làm mới dữ liệu</h2>
       <p>
-        Google tự gọi lại dữ liệu khi bạn mở file, và khoảng một giờ một lần trong lúc file đang mở.
-        Bạn không phải bấm gì cả.
+        Google tự tải lại khi bạn mở file, và khoảng một giờ một lần trong lúc file đang mở.
+        Bình thường bạn không phải làm gì.
       </p>
       <p>
-        Muốn ép cập nhật ngay: tải lại trang (<code>F5</code>). Nếu cần một giá trị đứng yên để đối chiếu,
-        copy vùng dữ liệu rồi <em>Dán đặc biệt → Chỉ dán giá trị</em> sang tab khác.
+        <strong>Muốn làm mới ngay lập tức: tăng số trong ô <code>C7</code> của tab “Bắt đầu”</strong>
+        (1 → 2 → 3…). Cả chín tab tải lại cùng lúc.
+      </p>
+      <div class="doc-warning">
+        <strong>Tải lại trang (F5) không làm mới dữ liệu.</strong> Google lưu cache theo đúng
+        đường dẫn đã gọi, nên chừng nào đường dẫn không đổi thì nó trả lại bản cũ. Ô <code>C7</code>
+        được ghép vào cuối đường dẫn, nên đổi số là đổi đường dẫn — đó là lý do nó làm mới thật.
+      </div>
+      <p>
+        Mỗi lần làm mới tốn <strong>9 lượt</strong> gọi API, nên đừng bấm liên tục.
       </p>
     </section>
 
@@ -191,7 +199,7 @@
       <table class="gs-table">
         <thead><tr><th>Gói</th><th>Hạn mức</th><th>Thực tế với file này</th></tr></thead>
         <tbody>
-          <tr><td>Miễn phí</td><td>2 request/tháng</td><td>Không đủ để đổ hết chín tab dù chỉ một lần — chỉ nên dùng để thử một tab</td></tr>
+          <tr><td>Miễn phí</td><td>20 request/tháng</td><td>Đủ mở file đầy đủ khoảng 2 lần — để bạn thấy nó chạy thật trước khi quyết định</td></tr>
           <tr><td>API Supper Lite</td><td>1.000 request/tháng</td><td>Khoảng 110 lần mở file mỗi tháng</td></tr>
         </tbody>
       </table>
@@ -235,8 +243,8 @@
         <thead><tr><th>Hiện tượng</th><th>Nguyên nhân &amp; cách xử lý</th></tr></thead>
         <tbody>
           <tr>
-            <td>Tab nào cũng hiện “← Dán API key vào ô C4…”</td>
-            <td>Ô <code>C4</code> tab “Bắt đầu” còn trống. Dán key vào đó.</td>
+            <td>Tab nào cũng hiện “← Dán API key vào ô C6…”</td>
+            <td>Ô <code>C6</code> tab “Bắt đầu” còn trống. Dán key vào đó.</td>
           </tr>
           <tr>
             <td><code>#REF!</code> hoặc ô trống</td>
@@ -252,7 +260,7 @@
           </tr>
           <tr>
             <td>Bản sao không có dữ liệu dù đã dán key</td>
-            <td>Kiểm tra đúng ô <code>C4</code> của tab <strong>Bắt đầu</strong> — các tab dữ liệu đều trỏ về ô đó.</td>
+            <td>Kiểm tra đúng ô <code>C6</code> của tab <strong>Bắt đầu</strong> — các tab dữ liệu đều trỏ về ô đó.</td>
           </tr>
         </tbody>
       </table>

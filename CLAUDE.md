@@ -711,7 +711,7 @@ message now interpolates it too rather than restating the number in prose.
 
 | Tier | Trước | Sau |
 |---|---|---|
-| `free` | 1.000 req/tháng | **2** |
+| `free` | 1.000 req/tháng | **20** (2 từ 2026-09-23, nâng lên 20 ngày 2026-09-26) |
 | `premium_developer` (gói bán: 45k/tháng, 450k/năm) | 10.000 | **1.000** |
 | `admin` | unlimited | unlimited |
 
@@ -733,7 +733,14 @@ intended outcome. `_activate_premium()` no longer falls back to
 granted a legacy plan, and after the deletion it would have been a latent
 `KeyError`; it raises instead.
 
-**free = 2 applies to logged-in FE sessions too**, not only third-party API
+**Nâng free 2 → 20 ngày 2026-09-26.** Ở mức 2, file mẫu Google Sheets — chín
+`IMPORTDATA`, một lượt gọi mỗi tab — cho mọi tài khoản free đúng 2 tab có dữ
+liệu và 7 tab `429`, xác nhận trong `api_call_log`. Một file hỏng không bán được
+gói nào. Đồng thời phát hiện `/api/v1/developer/endpoints` vẫn công bố
+1.000/10.000/100.000 — số của trước đợt đổi giá 2026-09-23, vì nó **gõ tay lại**
+thay vì đọc `get_quota()`; giờ nó suy ra, nên không lệch lại được.
+
+**free applies to logged-in FE sessions too**, not only third-party API
 keys — `_auth_via_bearer` shares the same counter. Charts don't consume it
 (they read `fe/data/*.json`), but a CSV download does, so a free account that
 downloads 3 CSVs in a month hits 429. This is a deliberate product decision,

@@ -73,7 +73,7 @@ const fixtures = {
         anonymous: {rows: [{endpoint: '/api/v1/gold', status_code: 401, calls: 2}],
                     recording_since: '2026-09-23 07:56:51',
                     note: 'Lượt gọi ẩn danh chỉ được ghi từ 2026-09-23 (migration 019).'},
-        quota_reference: {free: {monthly: 2}}, log_rows_total: 68,
+        quota_reference: {free: {monthly: 20}}, log_rows_total: 68,
     },
     'admin/report/money': {
         success: true, period: 'ytd',
