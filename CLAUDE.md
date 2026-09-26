@@ -945,12 +945,10 @@ already showed doesn't work.
 **Daily billing cron**: `.github/workflows/subscription-billing.yml`,
 `'11 3 * * *'` (10:11 VN, an odd non-`:00`/`:30` minute per this repo's own
 GitHub Actions scheduling rule), runs
-`python be/services/subscription.py --run-billing-cycle`. **Not yet merged
-as of 2026-09-11** — blocked on the `KNOWLEDGE_MARKET_DB` GitHub repo secret
-not existing yet (`gh secret list` confirmed); until it's added and the
-workflow file committed, subscriptions do not auto-renew or auto-expire on
-their own — `subscribe`/`cancel` work, but nothing calls `run_billing_cycle`
-except a manual `workflow_dispatch` or local invocation.
+`python be/services/subscription.py --run-billing-cycle`. **Live and green as
+of 2026-09-27** — the `KNOWLEDGE_MARKET_DB` secret landed 2026-09-15 and the
+three most recent scheduled runs succeeded. (This paragraph said "not yet
+merged, blocked on the secret" for two weeks after that stopped being true.)
 
 **Fan chart (2026-09-18)** — `make_forecast_rows` also writes
 `breakdown.bands`: the 50/80/95% world-shift quantiles per horizon, from the same
@@ -1049,9 +1047,12 @@ từ đầu. `idem_key` là `trial_convert:<sub_id>` **không kèm timestamp**, 
 unique index trên `credit_ledger.idem_key` là chốt chặn thứ hai chống trừ hai
 lần khi cron chạy lại trong ngày.
 
-**Chưa chạy được nếu thiếu cron.** `subscription-billing.yml` vẫn **chưa merge**
-(chờ secret `KNOWLEDGE_MARKET_DB`) — không có nó thì **không trial nào tự
-chuyển đổi**. Kiểm tra `gh secret list` trước khi tuyên bố tính năng đã xong.
+**Cron đã chạy thật (xác minh 2026-09-27).** `subscription-billing.yml` đang
+`active`, lịch `'11 3 * * *'` (10:11 VN), và ba lượt gần nhất (24, 25, 26/09)
+đều `success`. Ghi chú cũ trong file này nói nó "chưa merge, chờ secret
+`KNOWLEDGE_MARKET_DB`" **đã lỗi thời** — secret được thêm 2026-09-15. Đây là
+thứ duy nhất chuyển trial thành gói trả phí; nếu nó đỏ thì trial đứng im mà
+không ai biết.
 
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
