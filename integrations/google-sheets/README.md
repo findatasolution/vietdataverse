@@ -40,6 +40,18 @@ deliberate: the template is a reason to buy API Supper Lite (1.000/month ≈ 110
 opens). A customer who needs fewer datasets deletes the `A1` formula on the tabs
 they do not want.
 
+## Live template — verified 2026-09-26
+
+`1UGILO_Mk02qWYx1BLk5DRE8yoNEXT9cTGIS57EOiwds`, "Viet Dataverse — Dữ liệu kinh
+tế Việt Nam", shared `anyone with link → reader`, old bound Apps Script deleted.
+
+Verified after the import: all nine tabs carry a live formula — `A1` renders the
+"← Dán API key…" prompt, not `#NAME?`. That is the check that matters, because
+`IMPORTDATA` is a Google-only function and nothing guarantees an `.xlsx` import
+preserves it. **It does.**
+
+Still unverified: pasting a real key and watching data arrive.
+
 ## Rebuilding
 
 ```bash

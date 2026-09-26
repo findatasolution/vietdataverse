@@ -1,0 +1,29 @@
+# Dự phòng: nếu sau khi Import mà ô A1 báo #NAME?
+# Dán từng dòng vào ô A1 của tab tương ứng.
+
+[Vàng SJC]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/gold?period=1y&type=SJC&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[Bạc]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/silver?period=1y&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[Lãi suất LNH]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/sbv-interbank?period=1y&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[Tỷ giá]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/sbv-rate?period=1y&bank=SBV&currency=USD&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[Tiền gửi ACB]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/termdepo?period=1y&bank=ACB&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[Thế giới]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/global-macro?period=1y&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[CPI]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/macro/cpi?view=monthly&years=5&format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[GDP]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/macro/gdp?format=csv&api_key="&'Bắt đầu'!$C$4))
+
+[Xuất nhập khẩu]
+=IF('Bắt đầu'!$C$4="","← Dán API key vào ô C4 của tab Bắt đầu để đổ dữ liệu",IMPORTDATA("https://api.vietdataverse.online/api/v1/macro/trade?months=24&format=csv&api_key="&'Bắt đầu'!$C$4))
