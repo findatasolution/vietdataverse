@@ -993,6 +993,66 @@ unlike `/history`'s explicit ISO-8601 `…Z`), so the page reads the
 `YYYY-MM-DD` prefix as text rather than through `new Date()`, which would
 read it as local time and can shift the displayed day.
 
+### Trial 7 ngày cho gói API, trả bằng ví, có khoá tiền (2026-09-27)
+
+Thiết kế: `docs/superpowers/specs/2026-09-27-api-trial-wallet-hold-design.md`.
+Kế hoạch: `docs/superpowers/plans/2026-09-27-api-trial-wallet-hold.md`.
+
+**Vì sao không dùng thẻ.** PayOS đang dùng là link thanh toán **một lần**;
+`/api/v1/plans` trả thẳng `auto_renew: false`. Không có thẻ lưu thì không tự
+động trừ được. Polar.sh làm được và **Việt Nam có trong danh sách nhận payout**,
+nhưng phí cố định 0,50 USD trên sản phẩm 45.000đ ≈ 1,76 USD là **35% doanh
+thu**, và Polar thu bằng thẻ quốc tế. Nguồn tiền vì vậy là **ví credit** đã có.
+
+**Ba quy tắc sản phẩm, enforced trong `start_trial()`:**
+1. Không tick xác nhận → `ConsentRequired` (400). Kiểm tra **trước** khi động
+   vào ví.
+2. Ví phải có sẵn tối thiểu **một kỳ** (45 credit = 45.000đ) → nếu không,
+   `InsufficientCredits` (402) kèm `shortfall_vnd` để UI in ra con số còn thiếu.
+   Đường thất bại **không để lại dòng nào** — nạp thêm rồi thử lại là được.
+3. **Không trừ tiền ngày 0.** Tiền được *giữ chỗ* trong `credit_holds`, số dư
+   hiển thị không đổi, nhưng phần giữ chỗ không tiêu sang việc khác được.
+
+**`available = balance − hold đang hiệu lực` là con số mọi đường chi tiền phải
+đọc.** Có đúng ba đường: `credit.purchase_product`,
+`subscription.subscribe`, và `_decide_renewal` (qua `balance` truyền vào
+`_process_subscription`). **Bỏ sót một đường là hold thành đồ trang trí.**
+Hold đã quá `expires_at` không tính — nếu không, một cron chết sẽ đóng băng ví
+vĩnh viễn.
+
+**`trial_consents` là bảng chỉ-ghi-thêm, có trigger chặn UPDATE/DELETE.** Cố ý
+không dùng cột boolean trên `platform_subscriptions`: dòng đó bị ghi đè mỗi lần
+đăng ký lại, mà câu hỏi cần trả lời khi có tranh chấp là *"người này đã cho phép
+trừ bao nhiêu, vào lúc nào"* — bằng chứng tại thời điểm đó, không phải trạng
+thái hiện tại. Nó cũng là **nguồn sự thật cho "đã dùng thử chưa"**, vì
+`platform_subscriptions` bị ghi đè thì sẽ phát trial không giới hạn.
+
+**Văn bản đồng ý do FE gửi lên và server lưu nguyên văn**, dựng từ chính
+`amount_vnd`/`charge_on` server trả về — để thứ nằm trong DB đúng là thứ khách
+đã đọc.
+
+**Hai database, không có transaction chung.** Ví ở `KNOWLEDGE_MARKET_DB`;
+`users.current_plan`/`premium_expiry`/`user_level` ở `USER_DB`. Thứ tự **bắt
+buộc: ghi ví trước, cấp quyền sau** (`services/api_entitlement.py`). Ngược lại
+là cho không tiền. Lệch được tự vá: `_reassert_entitlements()` chạy cuối mỗi
+lượt `run_billing_cycle`, gán lại quyền cho mọi subscription còn sống — gán,
+không cộng dồn, nên chạy lại bao nhiêu lần cũng vô hại. Nó được bọc try/except
+vì lượt tính tiền đã commit rồi; một sweep vá lỗi không được phép xoá mất kết
+quả của lượt đó.
+
+**Huỷ trong kỳ dùng thử là huỷ ngay**, khác với huỷ gói đã trả tiền (gói trả
+tiền được dùng hết kỳ vì đã trả). Trial chưa trả gì nên không có gì để giữ, và
+để hold lại thì đóng băng tiền cho một subscription sẽ không bao giờ bị trừ.
+
+**Chuyển đổi khi hết trial không có nhánh "đủ tiền hay không"** — tiền đã khoá
+từ đầu. `idem_key` là `trial_convert:<sub_id>` **không kèm timestamp**, nên
+unique index trên `credit_ledger.idem_key` là chốt chặn thứ hai chống trừ hai
+lần khi cron chạy lại trong ngày.
+
+**Chưa chạy được nếu thiếu cron.** `subscription-billing.yml` vẫn **chưa merge**
+(chờ secret `KNOWLEDGE_MARKET_DB`) — không có nó thì **không trial nào tự
+chuyển đổi**. Kiểm tra `gh secret list` trước khi tuyên bố tính năng đã xong.
+
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
 `users.email` and `users.auth0_id` are both UNIQUE, and every router finds the

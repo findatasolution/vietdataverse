@@ -206,7 +206,7 @@ class TestRunBillingCycleExceptionIsolation:
         # The two subscriptions that didn't raise were still counted; the
         # failing one contributed to no counter (it was skipped, not silently
         # treated as any particular outcome).
-        assert result == {"renewed": 2, "past_due": 0, "cancelled": 0}
+        assert result == {"renewed": 2, "past_due": 0, "cancelled": 0, "converted": 0}
 
     def test_all_failing_returns_zero_counts_without_raising(self, monkeypatch):
         import be.services.subscription as sub_mod
@@ -221,4 +221,4 @@ class TestRunBillingCycleExceptionIsolation:
 
         # Must not raise — every failure is caught and logged, not propagated.
         result = sub_mod.run_billing_cycle(now=datetime(2026, 9, 10))
-        assert result == {"renewed": 0, "past_due": 0, "cancelled": 0}
+        assert result == {"renewed": 0, "past_due": 0, "cancelled": 0, "converted": 0}

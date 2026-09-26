@@ -147,6 +147,25 @@
         }
 
         /* ── Card ────────────────────────────────────────────── */
+        .trial-box {
+            max-width: 680px; margin: 0 auto 32px; padding: 24px 28px;
+            background: var(--ivory); border-radius: 16px;
+            box-shadow: 0 0 0 1px var(--border-warm);
+        }
+        .trial-box h2 { font-family: 'Lora', Georgia, serif; font-size: 22px; margin: 0 0 10px; }
+        .trial-box p { font-size: 14px; line-height: 1.65; color: var(--olive-gray); margin: 0 0 12px; }
+        .trial-warning { color: #b53333 !important; font-weight: 500; }
+        .trial-note { color: var(--stone-gray) !important; }
+        .trial-consent {
+            display: flex; gap: 10px; align-items: flex-start;
+            font-size: 14px; line-height: 1.6; color: var(--near-black);
+            margin: 0 0 16px; cursor: pointer;
+        }
+        .trial-consent input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+        #btn-start-trial:disabled { opacity: .5; cursor: not-allowed; }
+        .trial-result { margin-top: 14px !important; font-weight: 500; }
+        @media (max-width: 640px) { .trial-box { padding: 20px 16px; border-radius: 12px; } }
+
         .plan-card {
             background: var(--pure-white);
             border: 1px solid var(--border-cream);
@@ -776,6 +795,27 @@
         Thanh toán một lần cho 30 ngày · Không tự động gia hạn
     </p>
 
+    <!-- Trial box. Hidden until /trial-eligibility answers: a logged-out
+         visitor has no wallet to check, and showing a disabled control with no
+         explanation reads as a broken page. -->
+    <section class="trial-box" id="trial-box" hidden>
+        <h2 id="trial-title">Dùng thử 7 ngày</h2>
+        <p id="trial-explain">
+            <strong>Hôm nay không trừ tiền.</strong> Chúng tôi tạm khoá
+            <strong id="trial-amount">—</strong> trong ví của bạn suốt 7 ngày để đảm bảo
+            đủ tiền khi hết hạn. Số tiền đó vẫn là của bạn và được trả lại ngay nếu bạn
+            huỷ trước ngày <strong id="trial-charge-on">—</strong>.
+        </p>
+        <p class="trial-warning" id="trial-shortfall" hidden></p>
+        <p class="trial-note" id="trial-blocked" hidden></p>
+        <label class="trial-consent" id="trial-consent-label" hidden>
+            <input type="checkbox" id="trial-consent">
+            <span id="trial-consent-text"></span>
+        </label>
+        <button id="btn-start-trial" class="btn-data-primary" disabled>Bắt đầu dùng thử</button>
+        <p class="trial-result" id="trial-result" hidden></p>
+    </section>
+
     <section class="journey-tools" id="purchase-evidence">
         <h2>Bạn nhận được gì — và không nhận được gì?</h2>
         <p>Hạn mức cao hơn cho việc gọi dữ liệu định kỳ; không phải quyền truy cập một kho dữ liệu độc quyền khác. Nếu hạn mức miễn phí đã đủ, bạn chưa cần nâng cấp.</p>
@@ -1380,6 +1420,110 @@
     }
 
     window.addEventListener('load', initPage);
+
+    // ── Trial box ────────────────────────────────────────────────────────
+    // The server owns every number here. The consent sentence is built from
+    // the amount and date the server returned and posted back verbatim, so the
+    // text stored in trial_consents is exactly the text the customer read.
+    const TRIAL_PRODUCT = 'api-supper-lite';
+
+    function vnd(n) { return Number(n).toLocaleString('vi-VN') + 'đ'; }
+
+    function dmy(iso) {
+        // Read the YYYY-MM-DD prefix as text. new Date() on a naive server
+        // timestamp is parsed as local time and can shift the displayed day.
+        const [y, m, d] = String(iso).slice(0, 10).split('-');
+        return `${d}/${m}/${y}`;
+    }
+
+    async function initTrialBox() {
+        const box = document.getElementById('trial-box');
+        if (!box) return;
+        let authed = false;
+        try { authed = await isAuthenticated(); } catch { authed = false; }
+        if (!authed) return;                       // nothing to check a wallet against
+
+        let offer;
+        try {
+            const res = await fetchWithAuth(
+                `${API}/api/v1/subscriptions/trial-eligibility?product_code=${TRIAL_PRODUCT}`);
+            if (!res.ok) return;
+            offer = (await res.json()).data;
+        } catch { return; }
+
+        box.hidden = false;
+        document.getElementById('trial-amount').textContent = vnd(offer.required_vnd);
+        document.getElementById('trial-charge-on').textContent =
+            dmy(new Date(Date.now() + offer.trial_days * 864e5).toISOString());
+
+        const shortfallEl = document.getElementById('trial-shortfall');
+        const blockedEl = document.getElementById('trial-blocked');
+        const label = document.getElementById('trial-consent-label');
+        const checkbox = document.getElementById('trial-consent');
+        const button = document.getElementById('btn-start-trial');
+
+        if (offer.reason === 'already_used' || offer.reason === 'already_subscribed') {
+            blockedEl.hidden = false;
+            blockedEl.textContent = offer.reason === 'already_used'
+                ? 'Tài khoản này đã dùng thử gói trên rồi.'
+                : 'Tài khoản này đang có gói hoạt động.';
+            button.hidden = true;
+            return;
+        }
+
+        if (offer.shortfall_vnd > 0) {
+            shortfallEl.hidden = false;
+            shortfallEl.textContent =
+                `Ví của bạn có ${vnd(offer.available_vnd)} khả dụng. Cần tối thiểu ` +
+                `${vnd(offer.required_vnd)} để bắt đầu dùng thử — nạp thêm ` +
+                `${vnd(offer.shortfall_vnd)}.`;
+            return;                                 // no consent box on an offer they cannot take
+        }
+
+        const chargeOn = new Date(Date.now() + offer.trial_days * 864e5).toISOString();
+        const consentText =
+            `Tôi đồng ý cho Viet Dataverse trừ ${vnd(offer.required_vnd)} từ ví vào ngày ` +
+            `${dmy(chargeOn)}, khi hết ${offer.trial_days} ngày dùng thử.`;
+        document.getElementById('trial-consent-text').textContent = consentText;
+        label.hidden = false;
+        checkbox.addEventListener('change', () => { button.disabled = !checkbox.checked; });
+
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            const result = document.getElementById('trial-result');
+            try {
+                const res = await fetchWithAuth(`${API}/api/v1/subscriptions/trial`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({product_code: TRIAL_PRODUCT,
+                                          consented: true, consent_text: consentText}),
+                });
+                const body = await res.json().catch(() => ({}));
+                result.hidden = false;
+                if (res.ok) {
+                    const d = body.data;
+                    result.textContent =
+                        `Đã bắt đầu dùng thử. Không trừ tiền hôm nay; ${vnd(d.amount_vnd)} ` +
+                        `được tạm khoá và sẽ trừ vào ngày ${dmy(d.charge_on)}.`;
+                    label.hidden = true;
+                    button.hidden = true;
+                } else {
+                    const detail = body.detail;
+                    result.className = 'trial-result trial-warning';
+                    result.textContent = typeof detail === 'string'
+                        ? detail : (detail && detail.message) || 'Chưa bắt đầu được, thử lại sau.';
+                    button.disabled = false;
+                }
+            } catch {
+                result.hidden = false;
+                result.className = 'trial-result trial-warning';
+                result.textContent = 'Không kết nối được máy chủ. Thử lại sau.';
+                button.disabled = false;
+            }
+        });
+    }
+
+    window.addEventListener('load', initTrialBox);
 </script>
 
 <script src="docs-sidebar.js"></script>

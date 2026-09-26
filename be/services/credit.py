@@ -28,6 +28,92 @@ def get_balance(user_id: int) -> int:
         return row[0] if row else 0
 
 
+def _held_credits(conn, user_id: int) -> int:
+    """Sum of live reservations.
+
+    Expired holds do not count. A hold whose expires_at has passed was never
+    captured, so the money is the user's again even if the cron that formally
+    releases it has not run yet — otherwise a stuck cron would freeze a wallet
+    indefinitely.
+    """
+    row = conn.execute(text("""
+        SELECT COALESCE(SUM(amount_credits), 0) FROM credit_holds
+        WHERE user_id = :u AND status = 'active' AND expires_at > NOW()
+    """), {"u": user_id}).first()
+    return int(row[0]) if row else 0
+
+
+def get_wallet_state(user_id: int) -> dict:
+    """balance / held / available. `available` is what may be spent.
+
+    Every path that decides whether a user can afford something must read
+    `available`, not `balance`: held credits are already promised to a trial
+    that is about to convert. Missing one path makes the hold decorative.
+    """
+    engine = get_engine_knowledge()
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT balance FROM credit_balance WHERE user_id = :u"),
+            {"u": user_id},
+        ).first()
+        balance = row[0] if row else 0
+        held = _held_credits(conn, user_id)
+        return {"balance": balance, "held": held, "available": balance - held}
+
+
+def get_available_balance(user_id: int) -> int:
+    return get_wallet_state(user_id)["available"]
+
+
+def hold_credits(conn, user_id: int, amount: int, reason: str,
+                 ref_type: str, ref_id: int, expires_at) -> int:
+    """Reserve `amount` credits without moving them. Returns the hold id.
+
+    The caller must already hold the credit_balance row lock (SELECT ... FOR
+    UPDATE); without it two concurrent holds can each see the full balance and
+    both succeed.
+    """
+    row = conn.execute(
+        text("SELECT balance FROM credit_balance WHERE user_id = :u"),
+        {"u": user_id},
+    ).first()
+    balance = row[0] if row else 0
+    available = balance - _held_credits(conn, user_id)
+    if available < amount:
+        raise InsufficientCredits(
+            f"Insufficient credits: need {amount}, available {available}")
+    return conn.execute(text("""
+        INSERT INTO credit_holds (user_id, amount_credits, reason, ref_type, ref_id, status, expires_at)
+        VALUES (:u, :a, :r, :rt, :ri, 'active', :e) RETURNING id
+    """), {"u": user_id, "a": amount, "r": reason, "rt": ref_type,
+           "ri": ref_id, "e": expires_at}).scalar()
+
+
+def release_hold(conn, hold_id: int) -> None:
+    """Give the credits back. Idempotent — a hold already released or captured
+    is left alone, so a retried cancellation is harmless."""
+    conn.execute(text("""
+        UPDATE credit_holds SET status='released', released_at=NOW()
+        WHERE id = :id AND status = 'active'
+    """), {"id": hold_id})
+
+
+def capture_hold(conn, hold_id: int) -> int:
+    """Close the reservation and return its amount.
+
+    Capture does NOT debit. The caller writes the credit_ledger row and
+    decrements credit_balance, so a caller that forgets is a visible bug
+    rather than silently free money.
+    """
+    row = conn.execute(text("""
+        UPDATE credit_holds SET status='captured', released_at=NOW()
+        WHERE id = :id AND status = 'active' RETURNING amount_credits
+    """), {"id": hold_id}).first()
+    if row is None:
+        raise ValueError(f"Hold {hold_id} is not active")
+    return int(row[0])
+
+
 def credit_topup(user_id: int, credits: int, idem_key: str, note: str = "PayOS topup") -> dict:
     """
     Credit buyer account after confirmed PayOS payment.
@@ -112,8 +198,14 @@ def purchase_product(buyer_id: int, buyer_email: str, product_id: int) -> dict:
 
         price, seller_pid = product[0], product[1]
 
-        if balance < price:
-            raise InsufficientCredits(f"Insufficient credits: need {price}, have {balance}")
+        # Held credits are already promised to a trial about to convert.
+        # Spending them here would let the wallet fall below the amount that
+        # trial was allowed to start on — the exact hole the hold exists to
+        # close. See migration 021.
+        available = balance - _held_credits(conn, buyer_id)
+        if available < price:
+            raise InsufficientCredits(
+                f"Insufficient credits: need {price}, available {available}")
 
         # Debit buyer
         conn.execute(text("""
