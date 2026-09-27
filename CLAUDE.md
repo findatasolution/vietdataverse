@@ -59,6 +59,24 @@ Two products in one SPA:
 
 **NEVER display secrets in chat or terminal output.** This includes DB connection strings, API keys, passwords, tokens, or any value read from `.env`. Use values programmatically; mask or skip prints that would expose them.
 
+## Nhật ký yêu cầu (Required)
+
+**Mọi yêu cầu của chủ sản phẩm phải được ghi vào `docs/requests/YYYY-MM.md`
+trong chính phiên nhận yêu cầu đó** — không đợi tới cuối sprint, không đợi được
+nhắc. Format và quy ước: `docs/requests/README.md`.
+
+Mỗi mục phải có: yêu cầu (nguyên văn hoặc rút gọn trung thực), kết quả, commit,
+và **phần "không làm, có lý do"**. Phần cuối là phần quan trọng nhất: nó trả lời
+"vì sao hệ thống lại thế này" khi lý do đã rơi khỏi trí nhớ mọi người.
+
+Ghi cả yêu cầu **không làm được** và vì sao. Ghi cả chỗ agent nói sai rồi phải
+đính chính. Một nhật ký chỉ toàn việc thành công thì không ai cần đọc.
+
+Không sửa mục cũ. Đổi quyết định thì thêm mục mới trỏ ngược lại.
+
+"PR" ở đây là **Product Request**, không phải pull request — repo này commit
+thẳng lên `main` (xem "Git Workflow Rules").
+
 ## Documentation Close-out (Required)
 
 Documentation is part of the definition of done. Before marking any task complete:
