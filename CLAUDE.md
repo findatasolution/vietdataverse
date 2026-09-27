@@ -1072,6 +1072,22 @@ lần khi cron chạy lại trong ngày.
 thứ duy nhất chuyển trial thành gói trả phí; nếu nó đỏ thì trial đứng im mà
 không ai biết.
 
+### ĐỪNG set `TZ` cho container backend (bẫy tiềm ẩn, kiểm 2026-09-27)
+
+`be/middleware.py` so hạn subscription bằng `premium_expiry < datetime.now()`,
+trong khi `services/subscription.py` **ghi** hạn bằng `datetime.utcnow()`, và
+Neon trả `NOW()` theo UTC. Hiện tại không sao **chỉ vì `Dockerfile` và
+`docker-compose.yml` không set `TZ`**, nên container chạy UTC và hai hàm bằng
+nhau.
+
+Set `TZ=Asia/Ho_Chi_Minh` cho container — việc rất tự nhiên với một sản phẩm
+Việt Nam, và `integrations/google-sheets/appsscript.json` từng làm đúng như vậy
+— sẽ khiến `now()` chạy trước `utcnow()` 7 tiếng, và **mọi gói hết hạn sớm 7
+tiếng** một cách im lặng. Với trial 7 ngày đó là 4% thời lượng.
+
+Muốn đổi múi giờ hiển thị thì đổi ở tầng trình bày; đừng đổi đồng hồ mà code so
+sánh. Cách sửa đúng là thống nhất về `utcnow()` ở cả hai nơi — chưa làm.
+
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
 `users.email` and `users.auth0_id` are both UNIQUE, and every router finds the
