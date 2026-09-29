@@ -621,7 +621,7 @@
         const modal = document.getElementById('km-modal-product-detail');
         if (!modal) return;
 
-        modal.style.display = document.body.classList.contains('account-detail-mode') ? 'block' : 'flex';
+        modal.style.display = 'flex';
         modal.innerHTML = '<div class="km-modal-content"><div class="km-empty">Đang tải...</div></div>';
 
         try {
@@ -1251,7 +1251,7 @@
 
         const modal = document.getElementById('km-modal-seller-dashboard');
         if (!modal) return;
-        modal.style.display = 'flex';
+        modal.style.display = document.body.classList.contains('account-detail-mode') ? 'block' : 'flex';
         modal.innerHTML =
             '<div class="account-modal-heading"><h1 class="account-view-title">Cửa hàng</h1><p class="account-view-lead">Quản lý hồ sơ seller, sản phẩm và doanh thu của bạn.</p></div>' +
             '<div class="km-modal-content" style="max-width:720px;">' +
