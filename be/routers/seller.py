@@ -38,7 +38,10 @@ router = APIRouter(prefix="/api/v1/seller", tags=["seller"])
 
 CURRENT_TOS_VERSION = "1.0"
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5500")
+# Same default as payment.py and wallet.py. This one used to default to
+# localhost:5500, so any box without FRONTEND_URL mailed sellers links that
+# could only open on a developer's laptop.
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://vietdataverse.online")
 
 VALID_CATEGORIES = {"accounting", "trading", "macro", "policy", "sentiment"}
 VALID_FORMATS    = {"md", "json", "yaml", "csv"}
@@ -796,7 +799,10 @@ async def seller_create_product(
         # Send published email
         try:
             from services.email_service import send_email
-            product_url = f"{FRONTEND_URL}/pages/knowledge.html#{slug}"
+            # There is no per-product deep link in the SPA, and the page this
+            # used to name (/pages/knowledge.html) does not exist — it 404s. The
+            # seller's own store view is where the newly published product shows.
+            product_url = f"{FRONTEND_URL}/#km/seller-dashboard"
             send_email(
                 to=seller_email,
                 subject=f"Sản phẩm đã được duyệt — {title.strip()}",

@@ -14,7 +14,11 @@ logger = logging.getLogger(__name__)
 
 RESEND_API_URL = "https://api.resend.com/emails"
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-SENDER_FROM = os.getenv("EMAIL_FROM", "Viet Dataverse <onboarding@resend.dev>")
+# vietdataverse.online is verified in Resend (checked 2026-09-29 with a real
+# send). The old default, onboarding@resend.dev, only delivers to the Resend
+# account owner, so an unset EMAIL_FROM looked fine in testing and silently
+# dropped every real customer's mail.
+SENDER_FROM = os.getenv("EMAIL_FROM", "Viet Dataverse <noreply@vietdataverse.online>")
 
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "emails"
 

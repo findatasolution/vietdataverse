@@ -1182,9 +1182,23 @@ ký seller xong sao không nhận được mail".
 khi cắm API key thật mà quên `EMAIL_FROM`, thư vẫn tới được người test và im
 lặng rơi với mọi khách thật. Hai biến này phải đặt cùng lúc.
 
-**Để bật thật:** tạo API key ở Resend, xác minh domain `vietdataverse.online`,
-rồi đặt cả `RESEND_API_KEY` lẫn `EMAIL_FROM` trong `.env` trên box. Xác minh
-bằng một lần đăng ký seller thật, **không** bằng việc đọc log.
+**Trạng thái 2026-09-29:** domain `vietdataverse.online` **đã xác minh** trên
+Resend (một lần gửi thật trả 200), và `EMAIL_FROM` giờ mặc định về
+`noreply@vietdataverse.online` nên không bắt buộc đặt nữa. Key mới (quyền
+"sending only" — không đọc được `/domains`, chỉ kiểm được bằng gửi thật) nằm
+trong `.env` local; cả 4 template (`verify`, `product_published`,
+`product_rejected`, `takedown_received`) đã gửi thật thành công từ local.
+**Prod chỉ gửi được khi `RESEND_API_KEY` có trong `.env` trên box** —
+`docker-compose.yml` đọc `env_file: .env` của box, deploy không mang `.env`
+local lên — rồi `docker compose up -d` để container nạp lại. Xác minh prod bằng
+một lần đăng ký seller thật (modal không hiện link dự phòng `verify_url` là đã
+gửi), **không** bằng việc đọc log.
+
+Cùng lượt sửa: `seller.py` từng mặc định `FRONTEND_URL` là
+`http://localhost:5500` (khác `payment.py`/`wallet.py`), và link trong mail
+"sản phẩm đã được duyệt" trỏ tới `/pages/knowledge.html` — trang không tồn tại,
+404 trên prod. Giờ mặc định là domain thật và link trỏ về
+`/#km/seller-dashboard`; SPA chưa có deep link tới một sản phẩm.
 
 Tài khoản `npdhien2806@gmail.com` (seller_profiles id=7) đã được set
 `email_verified=true` tay ngày 2026-09-29, có ghi `admin_audit_log`, vì token

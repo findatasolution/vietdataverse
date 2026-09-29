@@ -110,43 +110,28 @@
 
     <h1>Google Sheets</h1>
     <p class="doc-lead">
-      Copy một file về Drive của bạn, dán API key vào <strong>một ô</strong>, và có ngay chín bộ dữ liệu
-      kinh tế Việt Nam tự cập nhật. Không cài đặt gì, không cấp quyền gì.
+      Tạo file có thể refresh chứa đầy đủ các bảng dữ liệu vĩ mô về Drive của bạn
     </p>
 
     <section id="template" class="doc-section">
-      <h2>File mẫu — chỉ 2 bước</h2>
+      <h2>Chỉ 2 bước</h2>
 
       <a class="gs-cta" href="https://docs.google.com/spreadsheets/d/1UGILO_Mk02qWYx1BLk5DRE8yoNEXT9cTGIS57EOiwds/copy" target="_blank" rel="noopener">
         Tạo bản sao file mẫu →
       </a>
-      <p class="gs-cta-sub">Mở bằng tài khoản Google của bạn. File sao chép nằm trong Drive của bạn.</p>
 
       <ol class="gs-steps">
         <li><strong>Nhấn “Tạo bản sao”.</strong> Google mở hộp thoại xác nhận, bấm nút là xong. Bản sao là của bạn, sửa thoải mái.</li>
         <li><strong>Dán API key vào ô <code>C6</code> của tab “Bắt đầu”.</strong> Chín tab dữ liệu tự đổ về ngay, mỗi tab kèm một biểu đồ.</li>
       </ol>
-
-      <div class="doc-info">
-        Không có bước ba. File mẫu dùng hàm <code>IMPORTDATA</code> có sẵn của Google Sheets, nên
-        <strong>không có tiện ích bổ sung nào được cài, không có màn hình xin cấp quyền, không có cảnh báo
-        “Google chưa xác minh ứng dụng này”.</strong>
-      </div>
     </section>
 
     <section id="key" class="doc-section">
       <h2>Lấy API key</h2>
       <p>
-        Đăng nhập Viet Dataverse rồi mở trang Developer để tạo key. Tài khoản miễn phí được cấp key ngay.
+        <a class="login-link" href="#">Bước 1: Đăng nhập</a> ·
+        <a href="developer.html" target="_blank" rel="noopener">Bước 2: Mở trang Developer</a>
       </p>
-      <p>
-        <a class="login-link" href="#">Đăng nhập</a> ·
-        <a href="developer.html" target="_blank" rel="noopener">Mở trang Developer</a>
-      </p>
-      <div class="doc-warning">
-        Key nằm trong ô <code>C6</code> của bản sao của bạn, nên <strong>ai xem được file thì xem được key</strong>.
-        Đừng chia sẻ file cho người lạ. Nếu lỡ lộ, vào trang Developer tạo key mới — key cũ mất hiệu lực ngay.
-      </div>
     </section>
 
     <section id="datasets" class="doc-section">
@@ -212,7 +197,7 @@
     </section>
 
     <section id="manual" class="doc-section">
-      <h2>Tự viết công thức (không dùng file mẫu)</h2>
+      <h2>Tự viết công thức</h2>
       <p>
         Nếu bạn chỉ cần đúng một bộ dữ liệu trong bảng tính sẵn có, không cần copy file mẫu.
         Dán key vào một ô — ví dụ <code>B1</code> — rồi dùng:
