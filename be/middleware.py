@@ -136,11 +136,22 @@ async def _auth_via_api_key(request: Request, api_key: str) -> bool:
                         },
                     )
                 # monthly cạn
+                #
+                # Nói luôn đường nâng cấp. Bản cũ chỉ báo "reset vào <ngày>",
+                # khiến khách tưởng phải chờ sang tháng — trong khi nâng tier có
+                # hiệu lực NGAY (check_and_consume đọc user_level mỗi lượt gọi,
+                # nên hạn mức mới áp dụng ở request kế tiếp, giữ nguyên số đã
+                # dùng). Riêng khách dùng file Google Sheets sẽ không bao giờ đọc
+                # được dòng này — IMPORTDATA chỉ hiện #N/A — nên nó phải đủ rõ
+                # cho người gọi API trực tiếp và cho log.
                 raise HTTPException(
                     status_code=429,
                     detail=(
                         f"Hết quota tháng ({q.monthly_limit} req). "
-                        f"Reset vào {reset_iso} (giờ VN)."
+                        f"Reset vào {reset_iso} (giờ VN). "
+                        f"Cần dùng tiếp ngay: nâng gói tại "
+                        f"https://vietdataverse.online/pages/pricing.html "
+                        f"— hạn mức mới có hiệu lực lập tức, không phải chờ sang tháng."
                     ),
                     headers={
                         "X-RateLimit-Limit":     str(q.monthly_limit),
