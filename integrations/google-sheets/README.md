@@ -29,6 +29,26 @@ refreshes each formula about hourly while a tab stays open.
 That is what makes the product promise keepable: a paying customer can pull the
 full dataset every day for thirty days and still be inside quota.
 
+### Locale — the one thing that silently corrupts the data
+
+`IMPORTDATA` is called with an explicit `"en_US"` locale. **Do not remove it.**
+
+A Drive copy inherits its owner's spreadsheet locale. Under `vi_VN`, Sheets
+reads `4.5` as *the date 4 May* and stores `46146`. Every rate shaped `X.Y`
+with `X<=12` and `Y<=31` was destroyed that way — refinancing `4.5` → `46146`,
+overnight `5.1` → `46027`, `3.7` → `46088` — while three-digit values like
+`4.45` survived, so the damage looked like random noise instead of a parsing
+rule. In `en_US` the decimal separator is `.` and the date separator is `/`, so
+a rate cannot be mistaken for a date at all.
+
+The first column of each tab also carries an explicit number format, applied
+cell by cell over the spill range because a column-level format does not
+survive the `.xlsx` → Sheets conversion. Without it a parsed date renders as
+its serial (`45929` instead of `2025-09-29`). Dates use `yyyy-mm-dd`; CPI and
+trade use `yyyy-mm` (their period is `2026-08`, which `en_US` turns into
+1 Aug 2026 — the format displays it back as the source states it); GDP's year
+is a plain number.
+
 ### When the API refuses
 
 `IMPORTDATA` renders `#N/A` and nothing else — a Sheets user never sees an HTTP

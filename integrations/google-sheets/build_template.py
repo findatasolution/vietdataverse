@@ -42,26 +42,26 @@ WARN = "B53333"
 
 UPGRADE_URL = "https://vietdataverse.online/pages/pricing.html"
 
-# (tab, dataset id, headers, chart=(first_value_col, last_value_col, y label))
+# (tab, dataset id, headers, chart, first-column number format)
 # Headers and column counts come from the live API, verified 2026-09-29.
 # Column 1 is always the date or period, so charted values start at 2.
 DATASETS = [
-    ("Vàng SJC", "gold", ["Ngày", "Giá mua", "Giá bán"], (2, 3, "VND/lượng")),
-    ("Bạc", "silver", ["Ngày", "Giá mua", "Giá bán"], (2, 3, "VND/lượng")),
+    ("Vàng SJC", "gold", ["Ngày", "Giá mua", "Giá bán"], (2, 3, "VND/lượng"), "yyyy-mm-dd"),
+    ("Bạc", "silver", ["Ngày", "Giá mua", "Giá bán"], (2, 3, "VND/lượng"), "yyyy-mm-dd"),
     ("Lãi suất LNH", "interbank",
      ["Ngày", "Qua đêm", "1 tháng", "3 tháng", "6 tháng", "9 tháng", "Chiết khấu", "Tái cấp vốn"],
-     (2, 6, "%/năm")),
-    ("Tỷ giá", "fx", ["Ngày", "Tỷ giá trung tâm", "Mua tiền mặt", "Bán"], (2, 2, "VND/USD")),
+     (2, 6, "%/năm"), "yyyy-mm-dd"),
+    ("Tỷ giá", "fx", ["Ngày", "Tỷ giá trung tâm", "Mua tiền mặt", "Bán"], (2, 2, "VND/USD"), "yyyy-mm-dd"),
     ("Tiền gửi ACB", "deposit",
-     ["Ngày", "1 tháng", "3 tháng", "6 tháng", "12 tháng", "24 tháng"], (2, 6, "%/năm")),
-    ("Thế giới", "global", ["Ngày", "Vàng (USD/oz)", "Bạc (USD/oz)", "NASDAQ"], (2, 4, "USD")),
-    ("CPI", "cpi", ["Kỳ", "So tháng trước (%)", "So cùng kỳ (%)"], (2, 3, "%")),
+     ["Ngày", "1 tháng", "3 tháng", "6 tháng", "12 tháng", "24 tháng"], (2, 6, "%/năm"), "yyyy-mm-dd"),
+    ("Thế giới", "global", ["Ngày", "Vàng (USD/oz)", "Bạc (USD/oz)", "NASDAQ"], (2, 4, "USD"), "yyyy-mm-dd"),
+    ("CPI", "cpi", ["Kỳ", "So tháng trước (%)", "So cùng kỳ (%)"], (2, 3, "%"), "yyyy-mm"),
     # GDP interleaves several series down one column (year, quarter, sector),
     # so a line through it would draw nonsense. No chart on purpose.
-    ("GDP", "gdp", ["Năm", "Quý", "Khu vực", "GDP (tỷ VND)", "Tăng trưởng (%)"], None),
+    ("GDP", "gdp", ["Năm", "Quý", "Khu vực", "GDP (tỷ VND)", "Tăng trưởng (%)"], None, "0"),
     ("Xuất nhập khẩu", "trade",
      ["Kỳ", "Xuất (tỷ USD)", "Nhập (tỷ USD)", "Cán cân", "XK cùng kỳ (%)", "NK cùng kỳ (%)"],
-     (2, 4, "tỷ USD")),
+     (2, 4, "tỷ USD"), "yyyy-mm"),
 ]
 
 PROMPT = "Dán API key vào ô C6 của tab Bắt đầu"
@@ -78,8 +78,17 @@ def raw_formula() -> str:
     """The single network call in the whole workbook."""
     url = f"{API}/excel/refresh-data?period={PERIOD}&format=csv&api_key="
     ref = f"'{COVER}'!{KEY_CELL}"
+    # locale="en_US" is not cosmetic — it is the difference between real data and
+    # silent corruption. A copy of this file inherits the owner's spreadsheet
+    # locale, and under vi_VN Sheets reads "4.5" as the DATE 4 May and stores
+    # 46146. Every rate of the form X.Y with X<=12 and Y<=31 was destroyed that
+    # way: refinancing 4.5 -> 46146, overnight 5.1 -> 46027, 3.7 -> 46088.
+    # Three-digit values like 4.45 survived, which is what made the damage look
+    # like random noise rather than a parsing rule. In en_US the decimal
+    # separator is "." and the date separator is "/", so a rate cannot be
+    # mistaken for a date at all.
     return (f'=IF({ref}="","{PROMPT}",'
-            f'IFERROR(IMPORTDATA("{url}"&{ref}),"{ERROR_MSG}"))')
+            f'IFERROR(IMPORTDATA("{url}"&{ref}, ",", "en_US"),"{ERROR_MSG}"))')
 
 
 def query_formula(dataset_id: str, n_cols: int) -> str:
@@ -160,7 +169,8 @@ def add_chart(ws, tab: str, spec, n_rows: int = MAX_ROWS) -> None:
     ws.add_chart(chart, "K5")
 
 
-def build_dataset_tab(ws, tab: str, dataset_id: str, headers: list, chart_spec) -> None:
+def build_dataset_tab(ws, tab: str, dataset_id: str, headers: list, chart_spec,
+                      key_format: str) -> None:
     # Row 1: freshness. Row 3: headers. Row 4+: the QUERY spill.
     ws["A1"] = "Dữ liệu mới nhất:"
     ws["A1"].font = Font(size=10, bold=True, color=INK)
@@ -181,6 +191,13 @@ def build_dataset_tab(ws, tab: str, dataset_id: str, headers: list, chart_spec) 
 
     ws["A4"] = query_formula(dataset_id, len(headers))
     ws.freeze_panes = "A4"
+
+    # The first column has to be told what it is. Sheets stores a parsed date as
+    # a serial number and, with no format, renders it as 45929 — which is what
+    # the gold tab showed. Applied cell by cell over the spill range because a
+    # column-level format does not survive the .xlsx -> Sheets conversion.
+    for row in range(4, MAX_ROWS + 1):
+        ws.cell(row=row, column=1).number_format = key_format
     if chart_spec:
         add_chart(ws, tab, chart_spec)
 
@@ -190,8 +207,9 @@ def main() -> Path:
     build_cover(wb.active)
     wb.active.title = COVER
 
-    for tab, dataset_id, headers, chart_spec in DATASETS:
-        build_dataset_tab(wb.create_sheet(tab), tab, dataset_id, headers, chart_spec)
+    for tab, dataset_id, headers, chart_spec, key_format in DATASETS:
+        build_dataset_tab(wb.create_sheet(tab), tab, dataset_id, headers,
+                          chart_spec, key_format)
 
     # Last, so it sits at the end of the tab strip rather than between datasets.
     build_raw(wb.create_sheet(RAW))

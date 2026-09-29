@@ -1009,6 +1009,30 @@ unlike `/history`'s explicit ISO-8601 `…Z`), so the page reads the
 `YYYY-MM-DD` prefix as text rather than through `new Date()`, which would
 read it as local time and can shift the displayed day.
 
+### Google Sheets: `IMPORTDATA` phải ép `locale="en_US"` (phát hiện 2026-09-29)
+
+Bản sao Drive **kế thừa locale bảng tính của người copy**. Dưới `vi_VN`,
+Sheets đọc `4.5` là **ngày 4 tháng 5** và lưu `46146`. Mọi lãi suất dạng `X.Y`
+với `X<=12`, `Y<=31` bị phá: tái cấp vốn `4.5` → `46146`, qua đêm `5.1` →
+`46027`, `3.7` → `46088`. Giá trị ba chữ số như `4.45` thì thoát — nên thiệt
+hại trông như nhiễu ngẫu nhiên chứ không ra quy luật, và đó là lý do nó qua
+được mắt.
+
+**Dữ liệu trong API hoàn toàn đúng** (kiểm trực tiếp: `refinancing = 4.5` mọi
+dòng). Đây là lỗi phía Sheets, không phải lỗi dữ liệu — đừng đi sửa crawler.
+
+`integrations/google-sheets/build_template.py` gọi
+`IMPORTDATA(url, ",", "en_US")`. **Đừng bỏ tham số locale.** Trong `en_US`,
+dấu thập phân là `.` và dấu ngày là `/`, nên một lãi suất không thể bị hiểu
+thành ngày.
+
+Cột đầu mỗi tab còn mang **định dạng số tường minh**, gán từng ô trên vùng
+spill vì định dạng theo-cột **không sống qua** bước convert `.xlsx` → Sheets.
+Thiếu nó thì một ngày đã parse sẽ hiện ra số sê-ri (`45929` thay vì
+`2025-09-29`) — đúng cái thấy ở tab Vàng SJC. Ngày dùng `yyyy-mm-dd`; CPI và
+XNK dùng `yyyy-mm` (kỳ của chúng là `2026-08`, `en_US` biến thành 01/08/2026,
+định dạng này hiện lại đúng như nguồn công bố); GDP là số năm nên để `0`.
+
 ### Trial 7 ngày cho gói API, trả bằng ví, có khoá tiền (2026-09-27)
 
 Thiết kế: `docs/superpowers/specs/2026-09-27-api-trial-wallet-hold-design.md`.
