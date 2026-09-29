@@ -55,3 +55,7 @@ jobs:
             echo "EMAIL NOT SENT (dev mode):        $(printf '%s' "$LOG" | grep -c 'EMAIL NOT SENT' || true)"
             echo "student OTP email failed:         $(printf '%s' "$LOG" | grep -c 'student OTP email failed' || true)"
             echo "POST /api/v1/student/send-otp:    $(printf '%s' "$LOG" | grep -c 'POST /api/v1/student/send-otp' || true)"
+            for code in 200 429 503; do
+              echo "  send-otp -> $code:              $(printf '%s' "$LOG" | grep 'POST /api/v1/student/send-otp' | grep -c " $code" || true)"
+            done
+            echo "confirm-otp -> 200:               $(printf '%s' "$LOG" | grep 'POST /api/v1/student/confirm-otp' | grep -c ' 200' || true)"
