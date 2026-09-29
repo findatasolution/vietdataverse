@@ -1,0 +1,29 @@
+name: Box — set Resend key
+on:
+  workflow_dispatch:
+jobs:
+  set-key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write key on box, restart, verify
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          RESEND_KEY: ${{ secrets.RESEND_API_KEY }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          envs: RESEND_KEY
+          script: |
+            set -euo pipefail
+            APP_DIR="${{ secrets.DEPLOY_APP_DIR }}"; APP_DIR="${APP_DIR:-/root/vietdataverse}"
+            cd "$APP_DIR"
+            case "$RESEND_KEY" in re_*) ;; *) echo "secret không phải key Resend"; exit 1;; esac
+            cp .env ".env.bak.$(date +%Y%m%d-%H%M%S)"
+            grep -v '^RESEND_API_KEY=' .env > .env.new || true
+            printf 'RESEND_API_KEY=%s\n' "$RESEND_KEY" >> .env.new
+            chmod --reference=.env .env.new && mv .env.new .env
+            docker compose up -d
+            sleep 20
+            docker exec vietdataverse sh -c 'case "$RESEND_API_KEY" in re_*) echo "OK: container đã có key";; *) echo FAIL; exit 1;; esac'
