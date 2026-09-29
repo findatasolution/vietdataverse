@@ -40,9 +40,38 @@ jobs:
         run: |
           pip install -r be/requirements.txt
           pip install pytest
+          # tests/fuel/ imports the MOIT parser, which lives in crawl_tools and
+          # needs BeautifulSoup. Pinned by passing crawl_tools/requirements.txt
+          # as a *constraint* file, so this stays in lockstep with what the
+          # crawlers actually run (same trick as deploy/crawler.Dockerfile)
+          # instead of duplicating a version here.
+          pip install -c crawl_tools/requirements.txt beautifulsoup4
 
       # The runner is UTC, which is precisely the environment that hid the
       # timezone bug. tests/time/ spawns its own subprocesses with an explicit
       # TZ, so it proves the UTC-independence here too.
       - name: Run backend test suite (no-secrets subset)
-        run: python -m pytest tests/time tests/auth tests/fuel tests/subscription -v
+        # be/database.py raises at IMPORT time when CRAWLING_BOT_DB is unset,
+        # and importing any router reaches it. These are syntactically valid
+        # URLs that are never connected to: SQLAlchemy's create_engine does not
+        # open a socket, and every test in this subset is pure or sqlite-backed.
+        # A developer machine hides this because python-dotenv reads the .env
+        # FILE regardless of the environment — which is why running the same
+        # command with `env -i` locally still passed while CI failed.
+        env:
+          CRAWLING_BOT_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          CRAWLING_CORP_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          GLOBAL_INDICATOR_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          USER_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          KNOWLEDGE_MARKET_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          FUEL_FORECAST_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          ARGUS_FINTEL_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+          HELPER_DB: postgresql://ci:ci@127.0.0.1:5432/unused
+        # test_subscription_db.py is excluded because it is not part of the
+        # no-secrets subset despite living beside tests that are: it opens real
+        # connections to KNOWLEDGE_MARKET_DB. The dummy URLs above are never
+        # connected to, so it errors rather than skips. Everything else here is
+        # pure logic or sqlite.
+        run: |
+          python -m pytest tests/time tests/auth tests/fuel tests/subscription \
+            --ignore=tests/subscription/test_subscription_db.py -v
