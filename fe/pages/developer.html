@@ -7,399 +7,194 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/fe/images/favicon-32x32.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="../auth.js" defer></script>
     <style>
-        :root {
-            --parchment:    #f5f4ed;
-            --ivory:        #faf9f5;
-            --pure-white:   #ffffff;
-            --warm-sand:    #e8e6dc;
-            --near-black:   #141413;
-            --olive-gray:   #5e5d59;
-            --stone-gray:   #87867f;
-            --terracotta:   #2f5fde;
-            --coral:        #5b84e8;
-            --error-red:    #b53333;
-            --border-cream: #f0eee6;
-            --border-warm:  #e8e6dc;
-            --ring-warm:    #d1cfc5;
-            --whisper:      rgba(20,20,19,0.05) 0px 4px 24px;
-            --text-primary:   #141413;
-            --text-secondary: #5e5d59;
-            --text-tertiary:  #87867f;
-            --border-subtle:  #e8e6dc;
-            --charcoal:       #4d4c48;
-            --dark-surface:   #30302e;
-            --warm-silver:    #b0aea5;
-            --radius-sm:  8px;
-            --radius-md:  12px;
-            --radius-xl:  20px;
-        }
-        body { margin: 0; background: var(--parchment); color: var(--near-black); }
-
-        /* ── Layout (match account.html) ─────────────────────── */
-        .account-page {
-            min-height: 100vh; background: var(--parchment);
-            display: flex; flex-direction: column; align-items: center;
-            padding: 0 16px 80px;
-        }
-        .page-nav {
-            width: 100%; max-width: 680px; margin: 0 auto;
-            padding: 20px 4px;
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            flex-wrap: wrap;
-        }
-        .nav-logo {
-            font-family: 'Lora', Georgia, serif; font-size: 15px; font-weight: 500;
-            color: var(--near-black); text-decoration: none;
-            display: flex; align-items: center; gap: 6px;
-            opacity: .85; transition: opacity .2s;
-        }
-        .nav-logo:hover { opacity: 1; }
-
-        .settings-tabs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-        .settings-tab {
-            display: inline-flex; align-items: center;
-            padding: 6px 12px; border-radius: 8px;
-            font-size: 13px; font-weight: 500;
-            color: var(--olive-gray); text-decoration: none;
-            transition: background .15s, color .15s;
-        }
-        .settings-tab:hover { background: var(--warm-sand); color: var(--near-black); }
-        .settings-tab.active {
-            background: var(--warm-sand); color: var(--near-black); font-weight: 600;
-            box-shadow: 0 0 0 1px var(--ring-warm);
-        }
-        .nav-burger {
-            display: none; flex-shrink: 0;
-            background: none; border: 1px solid var(--border-warm); border-radius: 8px;
-            padding: 6px 8px; cursor: pointer; color: var(--near-black);
-            align-items: center; justify-content: center;
-        }
-        .nav-burger svg { display: block; }
-        @media (max-width: 640px) {
-            .page-nav { position: relative; flex-wrap: nowrap; }
-            .nav-burger { display: inline-flex; }
-            .settings-tabs {
-                display: none;
-                position: absolute; top: 100%; left: 4px; right: 4px; z-index: 60;
-                flex-direction: column; align-items: stretch; gap: 2px;
-                background: var(--ivory); border: 1px solid var(--border-cream);
-                border-radius: 12px; padding: 8px; margin-top: 6px; box-shadow: var(--whisper);
-            }
-            .settings-tabs.open { display: flex; }
-            .settings-tab { padding: 10px 12px; }
-        }
-
-        /* ── Page Header ─────────────────────────────────────── */
-        .account-header { width: 100%; max-width: 680px; padding: 8px 4px 28px; }
-        .account-badge {
-            display: inline-flex; align-items: center;
-            background: rgba(201, 100, 66, .08);
-            border: 1px solid rgba(201, 100, 66, .18);
-            border-radius: 99px; padding: 3px 12px;
-            font-size: 11px; font-weight: 600; color: var(--terracotta);
-            letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px;
-        }
-        .account-title {
-            font-family: 'Lora', Georgia, serif;
-            font-size: clamp(22px, 4vw, 30px); font-weight: 600;
-            color: var(--near-black); margin: 0;
-        }
-
-        /* ── Cards ───────────────────────────────────────────── */
-        .card {
-            width: 100%; max-width: 680px;
-            background: var(--pure-white);
-            border: 1px solid var(--border-cream);
-            border-radius: var(--radius-xl);
-            padding: 28px; margin-bottom: 16px;
-            box-shadow: var(--whisper);
-        }
-        .card-title {
-            font-size: 13px; font-weight: 600; color: var(--stone-gray);
-            letter-spacing: .05em; text-transform: uppercase; margin-bottom: 20px;
-        }
-
-        /* ── State cards (loading / auth required) ───────────── */
-        .state-card {
-            width: 100%; max-width: 680px;
-            background: var(--pure-white); border: 1px solid var(--border-cream);
-            border-radius: var(--radius-xl); padding: 48px 28px;
-            text-align: center; box-shadow: var(--whisper);
-        }
-        .state-icon { font-size: 36px; margin-bottom: 16px; }
-        .state-title {
-            font-family: 'Lora', Georgia, serif; font-size: 18px; font-weight: 600;
-            color: var(--near-black); margin-bottom: 8px;
-        }
-        .state-sub { font-size: 13px; color: var(--stone-gray); margin-bottom: 24px; line-height: 1.6; }
-        .spinner {
-            width: 28px; height: 28px;
-            border: 2.5px solid var(--border-cream); border-top-color: var(--terracotta);
-            border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 16px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .btn-upgrade {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: var(--terracotta); color: var(--ivory);
-            border: none; border-radius: var(--radius-md);
-            padding: 10px 20px; font-size: 13px; font-weight: 600;
-            font-family: inherit; cursor: pointer; text-decoration: none;
-            white-space: nowrap; transition: background .2s;
-        }
-        .btn-upgrade:hover { background: var(--coral); }
-
-        /* ── Key display ─────────────────────────────────────── */
-        .key-display {
-            display: flex; align-items: center; gap: 10px;
-            background: var(--warm-sand); border: 1px solid var(--border-warm);
-            border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 6px;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 14px;
-        }
-        .key-value {
-            flex: 1; color: var(--charcoal); letter-spacing: .04em;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .key-value.masked { color: var(--stone-gray); }
-        .btn-copy {
-            background: none; border: 1px solid var(--border-warm);
-            color: var(--olive-gray); font-size: 11px; font-weight: 500;
-            padding: 4px 10px; border-radius: 4px; cursor: pointer;
-            font-family: inherit; transition: all .2s; white-space: nowrap;
-        }
-        .btn-copy:hover { color: var(--terracotta); border-color: rgba(201,100,66,.3); }
-        .key-meta { font-size: 11px; color: var(--stone-gray); margin-bottom: 20px; }
-
-        /* ── Buttons ─────────────────────────────────────────── */
-        .btn-generate {
-            width: 100%; padding: 13px;
-            background: var(--terracotta); border: none; border-radius: var(--radius-md);
-            color: var(--ivory); font-size: 14px; font-weight: 500;
-            font-family: inherit; cursor: pointer; transition: all .2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 0 0 1px var(--terracotta);
-        }
-        .btn-generate:hover:not(:disabled) { background: var(--coral); }
-        .btn-generate:disabled { opacity: .5; cursor: not-allowed; }
-        .btn-revoke {
-            width: 100%; padding: 10px; margin-top: 8px;
-            background: none; border: 1px solid rgba(181,51,51,.2);
-            color: var(--error-red); font-size: 13px; font-weight: 500;
-            font-family: inherit; cursor: pointer; border-radius: var(--radius-sm); transition: all .2s;
-        }
-        .btn-revoke:hover:not(:disabled) { background: rgba(181,51,51,.05); }
-        .btn-revoke:disabled { opacity: .4; cursor: not-allowed; }
-
-        /* ── New key notice ──────────────────────────────────── */
-        .new-key-notice {
-            display: none;
-            background: rgba(45,122,79,.06); border: 1px solid rgba(45,122,79,.2);
-            border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 16px; font-size: 13px;
-        }
+        /* Scoped dashboard styles: shared theme tokens remain authoritative. */
+        body { background: var(--parchment); }
+        .developer-page { min-height: 100vh; padding-bottom: 64px; }
+        .developer-page button, .developer-page a { -webkit-tap-highlight-color: transparent; }
+        .developer-page button { font: inherit; cursor: pointer; }
+        .developer-page button:disabled { opacity: .55; cursor: not-allowed; }
+        .developer-page :focus-visible { outline: 3px solid var(--focus-blue); outline-offset: 3px; }
+        .developer-nav { border-bottom: 1px solid var(--border-warm); background: var(--ivory); }
+        .developer-nav-inner { max-width: 1280px; margin: auto; padding: 16px 24px; display: flex; align-items: center; gap: 32px; }
+        .developer-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--near-black); text-decoration: none; font: 600 23px 'Lora', Georgia, serif; white-space: nowrap; }
+        .developer-brand img { width: 36px; height: 36px; }
+        .settings-tabs { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .settings-tab { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border-radius: var(--radius-lg); color: var(--olive-gray); text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .settings-tab:hover { background: var(--warm-sand); }
+        .settings-tab.active { color: var(--terracotta); background: var(--warm-sand); }
+        .nav-burger { display: none; min-width: 44px; min-height: 44px; border: 1px solid var(--border-warm); border-radius: var(--radius-sm); background: var(--ivory); color: var(--near-black); }
+        .developer-main { max-width: 1280px; padding: 36px 24px; margin: auto; }
+        .account-header { margin-bottom: 28px; }
+        .account-title { font: 600 clamp(30px, 4vw, 42px)/1.2 'Lora', Georgia, serif; color: var(--near-black); margin: 0 0 12px; }
+        .developer-lead { color: var(--olive-gray); font-size: 16px; }
+        .developer-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+        .developer-column { display: grid; gap: 24px; min-width: 0; }
+        .developer-card, .state-card { min-width: 0; background: var(--pure-white); border: 1px solid var(--border-cream); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); }
+        .card-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+        .card-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; background: var(--warm-sand); color: var(--charcoal); }
+        .card-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+        .developer-card h2 { font: 600 17px/1.4 'Inter', sans-serif; margin: 0; color: var(--near-black); text-align: left; }
+        .card-description { font-size: 12px; color: var(--olive-gray); margin-top: 4px; }
+        .key-display { display: flex; align-items: center; gap: 12px; background: var(--parchment); border: 1px solid var(--border-warm); border-radius: var(--radius-sm); padding: 8px 16px; }
+        .key-value { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 14px/1.6 monospace; color: var(--charcoal); }
+        .btn-copy { border: 0; background: transparent; color: var(--terracotta); font-size: 12px !important; font-weight: 600 !important; min-height: 44px; padding: 8px; white-space: nowrap; }
+        .key-metadata { display: grid; grid-template-columns: 1fr 1fr; margin: 24px 0; gap: 16px; }
+        .key-metadata div + div { border-left: 1px solid var(--border-cream); padding-left: 20px; }
+        .key-metadata dt { font-size: 12px; color: var(--stone-gray); margin-bottom: 4px; }
+        .key-metadata dd { font-size: 13px; color: var(--olive-gray); margin: 0; }
+        .key-actions { display: flex; gap: 12px; }
+        .btn-generate, .btn-upgrade { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 18px; background: var(--terracotta); color: white; border: 1px solid transparent; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; text-decoration: none; }
+        .btn-generate { flex: 1; }
+        .btn-generate:hover, .btn-upgrade:hover { background: var(--coral); }
+        .btn-revoke { min-height: 46px; padding: 10px 20px; border: 1px solid var(--error-red); color: var(--error-red); background: transparent; border-radius: var(--radius-sm); font-size: 13px !important; }
+        .key-warning { font-size: 11px; color: var(--olive-gray); margin-top: 14px; }
+        .key-error { font-size: 13px; color: var(--error-red); margin-top: 12px; }
+        .new-key-notice { display: none; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border-warm); border-radius: var(--radius-sm); background: var(--warm-sand); font-size: 13px; }
         .new-key-notice.visible { display: block; }
-        .new-key-notice strong { color: #2d7a4f; display: block; margin-bottom: 6px; }
-        .new-key-raw {
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 13px;
-            color: var(--charcoal); word-break: break-all;
-            background: var(--warm-sand); padding: 8px 10px; border-radius: 4px; margin: 8px 0;
+        .new-key-raw { font-family: monospace; overflow-wrap: anywhere; margin: 8px 0; }
+        .new-key-warning { font-size: 12px; color: var(--olive-gray); }
+        .usage-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--border-cream); }
+        .usage-numbers { font-size: 25px; font-weight: 600; color: var(--near-black); }
+        .usage-unit { font-size: 13px; font-weight: 500; }
+        .usage-reset, .usage-limit { color: var(--olive-gray); font-size: 12px; }
+        .usage-bar-track { height: 10px; background: var(--warm-sand); border-radius: 99px; overflow: hidden; margin: 14px 0 8px; }
+        .usage-bar-fill { height: 100%; background: var(--terracotta); transition: width .3s; }
+        .usage-note { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--warm-sand); border: 1px solid var(--border-cream); border-radius: var(--radius-sm); padding: 14px; margin-top: 20px; font-size: 12px; color: var(--terracotta); }
+        .usage-note a { color: inherit; white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
+        .plan-summary { padding: 14px; background: var(--parchment); border-radius: var(--radius-sm); }
+        .sub-plan { font-size: 25px; font-weight: 600; color: var(--near-black); }
+        .sub-expiry, .plan-quota { font-size: 13px; color: var(--olive-gray); }
+        .sub-expiry { margin-top: 8px; }
+        .plan-features { list-style: none; padding: 0; margin: 18px 0; font-size: 13px; color: var(--olive-gray); }
+        .plan-features li { margin: 8px 0; }
+        .plan-features li::before { content: '✓'; color: var(--terracotta); margin-right: 10px; font-weight: 700; }
+        .developer-card .btn-upgrade { width: 100%; }
+        .code-tabs { display: flex; padding: 3px; gap: 3px; border: 1px solid var(--border-warm); border-radius: var(--radius-sm); margin-bottom: 14px; }
+        .code-tab { flex: 1; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--olive-gray); font-size: 12px !important; }
+        .code-tab[aria-selected="true"] { background: var(--terracotta); color: white; }
+        .code-panel { position: relative; background: var(--dark-surface); border-radius: var(--radius-sm); overflow: hidden; }
+        .code-panel .btn-copy { display: block; margin-left: auto; color: white; }
+        .code-block { padding: 0 16px 16px; overflow-x: auto; white-space: pre; color: #d6e5f5; font: 11px/1.8 monospace; margin: 0; }
+        .guide-note { margin-top: 12px; color: var(--olive-gray); font-size: 12px; }
+        .guide-note a { color: var(--terracotta); }
+        .expired-banner { display: none; padding: 14px 18px; margin-bottom: 24px; color: var(--error-red); border: 1px solid var(--error-red); border-radius: var(--radius-sm); }
+        .expired-banner.visible { display: block; }
+        .state-card { text-align: center; max-width: 680px; margin: 0 auto 24px; padding: 40px 24px; }
+        .state-icon { font-size: 30px; margin-bottom: 12px; }
+        .state-title { font: 600 22px 'Lora', Georgia, serif; margin-bottom: 12px; }
+        .state-sub { color: var(--olive-gray); font-size: 14px; margin-bottom: 20px; }
+        .spinner { width: 28px; height: 28px; border: 3px solid var(--border-cream); border-top-color: var(--terracotta); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 1024px) {
+            .developer-nav-inner { gap: 12px; flex-wrap: wrap; }
+            .developer-brand { font-size: 20px; }
+            .settings-tabs { gap: 2px; }
+            .settings-tab { padding: 10px; }
+            .developer-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+            .developer-column { gap: 16px; }
+            .developer-card { padding: 20px; }
         }
-        .new-key-warning { color: var(--error-red); font-size: 11px; margin-top: 6px; }
-
-        /* ── Code examples ───────────────────────────────────── */
-        .code-block {
-            background: var(--near-black); border: 1px solid var(--dark-surface);
-            border-radius: var(--radius-sm); padding: 14px 16px;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 12px;
-            color: var(--warm-silver); overflow-x: auto; white-space: pre; line-height: 1.6; margin-bottom: 12px;
+        @media (max-width: 760px) { .developer-grid { grid-template-columns: minmax(0, 1fr); } }
+        @media (max-width: 640px) {
+            .developer-nav-inner { position: relative; padding: 12px 16px; justify-content: space-between; }
+            .nav-burger { display: inline-flex; align-items: center; justify-content: center; }
+            .settings-tabs { display: none; position: absolute; top: 100%; left: 16px; right: 16px; z-index: 10; padding: 8px; background: var(--ivory); border: 1px solid var(--border-warm); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+            .settings-tabs.open { display: flex; flex-direction: column; align-items: stretch; }
+            .developer-main { padding: 28px 16px; }
+            .developer-lead { font-size: 14px; }
+            .developer-card { padding: 18px; }
+            .card-heading { gap: 10px; margin-bottom: 20px; }
+            .key-metadata { gap: 10px; }
+            .key-metadata div + div { padding-left: 10px; }
+            .key-actions { flex-wrap: wrap; }
+            .key-warning { font-size: 12px; }
+            .usage-note { flex-wrap: wrap; gap: 4px; }
         }
-        .code-label {
-            font-size: 11px; font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--stone-gray); margin-bottom: 6px;
-        }
-
-        /* ── Expired banner ──────────────────────────────────── */
-        .expired-banner {
-            display: none; width: 100%; max-width: 680px;
-            background: rgba(181,51,51,.06); border: 1px solid rgba(181,51,51,.2);
-            border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px;
-            font-size: 13px; color: var(--error-red);
-        }
-        .expired-banner.visible { display: flex; align-items: center; gap: 10px; }
-
-        /* ── Usage quota card ────────────────────────────────── */
-        .usage-card {
-            width: 100%; max-width: 680px;
-            background: var(--pure-white); border: 1px solid var(--border-cream);
-            border-radius: var(--radius-xl); padding: 24px 28px; margin-bottom: 16px;
-            box-shadow: var(--whisper);
-        }
-        .usage-title {
-            font-size: 13px; font-weight: 600; color: var(--stone-gray);
-            letter-spacing: .05em; text-transform: uppercase; margin-bottom: 16px;
-        }
-        .usage-stat { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-        .usage-numbers { font-size: 20px; font-weight: 600; color: var(--near-black); }
-        .usage-limit { font-size: 12px; color: var(--stone-gray); }
-        .usage-bar-track { height: 5px; background: var(--warm-sand); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
-        .usage-bar-fill { height: 100%; border-radius: 99px; background: var(--terracotta); transition: width .4s ease; }
-        .usage-reset { font-size: 11px; color: var(--stone-gray); }
-
-        /* ── Subscription card ───────────────────────────────── */
-        .sub-card {
-            width: 100%; max-width: 680px;
-            background: var(--pure-white); border: 1px solid var(--border-cream);
-            border-radius: var(--radius-xl); padding: 20px 28px; margin-bottom: 16px;
-            display: flex; align-items: center; justify-content: space-between; gap: 16px;
-            box-shadow: var(--whisper);
-        }
-        .sub-plan { font-size: 13px; font-weight: 600; color: var(--terracotta); }
-        .sub-expiry { font-size: 12px; color: var(--stone-gray); margin-top: 3px; }
-
-        @media (max-width: 500px) {
-            .card, .usage-card, .sub-card { padding: 22px 18px; }
-            .sub-card { flex-direction: column; align-items: flex-start; }
-        }
+        @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } .usage-bar-fill { transition: none; } }
     </style>
 </head>
 <body>
-<div class="account-page">
-
-    <!-- Nav (same as account.html) -->
-    <nav class="page-nav">
-        <a href="/" class="nav-logo">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13L5 8l5-5"/>
-            </svg>
-            Viet Dataverse
-        </a>
-        <button class="nav-burger" type="button" aria-label="Menu"
-                onclick="event.stopPropagation();document.getElementById('settings-tabs').classList.toggle('open');">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
-        </button>
-        <div class="settings-tabs" id="settings-tabs">
-            <a class="settings-tab" href="/pages/account.html">Tài khoản</a>
-            <a class="settings-tab" href="/fe/#km/library">My Library</a>
-            <a class="settings-tab" href="/fe/#km/wallet">Wallet</a>
-            <a class="settings-tab" href="/fe/#km/seller-dashboard">My Store</a>
-            <a class="settings-tab active" href="/pages/developer.html">API Key</a>
-        </div>
-    </nav>
-
-    <!-- Page Header -->
-    <div class="account-header">
-        <div class="account-badge">Developer</div>
-        <h1 class="account-title">API Key</h1>
-    </div>
-
-    <!-- Loading state -->
-    <div id="loading-state" class="state-card">
-        <div class="spinner"></div>
-        <div class="state-sub">Đang kiểm tra tài khoản…</div>
-    </div>
-
-    <!-- Auth required state -->
-    <div id="access-denied" class="state-card" style="display:none;">
-        <div class="state-icon">🔒</div>
-        <div class="state-title">Vui lòng đăng nhập</div>
-        <div class="state-sub">Đăng nhập để lấy API key miễn phí — tài khoản miễn phí được cấp ngay 20 request/tháng.</div>
-        <button class="btn-upgrade" onclick="login()">Đăng nhập</button>
-        <div class="state-sub" id="access-denied-detail" style="display:none;margin-top:16px;color:#b53333;"></div>
-    </div>
-
-    <!-- Expired subscription banner -->
-    <div class="expired-banner" id="expired-banner">
-        <span>Subscription đã hết hạn — tài khoản đang dùng ở mức miễn phí (20 request/tháng).</span>
-    </div>
-
-    <!-- API Key card -->
-    <div id="key-card" class="card" style="display:none;">
-        <div class="card-title">API Key của bạn</div>
-
-        <!-- New key notice (shown once after generation) -->
-        <div class="new-key-notice" id="new-key-notice">
-            <strong>API key mới đã được tạo</strong>
-            <div class="new-key-raw" id="new-key-raw"></div>
-            <div class="new-key-warning">Sao chép và lưu ngay — key sẽ không hiển thị lại sau khi rời trang.</div>
-            <button class="btn-copy" style="margin-top:8px;" onclick="copyNewKey()">Sao chép key</button>
-        </div>
-
-        <!-- Existing key info -->
-        <div id="key-info-section">
-            <div class="key-display">
-                <span class="key-value masked" id="key-preview-text">Chưa có API key</span>
-                <button class="btn-copy" id="btn-copy-preview" onclick="copyPreview()" style="display:none;">Sao chép</button>
+<div class="developer-page">
+    <header class="developer-nav">
+        <nav class="developer-nav-inner" aria-label="Điều hướng tài khoản">
+            <a href="/" class="developer-brand"><img src="/fe/images/favicon-32x32.png" alt="" width="36" height="36">Viet Dataverse</a>
+            <button class="nav-burger" id="nav-burger" type="button" aria-label="Mở menu" aria-controls="settings-tabs" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+            <div class="settings-tabs" id="settings-tabs">
+                <a class="settings-tab" href="/fe/#data/portal">Dữ liệu</a>
+                <a class="settings-tab" href="/pages/account.html">Tài khoản</a>
+                <a class="settings-tab" href="/fe/#km/library">Thư viện</a>
+                <a class="settings-tab" href="/fe/#km/wallet">Ví của tôi</a>
+                <a class="settings-tab" href="/fe/#km/seller-dashboard">Cửa hàng</a>
+                <a class="settings-tab active" href="/pages/developer.html" aria-current="page">API Key</a>
             </div>
-            <div class="key-meta" id="key-meta-text"></div>
+        </nav>
+    </header>
+    <main class="developer-main">
+        <div class="account-header">
+            <h1 class="account-title">API Key</h1>
+            <p class="developer-lead">Quản lý khóa API của bạn để truy cập dữ liệu tài chính Việt Nam.</p>
         </div>
-
-        <button class="btn-generate" id="btn-generate" onclick="generateKey()">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 1 4 1"/><polyline points="15 12 15 15 12 15"/><path d="M1 1l5 5M15 15l-5-5"/><circle cx="8" cy="8" r="3"/></svg>
-            <span id="btn-generate-text">Generate API Key</span>
-        </button>
-        <button class="btn-revoke" id="btn-revoke" onclick="revokeKey()" style="display:none;">Thu hồi key</button>
-        <div class="key-meta" style="margin-top:10px;">⚠️ Tạo key mới sẽ <strong>thu hồi key cũ ngay lập tức</strong>. Nếu đã dùng key trong Google Sheets, đừng tạo lại — chỉ cần "Sao chép" key hiện tại.</div>
-        <div id="key-error" style="display:none;font-size:12px;color:#ef9a9a;margin-top:8px;"></div>
-    </div>
-
-    <!-- Usage quota this month -->
-    <div class="usage-card" id="usage-card" style="display:none;">
-        <div class="usage-title">API Quota tháng này</div>
-        <div class="usage-stat">
-            <span class="usage-numbers"><span id="usage-used">0</span> / <span id="usage-limit">—</span> requests</span>
-            <span class="usage-limit" id="usage-remaining-label"></span>
+        <div id="loading-state" class="state-card" role="status"><div class="spinner"></div><div class="state-sub">Đang kiểm tra tài khoản…</div></div>
+        <div id="access-denied" class="state-card" style="display:none;">
+            <div class="state-icon" aria-hidden="true">🔒</div><h2 class="state-title">Vui lòng đăng nhập</h2>
+            <p class="state-sub">Đăng nhập để quản lý khóa API và xem hạn mức sử dụng của bạn.</p>
+            <button class="btn-upgrade" onclick="login()">Đăng nhập</button>
+            <p class="key-error" id="access-denied-detail" style="display:none;" role="alert"></p>
         </div>
-        <div class="usage-bar-track"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
-        <div class="usage-reset" id="usage-reset"></div>
-    </div>
-
-    <!-- Subscription info -->
-    <div class="sub-card" id="sub-card" style="display:none;">
-        <div>
-            <div class="sub-plan" id="sub-plan-label">API Supper Lite trở lên</div>
-            <div class="sub-expiry" id="sub-expiry-label"></div>
+        <div class="expired-banner" id="expired-banner" role="status">Khóa API đã bị thu hồi hoặc không còn hoạt động. Tạo khóa mới để tiếp tục sử dụng.</div>
+        <div class="developer-grid">
+            <div class="developer-column">
+                <section id="key-card" class="developer-card" style="display:none;">
+<div class="card-heading"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="5"/><path d="m12 11 8-8 2 2-2 2 1 1-2 2-1-1-3 3"/></svg></span><div><h2>API Key của bạn</h2><p class="card-description">Sử dụng khóa này để truy cập API. Giữ khóa an toàn và không chia sẻ công khai.</p></div></div>
+                    <div class="new-key-notice" id="new-key-notice" role="status">
+                        <strong>API key mới đã được tạo</strong><div class="new-key-raw" id="new-key-raw"></div>
+                        <p class="new-key-warning">Sao chép và lưu khóa an toàn để dùng trong ứng dụng của bạn.</p>
+                        <button class="btn-copy" onclick="copyNewKey()">Sao chép khóa</button>
+                    </div>
+                    <div id="key-info-section">
+                        <div class="key-display"><span class="key-value masked" id="key-preview-text">Chưa có API key</span><button class="btn-copy" id="btn-copy-preview" onclick="copyPreview()" style="display:none;">Sao chép</button></div>
+                        <dl class="key-metadata" id="key-meta-text"><div><dt>Ngày tạo</dt><dd id="key-created">—</dd></div><div><dt>Dùng lần cuối</dt><dd id="key-last-used">—</dd></div></dl>
+                    </div>
+                    <div class="key-actions"><button class="btn-generate" id="btn-generate" onclick="generateKey()"><span id="btn-generate-text">Tạo khóa API</span></button><button class="btn-revoke" id="btn-revoke" onclick="revokeKey()" style="display:none;">Thu hồi</button></div>
+                    <p class="key-warning">Tạo khóa mới sẽ thu hồi khóa cũ ngay lập tức. Nếu đã kết nối ứng dụng hoặc Google Sheets, hãy dùng “Sao chép” để lấy khóa hiện tại.</p>
+                    <p id="key-error" class="key-error" style="display:none;" role="alert"></p>
+                </section>
+                <section class="developer-card" id="usage-card" style="display:none;">
+<div class="card-heading"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10m8 10V4m8 16v-7"/></svg></span><div><h2>Sử dụng và hạn mức</h2><p class="card-description">Theo dõi số lượt yêu cầu và thời gian làm mới hạn mức.</p></div></div>
+                    <div class="usage-stat"><div class="usage-numbers"><span id="usage-used">0</span> / <span id="usage-limit">—</span> <span class="usage-unit">yêu cầu</span></div><div class="usage-reset" id="usage-reset"></div></div>
+                    <div class="usage-bar-track" role="progressbar" aria-label="Hạn mức đã sử dụng" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="usage-progress"><div class="usage-bar-fill" id="usage-bar" style="width:0%"></div></div>
+                    <p class="usage-limit" id="usage-remaining-label"></p>
+                    <div class="usage-note"><span id="usage-plan-note">Hạn mức được cập nhật theo gói hiện tại.</span><a href="/pages/pricing.html">Xem chi tiết →</a></div>
+                </section>
+            </div>
+            <div class="developer-column">
+                <section class="developer-card" id="sub-card" style="display:none;">
+<div class="card-heading"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 6 4 4 5-6 5 6 4-4-2 13H5Z"/></svg></span><div><h2>Gói hiện tại</h2></div></div>
+                    <div class="plan-summary"><div class="sub-plan" id="sub-plan-label">—</div><div class="plan-quota" id="plan-quota">Đang tải hạn mức…</div></div>
+                    <p class="sub-expiry" id="sub-expiry-label"></p>
+                    <ul class="plan-features"><li>Xác thực bằng khóa API</li><li>Dữ liệu có cấu trúc JSON</li><li>Tích hợp cURL, Python, JavaScript</li></ul>
+                    <a class="btn-upgrade" id="btn-upgrade-plan" href="/pages/pricing.html">Nâng cấp ↗</a>
+                </section>
+                <section id="guide-card" class="developer-card" style="display:none;">
+<div class="card-heading"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-14-2 18"/></svg></span><div><h2>Hướng dẫn nhanh</h2><p class="card-description">Truy cập dữ liệu chỉ với vài dòng code.</p></div></div>
+                    <div class="code-tabs" role="tablist" aria-label="Ngôn ngữ ví dụ">
+                        <button class="code-tab" id="tab-curl" role="tab" aria-selected="true" aria-controls="panel-curl" data-example="curl">cURL</button>
+                        <button class="code-tab" id="tab-python" role="tab" aria-selected="false" aria-controls="panel-python" tabindex="-1" data-example="python">Python</button>
+                        <button class="code-tab" id="tab-javascript" role="tab" aria-selected="false" aria-controls="panel-javascript" tabindex="-1" data-example="javascript">JavaScript</button>
+                    </div>
+                    <div class="code-panel" id="panel-curl" role="tabpanel" aria-labelledby="tab-curl"><button class="btn-copy" data-copy="curl-example">Sao chép</button><pre class="code-block" id="curl-example"></pre></div>
+                    <div class="code-panel" id="panel-python" role="tabpanel" aria-labelledby="tab-python" hidden><button class="btn-copy" data-copy="python-example">Sao chép</button><pre class="code-block" id="python-example"></pre></div>
+                    <div class="code-panel" id="panel-javascript" role="tabpanel" aria-labelledby="tab-javascript" hidden><button class="btn-copy" data-copy="javascript-example">Sao chép</button><pre class="code-block" id="javascript-example"></pre></div>
+                    <p class="guide-note">Thay YOUR_API_KEY bằng khóa API của bạn. <a href="api-docs.html">Xem API Reference →</a></p>
+                    <p class="guide-note" id="copy-status" role="status"></p>
+                </section>
+            </div>
         </div>
-        <a class="btn-upgrade" id="btn-upgrade-plan" href="/pages/pricing.html">Nâng cấp</a>
-    </div>
-
-    <!-- Usage guide -->
-    <div id="guide-card" class="card" style="display:none;">
-        <div class="card-title">Cách sử dụng</div>
-
-        <div class="code-label">cURL</div>
-        <div class="code-block" id="curl-example">curl https://api.vietdataverse.online/api/v1/gold \
-  -H "X-API-Key: YOUR_API_KEY"</div>
-
-        <div class="code-label">Python</div>
-        <div class="code-block">import requests
-
-headers = {"X-API-Key": "YOUR_API_KEY"}
-resp = requests.get(
-    "https://api.vietdataverse.online/api/v1/gold",
-    headers=headers
-)
-data = resp.json()</div>
-
-        <div class="code-label">JavaScript (fetch)</div>
-        <div class="code-block">const res = await fetch(
-  "https://api.vietdataverse.online/api/v1/gold",
-  { headers: { "X-API-Key": "YOUR_API_KEY" } }
-);
-const data = await res.json();</div>
-
-        <p style="font-size:12px;color:var(--text-tertiary);margin-top:12px;line-height:1.6;">
-            Endpoints hỗ trợ: <code style="color:var(--text-secondary)">/api/v1/gold</code>,
-            <code style="color:var(--text-secondary)">/api/v1/silver</code>,
-            <code style="color:var(--text-secondary)">/api/v1/market-pulse</code>,
-            <code style="color:var(--text-secondary)">/api/v1/sbv-interbank</code>,
-            <code style="color:var(--text-secondary)">/api/v1/termdepo</code>, và các endpoint khác.
-            Xem đầy đủ ở <a href="api-docs.html" style="color:var(--terracotta)">API Reference</a>.
-        </p>
-    </div>
-
+    </main>
 </div>
 
 <script>
@@ -447,8 +242,7 @@ const data = await res.json();</div>
             if (!res.ok) throw new Error('auth error');
             await res.json();
 
-            // Mọi user đã đăng nhập đều tạo được key (free tier: 1.000 req/tháng).
-            // Backend quyết định hạn mức theo user_level; FE không gate nữa.
+            // Authenticated users can manage keys; the backend supplies plan limits.
             loadEl.style.display = 'none';
             document.getElementById('key-card').style.display = 'block';
             document.getElementById('guide-card').style.display = 'block';
@@ -479,19 +273,20 @@ const data = await res.json();</div>
             if (!res.ok) throw new Error(d.detail || 'Không tải được thông tin API key');
 
             const sub = d.subscription || {};
-            document.getElementById('sub-card').style.display = 'flex';
+            document.getElementById('sub-card').style.display = 'block';
             const planLabels = {
-                pro_monthly:     'API Supper Lite — Tháng (10.000 req/tháng)',
-                pro_yearly:      'API Supper Lite — Năm (10.000 req/tháng)',
-                dev_monthly:     'Dev Monthly (10.000 req/tháng)',
-                dev_yearly:      'Dev Yearly (100.000 req/tháng)',
+                pro_monthly:     'API Supper Lite — Tháng',
+                pro_yearly:      'API Supper Lite — Năm',
+                dev_monthly:     'Dev Monthly',
+                dev_yearly:      'Dev Yearly',
                 premium_monthly: 'Premium — Tháng',
                 premium_yearly:  'Premium — Năm',
             };
             document.getElementById('sub-plan-label').textContent =
-                planLabels[sub.plan] || 'Free (1.000 req/tháng)';
+                planLabels[sub.plan] || (sub.plan ? sub.plan : 'Free');
             const upgradeBtn = document.getElementById('btn-upgrade-plan');
             upgradeBtn.textContent = sub.plan ? 'Gia hạn' : 'Nâng cấp';
+            document.getElementById('sub-expiry-label').textContent = '';
             if (sub.premium_expiry) {
                 const exp = new Date(sub.premium_expiry);
                 const now = new Date();
@@ -508,25 +303,29 @@ const data = await res.json();</div>
                 const limit = q.monthly_limit;
                 const pct = limit > 0 ? Math.min(100, Math.round(used / limit * 100)) : 0;
                 document.getElementById('usage-card').style.display = 'block';
+                const quotaLabel = limit.toLocaleString('vi-VN') + ' yêu cầu/tháng';
+                document.getElementById('plan-quota').textContent = quotaLabel;
+                document.getElementById('usage-plan-note').textContent =
+                    'Gói ' + document.getElementById('sub-plan-label').textContent + ' · ' + quotaLabel;
+                document.getElementById('usage-progress').setAttribute('aria-valuenow', String(pct));
+                document.getElementById('usage-progress').setAttribute('aria-valuetext', `${used} / ${limit} yêu cầu`);
                 document.getElementById('usage-used').textContent = used.toLocaleString('vi-VN');
                 document.getElementById('usage-limit').textContent = limit.toLocaleString('vi-VN');
                 document.getElementById('usage-bar').style.width = pct + '%';
                 document.getElementById('usage-bar').style.background =
-                    pct > 90 ? 'linear-gradient(90deg,#c62828,#ef9a9a)'
-                    : pct > 70 ? 'linear-gradient(90deg,#e65100,#ffb74d)'
-                    : 'linear-gradient(90deg,#7b1fa2,#b39ddb)';
+                    pct > 90 ? 'var(--error-red)' : 'var(--terracotta)';
                 const remaining = q.remaining != null ? q.remaining.toLocaleString('vi-VN') + ' còn lại' : '';
                 document.getElementById('usage-remaining-label').textContent = remaining;
                 if (q.reset_at) {
                     const reset = new Date(q.reset_at);
                     document.getElementById('usage-reset').textContent =
-                        `Reset vào ngày 1 tháng sau (${reset.toLocaleDateString('vi-VN', {month:'long', year:'numeric'})})`;
+                        `Làm mới: ${reset.toLocaleDateString('vi-VN')}`;
                 }
             }
 
-            if (d.has_key && d.is_active === false) {
-                document.getElementById('expired-banner').classList.add('visible');
-            }
+            document.getElementById('expired-banner').classList.toggle('visible', !!d.has_key && d.is_active === false);
+            document.getElementById('key-created').textContent = d.created_at ? new Date(d.created_at).toLocaleString('vi-VN') : '—';
+            document.getElementById('key-last-used').textContent = d.last_used_at ? new Date(d.last_used_at).toLocaleString('vi-VN') : 'Chưa sử dụng';
 
             if (d.has_key) {
                 _currentKeyPreview = d.key_preview;
@@ -534,20 +333,22 @@ const data = await res.json();</div>
                 document.getElementById('key-preview-text').textContent = d.key_preview;
                 document.getElementById('key-preview-text').classList.remove('masked');
                 document.getElementById('btn-copy-preview').style.display = 'inline';
-                document.getElementById('btn-generate-text').textContent = 'Generate New Key';
+                document.getElementById('btn-generate-text').textContent = 'Tạo khóa mới';
                 document.getElementById('btn-revoke').style.display = 'block';
 
-                let meta = '';
-                if (d.created_at) meta += `Tạo: ${new Date(d.created_at).toLocaleDateString('vi-VN')}`;
-                if (d.last_used_at) meta += `  ·  Dùng lần cuối: ${new Date(d.last_used_at).toLocaleDateString('vi-VN')}`;
-                document.getElementById('key-meta-text').textContent = meta;
             } else {
-                document.getElementById('key-preview-text').textContent = 'Chưa có API key — nhấn Generate để tạo';
-                document.getElementById('btn-generate-text').textContent = 'Generate API Key';
+                _currentKeyFull = null;
+                _currentKeyPreview = null;
+                document.getElementById('key-preview-text').textContent = 'Chưa có API key — nhấn Tạo khóa API để bắt đầu';
+                document.getElementById('btn-generate-text').textContent = 'Tạo khóa API';
                 document.getElementById('btn-revoke').style.display = 'none';
                 document.getElementById('btn-copy-preview').style.display = 'none';
             }
-        } catch { /* ignore */ }
+        } catch (err) {
+            const error = document.getElementById('key-error');
+            error.textContent = err.message || 'Không tải được thông tin API. Vui lòng tải lại trang.';
+            error.style.display = 'block';
+        }
     }
 
     async function generateKey() {
@@ -567,15 +368,12 @@ const data = await res.json();</div>
                 headers: { Authorization: `Bearer ${token}` }
             });
             const d = await res.json();
-            if (!res.ok) throw new Error(d.detail || 'Lỗi generate key');
+            if (!res.ok) throw new Error(d.detail || 'Không thể tạo khóa API');
 
             _newKeyFull = d.api_key;
             generated = true;
             document.getElementById('new-key-raw').textContent = d.api_key;
             document.getElementById('new-key-notice').classList.add('visible');
-
-            document.getElementById('curl-example').textContent =
-                `curl https://api.vietdataverse.online/api/v1/gold \\\n  -H "X-API-Key: ${d.api_key}"`;
 
             await loadKeyInfo(token);
         } catch (e) {
@@ -615,15 +413,73 @@ const data = await res.json();</div>
             navigator.clipboard.writeText(full)
                 .then(() => alert('Đã sao chép API key đầy đủ.'));
         } else {
-            alert('Không lấy được key đầy đủ — hãy bấm "Generate New Key" rồi sao chép key vừa hiện.');
+            alert('Không lấy được key đầy đủ — hãy bấm "Tạo khóa mới" rồi sao chép key vừa hiện.');
         }
     }
 
     window.addEventListener('load', initPage);
-    // Đóng dropdown settings-tabs khi bấm ra ngoài (mobile)
-    document.addEventListener('click', function () {
-        var t = document.getElementById('settings-tabs');
-        if (t) t.classList.remove('open');
+    const menuButton = document.getElementById('nav-burger');
+    const menu = document.getElementById('settings-tabs');
+    function closeMenu() {
+        menu.classList.remove('open');
+        menuButton.setAttribute('aria-expanded', 'false');
+    }
+    menuButton.addEventListener('click', event => {
+        event.stopPropagation();
+        const opened = menu.classList.toggle('open');
+        menuButton.setAttribute('aria-expanded', String(opened));
+    });
+    document.addEventListener('click', event => { if (!menu.contains(event.target)) closeMenu(); });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && menu.classList.contains('open')) { closeMenu(); menuButton.focus(); }
+    });
+
+    // Examples intentionally retain a placeholder, never an account credential.
+    const endpoint = `${API}/api/v1/gold`;
+    document.getElementById('curl-example').textContent = `curl "${endpoint}" \\
+  -H "X-API-Key: YOUR_API_KEY"`;
+    document.getElementById('python-example').textContent = `import requests
+
+response = requests.get(
+    "${endpoint}",
+    headers={"X-API-Key": "YOUR_API_KEY"}
+)
+response.raise_for_status()
+data = response.json()`;
+    document.getElementById('javascript-example').textContent = `const response = await fetch(
+  "${endpoint}",
+  { headers: { "X-API-Key": "YOUR_API_KEY" } }
+);
+const data = await response.json();`;
+    const exampleTabs = [...document.querySelectorAll('[data-example]')];
+    function selectExample(tab) {
+        exampleTabs.forEach(item => {
+            const selected = item === tab;
+            item.setAttribute('aria-selected', String(selected));
+            item.tabIndex = selected ? 0 : -1;
+            document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+        });
+    }
+    exampleTabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectExample(tab));
+        tab.addEventListener('keydown', event => {
+            const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+            if (!keys.includes(event.key)) return;
+            event.preventDefault();
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? exampleTabs.length - 1 :
+                (index + (event.key === 'ArrowRight' ? 1 : -1) + exampleTabs.length) % exampleTabs.length;
+            selectExample(exampleTabs[next]);
+            exampleTabs[next].focus();
+        });
+    });
+    document.querySelectorAll('[data-copy]').forEach(button => {
+        button.addEventListener('click', async () => {
+            const status = document.getElementById('copy-status');
+            try {
+                await navigator.clipboard.writeText(document.getElementById(button.dataset.copy).textContent);
+                status.textContent = 'Đã sao chép ví dụ.';
+            } catch { status.textContent = 'Không thể sao chép. Vui lòng chọn và sao chép đoạn code.'; }
+        });
     });
 </script>
 
