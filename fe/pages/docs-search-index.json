@@ -124,12 +124,6 @@
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
-    "heading": "File mẫu — chỉ 2 bước",
-    "anchor": "template"
-  },
-  {
-    "page": "google-sheets.html",
-    "pageTitle": "Google Sheets",
     "heading": "Lấy API key",
     "anchor": "key"
   },
@@ -154,7 +148,7 @@
   {
     "page": "google-sheets.html",
     "pageTitle": "Google Sheets",
-    "heading": "Tự viết công thức (không dùng file mẫu)",
+    "heading": "Tự viết công thức",
     "anchor": "manual"
   },
   {
