@@ -1140,6 +1140,32 @@ không có cột kỳ. Sửa thì đúng chuẩn, nhưng sẽ tạo một bướ
 dòng cũ và dòng mới trong chính cột đó; cần quyết định riêng chứ không nên sửa
 kèm.
 
+### Email chưa từng được gửi — `RESEND_API_KEY=DEV_MODE_LOG_ONLY` (phát hiện 2026-09-29)
+
+`be/services/email_service.py` coi `RESEND_API_KEY` rỗng **hoặc** bằng đúng
+chuỗi `DEV_MODE_LOG_ONLY` là chế độ dev: render template rồi **ghi log và vứt
+đi**. Prod chạy đúng như vậy, nên **mọi email đều chưa từng tới ai**: xác minh
+seller (`routers/seller.py`), DMCA (`routers/takedown.py`), phản hồi report
+(`routers/reports.py`).
+
+Không có gì báo động vì mọi caller đều bọc `send_email` trong try/except
+best-effort — đúng thiết kế (một email hỏng không được phép làm hỏng việc đăng
+ký), nhưng hệ quả là lỗi này sống im lặng. Phát hiện ra chỉ vì user hỏi "đăng
+ký seller xong sao không nhận được mail".
+
+`EMAIL_FROM` cũng chưa đặt, nên mặc định về `onboarding@resend.dev` —
+địa chỉ mà Resend **chỉ cho gửi tới chính chủ tài khoản Resend**. Tức là kể cả
+khi cắm API key thật mà quên `EMAIL_FROM`, thư vẫn tới được người test và im
+lặng rơi với mọi khách thật. Hai biến này phải đặt cùng lúc.
+
+**Để bật thật:** tạo API key ở Resend, xác minh domain `vietdataverse.online`,
+rồi đặt cả `RESEND_API_KEY` lẫn `EMAIL_FROM` trong `.env` trên box. Xác minh
+bằng một lần đăng ký seller thật, **không** bằng việc đọc log.
+
+Tài khoản `npdhien2806@gmail.com` (seller_profiles id=7) đã được set
+`email_verified=true` tay ngày 2026-09-29, có ghi `admin_audit_log`, vì token
+của nó hợp lệ nhưng link không bao giờ tới nơi.
+
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
 `users.email` and `users.auth0_id` are both UNIQUE, and every router finds the

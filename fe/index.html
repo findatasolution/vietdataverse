@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="/fe/images/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=0ca8710b13">
+    <link rel="stylesheet" href="style.css?v=b879cdaf3c">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#2f5fde">
     <meta name="msapplication-TileImage" content="https://vietdataverse.online/fe/images/icon-512.png">
@@ -76,7 +76,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=0ca8710b13" as="style">
+    <link rel="preload" href="style.css?v=b879cdaf3c" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -448,14 +448,6 @@
                         <i class="fas fa-cog"></i>
                     </button>
                     <div class="topbar-dropdown" id="settings-dropdown">
-                        <a href="/fe/pages/account.html" class="topbar-dropdown-item">My account</a>
-                        <div class="topbar-dropdown-divider"></div>
-                        <a href="/fe/#km/library" class="topbar-dropdown-item" id="settings-dd-library">My Library</a>
-                        <a href="/fe/#km/wallet" class="topbar-dropdown-item" id="settings-dd-wallet">My Wallet</a>
-                        <a href="/fe/#km/seller-dashboard" class="topbar-dropdown-item" id="settings-dd-seller">My Store</a>
-                        <div class="topbar-dropdown-divider"></div>
-                        <a href="/fe/pages/developer.html" class="topbar-dropdown-item">API Key</a>
-                        <div class="topbar-dropdown-divider"></div>
                         <button class="topbar-dropdown-item topbar-dd-lang-btn" id="settings-dd-lang">
                             <i class="fas fa-globe" style="margin-right:6px;font-size:0.8rem;"></i><span id="lang-text">VI</span>
                         </button>
@@ -464,10 +456,10 @@
 
                 <!-- Authenticated user chip (avatar + logout) -->
                 <div class="user-chip" id="user-info" style="display: none;">
-                    <a href="/fe/pages/account.html" class="user-avatar-link" title="Xem hồ sơ">
+                    <a href="/fe/pages/account.html" class="user-avatar-link" title="Xem hồ sơ" aria-label="Tài khoản">
                         <div class="user-avatar" id="user-avatar"></div>
                     </a>
-                    <button class="chip-logout" id="logout-btn" title="Đăng xuất">
+                    <button class="chip-logout" id="logout-btn" title="Đăng xuất" aria-label="Đăng xuất">
                         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6"/>
                         </svg>
