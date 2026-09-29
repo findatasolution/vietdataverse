@@ -506,13 +506,15 @@ html {
 }
 
 .account-detail-mode .main-content {
-    padding: 36px 24px 64px;
+    padding: 36px 0 64px;
 }
 
 .account-detail-mode #knowledge-market {
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
+    padding: 0 24px;
+    box-sizing: border-box;
 }
 
 .account-detail-mode #knowledge-market > .km-section-header {
@@ -756,7 +758,11 @@ html {
     }
 
     .account-detail-mode .main-content {
-        padding: 28px 16px 48px;
+        padding: 28px 0 48px;
+    }
+
+    .account-detail-mode #knowledge-market {
+        padding: 0 16px;
     }
 
     .account-view-lead {
