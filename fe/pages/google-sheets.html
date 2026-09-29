@@ -187,25 +187,26 @@
         được ghép vào cuối đường dẫn, nên đổi số là đổi đường dẫn — đó là lý do nó làm mới thật.
       </div>
       <p>
-        Mỗi lần làm mới tốn <strong>9 lượt</strong> gọi API, nên đừng bấm liên tục.
+        Mỗi lần làm mới tốn <strong>1 lượt</strong> gọi API cho cả file (không phải 9).
       </p>
     </section>
 
     <section id="quota" class="doc-section">
       <h2>Hạn mức</h2>
       <p>
-        <strong>Mỗi tab là một lượt gọi API.</strong> Mở file một lần với đủ chín tab là chín lượt.
+        <strong>Cả file chỉ tốn một lượt gọi API mỗi lần tải.</strong> Tab ẩn <code>_dữ liệu thô</code>
+        gọi API đúng một lần; chín tab còn lại đọc lại từ đó nên không tốn thêm lượt nào.
       </p>
       <table class="gs-table">
         <thead><tr><th>Gói</th><th>Hạn mức</th><th>Thực tế với file này</th></tr></thead>
         <tbody>
-          <tr><td>Miễn phí</td><td>20 request/tháng</td><td>Đủ mở file đầy đủ khoảng 2 lần — để bạn thấy nó chạy thật trước khi quyết định</td></tr>
-          <tr><td>API Supper Lite</td><td>1.000 request/tháng</td><td>Khoảng 110 lần mở file mỗi tháng</td></tr>
+          <tr><td>Miễn phí</td><td>20 request/tháng</td><td>Khoảng 20 lần tải — đủ để bạn thấy nó chạy thật trước khi quyết định</td></tr>
+          <tr><td>API Supper Lite</td><td>1.000 request/tháng</td><td>Để file mở cả tháng (Google tự tải ~1 lần/giờ) vẫn chỉ tốn ~720 lượt</td></tr>
         </tbody>
       </table>
       <p>
-        Dùng ít tab thì tốn ít lượt hơn: xoá công thức ở ô <code>A1</code> của những tab bạn không cần,
-        chúng sẽ ngừng gọi API.
+        Hết lượt thì các tab hiện dòng “Không lấy được dữ liệu…” thay vì số liệu. Lượt được cộng lại
+        vào ngày 1 hằng tháng, hoặc ngay khi nâng gói.
       </p>
       <p><a href="pricing.html">Xem bảng giá →</a></p>
     </section>

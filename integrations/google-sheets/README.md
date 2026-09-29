@@ -74,11 +74,23 @@ an add-on instead of copying a file, which is a better product anyway.
 
 ## Quota
 
-Each tab is one metered API call, so opening the file with all nine tabs costs
-nine. Free tier is 2 requests/month — not enough to fill the file once, which is
-deliberate: the template is a reason to buy API Supper Lite (1.000/month ≈ 110
-opens). A customer who needs fewer datasets deletes the `A1` formula on the tabs
-they do not want.
+The whole file costs **one** metered call per load (see "Why one call and not
+nine"). Free is 20/month; API Supper Lite is 1.000/month, which covers the file
+left open for a whole month (~24 loads/day, ~720/month).
+
+When the call is refused — no key, bad key, quota spent — the raw tab's `A1`
+holds the reason, and every data tab falls back to printing that same reason
+instead of going blank. A blank tab reads as a broken file; that was the
+customer report of 2026-09-29.
+
+### Refresh cell `C7`
+
+`IMPORTDATA` caches on the exact URL and refreshes about hourly. `C7` is appended
+to the URL as `&_r=`, so bumping it forces a real fetch; the API ignores the
+parameter (verified on prod: a fake key still gets 401, not 422). Commit
+`724b86677` dropped it while collapsing nine formulas into one, and the cover's
+"bump C7" instruction silently stopped working until 2026-09-29.
+`tests/sheets/test_build_template.py` now guards it.
 
 ## Live template — verified 2026-09-26
 
@@ -105,6 +117,12 @@ Then publish the generated `.xlsx` into the live template spreadsheet:
 3. Check the cover reads `Bắt đầu` and a data tab's `A1` shows the prompt text,
    not `#ERROR!` — Google parses the formulas on import, so a bad formula is
    visible immediately.
+
+**Never paste a real API key into the live template itself.** It is shared
+`anyone with link → reader`, so a key in its `C6` is published to everyone who
+opens or copies it, and every copy spends that key's quota. Test on a copy
+(`/copy` link), never on the master. Found 2026-09-29: the owner's key sat in the
+master's `C6`. Clear the cell and rotate that key on `developer.html`.
 
 Keeping the same file id matters: its `/copy` link is published in
 `fe/pages/google-sheets.html`, `api-docs.html` and `account.html`, and it is

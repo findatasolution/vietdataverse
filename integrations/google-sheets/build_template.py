@@ -31,6 +31,7 @@ API = "https://api.vietdataverse.online/api/v1"
 COVER = "Bắt đầu"
 RAW = "_dữ liệu thô"
 KEY_CELL = "$C$6"
+REFRESH_CELL = "$C$7"
 PERIOD = "1y"
 MAX_ROWS = 2000          # stacked payload is ~1.5k rows; headroom for 'all'
 
@@ -87,15 +88,28 @@ def raw_formula() -> str:
     # like random noise rather than a parsing rule. In en_US the decimal
     # separator is "." and the date separator is "/", so a rate cannot be
     # mistaken for a date at all.
+    #
+    # REFRESH_CELL is appended as &_r= because IMPORTDATA caches on the exact URL
+    # and refreshes only about hourly: changing the cell makes a new URL Google
+    # must fetch, which is the only "refresh now" Sheets offers without an Apps
+    # Script. The API ignores the parameter. 724b86677 dropped it while collapsing
+    # nine formulas into one and the cover's "bump C7" instruction went dead.
+    bust = f"'{COVER}'!{REFRESH_CELL}"
     return (f'=IF({ref}="","{PROMPT}",'
-            f'IFERROR(IMPORTDATA("{url}"&{ref}, ",", "en_US"),"{ERROR_MSG}"))')
+            f'IFERROR(IMPORTDATA("{url}"&{ref}&"&_r="&{bust}, ",", "en_US"),"{ERROR_MSG}"))')
 
 
 def query_formula(dataset_id: str, n_cols: int) -> str:
     """Pull one dataset out of the stacked tab. Pure formula — no network."""
     cols = ", ".join(f"Col{i + 1}" for i in range(1, n_cols + 1))
+    # On a refusal (no key, bad key, quota spent) the raw tab's A1 holds the
+    # reason and QUERY finds no rows. Show that reason here instead of a blank:
+    # the customer looks at these tabs, not the raw one, and a blank tab reads
+    # as a broken file — the report of 2026-09-29. A1 is the literal "dataset"
+    # header only when the call succeeded, in which case blank is correct.
+    fallback = f"IF('{RAW}'!A1=\"dataset\", \"\", '{RAW}'!A1)"
     return (f"=IFERROR(QUERY('{RAW}'!A:I, \"select {cols} "
-            f"where Col1 = '{dataset_id}'\", 0), \"\")")
+            f"where Col1 = '{dataset_id}'\", 0), {fallback})")
 
 
 def build_cover(ws) -> None:
