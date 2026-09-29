@@ -514,34 +514,117 @@ html {
     margin-bottom: 0;
 }
 
-.account-detail-mode .km-modal {
-    position: static;
-    display: block;
-    padding: 0;
-    background: transparent;
+.account-managed-view .account-view-header {
+    margin-bottom: 28px;
 }
 
-.account-detail-mode .km-modal-content {
-    max-width: none !important;
-    max-height: none;
-    margin-top: 28px;
-    padding: 24px;
-    overflow: visible;
-    background: var(--pure-white);
+.account-dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.account-dashboard-grid .account-detail-card {
+    margin-top: 0;
+    min-width: 0;
+}
+
+.account-wide-card {
+    grid-column: 1 / -1;
+}
+
+.account-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.account-card-heading h2 {
+    margin: 0;
+    color: var(--near-black);
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.account-card-heading p {
+    margin: 4px 0 0;
+    color: var(--olive-gray);
+    font-size: 12px;
+}
+
+.account-card-heading-actions > div {
+    flex: 1;
+}
+
+.account-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border-radius: 50%;
+    background: var(--warm-sand);
+    color: var(--charcoal);
+    font-size: 20px;
+}
+
+.account-balance-value {
+    padding: 18px;
+    border-radius: var(--radius-sm);
+    background: var(--parchment);
+    color: var(--near-black);
+    font: 600 30px/1.2 'Lora', Georgia, serif;
+}
+
+.account-inline-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.account-inline-form .km-btn-primary {
+    min-height: 44px;
+    white-space: nowrap;
+}
+
+.account-form-status {
+    min-height: 20px;
+    margin-top: 10px;
+    color: var(--olive-gray);
+    font-size: 12px;
+}
+
+.account-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.account-auth-card,
+.account-empty-state {
+    padding: 48px 28px;
+    border: 1px solid var(--border-cream);
     border-radius: var(--radius-lg);
+    background: var(--pure-white);
     box-shadow: var(--shadow-sm);
+    text-align: center;
 }
 
-.account-detail-mode .km-modal-close {
-    display: none;
+.account-auth-card h2,
+.account-empty-state h3 {
+    margin: 0 0 8px;
+    color: var(--near-black);
+    font-family: 'Lora', Georgia, serif;
 }
 
-.account-modal-heading {
-    display: none;
-}
-
-.account-detail-mode .account-modal-heading {
-    display: block;
+.account-auth-card p,
+.account-empty-state p {
+    margin: 0 0 20px;
+    color: var(--olive-gray);
+    font-size: 13px;
 }
 
 @media (max-width: 760px) {
@@ -596,10 +679,30 @@ html {
         font-size: 14px;
     }
 
-    .account-detail-card,
-    .account-detail-mode .km-modal-content {
+    .account-detail-card {
         margin-top: 20px;
         padding: 18px;
+    }
+
+    .account-dashboard-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .account-wide-card {
+        grid-column: 1;
+    }
+
+    .account-card-heading-actions {
+        flex-wrap: wrap;
+    }
+
+    .account-card-heading-actions .km-btn-primary {
+        width: 100%;
+    }
+
+    .account-inline-form {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

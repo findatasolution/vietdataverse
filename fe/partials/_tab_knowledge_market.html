@@ -44,6 +44,68 @@
                     </div>
                 </div>
 
+                <!-- Account detail: Wallet -->
+                <section id="km-wallet-view" class="account-managed-view" style="display:none;">
+                    <header class="account-view-header">
+                        <h1 class="account-view-title">Ví của tôi</h1>
+                        <p class="account-view-lead">Quản lý số dư, nạp credits và theo dõi lịch sử giao dịch.</p>
+                    </header>
+                    <div id="km-wallet-auth" class="account-auth-card" style="display:none;">
+                        <div class="state-icon" aria-hidden="true">🔒</div>
+                        <h2>Vui lòng đăng nhập</h2>
+                        <p>Đăng nhập để xem số dư và giao dịch của bạn.</p>
+                        <button class="km-btn-primary" onclick="login()">Đăng nhập</button>
+                    </div>
+                    <div id="km-wallet-content" class="account-dashboard-grid" style="display:none;">
+                        <article class="account-detail-card account-balance-card">
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">◈</span><div><h2>Số dư hiện tại</h2><p>Credits dùng để mua knowledge pack và skill.</p></div></div>
+                            <div id="km-wallet-modal-balance" class="account-balance-value">0 credits</div>
+                            <div id="km-wallet-topup-note" class="account-form-status"></div>
+                        </article>
+                        <article class="account-detail-card">
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">＋</span><div><h2>Nạp credits</h2><p>Chọn số tiền và tiếp tục tới cổng thanh toán.</p></div></div>
+                            <label class="km-label" for="km-topup-amount">Số tiền (VND)</label>
+                            <div class="account-inline-form">
+                                <input id="km-topup-amount" class="km-input" type="number" min="10000" step="10000" placeholder="VD: 100000" value="100000">
+                                <button class="km-btn-primary" onclick="KM.topup()">Nạp tiền</button>
+                            </div>
+                            <div id="km-topup-status" class="account-form-status" role="status"></div>
+                        </article>
+                        <article class="account-detail-card account-wide-card">
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">↕</span><div><h2>Lịch sử giao dịch</h2><p>20 giao dịch gần nhất trên tài khoản.</p></div></div>
+                            <div id="km-wallet-txns" class="account-table-wrap"><div class="km-empty">Đang tải...</div></div>
+                        </article>
+                    </div>
+                </section>
+
+                <!-- Account detail: Seller store -->
+                <section id="km-seller-dashboard-view" class="account-managed-view" style="display:none;">
+                    <header class="account-view-header">
+                        <h1 class="account-view-title">Cửa hàng</h1>
+                        <p class="account-view-lead">Quản lý hồ sơ seller, sản phẩm và doanh thu của bạn.</p>
+                    </header>
+                    <div id="km-seller-auth" class="account-auth-card" style="display:none;">
+                        <div class="state-icon" aria-hidden="true">🔒</div>
+                        <h2>Vui lòng đăng nhập</h2>
+                        <p>Đăng nhập để quản lý cửa hàng của bạn.</p>
+                        <button class="km-btn-primary" onclick="login()">Đăng nhập</button>
+                    </div>
+                    <div id="km-seller-dashboard-content" class="account-dashboard-grid" style="display:none;">
+                        <article class="account-detail-card">
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">◇</span><div><h2>Hồ sơ seller</h2><p>Trạng thái và số dư doanh thu.</p></div></div>
+                            <div id="km-seller-profile-area"><div class="km-empty">Đang tải...</div></div>
+                        </article>
+                        <article class="account-detail-card account-wide-card">
+                            <div class="account-card-heading account-card-heading-actions">
+                                <span class="account-card-icon" aria-hidden="true">▦</span>
+                                <div><h2>Sản phẩm của tôi</h2><p>Quản lý danh sách sản phẩm đang bán.</p></div>
+                                <button class="km-btn-primary" onclick="KM.openUploadProduct()">+ Tải sản phẩm lên</button>
+                            </div>
+                            <div id="km-seller-products-list" class="account-table-wrap"><div class="km-empty">Đang tải...</div></div>
+                        </article>
+                    </div>
+                </section>
+
                 <!-- Marketplace view (default) -->
                 <div id="km-marketplace-view">
 
@@ -167,8 +229,6 @@
 
                 <!-- Modals (all hidden by default) -->
                 <div id="km-modal-product-detail"   class="km-modal" style="display:none;"></div>
-                <div id="km-modal-wallet"            class="km-modal" style="display:none;"></div>
-                <div id="km-modal-seller-dashboard"  class="km-modal" style="display:none;"></div>
                 <div id="km-modal-upload-product"    class="km-modal" style="display:none;"></div>
                 <div id="km-modal-admin"             class="km-modal" style="display:none;"></div>
 

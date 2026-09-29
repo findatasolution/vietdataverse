@@ -1017,41 +1017,16 @@
 
     async function openWallet() {
         _prepareAccountDetailView('wallet');
+        const authState = document.getElementById('km-wallet-auth');
+        const content = document.getElementById('km-wallet-content');
         let authed = false;
         try { authed = (typeof isAuthenticated === 'function') ? await isAuthenticated() : false; } catch (_) {}
-        if (!authed) { alert('Bạn cần đăng nhập để sử dụng ví.'); return; }
+        if (authState) authState.style.display = authed ? 'none' : 'block';
+        if (content) content.style.display = authed ? 'grid' : 'none';
+        if (!authed) return;
 
-        const modal = document.getElementById('km-modal-wallet');
-        if (!modal) return;
-        modal.style.display = document.body.classList.contains('account-detail-mode') ? 'block' : 'flex';
-        modal.innerHTML =
-            '<div class="account-modal-heading"><h1 class="account-view-title">Ví của tôi</h1><p class="account-view-lead">Quản lý số dư và lịch sử giao dịch của bạn.</p></div>' +
-            '<div class="km-modal-content" style="max-width:560px;">' +
-                '<button class="km-modal-close" onclick="document.getElementById(\'km-modal-wallet\').style.display=\'none\'">&times;</button>' +
-                '<h2 style="font-size:1.1rem;font-weight:600;margin:0 0 1.25rem;">Số dư và giao dịch</h2>' +
-
-                '<div style="background:var(--parchment);border:1px solid var(--border-cream);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.25rem;text-align:center;">' +
-                    '<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem;">Số dư hiện tại</div>' +
-                    '<div id="km-wallet-modal-balance" style="font-size:2rem;font-weight:700;color:var(--terracotta);">' + escHtml(String(_walletBal)) + ' credits</div>' +
-                '</div>' +
-
-                '<div id="km-wallet-topup-note" style="font-size:0.82rem;color:#EF5350;margin-bottom:0.75rem;min-height:1.2em;"></div>' +
-
-                '<h3 style="font-size:0.9rem;font-weight:600;margin:0 0 0.75rem;">Nạp credits</h3>' +
-                '<div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem;margin-bottom:1rem;">' +
-                    '<div>' +
-                        '<label class="km-label">Số tiền (VND)</label>' +
-                        '<input id="km-topup-amount" class="km-input" type="number" min="10000" step="10000" placeholder="VD: 100000" value="100000">' +
-                    '</div>' +
-                    '<div style="display:flex;align-items:flex-end;">' +
-                        '<button class="km-btn-primary" onclick="KM.topup()" style="white-space:nowrap;">Nạp tiền</button>' +
-                    '</div>' +
-                '</div>' +
-                '<div id="km-topup-status" style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;"></div>' +
-
-                '<h3 style="font-size:0.9rem;font-weight:600;margin:0 0 0.75rem;">Lịch sử giao dịch</h3>' +
-                '<div id="km-wallet-txns" style="max-height:220px;overflow-y:auto;"><div class="km-empty" style="padding:1rem;">Đang tải...</div></div>' +
-            '</div>';
+        const balance = document.getElementById('km-wallet-modal-balance');
+        if (balance) balance.textContent = String(_walletBal) + ' credits';
 
         loadTransactions();
     }
@@ -1278,47 +1253,51 @@
 
     async function openSellerDashboard() {
         _prepareAccountDetailView('seller-dashboard');
+        const authState = document.getElementById('km-seller-auth');
+        const content = document.getElementById('km-seller-dashboard-content');
         let authed = false;
         try { authed = (typeof isAuthenticated === 'function') ? await isAuthenticated() : false; } catch (_) {}
-        if (!authed) { alert('Bạn cần đăng nhập.'); return; }
+        if (authState) authState.style.display = authed ? 'none' : 'block';
+        if (content) content.style.display = authed ? 'grid' : 'none';
+        if (!authed) return;
 
-        const modal = document.getElementById('km-modal-seller-dashboard');
-        if (!modal) return;
-        modal.style.display = document.body.classList.contains('account-detail-mode') ? 'block' : 'flex';
-        modal.innerHTML =
-            '<div class="account-modal-heading"><h1 class="account-view-title">Cửa hàng</h1><p class="account-view-lead">Quản lý hồ sơ seller, sản phẩm và doanh thu của bạn.</p></div>' +
-            '<div class="km-modal-content" style="max-width:720px;">' +
-                '<button class="km-modal-close" onclick="document.getElementById(\'km-modal-seller-dashboard\').style.display=\'none\'">&times;</button>' +
-                '<h2 style="font-size:1.1rem;font-weight:600;margin:0 0 1rem;">Tổng quan cửa hàng</h2>' +
-                '<div id="km-seller-profile-area"><div class="km-empty">Đang tải...</div></div>' +
-                '<div style="margin-top:1.25rem;">' +
-                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">' +
-                        '<h3 style="font-size:0.95rem;font-weight:600;margin:0;">Sản phẩm của tôi</h3>' +
-                        '<button class="km-btn-primary" onclick="KM.openUploadProduct()">+ Upload sản phẩm</button>' +
-                    '</div>' +
-                    '<div id="km-seller-products-list"><div class="km-empty">Đang tải...</div></div>' +
-                '</div>' +
-            '</div>';
+        const profileEl = document.getElementById('km-seller-profile-area');
+        const productsEl = document.getElementById('km-seller-products-list');
+        if (profileEl) profileEl.innerHTML = '<div class="km-empty">Đang tải...</div>';
+        if (productsEl) productsEl.innerHTML = '<div class="km-empty">Đang tải...</div>';
 
         // Load seller profile
         try {
             const hdrs = await authHeaders();
             const res = await fetch(apiBase() + '/seller/me', { headers: hdrs });
+            if (!res.ok) {
+                throw new Error('Seller profile request failed');
+            }
             const json = await res.json();
-            const seller = json.data || json;
-            const profileEl = document.getElementById('km-seller-profile-area');
+            const seller = json.data;
+            if (!seller || json.needs_registration) {
+                if (profileEl) {
+                    profileEl.innerHTML = '<div class="account-empty-state"><h3>Bạn chưa có cửa hàng</h3><p>Đăng ký seller để đăng và bán knowledge pack.</p><button class="km-btn-primary" onclick="KM.applySellerFlow()">Mở cửa hàng</button></div>';
+                }
+                if (productsEl) productsEl.innerHTML = '<div class="km-empty">Sản phẩm sẽ xuất hiện sau khi cửa hàng được kích hoạt.</div>';
+                return;
+            }
             if (profileEl) {
+                const earnings = seller.earnings || {};
+                const pendingVnd = Number(earnings.pending_vnd || 0).toLocaleString('vi-VN') + ' ₫';
+                const paidVnd = Number(earnings.paid_vnd || 0).toLocaleString('vi-VN') + ' ₫';
                 profileEl.innerHTML =
                     '<div style="background:var(--parchment);border:1px solid var(--border-cream);border-radius:var(--radius-md);padding:1rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1.5rem;font-size:0.85rem;">' +
                         '<div><span style="color:var(--text-secondary);">Tên: </span><strong>' + escHtml(seller.display_name || '') + '</strong></div>' +
-                        '<div><span style="color:var(--text-secondary);">Trạng thái: </span>' + statusBadge(seller.status || '') + '</div>' +
-                        '<div><span style="color:var(--text-secondary);">Thu nhập (chờ): </span><strong>' + escHtml(String(seller.pending_earnings_credits || 0)) + ' credits</strong></div>' +
-                        '<div><span style="color:var(--text-secondary);">Đã trả: </span><strong>' + escHtml(String(seller.paid_out_credits || 0)) + ' credits</strong></div>' +
+                        '<div><span style="color:var(--text-secondary);">Trạng thái: </span>' + statusBadge(seller.apply_status || '') + '</div>' +
+                        '<div><span style="color:var(--text-secondary);">Doanh thu chờ: </span><strong>' + escHtml(pendingVnd) + '</strong></div>' +
+                        '<div><span style="color:var(--text-secondary);">Đã thanh toán: </span><strong>' + escHtml(paidVnd) + '</strong></div>' +
                     '</div>';
             }
         } catch (_) {
-            const profileEl = document.getElementById('km-seller-profile-area');
             if (profileEl) profileEl.innerHTML = '<div class="km-empty km-empty-error">Không tải được thông tin seller.</div>';
+            if (productsEl) productsEl.innerHTML = '<div class="km-empty km-empty-error">Không tải được danh sách sản phẩm.</div>';
+            return;
         }
 
         loadOwnProducts();
@@ -2300,14 +2279,14 @@
         if (typeof window.setAccountDetailMode === 'function') {
             window.setAccountDetailMode(view);
         }
-        ['km-marketplace-view', 'km-categories-view', 'km-trending-view', 'km-library-view'].forEach(function (id) {
+        ['km-marketplace-view', 'km-categories-view', 'km-trending-view', 'km-library-view', 'km-wallet-view', 'km-seller-dashboard-view'].forEach(function (id) {
             var el = document.getElementById(id);
-            if (el) el.style.display = id === 'km-library-view' && view === 'library' ? 'block' : 'none';
+            if (!el) return;
+            var selected = (id === 'km-library-view' && view === 'library')
+                || (id === 'km-wallet-view' && view === 'wallet')
+                || (id === 'km-seller-dashboard-view' && view === 'seller-dashboard');
+            el.style.display = selected ? 'block' : 'none';
         });
-        var wallet = document.getElementById('km-modal-wallet');
-        var seller = document.getElementById('km-modal-seller-dashboard');
-        if (wallet && view !== 'wallet') wallet.style.display = 'none';
-        if (seller && view !== 'seller-dashboard') seller.style.display = 'none';
     }
 
     // Discover sub-views: marketplace | categories | trending
