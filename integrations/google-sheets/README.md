@@ -128,9 +128,17 @@ Keeping the same file id matters: its `/copy` link is published in
 `fe/pages/google-sheets.html`, `api-docs.html` and `account.html`, and it is
 already shared `anyone with link → reader`.
 
-The Google Drive connector available to this repo's agents cannot convert
-`.xlsx` to a Google Sheet ("Invalid conversion requested"), so the import step
-is manual.
+The Google Drive connector *can* convert an `.xlsx` into a new Google Sheet
+(checked 2026-09-29 — the earlier "Invalid conversion requested" note was
+wrong), but it cannot replace the contents of an existing file id, and the live
+template's id is what every published `/copy` link points at. So the import into
+the live template stays manual: File → Import → Replace spreadsheet.
+
+Two limits on testing it from an agent, both found 2026-09-29: a CSV upload
+parses formulas in the owner's locale (`vi_VN` needs `;` as the argument
+separator) and leaves `IMPORTDATA` as plain text; and `IMPORTDATA` is only
+evaluated while a browser has the file open, so reading a sheet through the API
+never shows fetched data.
 
 ## Endpoints
 
