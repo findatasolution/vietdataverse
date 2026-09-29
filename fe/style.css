@@ -439,6 +439,35 @@ html {
     display: none;
 }
 
+.account-detail-mode .app-topbar {
+    min-height: 76px;
+    height: auto;
+    padding: 0 max(24px, calc((100% - 1280px) / 2 + 24px));
+    position: relative;
+}
+
+.account-detail-mode .app-topbar-left {
+    gap: 32px;
+}
+
+.account-detail-mode .app-brand {
+    gap: 10px;
+}
+
+.account-detail-mode .app-brand-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.account-detail-mode .app-brand-name {
+    font-size: 23px;
+    font-weight: 600;
+}
+
+.account-detail-mode .app-topbar-right {
+    display: none;
+}
+
 .account-detail-mode .account-context-nav {
     display: flex;
     align-items: center;
@@ -473,6 +502,7 @@ html {
 
 .account-detail-mode .app-container {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 76px 1fr;
 }
 
 .account-detail-mode .main-content {
@@ -489,8 +519,16 @@ html {
     display: none;
 }
 
+.account-detail-mode .vdv-fb {
+    display: none;
+}
+
+.account-detail-mode .km-fab-filter {
+    display: none !important;
+}
+
 .account-view-title {
-    margin: 0 0 8px;
+    margin: 0 0 12px;
     color: var(--near-black);
     font: 600 clamp(30px, 4vw, 42px)/1.2 'Lora', Georgia, serif;
 }
@@ -511,7 +549,7 @@ html {
 }
 
 .account-detail-mode .km-library-header {
-    margin-bottom: 0;
+    margin-bottom: 28px;
 }
 
 .account-managed-view .account-view-header {
@@ -520,7 +558,7 @@ html {
 
 .account-dashboard-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
     gap: 24px;
     align-items: start;
 }
@@ -538,7 +576,7 @@ html {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
 }
 
 .account-card-heading h2 {
@@ -568,7 +606,48 @@ html {
     border-radius: 50%;
     background: var(--warm-sand);
     color: var(--charcoal);
-    font-size: 20px;
+}
+
+.account-card-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.account-library-card .km-empty-state {
+    padding: 48px 24px 40px;
+}
+
+.account-summary-list {
+    list-style: none;
+    margin: 18px 0;
+    padding: 0;
+    color: var(--olive-gray);
+    font-size: 13px;
+}
+
+.account-summary-list li {
+    margin: 8px 0;
+}
+
+.account-summary-list li::before {
+    content: '✓';
+    margin-right: 10px;
+    color: var(--terracotta);
+    font-weight: 700;
+}
+
+.account-full-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 46px;
 }
 
 .account-balance-value {
@@ -628,6 +707,15 @@ html {
 }
 
 @media (max-width: 760px) {
+    .account-detail-mode .app-container {
+        grid-template-rows: 69px 1fr;
+    }
+
+    .account-detail-mode .app-topbar {
+        min-height: 69px;
+        padding: 0 16px;
+    }
+
     .account-detail-mode .app-topbar-left {
         flex: 1;
         justify-content: space-between;
@@ -665,10 +753,6 @@ html {
 
     .account-detail-mode .account-context-nav.open {
         display: flex;
-    }
-
-    .account-detail-mode .app-topbar-right {
-        display: none;
     }
 
     .account-detail-mode .main-content {

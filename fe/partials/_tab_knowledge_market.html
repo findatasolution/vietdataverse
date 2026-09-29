@@ -19,14 +19,15 @@
                                 <p class="account-view-lead">Quản lý các knowledge pack và skill bạn đã sở hữu.</p>
                             </div>
                         </div>
-                        <button class="km-btn-sand" id="km-library-export-btn" onclick="KM.exportLibrary()">
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                            Xuất tất cả
-                        </button>
                     </div>
 
+                    <div class="account-dashboard-grid account-library-grid">
                     <!-- Library filter row -->
-                    <div class="account-detail-card">
+                    <article class="account-detail-card account-library-card">
+                        <div class="account-card-heading">
+                            <span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg></span>
+                            <div><h2>Bộ sưu tập</h2><p>Tìm kiếm, sắp xếp và mở các pack bạn đã sở hữu.</p></div>
+                        </div>
                         <div class="km-library-filterrow">
                             <div class="km-filterbar-search">
                                 <svg class="km-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -41,6 +42,19 @@
 
                         <!-- Library content: grouped by category or flat -->
                         <div id="km-library-grid"></div>
+                    </article>
+                    <aside class="account-detail-card account-library-summary">
+                        <div class="account-card-heading">
+                            <span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg></span>
+                            <div><h2>Tổng quan</h2><p>Thông tin bộ sưu tập của bạn.</p></div>
+                        </div>
+                        <div class="account-balance-value" id="km-library-summary-count">0 pack</div>
+                        <ul class="account-summary-list"><li>Đọc trực tiếp trên web</li><li>Tải file về thiết bị</li><li>Xuất danh sách bộ sưu tập</li></ul>
+                        <button class="km-btn-primary account-full-button" id="km-library-export-btn" onclick="KM.exportLibrary()">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            Xuất tất cả
+                        </button>
+                    </aside>
                     </div>
                 </div>
 
@@ -58,12 +72,12 @@
                     </div>
                     <div id="km-wallet-content" class="account-dashboard-grid" style="display:none;">
                         <article class="account-detail-card account-balance-card">
-                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">◈</span><div><h2>Số dư hiện tại</h2><p>Credits dùng để mua knowledge pack và skill.</p></div></div>
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h14a2 2 0 0 1 2 2v9H6a2 2 0 0 1-2-2z"/><path d="M4 7V6a2 2 0 0 1 2-2h11v3M15 12h5"/></svg></span><div><h2>Số dư hiện tại</h2><p>Credits dùng để mua knowledge pack và skill.</p></div></div>
                             <div id="km-wallet-modal-balance" class="account-balance-value">0 credits</div>
                             <div id="km-wallet-topup-note" class="account-form-status"></div>
                         </article>
                         <article class="account-detail-card">
-                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">＋</span><div><h2>Nạp credits</h2><p>Chọn số tiền và tiếp tục tới cổng thanh toán.</p></div></div>
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><div><h2>Nạp credits</h2><p>Chọn số tiền và tiếp tục tới cổng thanh toán.</p></div></div>
                             <label class="km-label" for="km-topup-amount">Số tiền (VND)</label>
                             <div class="account-inline-form">
                                 <input id="km-topup-amount" class="km-input" type="number" min="10000" step="10000" placeholder="VD: 100000" value="100000">
@@ -72,7 +86,7 @@
                             <div id="km-topup-status" class="account-form-status" role="status"></div>
                         </article>
                         <article class="account-detail-card account-wide-card">
-                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">↕</span><div><h2>Lịch sử giao dịch</h2><p>20 giao dịch gần nhất trên tài khoản.</p></div></div>
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"/></svg></span><div><h2>Lịch sử giao dịch</h2><p>20 giao dịch gần nhất trên tài khoản.</p></div></div>
                             <div id="km-wallet-txns" class="account-table-wrap"><div class="km-empty">Đang tải...</div></div>
                         </article>
                     </div>
@@ -92,14 +106,17 @@
                     </div>
                     <div id="km-seller-dashboard-content" class="account-dashboard-grid" style="display:none;">
                         <article class="account-detail-card">
-                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true">◇</span><div><h2>Hồ sơ seller</h2><p>Trạng thái và số dư doanh thu.</p></div></div>
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><div><h2>Hồ sơ seller</h2><p>Trạng thái và số dư doanh thu.</p></div></div>
                             <div id="km-seller-profile-area"><div class="km-empty">Đang tải...</div></div>
+                        </article>
+                        <article class="account-detail-card">
+                            <div class="account-card-heading"><span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><div><h2>Thao tác nhanh</h2><p>Thêm knowledge pack hoặc skill mới.</p></div></div>
+                            <button class="km-btn-primary account-full-button" onclick="KM.openUploadProduct()">+ Tải sản phẩm lên</button>
                         </article>
                         <article class="account-detail-card account-wide-card">
                             <div class="account-card-heading account-card-heading-actions">
-                                <span class="account-card-icon" aria-hidden="true">▦</span>
+                                <span class="account-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg></span>
                                 <div><h2>Sản phẩm của tôi</h2><p>Quản lý danh sách sản phẩm đang bán.</p></div>
-                                <button class="km-btn-primary" onclick="KM.openUploadProduct()">+ Tải sản phẩm lên</button>
                             </div>
                             <div id="km-seller-products-list" class="account-table-wrap"><div class="km-empty">Đang tải...</div></div>
                         </article>

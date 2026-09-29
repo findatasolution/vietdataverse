@@ -783,8 +783,6 @@
         var cached = _cacheGet('km.library.v1');
         if (cached && Array.isArray(cached) && cached.length > 0) {
             _libraryItems = cached;
-            var titleEl0 = document.getElementById('km-library-title');
-            if (titleEl0) titleEl0.textContent = 'Thư viện (' + cached.length + ' pack)';
             _renderLibrary(cached);
         } else {
             // Skeleton while loading (only when no cache)
@@ -814,9 +812,6 @@
             _libraryItems = json.data || [];
             _cacheSet('km.library.v1', _libraryItems);
 
-            var titleEl = document.getElementById('km-library-title');
-            if (titleEl) titleEl.textContent = 'Thư viện (' + _libraryItems.length + ' pack)';
-
             _renderLibrary(_libraryItems);
         } catch (e) {
             if (!cached) grid.innerHTML = _emptyStateHtml('error');
@@ -827,6 +822,12 @@
     function _renderLibrary(items) {
         const grid = document.getElementById('km-library-grid');
         if (!grid) return;
+
+        const itemCount = Array.isArray(items) ? items.length : 0;
+        const titleEl = document.getElementById('km-library-title');
+        const summaryEl = document.getElementById('km-library-summary-count');
+        if (titleEl) titleEl.textContent = 'Thư viện (' + itemCount + ' pack)';
+        if (summaryEl) summaryEl.textContent = itemCount + ' pack';
 
         if (!items || items.length === 0) {
             grid.innerHTML = _emptyStateHtml('library');
