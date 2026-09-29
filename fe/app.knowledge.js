@@ -1203,9 +1203,13 @@
             var json = await res.json();
             if (!res.ok) throw new Error(json.detail || 'Đăng ký thất bại');
 
-            // Show check-email modal
+            // Show check-email modal. When the server says the mail did not go
+            // out it hands back the verification link instead — telling someone
+            // to check an inbox that will stay empty is worse than showing them
+            // the link, and this response only reaches the account owner.
             var addrEl = document.getElementById('km-check-email-addr');
             if (addrEl) addrEl.textContent = userEmail || 'email của bạn';
+            _showVerifyFallback((json.data || {}).verify_url);
             var checkModal = document.getElementById('km-modal-check-email');
             if (checkModal) checkModal.style.display = 'flex';
 
@@ -1214,6 +1218,27 @@
         } catch (e) {
             alert('Lỗi: ' + e.message);
         }
+    }
+
+    // Render (or clear) the "email did not send" fallback inside the
+    // check-email modal. Kept in one place so /register and /resend-verify
+    // cannot drift.
+    function _showVerifyFallback(url) {
+        var modal = document.getElementById('km-modal-check-email');
+        if (!modal) return;
+        var box = document.getElementById('km-verify-fallback');
+        if (!url) { if (box) box.remove(); return; }
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'km-verify-fallback';
+            box.style.cssText = 'margin-top:16px;padding:12px 14px;border-radius:10px;' +
+                'background:#fff8dc;border:1px solid #e8e6dc;font-size:13px;line-height:1.6;text-align:left;';
+            var addr = document.getElementById('km-check-email-addr');
+            (addr && addr.parentNode ? addr.parentNode : modal).appendChild(box);
+        }
+        box.innerHTML = '<strong>Hệ thống email đang tạm ngưng.</strong> ' +
+            'Bấm vào đây để xác minh ngay — link có hiệu lực 24 giờ:<br>' +
+            '<a href="' + url + '" style="color:#2f5fde;word-break:break-all;">Xác minh email seller</a>';
     }
 
     async function resendVerify() {
@@ -1228,7 +1253,15 @@
                 var j = await res.json();
                 throw new Error(j.detail || 'Resend thất bại');
             }
-            if (statusEl) { statusEl.textContent = 'Đã gửi lại! Kiểm tra inbox.'; statusEl.style.color = '#66BB6A'; }
+            var body = await res.json().catch(function () { return {}; });
+            var fallbackUrl = (body.data || {}).verify_url;
+            _showVerifyFallback(fallbackUrl);
+            if (statusEl) {
+                statusEl.textContent = fallbackUrl
+                    ? 'Chưa gửi được email — dùng link bên dưới.'
+                    : 'Đã gửi lại! Kiểm tra inbox.';
+                statusEl.style.color = fallbackUrl ? '#FFA726' : '#66BB6A';
+            }
             setTimeout(function () {
                 if (btn) btn.disabled = false;
                 if (statusEl) statusEl.textContent = '';

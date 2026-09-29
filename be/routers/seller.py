@@ -207,15 +207,25 @@ async def register_seller(body: RegisterRequest, request: Request):
                 "tos_ver": CURRENT_TOS_VERSION,
             })
 
-        # Send verify email (best-effort)
+        # Send verify email (best-effort) and remember whether it actually went.
+        #
+        # When it did not — RESEND_API_KEY unset or on the DEV_MODE_LOG_ONLY
+        # sentinel, or Resend erroring — the link is returned to the caller
+        # instead. That is not a leak: this endpoint requires auth, so the only
+        # recipient is the account owner, who is exactly who the email was for,
+        # over a channel that demonstrably works. Before this, registration
+        # reported success while the link went nowhere and the seller was stuck
+        # with no way forward.
+        email_sent = False
         try:
             from services.email_service import send_email
-            send_email(
+            result = send_email(
                 to=email,
                 subject="Xác minh email seller — Viet Dataverse",
                 template="verify",
                 ctx={"display_name": display_name, "verify_url": verify_url},
             )
+            email_sent = bool(result.get("sent"))
         except Exception as e:
             logger.warning("verify email send failed user_id=%s: %s", user_id, e)
 
@@ -236,7 +246,12 @@ async def register_seller(body: RegisterRequest, request: Request):
             "source":  "seller",
             "count":   1,
             "data": {
-                "email_sent_to":    email,
+                "email_sent_to":    email if email_sent else None,
+                "email_sent":       email_sent,
+                # Only when the email did not go out. The FE shows it as a
+                # clickable fallback rather than telling the user to check an
+                # inbox that will stay empty.
+                "verify_url":       None if email_sent else verify_url,
                 "expires_in_hours": 24,
             },
         })
@@ -356,20 +371,29 @@ async def resend_verify(request: Request):
                 WHERE id = :pid
             """), {"token": verify_token, "expires": verify_expires, "pid": profile_id})
 
+        email_sent = False
         try:
             from services.email_service import send_email
-            send_email(
+            result = send_email(
                 to=email,
                 subject="Xác minh email seller — Viet Dataverse",
                 template="verify",
                 ctx={"display_name": display_name or email, "verify_url": verify_url},
             )
+            email_sent = bool(result.get("sent"))
         except Exception as e:
             logger.warning("resend verify email failed user_id=%s: %s", user_id, e)
 
         return _json_response({
             "success": True,
-            "data": {"email_sent_to": email, "expires_in_hours": 24},
+            "data": {
+                "email_sent_to": email if email_sent else None,
+                "email_sent": email_sent,
+                # Same fallback as /register: an email nobody receives is
+                # worse than handing the owner the link directly.
+                "verify_url": None if email_sent else verify_url,
+                "expires_in_hours": 24,
+            },
         })
 
     except HTTPException:

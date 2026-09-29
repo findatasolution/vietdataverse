@@ -59,7 +59,15 @@ def send_email(
             f"[EMAIL DEV MODE]\n  to: {to}\n  subject: {subject}\n  template: {template}\n  "
             f"html_preview: {html[:300]}..."
         )
-        return {"id": "dev-mode", "to": to, "template": template}
+        # ERROR, not info: this is production behaviour when RESEND_API_KEY is
+        # unset or the DEV_MODE_LOG_ONLY sentinel, and it means a customer-facing
+        # email was silently dropped. It ran that way unnoticed for months
+        # because every caller wraps send_email in best-effort try/except.
+        logger.error(
+            "EMAIL NOT SENT (dev mode) — set RESEND_API_KEY and EMAIL_FROM. "
+            "to=%s template=%s", to, template,
+        )
+        return {"id": "dev-mode", "to": to, "template": template, "sent": False}
 
     payload = {
         "from": SENDER_FROM,
@@ -86,4 +94,4 @@ def send_email(
     if resp.status_code >= 400:
         raise EmailError(f"Resend API {resp.status_code}: {resp.text[:200]}")
 
-    return resp.json()
+    return {**resp.json(), "sent": True}

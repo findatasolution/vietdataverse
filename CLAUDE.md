@@ -1166,6 +1166,17 @@ Tài khoản `npdhien2806@gmail.com` (seller_profiles id=7) đã được set
 `email_verified=true` tay ngày 2026-09-29, có ghi `admin_audit_log`, vì token
 của nó hợp lệ nhưng link không bao giờ tới nơi.
 
+**Luồng seller đã hết phụ thuộc email (2026-09-29).** `send_email()` giờ trả
+`sent: True|False`, và `POST /seller/register` + `/seller/resend-verify` trả
+**`verify_url` khi email không gửi được**; FE hiện nó thành link bấm được ngay
+trong modal. Đây không phải lỗ bảo mật: hai endpoint đều bắt buộc auth, nên
+người duy nhất nhận được link là **chính chủ tài khoản** — đúng người mà email
+nhắm tới, qua một kênh chứng minh được là hoạt động. Trước đó đăng ký báo thành
+công trong khi link đi vào hư vô và seller kẹt cứng không có đường ra.
+
+Dev-mode giờ log ở mức **ERROR** kèm `to=` và `template=`, thay vì `info` — để
+lần sau nhìn log là thấy, không phải đợi khách hỏi.
+
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
 `users.email` and `users.auth0_id` are both UNIQUE, and every router finds the
