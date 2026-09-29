@@ -14,11 +14,10 @@
                     <!-- Library header -->
                     <div class="km-library-header">
                         <div class="km-library-header-left">
-                            <button onclick="KM.showMarketplace()" class="km-btn-back">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                Marketplace
-                            </button>
-                            <h2 class="km-library-title" id="km-library-title">Thư viện của tôi</h2>
+                            <div>
+                                <h1 class="account-view-title" id="km-library-title">Thư viện</h1>
+                                <p class="account-view-lead">Quản lý các knowledge pack và skill bạn đã sở hữu.</p>
+                            </div>
                         </div>
                         <button class="km-btn-sand" id="km-library-export-btn" onclick="KM.exportLibrary()">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v9M4 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -27,20 +26,22 @@
                     </div>
 
                     <!-- Library filter row -->
-                    <div class="km-library-filterrow">
-                        <div class="km-filterbar-search">
-                            <svg class="km-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-                            <input type="search" id="km-library-search" placeholder="Tìm trong bộ sưu tập..." class="km-search-input" oninput="KM.filterLibrary(this.value)" autocomplete="off">
+                    <div class="account-detail-card">
+                        <div class="km-library-filterrow">
+                            <div class="km-filterbar-search">
+                                <svg class="km-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                                <input type="search" id="km-library-search" placeholder="Tìm trong bộ sưu tập..." class="km-search-input" oninput="KM.filterLibrary(this.value)" autocomplete="off">
+                            </div>
+                            <select class="km-dropdown" id="km-library-sort" onchange="KM.sortLibrary(this.value)">
+                                <option value="recent">Mới mua</option>
+                                <option value="az">A – Z</option>
+                                <option value="category">Danh mục</option>
+                            </select>
                         </div>
-                        <select class="km-dropdown" id="km-library-sort" onchange="KM.sortLibrary(this.value)">
-                            <option value="recent">Mới mua</option>
-                            <option value="az">A – Z</option>
-                            <option value="category">Danh mục</option>
-                        </select>
-                    </div>
 
-                    <!-- Library content: grouped by category or flat -->
-                    <div id="km-library-grid"></div>
+                        <!-- Library content: grouped by category or flat -->
+                        <div id="km-library-grid"></div>
+                    </div>
                 </div>
 
                 <!-- Marketplace view (default) -->

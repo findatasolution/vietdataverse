@@ -23,6 +23,7 @@ import io
 from datetime import datetime
 
 from fastapi import APIRouter, Query, Request
+from fastapi.responses import Response
 
 from routers import market_data, vn30_data
 
@@ -106,19 +107,72 @@ async def _collect_datasets(request: Request, period: str) -> list[dict]:
 
 
 
+# Widest dataset is sbv-interbank at 8 columns. The stacked CSV pads every row
+# to this width so one IMPORTDATA can carry all nine datasets in a single
+# rectangle — Sheets cannot merge ragged rows.
+STACKED_VALUE_COLUMNS = 8
+
+
+def _stacked_csv(datasets: list[dict]) -> str:
+    """All nine datasets as one CSV: `dataset` + 8 padded value columns.
+
+    This exists so the Sheets template can spend **one** metered call instead of
+    nine. Measured 2026-09-29 on a real customer: nine live IMPORTDATA formulas
+    made 315 calls in 2.7 days — 116/day, overnight included — because Sheets
+    refreshes each formula about hourly while a tab is open. At one call per
+    refresh cycle that ceiling becomes 24/day, so even a file left open all
+    month stays inside the 1.000/month paid quota.
+
+    Headers are deliberately NOT included. Each tab writes its own header row at
+    build time and pulls its rows with QUERY, which costs no network at all.
+    """
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["dataset"] + [f"c{i}" for i in range(1, STACKED_VALUE_COLUMNS + 1)])
+    for item in datasets:
+        if item["error"]:
+            continue
+        for row in item["rows"]:
+            padded = list(row[:STACKED_VALUE_COLUMNS])
+            padded += [""] * (STACKED_VALUE_COLUMNS - len(padded))
+            writer.writerow([item["id"]] + ["" if v is None else v for v in padded])
+    return buffer.getvalue()
+
+
+def _cutoff(item: dict) -> str | None:
+    """Newest period in a dataset — its first column, which is always the date
+    or period. Returned so the sheet can state how fresh the data is without
+    the reader having to scroll to the bottom of a tab."""
+    if item["error"] or not item["rows"]:
+        return None
+    return str(max(str(r[0]) for r in item["rows"] if r and r[0] is not None))
+
+
 @router.get("/api/v1/excel/refresh-data")
 async def excel_refresh_data(
     request: Request,
     period: str = Query("1y", pattern="^(7d|1m|1y|all)$"),
+    format: str = Query("json", pattern="^(json|csv)$"),
 ):
-    """Return every workbook dataset in one metered refresh call."""
+    """Every dataset in one metered call. `format=csv` returns the stacked form
+    the Google Sheets template reads with a single IMPORTDATA."""
     datasets = await _collect_datasets(request, period)
+
+    if format == "csv":
+        return Response(
+            content=_stacked_csv(datasets),
+            media_type="text/csv; charset=utf-8",
+            headers={"Cache-Control": "no-store"},
+        )
+
+    user = getattr(request.state, "user", None) or {}
     return {
         "success": all(item["error"] is None for item in datasets),
         "source": "Viet Dataverse",
         "period": period,
         "refreshed_at": datetime.now().isoformat(timespec="seconds"),
+        "tier": user.get("user_level") or "unknown",
         "count": len(datasets),
-        "data": datasets,
+        "data": [{**item, "cutoff": _cutoff(item)} for item in datasets],
     }
 

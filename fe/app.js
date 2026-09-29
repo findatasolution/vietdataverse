@@ -1161,6 +1161,24 @@
 
         // Workspaces that have no useful sidebar — hide it and go full-width
         const NO_SIDEBAR_WORKSPACES = ['data', 'pulse'];
+        const ACCOUNT_DETAIL_VIEWS = ['library', 'wallet', 'seller-dashboard'];
+
+        function setAccountDetailMode(view) {
+            const active = ACCOUNT_DETAIL_VIEWS.includes(view);
+            document.body.classList.toggle('account-detail-mode', active);
+            document.querySelectorAll('.account-context-tab[data-account-view]').forEach(link => {
+                const selected = active && link.dataset.accountView === view;
+                link.classList.toggle('active', selected);
+                if (selected) link.setAttribute('aria-current', 'page');
+                else link.removeAttribute('aria-current');
+            });
+            const container = document.querySelector('.app-container');
+            if (container) {
+                if (active) container.classList.add('no-sidebar');
+                else container.classList.remove('no-sidebar');
+            }
+        }
+        window.setAccountDetailMode = setAccountDetailMode;
 
         function setWorkspace(ws) {
             // Update workspace tab buttons
@@ -1198,6 +1216,7 @@
             document.querySelectorAll('.workspace-tab[data-workspace]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const ws = btn.dataset.workspace;
+                    setAccountDetailMode(null);
                     setWorkspace(ws);
                     // Activate the first nav-link in this workspace if present (data),
                     // otherwise fall back to the workspace default tab (km, pulse).
@@ -1213,6 +1232,44 @@
                     }
                 });
             });
+
+            document.querySelectorAll('.account-context-tab[href*="#km/"]').forEach(link => {
+                link.addEventListener('click', event => {
+                    event.preventDefault();
+                    const view = link.dataset.accountView;
+                    history.pushState(null, '', '#km/' + view);
+                    setWorkspace('km');
+                    setAccountDetailMode(view);
+                    activateTab('knowledge-market');
+                    if (!window.KM) return;
+                    const actions = {
+                        library: () => window.KM.loadLibrary(),
+                        wallet: () => window.KM.openWallet(),
+                        'seller-dashboard': () => window.KM.openSellerDashboard(),
+                    };
+                    if (actions[view]) actions[view]();
+                });
+            });
+            const accountMenuButton = document.getElementById('account-nav-burger');
+            const accountMenu = document.getElementById('account-context-nav');
+            if (accountMenuButton && accountMenu) {
+                accountMenuButton.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const open = accountMenu.classList.toggle('open');
+                    accountMenuButton.setAttribute('aria-expanded', String(open));
+                });
+                document.addEventListener('click', event => {
+                    if (accountMenu.contains(event.target)) return;
+                    accountMenu.classList.remove('open');
+                    accountMenuButton.setAttribute('aria-expanded', 'false');
+                });
+                document.addEventListener('keydown', event => {
+                    if (event.key !== 'Escape' || !accountMenu.classList.contains('open')) return;
+                    accountMenu.classList.remove('open');
+                    accountMenuButton.setAttribute('aria-expanded', 'false');
+                    accountMenuButton.focus();
+                });
+            }
 
             // Nav-link tab clicks → replaceState (no back-button spam)
             document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
@@ -1475,6 +1532,24 @@
             // popstate listener exists elsewhere in this file today.
             window.addEventListener('popstate', () => {
                 const hash = window.location.hash.replace('#', '');
+                if (hash.indexOf('km/') === 0) {
+                    const view = hash.split('/')[1] || 'marketplace';
+                    setWorkspace('km');
+                    setAccountDetailMode(view);
+                    activateTab('knowledge-market');
+                    if (window.KM) {
+                        const actions = {
+                            marketplace: () => window.KM.showMarketplace(),
+                            categories: () => { window.KM._switchKmView('categories'); window.KM.renderCategoriesView(); },
+                            trending: () => { window.KM._switchKmView('trending'); window.KM.renderTrendingView(); },
+                            library: () => window.KM.loadLibrary(),
+                            wallet: () => window.KM.openWallet(),
+                            'seller-dashboard': () => window.KM.openSellerDashboard(),
+                        };
+                        if (actions[view]) actions[view]();
+                    }
+                    return;
+                }
                 if (hash.indexOf('data/portal') !== 0) return;
                 const parts = hash.split('/'); // ['data','portal', ...rest]
                 applyDataPortalRoute(parts.slice(2).join('/') || null);
@@ -1509,6 +1584,7 @@
                     const ws = parts[0];
                     const tabId = parts[1] || null;
                     const sub = parts.slice(2).join('/') || null;
+                    setAccountDetailMode(ws === 'km' ? tabId : null);
                     setWorkspace(ws);
                     if (ws === 'legal' && tabId && LEGAL_VIEW_MAP[tabId]) {
                         // Legal route: show as data workspace tab
@@ -1528,6 +1604,8 @@
                             }
                             var KM_VIEW_MAP = {
                                 'marketplace':      function () { window.KM && window.KM.showMarketplace(); },
+                                'categories':       function () { if (window.KM) { window.KM._switchKmView('categories'); window.KM.renderCategoriesView(); } },
+                                'trending':         function () { if (window.KM) { window.KM._switchKmView('trending'); window.KM.renderTrendingView(); } },
                                 'library':          function () { window.KM && window.KM.loadLibrary(); },
                                 'wallet':           function () { window.KM && window.KM.openWallet(); },
                                 'seller-dashboard': function () { window.KM && window.KM.openSellerDashboard(); },
@@ -1546,6 +1624,7 @@
                 }
             } else {
                 // No hash — default to #data/portal
+                setAccountDetailMode(null);
                 history.replaceState(null, '', '#data/portal');
                 setWorkspace('data');
                 activateTab('data-portal');

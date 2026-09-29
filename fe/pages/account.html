@@ -19,44 +19,47 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 16px 80px;
+            padding: 0 0 80px;
+        }
+        .account-nav-shell {
+            width: 100%;
+            border-bottom: 1px solid var(--border-warm);
+            background: var(--ivory);
         }
 
         .page-nav {
             width: 100%;
-            max-width: 680px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 20px 4px;
+            padding: 16px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .nav-logo {
             font-family: 'Lora', Georgia, serif;
-            font-size: 15px;
-            font-weight: 500;
+            font-size: 23px;
+            font-weight: 600;
             color: var(--near-black);
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 6px;
-            opacity: .85;
-            transition: opacity .2s;
+            white-space: nowrap;
         }
-        .nav-logo:hover { opacity: 1; }
+        .nav-logo img { width: 36px; height: 36px; }
 
-        .settings-tabs { display: flex; align-items: center; gap: 4px; }
+        .settings-tabs { display: flex; align-items: center; gap: 8px; margin-left: auto; }
         .settings-tab {
             display: inline-flex; align-items: center;
-            padding: 6px 12px; border-radius: 8px;
-            font-size: 13px; font-weight: 500;
+            min-height: 44px; padding: 10px 14px; border-radius: var(--radius-lg);
+            font-size: 13px; font-weight: 600;
             color: var(--olive-gray, #5e5d59); text-decoration: none;
             transition: background .15s, color .15s;
         }
         .settings-tab:hover { background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); }
         .settings-tab.active {
-            background: var(--warm-sand, #e8e6dc); color: var(--near-black, #141413); font-weight: 600;
-            box-shadow: 0 0 0 1px var(--ring-warm, #d1cfc5);
+            background: var(--warm-sand, #e8e6dc); color: var(--terracotta); font-weight: 600;
         }
         .nav-burger {
             display: none; flex-shrink: 0;
@@ -66,11 +69,11 @@
         }
         .nav-burger svg { display: block; }
         @media (max-width: 640px) {
-            .page-nav { position: relative; flex-wrap: nowrap; }
+            .page-nav { position: relative; flex-wrap: nowrap; padding: 12px 16px; }
             .nav-burger { display: inline-flex; }
             .settings-tabs {
                 display: none;
-                position: absolute; top: 100%; left: 4px; right: 4px; z-index: 60;
+                position: absolute; top: 100%; left: 16px; right: 16px; z-index: 60;
                 flex-direction: column; align-items: stretch; gap: 2px;
                 background: var(--ivory); border: 1px solid var(--border-cream);
                 border-radius: 12px; padding: 8px; margin-top: 6px; box-shadow: var(--whisper);
@@ -82,8 +85,8 @@
         /* ── Page Header ─────────────────────────────────────── */
         .account-header {
             width: 100%;
-            max-width: 680px;
-            padding: 8px 4px 28px;
+            max-width: 1280px;
+            padding: 36px 24px 28px;
         }
         .account-badge {
             display: inline-flex;
@@ -101,7 +104,7 @@
         }
         .account-title {
             font-family: 'Lora', Georgia, serif;
-            font-size: clamp(22px, 4vw, 30px);
+            font-size: clamp(30px, 4vw, 42px);
             font-weight: 600;
             color: var(--near-black);
             margin: 0;
@@ -110,7 +113,7 @@
         /* ── Card ────────────────────────────────────────────── */
         .card {
             width: 100%;
-            max-width: 680px;
+            max-width: none;
             background: var(--pure-white);
             border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl);
@@ -494,7 +497,7 @@
         /* ── Auth required / loading ─────────────────────────── */
         .state-card {
             width: 100%;
-            max-width: 680px;
+            max-width: 1280px;
             background: var(--pure-white);
             border: 1px solid var(--border-cream);
             border-radius: var(--radius-xl);
@@ -544,37 +547,52 @@
             .sub-row { flex-direction: column; }
             .wallet-row { flex-direction: column; align-items: flex-start; }
         }
+        #account-content {
+            width: 100%;
+            max-width: 1280px;
+            padding: 0 24px;
+            grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+            gap: 16px 24px;
+            align-items: start;
+        }
+        #token-card { grid-column: 2; grid-row: 1 / span 4; }
+        #student-card { grid-column: 1; }
+        .account-lead { margin: 10px 0 0; color: var(--olive-gray); font-size: 16px; }
+        @media (max-width: 760px) {
+            #account-content { grid-template-columns: 1fr; padding: 0 16px; }
+            #token-card, #student-card { grid-column: 1; grid-row: auto; }
+            .account-header { padding: 28px 16px 22px; }
+            .account-lead { font-size: 14px; }
+        }
     </style>
 </head>
 <body>
 <div class="account-page">
 
     <!-- Nav -->
-    <nav class="page-nav">
+    <header class="account-nav-shell"><nav class="page-nav">
         <a href="/" class="nav-logo">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13L5 8l5-5"/>
-            </svg>
+            <img src="/fe/images/favicon-32x32.png" alt="" width="36" height="36">
             Viet Dataverse
         </a>
-        <button class="nav-burger" type="button" aria-label="Menu"
-                onclick="event.stopPropagation();document.getElementById('settings-tabs').classList.toggle('open');">
+        <button class="nav-burger" id="account-nav-burger" type="button" aria-label="Mở menu tài khoản"
+                aria-controls="settings-tabs" aria-expanded="false">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
         </button>
         <!-- Settings sub-tabs -->
         <div class="settings-tabs" id="settings-tabs">
             <a class="settings-tab active" href="/pages/account.html">Tài khoản</a>
-            <a class="settings-tab" href="/fe/#km/library" id="tab-library">My Library</a>
-            <a class="settings-tab" href="/fe/#km/wallet" id="tab-wallet">Wallet</a>
-            <a class="settings-tab" href="/fe/#km/seller-dashboard" id="tab-mystore">My Store</a>
+            <a class="settings-tab" href="/fe/#km/library" id="tab-library">Thư viện</a>
+            <a class="settings-tab" href="/fe/#km/wallet" id="tab-wallet">Ví của tôi</a>
+            <a class="settings-tab" href="/fe/#km/seller-dashboard" id="tab-mystore">Cửa hàng</a>
             <a class="settings-tab" href="/pages/developer.html">API Key</a>
         </div>
-    </nav>
+    </nav></header>
 
     <!-- Page Header -->
     <div class="account-header">
-        <div class="account-badge">Settings</div>
         <h1 class="account-title">Tài khoản</h1>
+        <p class="account-lead">Quản lý hồ sơ, gói dịch vụ và các thiết lập tài khoản của bạn.</p>
     </div>
 
     <!-- Loading state -->
@@ -592,7 +610,7 @@
     </div>
 
     <!-- Main account content -->
-    <div id="account-content" style="display:none; width:100%; max-width:680px;">
+    <div id="account-content" style="display:none;">
 
         <!-- ── Profile Card ──────────────────────────────────── -->
         <div class="card">
@@ -1333,10 +1351,23 @@
 
 
     /* ── Boot ────────────────────────────────────────────── */
-    // Đóng dropdown settings-tabs khi bấm ra ngoài (mobile)
-    document.addEventListener('click', function () {
-        var t = document.getElementById('settings-tabs');
-        if (t) t.classList.remove('open');
+    const accountMenuButton = document.getElementById('account-nav-burger');
+    const accountMenu = document.getElementById('settings-tabs');
+    accountMenuButton.addEventListener('click', function (event) {
+        event.stopPropagation();
+        const open = accountMenu.classList.toggle('open');
+        accountMenuButton.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', function (event) {
+        if (accountMenu.contains(event.target)) return;
+        accountMenu.classList.remove('open');
+        accountMenuButton.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape' || !accountMenu.classList.contains('open')) return;
+        accountMenu.classList.remove('open');
+        accountMenuButton.setAttribute('aria-expanded', 'false');
+        accountMenuButton.focus();
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -1378,7 +1409,7 @@
             if (isPro) { loadWebhooks(); }
 
             document.getElementById('state-loading').style.display = 'none';
-            document.getElementById('account-content').style.display = 'block';
+            document.getElementById('account-content').style.display = 'grid';
         } catch (err) {
             document.getElementById('state-loading').innerHTML =
                 `<div class="state-title" style="color:var(--error-red)">Lỗi tải tài khoản</div>

@@ -5,16 +5,36 @@ datasets that keep themselves up to date. There is no third step.
 
 ## How it works
 
-`build_template.py` generates a workbook whose nine data tabs each hold a single
-formula in `A1`:
+**One API call feeds the whole workbook.** A `_dữ liệu thô` tab holds a single
+`IMPORTDATA` against `/api/v1/excel/refresh-data?format=csv`, which returns all
+nine datasets stacked into one rectangle (`dataset` + 8 padded value columns).
+Each visible tab pulls its own rows with `QUERY`, a pure spreadsheet function
+that costs no network.
 
-```
-=IF('Bắt đầu'!$C$4="", "← Dán API key…", IMPORTDATA("…&format=csv&api_key="&'Bắt đầu'!$C$4))
-```
+Each dataset tab carries a **line chart** and, in `B1`, the **newest period in
+that dataset** — so a reader can see how fresh the data is without scrolling.
 
-`IMPORTDATA` is built into Google Sheets. Nothing is installed, nothing is
-authorized, and every tab reads its key from the same cell, so one paste fills
-the whole file.
+### Why one call and not nine
+
+Measured on a real customer, 2026-09-29: the previous design — nine live
+`IMPORTDATA` formulas — made **315 calls in 2.7 days**. That is 116/day,
+including 03:00 and 05:00 local, with nobody touching the file: Sheets
+refreshes each formula about hourly while a tab stays open.
+
+| Design | Ceiling if the file is left open | Against the 1.000/month paid quota |
+|---|---|---|
+| Nine formulas | ~216 calls/day | dead in **8.6 days** |
+| One formula | 24 calls/day | ~720/month — **fits, with room** |
+
+That is what makes the product promise keepable: a paying customer can pull the
+full dataset every day for thirty days and still be inside quota.
+
+### When the API refuses
+
+`IMPORTDATA` renders `#N/A` and nothing else — a Sheets user never sees an HTTP
+body, which is precisely why an exhausted quota looked like a broken file. The
+raw formula is wrapped in `IFERROR` and prints the real reason plus the upgrade
+link instead.
 
 ## Why there is no Apps Script
 

@@ -621,7 +621,7 @@
         const modal = document.getElementById('km-modal-product-detail');
         if (!modal) return;
 
-        modal.style.display = 'flex';
+        modal.style.display = document.body.classList.contains('account-detail-mode') ? 'block' : 'flex';
         modal.innerHTML = '<div class="km-modal-content"><div class="km-empty">Đang tải...</div></div>';
 
         try {
@@ -765,6 +765,7 @@
     var _librarySortMode = 'recent';
 
     async function loadLibrary() {
+        _prepareAccountDetailView('library');
         // Show library view IMMEDIATELY — no waiting for auth/network.
         const libView = document.getElementById('km-library-view');
         const mktView = document.getElementById('km-marketplace-view');
@@ -783,7 +784,7 @@
         if (cached && Array.isArray(cached) && cached.length > 0) {
             _libraryItems = cached;
             var titleEl0 = document.getElementById('km-library-title');
-            if (titleEl0) titleEl0.textContent = 'Thư viện của tôi (' + cached.length + ' pack)';
+            if (titleEl0) titleEl0.textContent = 'Thư viện (' + cached.length + ' pack)';
             _renderLibrary(cached);
         } else {
             // Skeleton while loading (only when no cache)
@@ -814,7 +815,7 @@
             _cacheSet('km.library.v1', _libraryItems);
 
             var titleEl = document.getElementById('km-library-title');
-            if (titleEl) titleEl.textContent = 'Thư viện của tôi (' + _libraryItems.length + ' pack)';
+            if (titleEl) titleEl.textContent = 'Thư viện (' + _libraryItems.length + ' pack)';
 
             _renderLibrary(_libraryItems);
         } catch (e) {
@@ -977,6 +978,7 @@
     }
 
     function showMarketplace() {
+        _prepareAccountDetailView(null);
         const libView = document.getElementById('km-library-view');
         const mktView = document.getElementById('km-marketplace-view');
         const catView = document.getElementById('km-categories-view');
@@ -1014,17 +1016,19 @@
     // ─────────────────────────────────────────────
 
     async function openWallet() {
+        _prepareAccountDetailView('wallet');
         let authed = false;
         try { authed = (typeof isAuthenticated === 'function') ? await isAuthenticated() : false; } catch (_) {}
         if (!authed) { alert('Bạn cần đăng nhập để sử dụng ví.'); return; }
 
         const modal = document.getElementById('km-modal-wallet');
         if (!modal) return;
-        modal.style.display = 'flex';
+        modal.style.display = document.body.classList.contains('account-detail-mode') ? 'block' : 'flex';
         modal.innerHTML =
+            '<div class="account-modal-heading"><h1 class="account-view-title">Ví của tôi</h1><p class="account-view-lead">Quản lý số dư và lịch sử giao dịch của bạn.</p></div>' +
             '<div class="km-modal-content" style="max-width:560px;">' +
                 '<button class="km-modal-close" onclick="document.getElementById(\'km-modal-wallet\').style.display=\'none\'">&times;</button>' +
-                '<h2 style="font-size:1.1rem;font-weight:600;margin:0 0 1.25rem;">Ví của bạn</h2>' +
+                '<h2 style="font-size:1.1rem;font-weight:600;margin:0 0 1.25rem;">Số dư và giao dịch</h2>' +
 
                 '<div style="background:var(--parchment);border:1px solid var(--border-cream);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.25rem;text-align:center;">' +
                     '<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.25rem;">Số dư hiện tại</div>' +
@@ -1240,6 +1244,7 @@
     // ─────────────────────────────────────────────
 
     async function openSellerDashboard() {
+        _prepareAccountDetailView('seller-dashboard');
         let authed = false;
         try { authed = (typeof isAuthenticated === 'function') ? await isAuthenticated() : false; } catch (_) {}
         if (!authed) { alert('Bạn cần đăng nhập.'); return; }
@@ -1248,9 +1253,10 @@
         if (!modal) return;
         modal.style.display = 'flex';
         modal.innerHTML =
+            '<div class="account-modal-heading"><h1 class="account-view-title">Cửa hàng</h1><p class="account-view-lead">Quản lý hồ sơ seller, sản phẩm và doanh thu của bạn.</p></div>' +
             '<div class="km-modal-content" style="max-width:720px;">' +
                 '<button class="km-modal-close" onclick="document.getElementById(\'km-modal-seller-dashboard\').style.display=\'none\'">&times;</button>' +
-                '<h2 style="font-size:1.1rem;font-weight:600;margin:0 0 1rem;">Seller Dashboard</h2>' +
+                '<h2 style="font-size:1.1rem;font-weight:600;margin:0 0 1rem;">Tổng quan cửa hàng</h2>' +
                 '<div id="km-seller-profile-area"><div class="km-empty">Đang tải...</div></div>' +
                 '<div style="margin-top:1.25rem;">' +
                     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">' +
@@ -2257,6 +2263,20 @@
         });
     }
 
+    function _prepareAccountDetailView(view) {
+        if (typeof window.setAccountDetailMode === 'function') {
+            window.setAccountDetailMode(view);
+        }
+        ['km-marketplace-view', 'km-categories-view', 'km-trending-view', 'km-library-view'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = id === 'km-library-view' && view === 'library' ? 'block' : 'none';
+        });
+        var wallet = document.getElementById('km-modal-wallet');
+        var seller = document.getElementById('km-modal-seller-dashboard');
+        if (wallet && view !== 'wallet') wallet.style.display = 'none';
+        if (seller && view !== 'seller-dashboard') seller.style.display = 'none';
+    }
+
     // Discover sub-views: marketplace | categories | trending
     function _switchKmView(name) {
         var views = ['marketplace', 'categories', 'trending'];
@@ -2345,6 +2365,7 @@
         e.preventDefault();
         var view = item.dataset.kmView;
         _setKmNavActive(view);
+        _prepareAccountDetailView(['library', 'wallet', 'seller-dashboard'].includes(view) ? view : null);
 
         // Update hash
         if (typeof window.history !== 'undefined' && window.history.replaceState) {
@@ -2487,6 +2508,7 @@
         gotoCategory:          gotoCategory,
         renderCategoriesView:  renderCategoriesView,
         renderTrendingView:    renderTrendingView,
+        _switchKmView:         _switchKmView,
         renderProductCard:     renderProductCard,
         showProductDetail:     showProductDetail,
         purchaseProduct:       purchaseProduct,
