@@ -1,0 +1,57 @@
+# Check the prod box's outbound-email configuration without SSH access.
+#
+# Mail (student OTP, seller verify, DMCA, report replies) goes through Resend and
+# only leaves the box when RESEND_API_KEY in the box's .env is a real key — the
+# local .env is never deployed. Nobody but the deploy key can read that file, so
+# this workflow reports on it with the key GitHub already holds.
+#
+# This repo is PUBLIC and so are its Actions logs: print only yes/no and counts.
+# Never echo the key, any .env value, or a log line (log lines carry recipient
+# email addresses).
+name: Box — check email config
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-on-box:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if server secrets not configured
+        id: guard
+        run: echo "ready=${{ secrets.DEPLOY_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Report email config (yes/no and counts only)
+        if: steps.guard.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            set -uo pipefail
+            APP_DIR="${{ secrets.DEPLOY_APP_DIR }}"
+            APP_DIR="${APP_DIR:-/root/vietdataverse}"
+            cd "$APP_DIR" || exit 1
+
+            yn() { if [ "$1" -gt 0 ]; then echo yes; else echo no; fi; }
+
+            echo "=== box .env ==="
+            echo "RESEND_API_KEY line present:      $(yn "$(grep -c '^RESEND_API_KEY=' .env || true)")"
+            echo "RESEND_API_KEY looks real (re_*): $(yn "$(grep -c '^RESEND_API_KEY=re_' .env || true)")"
+            echo "RESEND_API_KEY is dev sentinel:   $(yn "$(grep -c '^RESEND_API_KEY=DEV_MODE_LOG_ONLY' .env || true)")"
+            echo "EMAIL_FROM set:                   $(yn "$(grep -c '^EMAIL_FROM=.' .env || true)")"
+
+            echo
+            echo "=== running container ==="
+            docker compose ps --format '{{.Name}} {{.State}} {{.Status}}' || true
+            echo "container sees a real key:        $(yn "$(docker exec vietdataverse sh -c 'case "$RESEND_API_KEY" in re_*) echo 1;; *) echo 0;; esac' 2>/dev/null || echo 0)")"
+            echo "jinja2 importable in container:   $(docker exec vietdataverse python -c 'import jinja2; print("yes")' 2>/dev/null || echo no)"
+
+            echo
+            echo "=== container log, last 24h (counts only) ==="
+            LOG=$(docker logs --since 24h vietdataverse 2>&1 || true)
+            echo "EMAIL NOT SENT (dev mode):        $(printf '%s' "$LOG" | grep -c 'EMAIL NOT SENT' || true)"
+            echo "student OTP email failed:         $(printf '%s' "$LOG" | grep -c 'student OTP email failed' || true)"
+            echo "POST /api/v1/student/send-otp:    $(printf '%s' "$LOG" | grep -c 'POST /api/v1/student/send-otp' || true)"
