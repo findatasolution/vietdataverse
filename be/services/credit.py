@@ -1,10 +1,11 @@
 """Credit ledger operations — atomic, idempotent."""
 import secrets
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import text
 
 from core.engines import get_engine_knowledge
+from core.timeutils import utcnow
 
 VND_PER_CREDIT = 1000
 
@@ -169,7 +170,7 @@ def purchase_product(buyer_id: int, buyer_email: str, product_id: int) -> dict:
     """
     engine = get_engine_knowledge()
     license_key = secrets.token_urlsafe(48)
-    idem_key = f"purchase:{buyer_id}:{product_id}:{int(datetime.utcnow().timestamp())}"
+    idem_key = f"purchase:{buyer_id}:{product_id}:{int(utcnow().timestamp())}"
 
     with engine.begin() as conn:
         # Guard: no duplicate purchase
@@ -281,7 +282,7 @@ def refund_purchase(purchase_id: int, buyer_id: int) -> dict:
             raise ValueError("Purchase not found")
         if p[5] != "active":
             raise ValueError(f"Cannot refund — status is '{p[5]}'")
-        if datetime.utcnow() > p[4]:
+        if utcnow() > p[4]:
             raise ValueError("Refund window expired (1 hour)")
 
         # Block refund if already downloaded

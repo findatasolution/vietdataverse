@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import text
 
 from core.engines import get_engine_knowledge
+from core.timeutils import utcnow
 from services.credit import (InsufficientCredits, _held_credits, capture_hold,
                              hold_credits, release_hold, VND_PER_CREDIT)
 
@@ -166,7 +167,7 @@ def subscribe(user_id: int, product_code: str) -> dict:
             WHERE user_id = :u AND product_code = :p FOR UPDATE
         """), {"u": user_id, "p": product_code}).first()
 
-        now = datetime.utcnow()
+        now = utcnow()
 
         if existing:
             sub_id, ex_status, ex_period_end, ex_cancel_at_end = existing
@@ -294,7 +295,7 @@ def start_trial(user_id: int, product_code: str, *, consented: bool,
     with engine.begin() as conn:
         product = _get_product(conn, product_code)
         price = product["price_credits"]
-        now = datetime.utcnow()
+        now = utcnow()
         trial_end = now + timedelta(days=TRIAL_DAYS)
 
         existing = conn.execute(text("""
@@ -425,7 +426,7 @@ def cancel_subscription(user_id: int, product_code: str) -> dict:
         else:
             trial_result = None
 
-        if trial_result is None and status == "active" and period_end > datetime.utcnow():
+        if trial_result is None and status == "active" and period_end > utcnow():
             if not already_scheduled:
                 conn.execute(text("""
                     UPDATE platform_subscriptions SET cancel_at_period_end = true
@@ -491,7 +492,7 @@ def has_active_subscription(user_id: int | None, product_code: str) -> bool:
     if not sub or sub["status"] != "active":
         return False
     period_end = sub["current_period_end"]
-    return bool(period_end and period_end > datetime.utcnow())
+    return bool(period_end and period_end > utcnow())
 
 
 def list_subscription_history(user_id: int, limit: int = 50, offset: int = 0) -> list[dict]:
@@ -637,7 +638,7 @@ def run_billing_cycle(now: datetime | None = None) -> dict:
     deactivated while subscribers remain on it) is logged and skipped rather
     than aborting the whole run and leaving every later subscription in
     due_ids unprocessed."""
-    now = now or datetime.utcnow()
+    now = now or utcnow()
     engine = get_engine_knowledge()
     counts = {"renewed": 0, "past_due": 0, "cancelled": 0, "converted": 0}
 

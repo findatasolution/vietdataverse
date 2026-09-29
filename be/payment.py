@@ -30,6 +30,8 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
+from core.timeutils import utcnow
+
 from middleware import authenticate_user
 from core.engines import get_engine_user
 from quota import get_quota
@@ -260,7 +262,7 @@ def _activate_premium(session, user_id: int, plan: str):
         {"uid": user_id},
     ).fetchone()
 
-    now = datetime.now()
+    now = utcnow()
     base = max(row[0], now) if row and row[0] and row[0] > now else now
     new_expiry = base + timedelta(days=plan_info["days"])
 
@@ -731,7 +733,7 @@ async def subscription_status(request: Request):
         is_premium, premium_expiry, user_level = row
 
         # Auto-expire nếu đã quá hạn
-        if is_premium and premium_expiry and premium_expiry < datetime.now():
+        if is_premium and premium_expiry and premium_expiry < utcnow():
             session.execute(text("""
                 UPDATE users SET is_premium = FALSE, user_level = 'free', updated_at = NOW()
                 WHERE auth0_id = :aid
@@ -756,7 +758,7 @@ async def subscription_status(request: Request):
 def _status_response(is_premium: bool, premium_expiry: Optional[datetime], user_level: str = "free") -> dict:
     days_remaining = 0
     if is_premium and premium_expiry:
-        days_remaining = max(0, (premium_expiry - datetime.now()).days)
+        days_remaining = max(0, (premium_expiry - utcnow()).days)
     return {
         "is_premium":     is_premium,
         "premium_expiry": premium_expiry.isoformat() if premium_expiry else None,
@@ -797,7 +799,7 @@ async def require_premium(request: Request):
     if not row or not row[0]:
         raise HTTPException(status_code=403, detail="Yêu cầu gói Premium hoặc API Supper Lite trở lên")
 
-    if row[1] and row[1] < datetime.now():
+    if row[1] and row[1] < utcnow():
         raise HTTPException(status_code=403, detail="Gói Premium đã hết hạn")
 
     return request.state.user

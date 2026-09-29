@@ -19,7 +19,7 @@ import math
 import os
 import re
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
@@ -29,6 +29,7 @@ from sqlalchemy import text
 
 from core.config import USD_VND_RATE, VND_PER_CREDIT
 from core.engines import get_engine_knowledge, get_engine_user
+from core.timeutils import utcnow
 from middleware import authenticate_user
 
 logger = logging.getLogger(__name__)
@@ -174,7 +175,7 @@ async def register_seller(body: RegisterRequest, request: Request):
 
         # Generate new verify token
         verify_token   = secrets.token_urlsafe(32)
-        verify_expires = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=24)
+        verify_expires = utcnow() + timedelta(hours=24)
         verify_url     = f"{FRONTEND_URL}/pages/verify-email.html?token={verify_token}"
 
         with get_engine_knowledge().begin() as conn:
@@ -256,7 +257,7 @@ async def verify_email(token: str = Query(...)):
         raise HTTPException(status_code=400, detail="Token hết hạn hoặc không hợp lệ")
 
     try:
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = utcnow()
 
         with get_engine_knowledge().connect() as conn:
             row = conn.execute(text("""
@@ -334,7 +335,7 @@ async def resend_verify(request: Request):
         if already_verified:
             return _json_response({"success": True, "message": "Email đã được xác minh rồi"})
 
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = utcnow()
         # Rate limit: only resend if expires < NOW() + 23h (i.e. at least 1h since last send)
         if expires is not None and expires > now + timedelta(hours=23):
             raise HTTPException(

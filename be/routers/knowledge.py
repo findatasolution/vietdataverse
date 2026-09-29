@@ -32,7 +32,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
@@ -42,6 +42,7 @@ from sqlalchemy import text
 
 from core.config import USD_VND_RATE
 from core.engines import get_engine_knowledge, get_engine_user
+from core.timeutils import utcnow
 from middleware import authenticate_user
 
 logger = logging.getLogger(__name__)
@@ -485,7 +486,7 @@ async def download_product(license_key: str, request: Request):
 
         # 30-day re-download window
         if purchased_at is not None:
-            now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+            now_utc = utcnow()
             window_end = purchased_at + timedelta(days=30)
             if now_utc > window_end:
                 raise HTTPException(

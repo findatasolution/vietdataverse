@@ -1,0 +1,48 @@
+name: Backend Unit Tests
+
+# tests/ held 138 tests and nothing ran them — the same gap crawl-tests.yml was
+# created to close for crawl_tools/. Found 2026-09-29 while adding
+# tests/time/test_timeutils.py, a guard against reintroducing a local clock on
+# a path a database compares (see CLAUDE.md, "Một đồng hồ duy nhất…"): a
+# regression test that never runs guards nothing.
+#
+# Scope is the subset that needs no secrets and touches no network, verified by
+# running it with an empty environment. tests/journey/ is deliberately absent —
+# it queries prod's information_schema and needs DB credentials.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'be/**'
+      - 'tests/**'
+      - 'conftest.py'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    paths:
+      - 'be/**'
+      - 'tests/**'
+      - 'conftest.py'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same version as the production image (Dockerfile: python:3.11-slim), so
+      # a deprecation that bites prod bites here first.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r be/requirements.txt
+          pip install pytest
+
+      # The runner is UTC, which is precisely the environment that hid the
+      # timezone bug. tests/time/ spawns its own subprocesses with an explicit
+      # TZ, so it proves the UTC-independence here too.
+      - name: Run backend test suite (no-secrets subset)
+        run: python -m pytest tests/time tests/auth tests/fuel tests/subscription -v

@@ -8,6 +8,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
 
 from core.engines import get_engine_user
+from core.timeutils import utcnow
+
 from auth import get_auth0_user_info, create_local_user_from_auth0, exchange_code_for_tokens
 from middleware import authenticate_user
 from models import User
@@ -83,7 +85,7 @@ def _record_login(session, db_user, method: str, ip: str = None):
     Không bao giờ làm vỡ luồng auth nếu lỗi.
     """
     try:
-        now = datetime.now()
+        now = utcnow()
         last = db_user.last_login_at
         is_new_session = last is None or (now - last) > _LOGIN_SESSION_GAP
         db_user.last_login_at = now

@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from datetime import datetime
 from typing import Optional
 
 from fastapi import Request, HTTPException
@@ -11,6 +10,7 @@ from sqlalchemy import text
 from auth import verify_auth0_token, get_user_level, get_user_is_admin, NAMESPACE, AUTH0_DOMAIN
 from quota import check_and_consume
 from services.identity import resolve_identity
+from core.timeutils import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ async def _auth_via_api_key(request: Request, api_key: str) -> bool:
         #    (1.000 req/tháng) thay vì 402, để user từng trả phí không bị
         #    thiệt hơn user free thuần. Key vẫn giữ active; user nâng cấp
         #    lại để lấy quota cao hơn (dev_monthly/dev_yearly).
-        if not is_admin and premium_expiry is not None and premium_expiry < datetime.now():
+        if not is_admin and premium_expiry is not None and premium_expiry < utcnow():
             user_level   = "free"
             current_plan = None
 

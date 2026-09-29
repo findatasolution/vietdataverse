@@ -16,7 +16,7 @@ Chính sách:
 
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -25,6 +25,7 @@ from sqlalchemy.orm import sessionmaker
 
 from core.engines import get_engine_user
 from core.email import send_otp_email
+from core.timeutils import utcnow
 from middleware import authenticate_user
 
 router = APIRouter(prefix="/api/v1/student", tags=["student"])
@@ -128,7 +129,7 @@ async def send_otp(body: SendOtpRequest, request: Request):
 
         # Generate 6-digit OTP
         otp = "".join(random.choices(string.digits, k=6))
-        expires_at = datetime.now() + timedelta(minutes=10)
+        expires_at = utcnow() + timedelta(minutes=10)
 
         session.execute(text("""
             INSERT INTO email_otps (user_id, email, otp_code, purpose, expires_at)
@@ -181,7 +182,7 @@ async def confirm_otp(body: ConfirmOtpRequest, request: Request):
 
         if used:
             raise HTTPException(status_code=400, detail="Mã OTP này đã được sử dụng rồi.")
-        if datetime.now() > expires_at:
+        if utcnow() > expires_at:
             raise HTTPException(status_code=400, detail="Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.")
 
         # Consume OTP

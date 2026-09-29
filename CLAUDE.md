@@ -660,7 +660,7 @@ ever read or wrote it. `be/fuel/schema.sql` keeps a comment where it stood.
 
 ## GitHub Actions Workflows
 
-`.github/workflows/` — one workflow per crawl source (`{asset}-crawl.yml`), plus `build-html.yml` (regenerates `fe/index.html` on `fe/partials/` change), `generate-static-data.yml`, `data-quality-check.yml`, `market-pulse.yml`, `deploy.yml` (auto-deploy to prod), and `uptime-check.yml`.
+`.github/workflows/` — one workflow per crawl source (`{asset}-crawl.yml`), plus `build-html.yml` (regenerates `fe/index.html` on `fe/partials/` change), `generate-static-data.yml`, `data-quality-check.yml`, `market-pulse.yml`, `deploy.yml` (auto-deploy to prod), and `uptime-check.yml`, `uptime-check.yml`, `crawl-tests.yml` (the `crawl_tools/` unit tests) and `backend-tests.yml` (the no-secrets subset of `tests/` — `time`/`auth`/`fuel`/`subscription`; `tests/journey/` is excluded because it needs DB credentials).
 
 `uptime-check.yml` runs daily at 11:00 VN and is the **only** production alerting we have: it probes prod from outside the box (root page + body size, `www`, `api`, anonymous `/gold` still 401, the three SEO root files, and cert expiry with a 14-day warning). A failure turns the workflow red and GitHub emails the repo owner. It must stay off-box — an on-box cron dies with the box it watches. Added after a 31h TLS outage went unnoticed (`DEPLOY.md`).
 
@@ -1072,21 +1072,73 @@ lần khi cron chạy lại trong ngày.
 thứ duy nhất chuyển trial thành gói trả phí; nếu nó đỏ thì trial đứng im mà
 không ai biết.
 
-### ĐỪNG set `TZ` cho container backend (bẫy tiềm ẩn, kiểm 2026-09-27)
+### Một đồng hồ duy nhất cho mọi mốc thời gian trong DB (`core.timeutils.utcnow`, 2026-09-29)
 
-`be/middleware.py` so hạn subscription bằng `premium_expiry < datetime.now()`,
-trong khi `services/subscription.py` **ghi** hạn bằng `datetime.utcnow()`, và
-Neon trả `NOW()` theo UTC. Hiện tại không sao **chỉ vì `Dockerfile` và
-`docker-compose.yml` không set `TZ`**, nên container chạy UTC và hai hàm bằng
-nhau.
+**`be/core/timeutils.py` `utcnow()` là đồng hồ duy nhất được phép dùng cho bất
+kỳ giá trị nào DB sẽ lưu hoặc đem ra so sánh.** Nó trả `datetime` naive theo
+UTC và **không đổi theo `TZ`**.
 
-Set `TZ=Asia/Ho_Chi_Minh` cho container — việc rất tự nhiên với một sản phẩm
-Việt Nam, và `integrations/google-sheets/appsscript.json` từng làm đúng như vậy
-— sẽ khiến `now()` chạy trước `utcnow()` 7 tiếng, và **mọi gói hết hạn sớm 7
-tiếng** một cách im lặng. Với trial 7 ngày đó là 4% thời lượng.
+Lý do: mọi cột `TIMESTAMP` ở đây là naive-UTC, vì chính DB ghi ra như vậy —
+Neon chạy session ở `TimeZone = GMT`, nên `NOW()` và mọi `DEFAULT NOW()` đều là
+UTC. libpq lấy múi giờ từ `PGTZ`, **không** lấy từ `TZ`, nên không biến môi
+trường nào của container dịch được phía SQL (đo trực tiếp trên
+`KNOWLEDGE_MARKET_DB` ngày 2026-09-29: đặt `TZ=Asia/Ho_Chi_Minh` → `SHOW
+TimeZone` vẫn `GMT`, `NOW()::timestamp` không nhúc nhích, chỉ
+`datetime.now()` nhảy +7h).
 
-Muốn đổi múi giờ hiển thị thì đổi ở tầng trình bày; đừng đổi đồng hồ mà code so
-sánh. Cách sửa đúng là thống nhất về `utcnow()` ở cả hai nơi — chưa làm.
+Trước đây `middleware.py` so hạn bằng `datetime.now()` (giờ **local**) trong khi
+`services/subscription.py` ghi hạn bằng `datetime.utcnow()`. Hai bên bằng nhau
+**chỉ vì `Dockerfile` và `docker-compose.yml` không set `TZ`** nên container
+chạy UTC. Đặt `TZ=Asia/Ho_Chi_Minh` — việc rất tự nhiên với một sản phẩm Việt
+Nam, và `integrations/google-sheets/appsscript.json` đã làm đúng như vậy — sẽ
+khiến **mọi gói hết hạn sớm 7 tiếng**, im lặng; với trial 7 ngày là 4% thời
+lượng. Lưu ý `docker-compose.yml` nạp cả `.env` vào container, nên chỉ cần một
+dòng `TZ=` trong `.env` là đủ kích hoạt cái bẫy này.
+
+`premium_expiry` là chỗ nguy hiểm nhất vì nó được so ở **cả hai phía**: Python
+(`middleware.py`, `payment.py`) lẫn SQL (`routers/admin.py`: `premium_expiry <
+NOW()`). Phía SQL cố định ở UTC, nên UTC là giá trị duy nhất làm hài lòng cả
+hai — đây là lập luận quyết định, không phải chỉ là "cho nhất quán".
+
+**Đã sửa**: `middleware.py`, `payment.py` (`_activate_premium`, auto-expire,
+`days_remaining`, `require_premium`), `routers/student_verify.py` (hạn OTP),
+`routers/auth_routes.py` (`last_login_at`) đổi từ `datetime.now()` sang
+`utcnow()`; `services/subscription.py`, `services/credit.py`,
+`routers/seller.py`, `routers/knowledge.py` đổi từ `datetime.utcnow()` /
+`datetime.now(timezone.utc).replace(tzinfo=None)` sang cùng helper đó (cùng ý
+nghĩa, nhưng gom về một pattern duy nhất để grep được — và `datetime.utcnow()`
+deprecated từ Python 3.12).
+
+**Cố ý KHÔNG đổi**: `be/quota.py` dùng `datetime.now(VN_TZ)` vì tháng quota
+tính theo giờ VN **có chủ đích**, và `routers/admin_report.py` đã khớp bằng
+`NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'` — múi giờ khai báo tường minh thì không
+phải là bẫy. Các chỗ chỉ để hiển thị (`main.py` `/health`,
+`routers/sheets_export.py` `refreshed_at`, tên file CSV/backup) cũng giữ nguyên.
+
+**`tests/time/test_timeutils.py` chặn tái phát**: một test chạy `utcnow()`
+trong subprocess dưới `TZ=Asia/Ho_Chi_Minh` và `TZ=UTC` rồi đòi hai kết quả
+trùng nhau (đồng thời đòi `datetime.now()` phải lệch +7h, nếu không test sẽ
+"xanh" một cách vô nghĩa trên máy vốn đã chạy UTC); một test nữa quét 8 file
+DB-facing và fail nếu `datetime.now()` / `datetime.utcnow()` quay lại. Đã kiểm
+chứng test thật sự đỏ khi cố tình hoàn nguyên `middleware.py`.
+
+Trước hôm nay **không có workflow nào chạy `tests/`** — 138 test tồn tại mà
+không ai chạy, đúng cái hố `crawl-tests.yml` từng lấp cho `crawl_tools/`.
+`.github/workflows/backend-tests.yml` chạy phần không cần secret
+(`tests/time tests/auth tests/fuel tests/subscription`, đã kiểm bằng cách chạy với
+môi trường rỗng: 116 pass). Runner của GitHub chạy UTC — đúng môi trường đã che
+lỗi này — nên test tự sinh subprocess với `TZ` tường minh thay vì tin vào runner.
+
+**Còn lại, chưa sửa — `crawl_time` của crawler.** CLAUDE.md khai `crawl_time`
+là "UTC at crawl time", nhưng 17 crawler đều ghi bằng `datetime.now()`, tức giờ
+**local nơi chạy**: crawler vàng/bạc chạy trên box VN nên ghi giờ VN, crawler
+chạy GitHub Actions ghi UTC — hai loại lệch nhau 7 tiếng **ngay từ hôm nay**.
+Hiện chưa gây hại: `deploy/crawl-fallback.sh` cố ý so `MAX(crawl_time)` trước
+và sau (không làm số học với đồng hồ), còn "tuổi dữ liệu" ở Data Health tính
+theo **kỳ dữ liệu**, không theo `crawl_time` — trừ `vn_gso_gdp_quarterly` vốn
+không có cột kỳ. Sửa thì đúng chuẩn, nhưng sẽ tạo một bước nhảy 7 tiếng giữa
+dòng cũ và dòng mới trong chính cột đó; cần quyết định riêng chứ không nên sửa
+kèm.
 
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
