@@ -14,6 +14,7 @@ Chính sách:
   - Chỉ áp dụng cho tài khoản đã đăng nhập (không hỗ trợ guest)
 """
 
+import logging
 import random
 import string
 from datetime import timedelta
@@ -24,13 +25,44 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from core.engines import get_engine_user
-from core.email import send_otp_email
 from core.timeutils import utcnow
 from middleware import authenticate_user
+from services.email_service import send_email
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/student", tags=["student"])
 
 STUDENT_DOMAIN_SUFFIX = ".edu.vn"
+OTP_TTL_MINUTES = 10
+
+# Shown to the user when the OTP could not be delivered. Deliberately generic:
+# the raw provider error used to be echoed here verbatim, which showed students
+# Gmail's "535 Username and Password not accepted" plus a support URL.
+OTP_SEND_FAILED_DETAIL = (
+    "Hệ thống chưa gửi được email xác nhận. Vui lòng thử lại sau ít phút "
+    "hoặc liên hệ hỗ trợ."
+)
+
+
+def deliver_otp(email: str, otp: str, send=send_email) -> bool:
+    """Send the OTP mail; True only if it actually left for the recipient.
+
+    Unlike the seller flow, there is no fallback to showing the secret in the
+    UI: the OTP is the proof that the caller owns the .edu.vn mailbox, so
+    handing it back over the API would verify nothing.
+    """
+    try:
+        result = send(
+            to=email,
+            subject="Mã xác nhận sinh viên — Viet Dataverse",
+            template="student_otp",
+            ctx={"otp_code": otp, "ttl_minutes": OTP_TTL_MINUTES},
+        )
+    except Exception:
+        logger.error("student OTP email failed to=%s", email, exc_info=True)
+        return False
+    return bool(result.get("sent"))
 
 
 def _session():
@@ -129,18 +161,21 @@ async def send_otp(body: SendOtpRequest, request: Request):
 
         # Generate 6-digit OTP
         otp = "".join(random.choices(string.digits, k=6))
-        expires_at = utcnow() + timedelta(minutes=10)
+        expires_at = utcnow() + timedelta(minutes=OTP_TTL_MINUTES)
 
-        session.execute(text("""
+        otp_id = session.execute(text("""
             INSERT INTO email_otps (user_id, email, otp_code, purpose, expires_at)
             VALUES (:uid, :email, :otp, 'student_verify', :exp)
-        """), {"uid": user_id, "email": email, "otp": otp, "exp": expires_at})
+            RETURNING id
+        """), {"uid": user_id, "email": email, "otp": otp, "exp": expires_at}).scalar()
         session.commit()
 
-        try:
-            send_otp_email(email, otp)
-        except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Không thể gửi email: {e}")
+        if not deliver_otp(email, otp):
+            # An undelivered code must not count toward the 3/hour limit,
+            # or a mail outage locks the student out for an hour.
+            session.execute(text("DELETE FROM email_otps WHERE id = :id"), {"id": otp_id})
+            session.commit()
+            raise HTTPException(status_code=503, detail=OTP_SEND_FAILED_DETAIL)
 
         return {"success": True, "message": f"Mã OTP đã gửi đến {email}. Kiểm tra hộp thư (kể cả Spam)."}
     finally:

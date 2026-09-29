@@ -1215,6 +1215,20 @@ công trong khi link đi vào hư vô và seller kẹt cứng không có đườ
 Dev-mode giờ log ở mức **ERROR** kèm `to=` và `template=`, thay vì `info` — để
 lần sau nhìn log là thấy, không phải đợi khách hỏi.
 
+**OTP sinh viên từng đi đường mail thứ hai — Gmail SMTP (sửa 2026-09-30).**
+`be/core/email.py` (đã xoá) gửi OTP xác minh `.edu.vn` qua `smtp.gmail.com` bằng
+`SMTP_USER`/`SMTP_PASS` — **cùng app password đã chết từ 2026-09-09** của DQ agent
+— nên mọi lần "Gửi mã xác nhận" trên `pricing.html` đều trả 502, và router còn
+in nguyên lỗi `535 … BadCredentials` kèm URL support Gmail ra cho sinh viên.
+Giờ `routers/student_verify.py` `deliver_otp()` gửi qua `services/email_service.py`
+(template `student_otp.html`), lỗi trả **503 với câu chung chung**, lỗi thật chỉ
+vào log. OTP chưa gửi được thì **xoá dòng `email_otps` vừa tạo**, để một lần
+mail hỏng không ăn vào giới hạn 3 lần/giờ. **Không có đường dự phòng kiểu
+`verify_url`** như seller: OTP chính là bằng chứng sở hữu hộp thư `.edu.vn`,
+trả nó qua API thì không xác minh được gì. Hệ quả: luồng giảm giá sinh viên
+**phụ thuộc hoàn toàn vào `RESEND_API_KEY` có trên box**. `SMTP_*` giờ chỉ còn
+`crawl_tools/data_quality_check.py` dùng.
+
 ### Auth identity resolution — one account, several Auth0 logins (2026-09-17)
 
 `users.email` and `users.auth0_id` are both UNIQUE, and every router finds the
