@@ -71,7 +71,7 @@ def test_no_query_over_the_raw_tab(wb):
     # QUERY types each column by majority and nulls the minority; the raw tab
     # mixes nine datasets, so every GDP sector name came back blank.
     for title, coord, formula in all_formulas(wb):
-        if bt.RAW in formula:
+        if bt.RAW in formula or "VDV_" in formula:
             assert "QUERY(" not in formula, (title, coord)
 
 
@@ -100,7 +100,8 @@ def test_dates_leave_the_formula_as_text(wb, spec):
 def test_every_tab_surfaces_the_refusal_reason(wb, spec):
     # A tab that goes blank on refusal looks like a broken file (2026-09-29).
     formula = wb[spec["tab"]].cell(row=bt.DATA_ROW, column=1).value
-    assert f"'{bt.RAW}'!A1" in formula
+    assert bt.STATUS in formula
+    assert bt.raw_names()[bt.STATUS] == f"'{bt.RAW}'!$A$1"
 
 
 def test_gdp_sectors_are_translated_not_dropped(wb):
@@ -119,7 +120,33 @@ def test_always_empty_api_columns_are_not_shown(wb):
 
 
 def test_dashboard_reads_existing_columns(wb):
-    # A KPI pointing at a renamed header would silently show "—".
+    # A KPI or chart pointing at a renamed header would silently show "—".
     for label, ds, header, *_ in bt.KPIS:
         bt._col_of(bt.BY_ID[ds], header)
-    assert len(wb[bt.DASH]._charts) >= 6
+    for ds, header, *_ in bt.CHARTS:
+        if ds != "gdp_total":
+            bt._col_of(bt.BY_ID[ds], header)
+    sparklines = [f for t, c, f in all_formulas(wb) if t == bt.DASH and "SPARKLINE(" in f]
+    assert len(sparklines) == len(bt.KPIS) + len(bt.CHARTS)
+
+
+def test_raw_names_are_bounded_and_defined(wb):
+    for name, ref in bt.raw_names().items():
+        assert wb.defined_names[name].attr_text == ref
+        assert ref.startswith(f"'{bt.RAW}'!")
+        assert not ref.endswith(":$A") and ref[-1].isdigit()
+
+
+def test_no_native_charts(wb):
+    # Chart parts pushed the .xlsx past what the Drive upload accepted; the
+    # dashboard draws with SPARKLINE instead (README "Publishing").
+    assert all(not ws._charts for ws in wb.worksheets)
+
+
+
+def test_no_open_ended_ranges(wb):
+    # Sheets accepts C2:C; the .xlsx format does not, and the import turned
+    # every formula holding one into #ERROR! (first real-Sheet check, 2026-10-03).
+    open_range = re.compile(r"\$?[A-Z]{1,3}\$?\d+:\$?[A-Z]{1,3}(?![$\d A-Za-z(])")
+    for title, coord, formula in all_formulas(wb):
+        assert not open_range.search(formula), (title, coord, formula)

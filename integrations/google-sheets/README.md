@@ -13,26 +13,35 @@ that costs no network.
 
 Tab order: `Bắt đầu` (key in `C6`, refresh in `C7`, period dropdown in `C8`) →
 `Tổng quan` (eight KPI cards with change vs previous period and a 90-point
-sparkline, plus seven charts) → nine dataset tabs, each with its own chart and,
-in `B2`, the newest period it holds.
+sparkline, plus eight `SPARKLINE` chart blocks with first / lowest / highest /
+newest values under each) → nine dataset tabs, each with `B2` showing the
+newest period it holds. No native (inserted) charts — see rule 6.
 
-### Four rules, each paid for by a customer (2026-10-03)
+### Six rules, each paid for by a broken file (2026-10-03)
 
 1. **Dates leave the formula as text** — `TEXT(..., "yyyy-mm-dd")`. IMPORTDATA
    stores `2025-10-03` as the serial `45933` with no date format; the old fix
    pre-applied a number format to every cell, and in a customer's copy that
    format held for the first rows only — later rows showed `46155` where a date
-   belonged (exact cause unknown; text sidesteps it) — for several sessions running, because nobody looked at a real
-   Sheet with real data.
+   belonged (exact cause unknown; text sidesteps it) — for several sessions
+   running, because nobody looked at a real Sheet with real data.
 2. **`FILTER`, never `QUERY`, over the raw tab.** QUERY types each column by
    majority and nulls the minority. Nine datasets share the raw columns, so
    every GDP sector name came back blank.
-3. **No Excel dynamic-array functions** (`SORT`, `LET`, `XLOOKUP`…). the old
+3. **No Excel dynamic-array functions** (`SORT`, `LET`, `XLOOKUP`…). The old
    freshness cell (`SORT`) showed "—" on the live template even with data
    loaded. Suspected cause, unverified: openpyxl writes them without the
    `_xlfn.` prefix. Avoiding them costs nothing.
 4. **The raw tab is hidden.** Its headers are `c1..c8` and its dates are
-   serials; customers asked what it was for.
+   serials; customers asked what it was for. Formulas reach it through
+   workbook names `VDV_A`..`VDV_I` and `VDV_STATUS` (= its `A1`).
+5. **No open-ended ranges** (`C2:C`). Valid in Sheets, invalid in `.xlsx`: the
+   first real-Sheet check turned every formula holding one into `#ERROR!`.
+   The names above are bounded (`$C$2:$C$8000`).
+6. **No native charts.** Seven inserted charts tripled the `.xlsx`; the Drive
+   connector could only upload files up to ~14k base64 characters, so the
+   dashboard draws with `SPARKLINE` (and the dataset tabs carry no chart).
+   A sparkline has no axis, so each block prints its scale underneath.
 
 ### Why one call and not nine
 
@@ -127,17 +136,27 @@ python3 integrations/google-sheets/build_template.py
 ### Verifying a rebuild — do not skip this
 
 `tests/sheets/` checks formula strings; it cannot prove they evaluate. Every
-bug in rules 1–3 passed a string test. Before publishing:
+bug in rules 1–5 passed a string test. Two ways to check for real:
 
-1. Import the `.xlsx` into a **scratch** spreadsheet (not the live template).
-2. Paste a key into `C6` and wait for data.
-3. Look, with your eyes, at: a date column scrolled to its **last** row (rule 1),
-   the GDP tab's "Khu vực" column (rule 2), `B2` on any tab (rule 3), the
-   dashboard cards and sparklines, and that no `_raw` tab is visible (rule 4).
+**Without a key (what was done 2026-10-03).**
+`python3 integrations/google-sheets/make_verify_files.py stacked.csv OUT/`
+builds two small `.xlsx` with the raw tab pre-filled exactly as IMPORTDATA
+leaves it (`stacked.csv` = the body of `/api/v1/excel/refresh-data?format=csv`).
+Upload each to Drive *converted to a Google Sheet* and read it back — Drive
+evaluates the formulas on conversion. Verified that way on 2026-10-03: dates
+render as text to the last row, CPI as `2026-08`, GDP sectors in Vietnamese,
+`B2` filled, every KPI card and chart-block value matching its tab. Not
+verifiable from text: the SPARKLINE images themselves.
 
-Agent limits found 2026-10-03: the Claude-in-Chrome extension has no
-permission on `docs.google.com`, and the Drive connector refused to convert
-this `.xlsx` ("Invalid conversion requested"). So this check is the owner's.
+**With a key.** Import the full `.xlsx` into a scratch spreadsheet (never the
+live template), paste a key into `C6`, and look at the same things plus the
+sparklines and that no `_raw` tab is visible.
+
+Agent limits found 2026-10-03: Claude-in-Chrome could not use the Google file
+picker (cross-origin iframe) or run JS on Drive; the Drive connector uploads
+only ~14k base64 characters reliably and its `share_file` cannot set
+"anyone with the link". So creating or re-sharing the live template is the
+owner's step.
 
 Then publish the generated `.xlsx` into the live template spreadsheet:
 
