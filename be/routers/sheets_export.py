@@ -124,7 +124,7 @@ def _stacked_csv(datasets: list[dict]) -> str:
     month stays inside the 1.000/month paid quota.
 
     Headers are deliberately NOT included. Each tab writes its own header row at
-    build time and pulls its rows with QUERY, which costs no network at all.
+    build time and pulls its rows with FILTER, which costs no network at all.
     """
     buffer = io.StringIO()
     writer = csv.writer(buffer)

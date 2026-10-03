@@ -5,14 +5,34 @@ datasets that keep themselves up to date. There is no third step.
 
 ## How it works
 
-**One API call feeds the whole workbook.** A `_dữ liệu thô` tab holds a single
+**One API call feeds the whole workbook.** A hidden `_raw` tab holds a single
 `IMPORTDATA` against `/api/v1/excel/refresh-data?format=csv`, which returns all
 nine datasets stacked into one rectangle (`dataset` + 8 padded value columns).
-Each visible tab pulls its own rows with `QUERY`, a pure spreadsheet function
+Each dataset tab pulls its own rows with `FILTER`, a pure spreadsheet function
 that costs no network.
 
-Each dataset tab carries a **line chart** and, in `B1`, the **newest period in
-that dataset** — so a reader can see how fresh the data is without scrolling.
+Tab order: `Bắt đầu` (key in `C6`, refresh in `C7`, period dropdown in `C8`) →
+`Tổng quan` (eight KPI cards with change vs previous period and a 90-point
+sparkline, plus seven charts) → nine dataset tabs, each with its own chart and,
+in `B2`, the newest period it holds.
+
+### Four rules, each paid for by a customer (2026-10-03)
+
+1. **Dates leave the formula as text** — `TEXT(..., "yyyy-mm-dd")`. IMPORTDATA
+   stores `2025-10-03` as the serial `45933` with no date format; the old fix
+   pre-applied a number format to every cell, and in a customer's copy that
+   format held for the first rows only — later rows showed `46155` where a date
+   belonged (exact cause unknown; text sidesteps it) — for several sessions running, because nobody looked at a real
+   Sheet with real data.
+2. **`FILTER`, never `QUERY`, over the raw tab.** QUERY types each column by
+   majority and nulls the minority. Nine datasets share the raw columns, so
+   every GDP sector name came back blank.
+3. **No Excel dynamic-array functions** (`SORT`, `LET`, `XLOOKUP`…). the old
+   freshness cell (`SORT`) showed "—" on the live template even with data
+   loaded. Suspected cause, unverified: openpyxl writes them without the
+   `_xlfn.` prefix. Avoiding them costs nothing.
+4. **The raw tab is hidden.** Its headers are `c1..c8` and its dates are
+   serials; customers asked what it was for.
 
 ### Why one call and not nine
 
@@ -29,7 +49,7 @@ refreshes each formula about hourly while a tab stays open.
 That is what makes the product promise keepable: a paying customer can pull the
 full dataset every day for thirty days and still be inside quota.
 
-### Locale — the one thing that silently corrupts the data
+### Locale — the other thing that silently corrupts the data
 
 `IMPORTDATA` is called with an explicit `"en_US"` locale. **Do not remove it.**
 
@@ -41,13 +61,7 @@ overnight `5.1` → `46027`, `3.7` → `46088` — while three-digit values like
 rule. In `en_US` the decimal separator is `.` and the date separator is `/`, so
 a rate cannot be mistaken for a date at all.
 
-The first column of each tab also carries an explicit number format, applied
-cell by cell over the spill range because a column-level format does not
-survive the `.xlsx` → Sheets conversion. Without it a parsed date renders as
-its serial (`45929` instead of `2025-09-29`). Dates use `yyyy-mm-dd`; CPI and
-trade use `yyyy-mm` (their period is `2026-08`, which `en_US` turns into
-1 Aug 2026 — the format displays it back as the source states it); GDP's year
-is a plain number.
+Dates are covered by rule 1 above.
 
 ### When the API refuses
 
@@ -79,7 +93,7 @@ nine"). Free is 20/month; API Supper Lite is 1.000/month, which covers the file
 left open for a whole month (~24 loads/day, ~720/month).
 
 When the call is refused — no key, bad key, quota spent — the raw tab's `A1`
-holds the reason, and every data tab falls back to printing that same reason
+holds the reason, and every data tab (and the dashboard subtitle) falls back to printing that same reason
 instead of going blank. A blank tab reads as a broken file; that was the
 customer report of 2026-09-29.
 
@@ -110,6 +124,21 @@ Still unverified: pasting a real key and watching data arrive.
 python3 integrations/google-sheets/build_template.py
 ```
 
+### Verifying a rebuild — do not skip this
+
+`tests/sheets/` checks formula strings; it cannot prove they evaluate. Every
+bug in rules 1–3 passed a string test. Before publishing:
+
+1. Import the `.xlsx` into a **scratch** spreadsheet (not the live template).
+2. Paste a key into `C6` and wait for data.
+3. Look, with your eyes, at: a date column scrolled to its **last** row (rule 1),
+   the GDP tab's "Khu vực" column (rule 2), `B2` on any tab (rule 3), the
+   dashboard cards and sparklines, and that no `_raw` tab is visible (rule 4).
+
+Agent limits found 2026-10-03: the Claude-in-Chrome extension has no
+permission on `docs.google.com`, and the Drive connector refused to convert
+this `.xlsx` ("Invalid conversion requested"). So this check is the owner's.
+
 Then publish the generated `.xlsx` into the live template spreadsheet:
 
 1. Open the [template](https://docs.google.com/spreadsheets/d/1UGILO_Mk02qWYx1BLk5DRE8yoNEXT9cTGIS57EOiwds/edit)
@@ -123,6 +152,10 @@ Then publish the generated `.xlsx` into the live template spreadsheet:
 opens or copies it, and every copy spends that key's quota. Test on a copy
 (`/copy` link), never on the master. Found 2026-09-29: the owner's key sat in the
 master's `C6`. Clear the cell and rotate that key on `developer.html`.
+**Found again 2026-10-03** — a customer reported their fresh copy "already had a
+token". The build ships `C6` empty (`tests/sheets` pins it), so the only way a
+key gets there is someone pasting it into the master. After every import, read
+the live file's `C6` back and confirm it is empty.
 
 Keeping the same file id matters: its `/copy` link is published in
 `fe/pages/google-sheets.html`, `api-docs.html` and `account.html`, and it is

@@ -1,157 +1,305 @@
 """Build the Google Sheets template: copy the file, paste a key, done.
 
-**One API call feeds all nine tabs.** A hidden `_raw` tab holds a single
+**One API call feeds the whole workbook.** A hidden raw tab holds a single
 IMPORTDATA against `/api/v1/excel/refresh-data?format=csv`, which returns every
-dataset stacked; each visible tab pulls its own rows out of that tab with
-QUERY — a pure spreadsheet function that costs no network.
+dataset stacked; each visible tab pulls its own rows out of it with FILTER — a
+pure spreadsheet function that costs no network. A dashboard tab
+("Tổng quan") then reads the dataset tabs: KPI cards, sparklines and charts.
 
-That structure is the whole point. Measured on a real customer 2026-09-29: the
-previous design, nine live IMPORTDATA formulas, made **315 calls in 2.7 days**
-(116/day, 03:00 included) because Sheets refreshes each formula about hourly
-while a tab is open. Nine formulas -> one drops the ceiling from ~216 calls/day
-to 24, so a file left open every hour of a 30-day month costs ~720 of the
-1.000/month paid quota. That is what guarantees a paying customer can pull the
-full dataset daily for a month without running out.
+Measured on a real customer 2026-09-29: the previous design, nine live
+IMPORTDATA formulas, made **315 calls in 2.7 days** because Sheets refreshes
+each formula about hourly while a tab is open. One formula caps it at ~24/day,
+~720 for a file left open all month — inside the 1.000/month paid quota.
+
+Four rules below each cost a customer a broken file before they were written
+down (2026-10-03 rebuild). Read them before changing anything:
+
+1. **Dates leave the formula as text** (`TEXT(..., "yyyy-mm-dd")`). IMPORTDATA
+   turns `2025-10-03` into the serial 45933 with no date format, and the old
+   fix — a number format pre-applied to each cell — did not survive the
+   customer's copy past the first rows, so they saw serials (cause unknown).
+   A value that is already a string cannot be displayed wrongly.
+2. **FILTER, never QUERY, over the raw tab.** QUERY gives each column one
+   type, decided by majority, and silently nulls the minority. The raw tab
+   stacks nine datasets, so GDP's sector names (text in a mostly-numeric
+   column) all came back blank.
+3. **No Excel "dynamic array" functions** (SORT, SORTN, LET, XLOOKUP...). An
+   `.xlsx` stores them as `_xlfn.` names; the old freshness cell (SORT) showed
+   "—" on the live template even with data loaded — suspected, not verified,
+   to be the bare name. FILTER is Google-native like IMPORTDATA/SPARKLINE, but
+   this rebuild is NOT yet verified in a real Sheet — README "Verifying a
+   rebuild".
+4. **The raw tab is hidden.** It is plumbing: headers `c1..c8`, serial dates.
+   Customers asked what it was for.
 
 There is deliberately no Apps Script. A bound script travels with a Drive copy
 and becomes *the copier's own* project, so Google shows every customer
 "Google hasn't verified this app" naming them as the developer.
 
 Run:  python3 integrations/google-sheets/build_template.py
-Then File -> Import -> Replace spreadsheet on the live template.
+Then File -> Import -> Replace spreadsheet on the live template, and check C6
+of the live template is EMPTY afterwards (see README "Never paste a real key").
 """
 from pathlib import Path
 
 from openpyxl import Workbook
-from openpyxl.chart import LineChart, Reference
+from openpyxl.chart import BarChart, LineChart, Reference
+from openpyxl.chart.layout import Layout, ManualLayout
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
 
 API = "https://api.vietdataverse.online/api/v1"
 COVER = "Bắt đầu"
-RAW = "_dữ liệu thô"
+DASH = "Tổng quan"
+RAW = "_raw"
 KEY_CELL = "$C$6"
 REFRESH_CELL = "$C$7"
-PERIOD = "1y"
-MAX_ROWS = 2000          # stacked payload is ~1.5k rows; headroom for 'all'
+PERIOD_CELL = "$C$8"
+PERIODS = ["1m", "1y", "all"]
+DEFAULT_PERIOD = "1y"
+DATA_ROW = 6            # first data row on every dataset tab (row 5 = headers)
+MAX_ROWS = 2500         # per-tab ceiling; the largest dataset at period=all is ~1.9k
 
 BRAND = "2F5FDE"
 INK = "141413"
 MUTED = "5E5D59"
+LINE = "E3E8F4"
+CARD = "F6F8FE"
 INPUT_FILL = "FFF8DC"
-WARN = "B53333"
+# A line palette that reads as an ordered ramp, matching the site's rate charts.
+RAMP = ["2F5FDE", "6C93E4", "A3C0F2", "1E3FAE", "16307F", "26A69A", "EF5350"]
 
 UPGRADE_URL = "https://vietdataverse.online/pages/pricing.html"
-
-# (tab, dataset id, headers, chart, first-column number format)
-# Headers and column counts come from the live API, verified 2026-09-29.
-# Column 1 is always the date or period, so charted values start at 2.
-DATASETS = [
-    ("Vàng SJC", "gold", ["Ngày", "Giá mua", "Giá bán"], (2, 3, "VND/lượng"), "yyyy-mm-dd"),
-    ("Bạc", "silver", ["Ngày", "Giá mua", "Giá bán"], (2, 3, "VND/lượng"), "yyyy-mm-dd"),
-    ("Lãi suất LNH", "interbank",
-     ["Ngày", "Qua đêm", "1 tháng", "3 tháng", "6 tháng", "9 tháng", "Chiết khấu", "Tái cấp vốn"],
-     (2, 6, "%/năm"), "yyyy-mm-dd"),
-    ("Tỷ giá", "fx", ["Ngày", "Tỷ giá trung tâm", "Mua tiền mặt", "Bán"], (2, 2, "VND/USD"), "yyyy-mm-dd"),
-    ("Tiền gửi ACB", "deposit",
-     ["Ngày", "1 tháng", "3 tháng", "6 tháng", "12 tháng", "24 tháng"], (2, 6, "%/năm"), "yyyy-mm-dd"),
-    ("Thế giới", "global", ["Ngày", "Vàng (USD/oz)", "Bạc (USD/oz)", "NASDAQ"], (2, 4, "USD"), "yyyy-mm-dd"),
-    ("CPI", "cpi", ["Kỳ", "So tháng trước (%)", "So cùng kỳ (%)"], (2, 3, "%"), "yyyy-mm"),
-    # GDP interleaves several series down one column (year, quarter, sector),
-    # so a line through it would draw nonsense. No chart on purpose.
-    ("GDP", "gdp", ["Năm", "Quý", "Khu vực", "GDP (tỷ VND)", "Tăng trưởng (%)"], None, "0"),
-    ("Xuất nhập khẩu", "trade",
-     ["Kỳ", "Xuất (tỷ USD)", "Nhập (tỷ USD)", "Cán cân", "XK cùng kỳ (%)", "NK cùng kỳ (%)"],
-     (2, 4, "tỷ USD"), "yyyy-mm"),
-]
-
 PROMPT = "Dán API key vào ô C6 của tab Bắt đầu"
 # Shown when the API refuses. The overwhelmingly common cause is a spent monthly
 # quota, and a Sheets user never sees an HTTP body — IMPORTDATA renders #N/A and
-# nothing else. Without this the file simply looks broken, which is exactly what
-# happened on 2026-09-29.
+# nothing else. Without this the file simply looks broken (2026-09-29).
 ERROR_MSG = ("Không lấy được dữ liệu. Thường là đã hết lượt API của tháng — "
              "nâng gói tại " + UPGRADE_URL + " (hạn mức mới có hiệu lực ngay), "
              "hoặc kiểm tra lại API key ở ô C6.")
 
+# Each dataset: tab, id, title line, columns. A column is
+#   (header, raw column letter, kind, number format)
+# kind: "date" / "month" -> TEXT(); "sector" -> translated text; "num" -> as is.
+# Raw columns: A = dataset id, B..I = the API's c1..c8. Columns the API sends
+# but never fills (fx buy/sell, GDP level) are left out: an always-empty column
+# reads as broken data.
+DATASETS = [
+    dict(tab="Vàng SJC", id="gold", title="Giá vàng SJC — VND/lượng · nguồn 24h.com.vn / giavang.org",
+         cols=[("Ngày", "B", "date", None), ("Giá mua", "C", "num", "#,##0"),
+               ("Giá bán", "D", "num", "#,##0")],
+         chart=dict(kind="line", cols=[2, 3], y="VND/lượng", fmt="#,##0")),
+    dict(tab="Bạc", id="silver", title="Giá bạc Phú Quý — VND/lượng",
+         cols=[("Ngày", "B", "date", None), ("Giá mua", "C", "num", "#,##0"),
+               ("Giá bán", "D", "num", "#,##0")],
+         chart=dict(kind="line", cols=[2, 3], y="VND/lượng", fmt="#,##0")),
+    dict(tab="Lãi suất LNH", id="interbank", title="Lãi suất liên ngân hàng & điều hành NHNN — %/năm",
+         cols=[("Ngày", "B", "date", None), ("Qua đêm", "C", "num", "0.00"),
+               ("1 tháng", "D", "num", "0.00"), ("3 tháng", "E", "num", "0.00"),
+               ("6 tháng", "F", "num", "0.00"), ("9 tháng", "G", "num", "0.00"),
+               ("Chiết khấu", "H", "num", "0.00"), ("Tái cấp vốn", "I", "num", "0.00")],
+         chart=dict(kind="line", cols=[2, 3, 4, 8], y="%/năm", fmt="0.0")),
+    dict(tab="Tỷ giá", id="fx", title="Tỷ giá trung tâm USD/VND — NHNN",
+         cols=[("Ngày", "B", "date", None), ("Tỷ giá trung tâm", "C", "num", "#,##0")],
+         chart=dict(kind="line", cols=[2], y="VND/USD", fmt="#,##0")),
+    dict(tab="Tiền gửi ACB", id="deposit", title="Lãi suất tiền gửi ACB theo kỳ hạn — %/năm",
+         cols=[("Ngày", "B", "date", None), ("1 tháng", "C", "num", "0.00"),
+               ("3 tháng", "D", "num", "0.00"), ("6 tháng", "E", "num", "0.00"),
+               ("12 tháng", "F", "num", "0.00"), ("24 tháng", "G", "num", "0.00")],
+         chart=dict(kind="line", cols=[2, 3, 4, 5, 6], y="%/năm", fmt="0.0")),
+    dict(tab="Thế giới", id="global", title="Thị trường thế giới — vàng, bạc (USD/oz), NASDAQ (điểm)",
+         cols=[("Ngày", "B", "date", None), ("Vàng (USD/oz)", "C", "num", "#,##0.0"),
+               ("Bạc (USD/oz)", "D", "num", "#,##0.00"), ("NASDAQ", "E", "num", "#,##0")],
+         chart=dict(kind="line", cols=[2], y="USD/oz", fmt="#,##0")),
+    dict(tab="CPI", id="cpi", title="Chỉ số giá tiêu dùng — % · nguồn Tổng cục Thống kê",
+         cols=[("Kỳ", "B", "month", None), ("So tháng trước (%)", "C", "num", "0.00"),
+               ("So cùng kỳ (%)", "D", "num", "0.00")],
+         chart=dict(kind="bar", cols=[3], y="% so cùng kỳ", fmt="0.0")),
+    dict(tab="GDP", id="gdp", title="Tăng trưởng GDP theo quý và khu vực — % so cùng kỳ",
+         cols=[("Năm", "B", "num", "0"), ("Quý", "C", "num", "0"),
+               ("Khu vực", "D", "sector", None), ("Tăng trưởng (%)", "F", "num", "0.00")],
+         chart=None),   # the dashboard charts GDP from its own total-only helper
+    dict(tab="Xuất nhập khẩu", id="trade", title="Kim ngạch xuất nhập khẩu — tỷ USD · nguồn Tổng cục Thống kê",
+         cols=[("Kỳ", "B", "month", None), ("Xuất khẩu (tỷ USD)", "C", "num", "0.00"),
+               ("Nhập khẩu (tỷ USD)", "D", "num", "0.00"), ("Cán cân", "E", "num", "0.00"),
+               ("XK so cùng kỳ (%)", "F", "num", "0.0"), ("NK so cùng kỳ (%)", "G", "num", "0.0")],
+         chart=dict(kind="bar", cols=[2, 3], y="tỷ USD", fmt="0")),
+]
+BY_ID = {d["id"]: d for d in DATASETS}
+
+SECTORS = [("agriculture", "Nông-lâm-thủy sản"), ("industry", "Công nghiệp-xây dựng"),
+           ("services", "Dịch vụ"), ("total", "Toàn nền kinh tế")]
+
+# Dashboard KPI cards: (label, dataset id, column header, scale, value format,
+# change kind, unit). change "pct" = % vs previous observation, "pp" = change
+# in percentage points (for rates, where a % of a % misleads).
+KPIS = [
+    ("Vàng SJC — bán ra", "gold", "Giá bán", 1e6, "#,##0.0", "pct", "triệu VND/lượng"),
+    ("Bạc Phú Quý — bán ra", "silver", "Giá bán", 1e6, "#,##0.00", "pct", "triệu VND/lượng"),
+    ("Tỷ giá trung tâm USD", "fx", "Tỷ giá trung tâm", 1, "#,##0", "pct", "VND/USD"),
+    ("Vàng thế giới", "global", "Vàng (USD/oz)", 1, "#,##0", "pct", "USD/oz"),
+    ("Lãi suất qua đêm LNH", "interbank", "Qua đêm", 1, "0.00", "pp", "%/năm"),
+    ("Tiền gửi ACB 12 tháng", "deposit", "12 tháng", 1, "0.00", "pp", "%/năm"),
+    ("CPI so cùng kỳ", "cpi", "So cùng kỳ (%)", 1, "0.00", "pp", "%"),
+    ("Xuất khẩu tháng", "trade", "Xuất khẩu (tỷ USD)", 1, "0.00", "pct", "tỷ USD"),
+]
+PCT_FMT = '[Color10]▲ 0.0%;[Red]▼ 0.0%;"không đổi"'
+PP_FMT = '[Color10]▲ 0.00 "điểm %";[Red]▼ 0.00 "điểm %";"không đổi"'
+
+
+def q(tab: str) -> str:
+    return f"'{tab}'"
+
 
 def raw_formula() -> str:
     """The single network call in the whole workbook."""
-    url = f"{API}/excel/refresh-data?period={PERIOD}&format=csv&api_key="
-    ref = f"'{COVER}'!{KEY_CELL}"
-    # locale="en_US" is not cosmetic — it is the difference between real data and
-    # silent corruption. A copy of this file inherits the owner's spreadsheet
-    # locale, and under vi_VN Sheets reads "4.5" as the DATE 4 May and stores
-    # 46146. Every rate of the form X.Y with X<=12 and Y<=31 was destroyed that
-    # way: refinancing 4.5 -> 46146, overnight 5.1 -> 46027, 3.7 -> 46088.
-    # Three-digit values like 4.45 survived, which is what made the damage look
-    # like random noise rather than a parsing rule. In en_US the decimal
-    # separator is "." and the date separator is "/", so a rate cannot be
-    # mistaken for a date at all.
+    ref = f"{q(COVER)}!{KEY_CELL}"
+    period = f"{q(COVER)}!{PERIOD_CELL}"
+    # locale="en_US" is not cosmetic. A copy inherits the owner's spreadsheet
+    # locale, and under vi_VN Sheets reads "4.5" as the DATE 4 May (46146):
+    # every rate shaped X.Y with X<=12, Y<=31 was destroyed that way. In en_US
+    # the decimal separator is "." and the date separator "/", so a rate cannot
+    # be mistaken for a date.
     #
     # REFRESH_CELL is appended as &_r= because IMPORTDATA caches on the exact URL
-    # and refreshes only about hourly: changing the cell makes a new URL Google
-    # must fetch, which is the only "refresh now" Sheets offers without an Apps
-    # Script. The API ignores the parameter. 724b86677 dropped it while collapsing
-    # nine formulas into one and the cover's "bump C7" instruction went dead.
-    bust = f"'{COVER}'!{REFRESH_CELL}"
+    # (~1 hour); a new value makes a new URL Google must fetch. The API ignores
+    # the parameter. 724b86677 dropped it once and the refresh cell went dead.
+    bust = f"{q(COVER)}!{REFRESH_CELL}"
+    url = f'"{API}/excel/refresh-data?format=csv&period="&{period}&"&api_key="&{ref}&"&_r="&{bust}'
     return (f'=IF({ref}="","{PROMPT}",'
-            f'IFERROR(IMPORTDATA("{url}"&{ref}&"&_r="&{bust}, ",", "en_US"),"{ERROR_MSG}"))')
+            f'IFERROR(IMPORTDATA({url}, ",", "en_US"),"{ERROR_MSG}"))')
 
 
-def query_formula(dataset_id: str, n_cols: int) -> str:
-    """Pull one dataset out of the stacked tab. Pure formula — no network."""
-    cols = ", ".join(f"Col{i + 1}" for i in range(1, n_cols + 1))
-    # On a refusal (no key, bad key, quota spent) the raw tab's A1 holds the
-    # reason and QUERY finds no rows. Show that reason here instead of a blank:
-    # the customer looks at these tabs, not the raw one, and a blank tab reads
-    # as a broken file — the report of 2026-09-29. A1 is the literal "dataset"
-    # header only when the call succeeded, in which case blank is correct.
-    fallback = f"IF('{RAW}'!A1=\"dataset\", \"\", '{RAW}'!A1)"
-    return (f"=IFERROR(QUERY('{RAW}'!A:I, \"select {cols} "
-            f"where Col1 = '{dataset_id}'\", 0), {fallback})")
+def _rows(col: str) -> str:
+    return f"{q(RAW)}!{col}2:{col}"
+
+
+def _match(dataset_id: str) -> str:
+    return f'{_rows("A")}="{dataset_id}"'
+
+
+def column_formula(dataset_id: str, col: str, kind: str) -> str:
+    """One output column of a dataset tab, pulled from the raw tab with FILTER.
+
+    FILTER, not QUERY: QUERY types each column by majority and nulls the rest,
+    which blanked every GDP sector name. TEXT on dates: see module docstring.
+    """
+    picked = f"FILTER({_rows(col)}, {_match(dataset_id)})"
+    if kind == "date":
+        expr = f'ARRAYFORMULA(TEXT({picked}, "yyyy-mm-dd"))'
+    elif kind == "month":
+        expr = f'ARRAYFORMULA(TEXT({picked}, "yyyy-mm"))'
+    elif kind == "sector":
+        expr = picked
+        for src, label in SECTORS:
+            expr = f'SUBSTITUTE({expr}, "{src}", "{label}")'
+        expr = f"ARRAYFORMULA({expr})"
+    else:
+        expr = picked
+    return f'=IFERROR({expr}, "")'
+
+
+def key_formula(dataset_id: str, col: str, kind: str) -> str:
+    """The first column also reports why there is no data, when there is none.
+
+    The raw tab's A1 is the literal "dataset" header only when the call
+    succeeded; otherwise it holds the reason (no key, bad key, quota spent).
+    A blank tab reads as a broken file — the report of 2026-09-29.
+    """
+    body = column_formula(dataset_id, col, kind)[1:]
+    return f'=IF({q(RAW)}!A1<>"dataset", {q(RAW)}!A1, {body})'
+
+
+def last_formula(tab: str, col_letter: str, offset: int = 0) -> str:
+    """Newest (offset=0) or earlier value of a column. Rows are oldest-first,
+    so the newest is at COUNTA of the key column. No SORT — see rule 3."""
+    n = f"COUNTA({q(tab)}!$A${DATA_ROW}:$A${MAX_ROWS})"
+    return f"INDEX({q(tab)}!{col_letter}${DATA_ROW}:{col_letter}${MAX_ROWS}, {n}-{offset})"
+
+
+def _style_chart(chart, title: str, y_title: str, y_fmt: str, colors) -> None:
+    chart.title = title
+    chart.y_axis.title = y_title
+    chart.y_axis.number_format = y_fmt
+    chart.legend.position = "b"
+    # openpyxl 3.1 marks axes deleted by default; Sheets then draws none.
+    chart.x_axis.delete = False
+    chart.y_axis.delete = False
+    chart.x_axis.tickLblSkip = None
+    for series, color in zip(chart.series, colors):
+        gp = series.graphicalProperties
+        if isinstance(chart, LineChart):
+            gp.line.solidFill = color
+            gp.line.width = 22000
+            series.smooth = False
+            series.marker.symbol = "none"
+        else:
+            gp.solidFill = color
+            gp.line.solidFill = color
+
+
+def make_chart(ws_data, spec: dict, title: str, n_rows: int = MAX_ROWS):
+    chart = LineChart() if spec["kind"] == "line" else BarChart()
+    if spec["kind"] == "bar":
+        chart.type = "col"
+        chart.gapWidth = 40
+    for col in spec["cols"]:
+        chart.add_data(Reference(ws_data, min_col=col, min_row=DATA_ROW - 1, max_row=n_rows),
+                       titles_from_data=True)
+    chart.set_categories(Reference(ws_data, min_col=1, min_row=DATA_ROW, max_row=n_rows))
+    _style_chart(chart, title, spec["y"], spec["fmt"], RAMP)
+    chart.height, chart.width = 8.5, 17
+    return chart
 
 
 def build_cover(ws) -> None:
     ws.sheet_view.showGridLines = False
     ws.column_dimensions["A"].width = 3
-    ws.column_dimensions["B"].width = 44
-    ws.column_dimensions["C"].width = 62
+    ws.column_dimensions["B"].width = 34
+    ws.column_dimensions["C"].width = 70
 
     ws["B2"] = "Viet Dataverse — Dữ liệu kinh tế Việt Nam"
     ws["B2"].font = Font(name="Georgia", size=18, bold=True, color=INK)
-    ws["B3"] = "Chín bộ dữ liệu vĩ mô & thị trường Việt Nam."
+    ws["B3"] = "Bảng tổng quan + chín bộ dữ liệu vĩ mô & thị trường, tự cập nhật."
     ws["B3"].font = Font(size=11, color=MUTED)
 
     ws["B5"] = "CHỈ CÓ MỘT BƯỚC"
     ws["B5"].font = Font(size=12, bold=True, color=BRAND)
     ws["B5"].fill = PatternFill("solid", fgColor="EEF2FF")
 
-    ws["B6"] = "Dán API key của bạn vào ô bên phải  →"
-    ws["B6"].font = Font(size=12, bold=True, color=INK)
     edge = Side(style="medium", color=BRAND)
-    ws["C6"].fill = PatternFill("solid", fgColor=INPUT_FILL)
-    ws["C6"].border = Border(left=edge, right=edge, top=edge, bottom=edge)
-    ws["C6"].font = Font(size=12, bold=True, color=INK)
-
-    ws["B7"] = "Làm mới ngay"
-    ws["B7"].font = Font(size=12, bold=True, color=INK)
-    ws["C7"] = 1
-    ws["C7"].fill = PatternFill("solid", fgColor=INPUT_FILL)
-    ws["C7"].border = Border(left=edge, right=edge, top=edge, bottom=edge)
-    ws["C7"].font = Font(size=12, bold=True, color=INK)
+    inputs = [("B6", "Dán API key của bạn vào ô bên phải  →", None),
+              ("B7", "Làm mới ngay (tăng số này)", 1),
+              ("B8", "Khoảng thời gian", DEFAULT_PERIOD)]
+    for label_cell, label, value in inputs:
+        row = label_cell[1:]
+        ws[label_cell] = label
+        ws[label_cell].font = Font(size=12, bold=True, color=INK)
+        cell = ws[f"C{row}"]
+        # C6 stays EMPTY in the build. The live template is shared
+        # "anyone with link", so a key there is published to every copier and
+        # spends its owner's quota — found twice (2026-09-29, 2026-10-03).
+        if value is not None:
+            cell.value = value
+        cell.fill = PatternFill("solid", fgColor=INPUT_FILL)
+        cell.border = Border(left=edge, right=edge, top=edge, bottom=edge)
+        cell.font = Font(size=12, bold=True, color=INK)
+    period_dv = DataValidation(type="list", formula1='"' + ",".join(PERIODS) + '"', allow_blank=False)
+    ws.add_data_validation(period_dv)
+    period_dv.add("C8")
 
     rows = [
-        ("Xong.", "Chín tab bên dưới tự đổ dữ liệu, mỗi tab có biểu đồ và ngày dữ liệu mới nhất."),
-        ("Chưa có key?", f"Lấy miễn phí tại https://vietdataverse.online/pages/developer.html"),
+        ("Xong.", f"Mở tab \"{DASH}\" để xem bảng tổng quan; chín tab sau là dữ liệu chi tiết, mỗi tab có biểu đồ."),
+        ("Chưa có key?", "Lấy miễn phí tại https://vietdataverse.online/pages/developer.html"),
         ("Làm mới", "Tăng số ở ô C7 (1 → 2 → 3…). Tải lại trang KHÔNG làm mới — Google giữ cache ~1 giờ."),
+        ("Khoảng thời gian", "Chọn ở ô C8: 1m (1 tháng), 1y (1 năm), all (toàn bộ lịch sử)."),
         ("Hạn mức", "Cả file chỉ tốn 1 lượt API mỗi lần làm mới (không phải 9). "
                     "Miễn phí 20 lượt/tháng; gói trả phí 1.000 lượt/tháng."),
-        ("Đổi khoảng thời gian", f"Sửa period={PERIOD} trong công thức ô A1 của tab \"{RAW}\" (7d, 1m, 1y, all)."),
         ("Bảo mật", "Key nằm trong ô C6 của bản copy của bạn. Đừng chia sẻ file này cho người lạ."),
     ]
     for offset, (label, text) in enumerate(rows):
-        row = 9 + offset
+        row = 10 + offset
         ws[f"B{row}"] = label
         ws[f"B{row}"].font = Font(size=11, bold=True, color=INK)
         ws[f"C{row}"] = text
@@ -161,75 +309,172 @@ def build_cover(ws) -> None:
 
 
 def build_raw(ws) -> None:
-    """The one tab that talks to the API. Everything else reads from here."""
+    """The one tab that talks to the API. Hidden: it is plumbing, not product."""
     ws["A1"] = raw_formula()
-    ws.column_dimensions["A"].width = 16
-    ws["K1"] = ("Tab kỹ thuật — đừng sửa. Đây là lượt gọi API DUY NHẤT của cả file; "
-                "chín tab kia đọc lại từ đây bằng QUERY nên không tốn thêm lượt nào.")
-    ws["K1"].font = Font(size=9, italic=True, color=MUTED)
+    ws.sheet_state = "hidden"
 
 
-def add_chart(ws, tab: str, spec, n_rows: int = MAX_ROWS) -> None:
-    first_col, last_col, y_label = spec
-    chart = LineChart()
-    chart.title = tab
-    chart.y_axis.title = y_label
-    chart.height, chart.width = 8, 17
-    chart.style = 2
-    data = Reference(ws, min_col=first_col, max_col=last_col, min_row=3, max_row=n_rows)
-    cats = Reference(ws, min_col=1, min_row=4, max_row=n_rows)
-    chart.add_data(data, titles_from_data=True)
-    chart.set_categories(cats)
+def build_dataset_tab(ws, spec: dict) -> None:
+    ws.sheet_view.showGridLines = False
+    ws["A1"] = spec["title"]
+    ws["A1"].font = Font(name="Georgia", size=14, bold=True, color=INK)
+    ws["A2"] = "Dữ liệu đến:"
+    ws["A2"].font = Font(size=10, color=MUTED)
+    ws["B2"] = (f'=IF({q(RAW)}!A1<>"dataset", "—", '
+                f'IFERROR(INDEX(A{DATA_ROW}:A{MAX_ROWS}, COUNTA(A{DATA_ROW}:A{MAX_ROWS})), "—"))')
+    ws["B2"].font = Font(size=10, bold=True, color=BRAND)
+
+    thin = Side(style="thin", color=LINE)
+    for i, (header, col, kind, fmt) in enumerate(spec["cols"], start=1):
+        letter = get_column_letter(i)
+        cell = ws.cell(row=DATA_ROW - 1, column=i, value=header)
+        cell.font = Font(size=10, bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor=BRAND)
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        ws.column_dimensions[letter].width = max(13, len(header) + 4)
+        ws.cell(row=DATA_ROW, column=i).value = (
+            key_formula(spec["id"], col, kind) if i == 1 else column_formula(spec["id"], col, kind))
+        if fmt:
+            # Cosmetic only (thousand separators). Correctness never depends on
+            # a pre-applied format any more — see rule 1.
+            for row in range(DATA_ROW, MAX_ROWS + 1):
+                ws.cell(row=row, column=i).number_format = fmt
+        ws.cell(row=DATA_ROW - 1, column=i).border = Border(bottom=thin)
+    ws.row_dimensions[DATA_ROW - 1].height = 30
+    ws.freeze_panes = f"A{DATA_ROW}"
+
+    if spec["chart"]:
+        anchor = get_column_letter(len(spec["cols"]) + 2) + str(DATA_ROW - 1)
+        ws.add_chart(make_chart(ws, spec["chart"], spec["tab"]), anchor)
+
+
+def build_gdp_helper(ws) -> None:
+    """GDP's stacked rows interleave sectors, so a chart straight through the
+    tab draws nonsense. Two helper columns keep only the economy-wide total."""
+    ws["H5"] = "Quý"
+    ws["I5"] = "GDP toàn nền KT (%)"
+    for c in ("H5", "I5"):
+        ws[c].font = Font(size=10, bold=True, color="FFFFFF")
+        ws[c].fill = PatternFill("solid", fgColor=BRAND)
+    total = f'{_match("gdp")}, {_rows("D")}="total"'
+    ws[f"H{DATA_ROW}"] = (f'=IFERROR(ARRAYFORMULA(FILTER({_rows("B")}&"-Q"&{_rows("C")}, {total})), "")')
+    ws[f"I{DATA_ROW}"] = f'=IFERROR(FILTER({_rows("F")}, {total}), "")'
+    ws.column_dimensions["H"].width = 11
+    ws.column_dimensions["I"].width = 20
+    chart = BarChart()
+    chart.type = "col"
+    chart.gapWidth = 40
+    chart.add_data(Reference(ws, min_col=9, min_row=DATA_ROW - 1, max_row=200), titles_from_data=True)
+    chart.set_categories(Reference(ws, min_col=8, min_row=DATA_ROW, max_row=200))
+    _style_chart(chart, "Tăng trưởng GDP theo quý", "% so cùng kỳ", "0.0", ["26A69A"])
+    chart.height, chart.width = 8.5, 17
     ws.add_chart(chart, "K5")
 
 
-def build_dataset_tab(ws, tab: str, dataset_id: str, headers: list, chart_spec,
-                      key_format: str) -> None:
-    # Row 1: freshness. Row 3: headers. Row 4+: the QUERY spill.
-    ws["A1"] = "Dữ liệu mới nhất:"
-    ws["A1"].font = Font(size=10, bold=True, color=INK)
-    # SORT descending, not MAX: three datasets key on a text period ("2026-08",
-    # "2026") rather than a date, and MAX over text returns 0. Sorting handles
-    # both, and TEXT is left off so a date stays a date and a period stays its
-    # own label.
-    ws["B1"] = '=IFERROR(INDEX(SORT(FILTER(A4:A, A4:A<>""), 1, FALSE), 1), "—")'
-    ws["B1"].font = Font(size=10, bold=True, color=BRAND)
-    ws["C1"] = "(ngày/kỳ gần nhất có trong bộ này)"
-    ws["C1"].font = Font(size=9, italic=True, color=MUTED)
+def _col_of(spec: dict, header: str) -> str:
+    for i, col in enumerate(spec["cols"], start=1):
+        if col[0] == header:
+            return get_column_letter(i)
+    raise KeyError(header)
 
-    for column, heading in enumerate(headers, start=1):
-        cell = ws.cell(row=3, column=column, value=heading)
-        cell.font = Font(size=10, bold=True, color="FFFFFF")
-        cell.fill = PatternFill("solid", fgColor=BRAND)
-        ws.column_dimensions[get_column_letter(column)].width = max(13, len(heading) + 3)
 
-    ws["A4"] = query_formula(dataset_id, len(headers))
-    ws.freeze_panes = "A4"
+def build_dashboard(ws, tabs: dict) -> None:
+    ws.sheet_view.showGridLines = False
+    for col in range(1, 18):
+        ws.column_dimensions[get_column_letter(col)].width = 2.5 if col % 4 == 1 else 13
+    ws["B2"] = "Bảng tổng quan kinh tế Việt Nam"
+    ws["B2"].font = Font(name="Georgia", size=20, bold=True, color=INK)
+    ws["B3"] = (f'=IF({q(RAW)}!A1<>"dataset", {q(RAW)}!A1, '
+                f'"Vàng SJC cập nhật đến " & {q("Vàng SJC")}!B2 & " · dữ liệu Viet Dataverse · '
+                f'thay đổi so với kỳ trước")')
+    ws["B3"].font = Font(size=10, color=MUTED)
 
-    # The first column has to be told what it is. Sheets stores a parsed date as
-    # a serial number and, with no format, renders it as 45929 — which is what
-    # the gold tab showed. Applied cell by cell over the spill range because a
-    # column-level format does not survive the .xlsx -> Sheets conversion.
-    for row in range(4, MAX_ROWS + 1):
-        ws.cell(row=row, column=1).number_format = key_format
-    if chart_spec:
-        add_chart(ws, tab, chart_spec)
+    card_fill = PatternFill("solid", fgColor=CARD)
+    edge = Side(style="thin", color=LINE)
+    for k, (label, ds, header, scale, vfmt, change, unit) in enumerate(KPIS):
+        spec = BY_ID[ds]
+        tab, col = spec["tab"], _col_of(spec, header)
+        top = 5 + (k // 4) * 7
+        left = 2 + (k % 4) * 4             # columns B, F, J, N; each card 3 wide
+        cols = [get_column_letter(left + i) for i in range(3)]
+        for r in range(top, top + 6):
+            for i, c in enumerate(cols):
+                cell = ws[f"{c}{r}"]
+                cell.fill = card_fill
+                cell.border = Border(left=edge if i == 0 else None, right=edge if i == 2 else None,
+                                     top=edge if r == top else None, bottom=edge if r == top + 5 else None)
+            ws.merge_cells(f"{cols[0]}{r}:{cols[2]}{r}")
+        latest, prev = last_formula(tab, col), last_formula(tab, col, 1)
+        a = cols[0]
+        ws[f"{a}{top}"] = label
+        ws[f"{a}{top}"].font = Font(size=10, bold=True, color=MUTED)
+        div = f"/{int(scale)}" if scale != 1 else ""
+        ws[f"{a}{top + 1}"] = f'=IFERROR({latest}{div}, "—")'
+        ws[f"{a}{top + 1}"].font = Font(name="Georgia", size=22, bold=True, color=INK)
+        ws[f"{a}{top + 1}"].number_format = vfmt
+        ws[f"{a}{top + 1}"].alignment = Alignment(horizontal="left")
+        ws.row_dimensions[top + 1].height = 32
+        ws[f"{a}{top + 2}"] = unit
+        ws[f"{a}{top + 2}"].font = Font(size=9, color=MUTED)
+        delta = f"{latest}/{prev}-1" if change == "pct" else f"{latest}-{prev}"
+        ws[f"{a}{top + 3}"] = f'=IFERROR({delta}, "")'
+        ws[f"{a}{top + 3}"].number_format = PCT_FMT if change == "pct" else PP_FMT
+        ws[f"{a}{top + 3}"].font = Font(size=11, bold=True)
+        ws[f"{a}{top + 3}"].alignment = Alignment(horizontal="left")
+        n = f"COUNTA({q(tab)}!$A${DATA_ROW}:$A${MAX_ROWS})"
+        window = f"OFFSET({q(tab)}!{col}{DATA_ROW}, MAX(0, {n}-90), 0, MIN(90, {n}), 1)"
+        ws[f"{a}{top + 4}"] = (f'=IFERROR(SPARKLINE({window}, '
+                               f'{{"charttype","line";"color","#{BRAND}";"linewidth",2}}), "")')
+        ws.row_dimensions[top + 4].height = 34
+        ws[f"{a}{top + 5}"] = f'=IFERROR("Kỳ " & {last_formula(tab, "A")}, "")'
+        ws[f"{a}{top + 5}"].font = Font(size=9, color=MUTED)
+
+    # Charts: two per row under the cards. Each reads its dataset tab.
+    charts = [
+        ("gold", dict(kind="line", cols=[2, 3], y="VND/lượng", fmt="#,##0"), "Giá vàng SJC (mua / bán)"),
+        ("fx", dict(kind="line", cols=[2], y="VND/USD", fmt="#,##0"), "Tỷ giá trung tâm USD/VND"),
+        ("interbank", dict(kind="line", cols=[2, 3, 4, 8], y="%/năm", fmt="0.0"),
+         "Lãi suất liên ngân hàng & tái cấp vốn"),
+        ("global", dict(kind="line", cols=[2], y="USD/oz", fmt="#,##0"), "Vàng thế giới"),
+        ("cpi", dict(kind="bar", cols=[3], y="%", fmt="0.0"), "CPI so cùng kỳ"),
+        ("trade", dict(kind="bar", cols=[2, 3], y="tỷ USD", fmt="0"), "Xuất khẩu / nhập khẩu theo tháng"),
+    ]
+    for i, (ds, spec, title) in enumerate(charts):
+        anchor = ("B" if i % 2 == 0 else "J") + str(20 + (i // 2) * 18)
+        ws.add_chart(make_chart(tabs[ds], spec, title), anchor)
+    gdp_chart = BarChart()
+    gdp_chart.type = "col"
+    gdp_chart.gapWidth = 40
+    gdp_ws = tabs["gdp"]
+    gdp_chart.add_data(Reference(gdp_ws, min_col=9, min_row=DATA_ROW - 1, max_row=200), titles_from_data=True)
+    gdp_chart.set_categories(Reference(gdp_ws, min_col=8, min_row=DATA_ROW, max_row=200))
+    _style_chart(gdp_chart, "Tăng trưởng GDP theo quý", "% so cùng kỳ", "0.0", ["26A69A"])
+    gdp_chart.height, gdp_chart.width = 8.5, 17
+    ws.add_chart(gdp_chart, "B" + str(20 + 3 * 18))
+
+
+def build_workbook() -> Workbook:
+    wb = Workbook()
+    cover = wb.active
+    cover.title = COVER
+    build_cover(cover)
+    dash = wb.create_sheet(DASH)
+    tabs = {}
+    for spec in DATASETS:
+        ws = wb.create_sheet(spec["tab"])
+        build_dataset_tab(ws, spec)
+        tabs[spec["id"]] = ws
+    build_gdp_helper(tabs["gdp"])
+    build_dashboard(dash, tabs)
+    # Last, so it sits at the end of the tab strip — and hidden anyway.
+    build_raw(wb.create_sheet(RAW))
+    wb.active = 0
+    return wb
 
 
 def main() -> Path:
-    wb = Workbook()
-    build_cover(wb.active)
-    wb.active.title = COVER
-
-    for tab, dataset_id, headers, chart_spec, key_format in DATASETS:
-        build_dataset_tab(wb.create_sheet(tab), tab, dataset_id, headers,
-                          chart_spec, key_format)
-
-    # Last, so it sits at the end of the tab strip rather than between datasets.
-    build_raw(wb.create_sheet(RAW))
-
     out = Path(__file__).resolve().parent / "Viet-Dataverse-Google-Sheets-Template.xlsx"
-    wb.save(out)
+    build_workbook().save(out)
     return out
 
 
