@@ -132,18 +132,12 @@
         const version = ++revision;
         active = cleanContext({id: chart.id, period: context.period || chart.detailPeriod, method: context.method, bank: context.bank});
         const d = selectedDataset(active);
-        const intro = document.getElementById('dataset-intro');
         const panel = document.getElementById('dataset-tools');
-        if (!intro || !panel) return;
+        if (!panel) return;
         document.querySelector(`[data-lazy-section="${chart.section}"]`).append(panel);
-        intro.hidden = panel.hidden = false;
-        intro.replaceChildren(el('h2', name(d)), el('p', `${t('Nguồn', 'Source')}: ${d.source} · ${t('Đơn vị', 'Unit')}: ${d.unit}`));
-        const cadence = {daily: t('Theo ngày quan sát', 'Daily observations'), monthly: t('Theo tháng', 'Monthly'), quarterly: t('Theo quý', 'Quarterly'), event: t('Theo quyết định điều hành', 'Policy decisions')};
-        intro.append(el('p', cadence[d.cadence] + ' · ' + t('Không phải dữ liệu giao dịch realtime.', 'Not a real-time trading feed.')));
-        const introCoverage = el('small', t('Đang kiểm tra phạm vi bản xem trước…', 'Checking preview coverage…'), 'journey-status');
-        intro.append(introCoverage);
-        if (d.id === 'fxrate') intro.append(el('p', t('Tỷ giá trung tâm không phải tỷ giá mua/bán tại ngân hàng.', 'The central rate is not a bank transaction rate.')));
+        panel.hidden = false;
         panel.replaceChildren(el('h3', t('Đưa dữ liệu vào công việc', 'Use this dataset')));
+        if (d.id === 'fxrate') panel.append(el('p', t('Tỷ giá trung tâm không phải tỷ giá mua/bán tại ngân hàng.', 'The central rate is not a bank transaction rate.')));
         const methods = el('div', null, 'journey-actions');
         const content = el('div'); const status = el('p', t('Đang kiểm tra phạm vi bản xem trước…', 'Checking preview coverage…'), 'journey-status'); status.setAttribute('role', 'status');
         panel.append(status, methods, content);
@@ -153,26 +147,9 @@
             methods.querySelectorAll('button').forEach(n => n.setAttribute('aria-pressed', String(n.dataset.method === method)));
             content.replaceChildren();
             if (method === 'download') {
-                content.append(el('p', t('CSV bản xem trước: miễn phí, không cần đăng nhập. Phạm vi dưới đây là dữ liệu trong snapshot, không phải toàn bộ lịch sử của API.', 'Preview CSV: free, no login. The range below describes the snapshot, not the full API history.')));
                 const btn = el('button', t('Tải CSV bản xem trước', 'Download preview CSV'), 'btn-data-primary'); btn.type = 'button'; btn.disabled = !sample || !sample.rows.length;
                 btn.onclick = () => { download(sample.rows, d.id); track('dataset_download_success', active); };
                 content.append(btn);
-                const downloadId = {gold: 'gold-SJC', silver: 'silver', termdepo: 'termdepo-' + active.bank, interbank: 'sbv-interbank', fxrate: 'fxrate-SBV-USD', global: 'global-macro'}[d.id];
-                if (downloadId) {
-                    const full = el('button', t('Tải lịch sử API (tài khoản miễn phí)', 'Download API history (free account)'), 'btn-data-secondary'); full.type = 'button';
-                    full.onclick = async () => {
-                        remember(active);
-                        try {
-                            if (typeof window.isAuthenticated !== 'function' || !await window.isAuthenticated()) {
-                                if (typeof window.login === 'function') { const back = new URL(route(active)); await window.login(back.pathname + back.hash); }
-                                else status.textContent = t('Đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.', 'Login unavailable. Please reload.');
-                                return;
-                            }
-                            await window.downloadDataset(downloadId, full);
-                        } catch (_) { status.textContent = t('Chưa tải được dữ liệu. Vui lòng thử lại.', 'Download unavailable. Please retry.'); }
-                    };
-                    content.append(document.createTextNode(' '), full);
-                }
                 if (sample && sample.rows.length) { const details = el('details'); details.append(el('summary', t('Xem các bản ghi gần nhất', 'Inspect recent records')), table(sample.rows)); content.append(details); }
             } else {
                 content.append(el('p', method === 'excel'
@@ -194,11 +171,6 @@
                     content.append(link(t('Hướng dẫn Google Sheets', 'Google Sheets guide'), new URL('google-sheets.html', scriptURL)), document.createTextNode(' '), developer);
                 } else content.append(el('p', t('Bộ này hiện cung cấp snapshot công khai, chưa có endpoint API riêng.', 'This dataset currently has a public snapshot, not a dedicated API endpoint.')));
             }
-            const note = el('aside', null, 'journey-upgrade');
-            note.append(el('strong', t('Cần cập nhật dữ liệu thường xuyên hơn?', 'Need more frequent data refreshes?')),
-                el('p', t('Nâng cấp hạn mức API cho bảng tính và dashboard của bạn. Nguồn và phạm vi dữ liệu không đổi; tiếp tục dùng miễn phí nếu hạn mức hiện tại đã đủ.', 'Get more API capacity for your spreadsheets and dashboards. Data sources and coverage stay the same; stay free if the current quota meets your needs.')));
-            const upgrade = link(t('Xem quyền lợi và giá', 'Compare access and pricing'), pricingLink(active));
-            upgrade.addEventListener('click', () => { upgrade.href = pricingLink(active); track('dataset_upgrade_view', active); }); note.append(upgrade); content.append(note);
         }
         ['download', 'excel', 'api'].forEach(method => {
             // 'excel' stays as the query value: it is in links already shared.
@@ -206,27 +178,19 @@
             const b = el('button', labels[method], 'btn-data-secondary'); b.type = 'button'; b.dataset.method = method;
             b.onclick = () => select(method); methods.append(b);
         });
-        const shortcuts = el('div', null, 'journey-actions');
-        methods.querySelectorAll('button').forEach(button => {
-            const shortcut = el('button', button.textContent, 'btn-data-secondary'); shortcut.type = 'button';
-            shortcut.onclick = () => { select(button.dataset.method); panel.scrollIntoView({behavior: 'smooth', block: 'start'}); };
-            shortcuts.append(shortcut);
-        });
-        intro.append(shortcuts);
         select(active.method); track('dataset_detail_view', active);
         try {
             sample = await snapshot(d); if (version !== revision) return;
             status.textContent = t('Bản xem trước: ', 'Preview: ') + coverage(sample.rows);
-            introCoverage.textContent = status.textContent;
             const latest = sample.rows.map(r => String(r.date || r.period || '')).filter(Boolean).sort().at(-1);
             if (d.cadence === 'daily' && latest && Date.now() - Date.parse(latest) > 4 * 86400000) {
                 status.append(el('strong', t(' · Dữ liệu quan sát đã hơn 4 ngày: kiểm tra trước khi sử dụng.', ' · Latest observation is over 4 days old: check before use.')));
             }
             if (sample.generated) status.append(el('span', ' · ' + t('Snapshot tạo lúc: ', 'Snapshot generated: ') + sample.generated.slice(0, 19).replace('T', ' ')));
             select(active.method);
-        } catch (_) { if (version === revision) { status.textContent = t('Chưa tải được bản xem trước. Tải lại trang để thử lại; vẫn có thể đọc hướng dẫn kết nối.', 'Preview unavailable. Reload to retry; connection guides remain available.'); introCoverage.textContent = status.textContent; } }
+        } catch (_) { if (version === revision) { status.textContent = t('Chưa tải được bản xem trước. Tải lại trang để thử lại; vẫn có thể đọc hướng dẫn kết nối.', 'Preview unavailable. Reload to retry; connection guides remain available.'); } }
     }
-    function hide() { ++revision; active = null; ['dataset-intro', 'dataset-tools'].forEach(id => { const n = document.getElementById(id); if (n) n.hidden = true; }); }
+    function hide() { ++revision; active = null; const n = document.getElementById('dataset-tools'); if (n) n.hidden = true; }
     function updateContext() {
         if (!active) return;
         const card = document.querySelector(`.chart-card[data-chart-id="${active.id}"]`);

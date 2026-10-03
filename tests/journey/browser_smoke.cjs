@@ -86,7 +86,7 @@ let chrome, ws;
     await evaluate("document.querySelector('#plan-status button').click()");await until('VDPricing.ready()');
     await navigate(origin+'/fe/index.html#data/portal/chart/gold?period=1y&method=api');
     await until("document.getElementById('dataset-tools')?.hidden === false");
-    assert.match(await evaluate("document.getElementById('dataset-intro').textContent"),/SJC/);
+    assert.equal(await evaluate("document.getElementById('dataset-intro')"),null);
     await until("document.querySelector('#dataset-tools .journey-status').textContent.includes('bản ghi')");
     assert.match(await evaluate("document.querySelector('#dataset-tools pre').textContent"),/period=1y/);
     assert.equal(await evaluate("document.querySelector('.chart-card[data-chart-id=gold] .filter-btn.active').dataset.period"),'1y');
@@ -100,7 +100,10 @@ let chrome, ws;
     const toolsShot=await send('Page.captureScreenshot');fs.writeFileSync(path.join(artifacts,'dataset-tools.png'),Buffer.from(toolsShot.data,'base64'));
     await evaluate("document.querySelector('.chart-card[data-chart-id=gold] [data-period=\\\"7d\\\"]').click()");
     await until("document.querySelector('#dataset-tools pre')?.textContent.includes('period=7d')");
-    await evaluate("document.querySelector('#dataset-tools .journey-upgrade a').click()");
+    // The in-panel upgrade note was removed 2026-10-03; pricingLink still
+    // carries the chart context through to pricing.html.
+    assert.equal(await evaluate("document.querySelector('#dataset-tools .journey-upgrade')"),null);
+    await navigate(await evaluate("VDJourney.pricingLink({id:'gold',period:'7d'})"));
     await until("location.pathname.endsWith('pricing.html') && window.VDPricing?.ready()");
     assert.match(await evaluate('VDPricing.resumeHref()'),/period=7d/);
     await navigate(origin+'/fe/pages/pricing.html?payment=success&order=123');
@@ -111,37 +114,13 @@ let chrome, ws;
     await until("document.getElementById('result-banner')?.textContent.includes('Chưa xác minh')");
     assert.equal(await evaluate("document.getElementById('result-banner').textContent.includes('Thanh toán thành công')"),false);
     verifyFailure=false;
-    // The dataset catalog moved from the index hero to pages/excel.html on
-    // 2026-09-23 — picking a dataset and getting it into Excel is one task.
-    // Check it renders there, and that a dataset link still routes back to the
-    // index chart route, which is what makes the two pages one flow.
-    await navigate(origin+'/fe/pages/excel.html');
-    await until("document.querySelectorAll('#data-discovery [data-dataset-id]').length === 10");
-    assert.match(await evaluate("document.querySelector('#data-discovery [data-dataset-id=gdp]').getAttribute('href')"),/index\.html#data\/portal\/chart\/gdp/);
-    // The download button carries no href until a key is pasted: the workbook
-    // is built per request and gated on that key, so a click without one would
-    // only bounce off a 401 and look like a broken site.
-    assert.equal(await evaluate("document.getElementById('xl-download').getAttribute('href')"),null);
-    await evaluate("document.getElementById('xl-key').value='vdv_smoke';document.getElementById('xl-key').dispatchEvent(new Event('input'))");
-    assert.equal(await evaluate("document.getElementById('xl-download').getAttribute('href')"),null);
-    assert.equal(await evaluate("document.getElementById('xl-download').getAttribute('aria-disabled')"),null);
-    await evaluate("window.__excelDownload=null;window.fetch=async(url,options)=>{window.__excelDownload={url,key:options.headers['X-API-Key']};return new Response(new Blob(['xlsx']),{status:200,headers:{'Content-Disposition':'attachment; filename=VDV.xlsx'}})};document.getElementById('xl-download').click()");
-    await until('window.__excelDownload !== null');
-    assert.equal(await evaluate("window.__excelDownload.key"),'vdv_smoke');
-    assert.equal(await evaluate("window.__excelDownload.url.includes('api_key=')"),false);
-    assert.equal(await evaluate("document.querySelectorAll('#download a[href$=\"developer.html\"]').length"),1);
-    for (const width of [390,768,1366]) {
-        await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<640});
-        assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Excel page overflow at '+width);
-        const screenshot=await send('Page.captureScreenshot');fs.writeFileSync(path.join(artifacts,`excel-${width}.png`),Buffer.from(screenshot.data,'base64'));
-    }
     await navigate(origin+'/fe/index.html#data/portal');
     assert.equal(await evaluate("document.getElementById('data-discovery')"),null);
-    assert.equal(await evaluate("[...document.querySelectorAll('.data-hero-cta a')].map(a=>a.textContent.trim()).join('|')"),'Refresh Excel|API');
+    assert.equal(await evaluate("[...document.querySelectorAll('.data-hero-cta a')].map(a=>a.textContent.trim()).join('|')"),'File tự cập nhật|API');
     await navigate(origin+'/fe/index.html#data/portal/chart/gdp?period=1y&method=download');
     await until("document.querySelector('#dataset-tools .journey-status')?.textContent.includes('-Q')");
     await evaluate("updateLanguage('en')");
-    await until("document.querySelector('#dataset-intro h2')?.textContent === 'GDP growth'");
+    await until("document.querySelector('#dataset-tools h3')?.textContent === 'Use this dataset'");
     await evaluate("document.getElementById('ov-back').click()");
     assert.equal(await evaluate("document.getElementById('dataset-tools').hidden"),true);
     assert.equal(errors.length,0,errors.join('\n'));

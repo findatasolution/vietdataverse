@@ -5252,17 +5252,17 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 */
 
 /* ── Open Data — value-prop hero (above ticker strip) ── */
-.journey-discovery, .journey-intro, .journey-tools {
+.journey-discovery, .journey-tools {
     padding: 24px; margin: 0 0 24px; border: 1px solid var(--border-cream);
     border-radius: 20px; background: var(--ivory); min-width: 0;
 }
 .journey-discovery { scroll-margin-top: 80px; }
 .journey-tools { scroll-margin-top: 80px; }
 .ov-chart-detail > .chart-section-heading { display: none; }
-.journey-discovery h2, .journey-intro h2, .journey-tools h2, .journey-tools h3 {
+.journey-discovery h2, .journey-tools h2, .journey-tools h3 {
     font-family: 'Lora', Georgia, serif; font-weight: 500; margin: 0 0 12px;
 }
-.journey-intro p, .journey-tools p { color: var(--olive-gray); line-height: 1.6; margin: 8px 0 16px; }
+.journey-tools p { color: var(--olive-gray); line-height: 1.6; margin: 8px 0 16px; }
 .journey-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
 .journey-actions button, .journey-tools button, .journey-tools a.btn-data-secondary { min-height: 44px; }
 .journey-actions button, .journey-tools button { border: 1px solid var(--border-warm); font-family: inherit; cursor: pointer; }
@@ -5274,7 +5274,6 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 .journey-dataset small { color: var(--olive-gray); line-height: 1.5; }
 .journey-status { font-size: 0.875rem; color: var(--olive-gray); }
 .journey-code { padding: 16px; background: var(--warm-sand); border-radius: 8px; overflow-x: auto; white-space: pre; margin: 16px 0; }
-.journey-upgrade { background: var(--parchment); padding: 20px; border-radius: 12px; margin-top: 24px; }
 .journey-tools details { margin-top: 20px; }
 .journey-tools summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
 .journey-table { max-width: 100%; overflow-x: auto; }
@@ -5283,7 +5282,7 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
 .pricing-page > .journey-tools, .pricing-page > .journey-status { width: calc(100% - 32px); max-width: 1000px; }
 .pricing-page .pricing-title, .pricing-page .pricing-subtitle { padding-left: 16px; padding-right: 16px; }
 @media (max-width: 639px) {
-    .journey-discovery, .journey-intro, .journey-tools { padding: 16px; border-radius: 14px; }
+    .journey-discovery, .journey-tools { padding: 16px; border-radius: 14px; }
     .journey-catalog { grid-template-columns: 1fr; }
     .journey-actions > * { flex: 1 1 auto; justify-content: center; }
 }
