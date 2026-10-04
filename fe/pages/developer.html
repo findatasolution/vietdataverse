@@ -42,7 +42,7 @@
         .key-display { display: flex; align-items: center; gap: 12px; background: var(--parchment); border: 1px solid var(--border-warm); border-radius: var(--radius-sm); padding: 8px 16px; }
         .key-value { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 14px/1.6 monospace; color: var(--charcoal); }
         .btn-copy { border: 0; background: transparent; color: var(--terracotta); font-size: 12px !important; font-weight: 600 !important; min-height: 44px; padding: 8px; white-space: nowrap; }
-        .key-metadata { display: grid; grid-template-columns: 1fr 1fr; margin: 24px 0; gap: 16px; }
+        .key-metadata { display: grid; grid-template-columns: 1fr; margin: 24px 0; gap: 16px; }
         .key-metadata div + div { border-left: 1px solid var(--border-cream); padding-left: 20px; }
         .key-metadata dt { font-size: 12px; color: var(--stone-gray); margin-bottom: 4px; }
         .key-metadata dd { font-size: 13px; color: var(--olive-gray); margin: 0; }
@@ -53,10 +53,6 @@
         .btn-revoke { min-height: 46px; padding: 10px 20px; border: 1px solid var(--error-red); color: var(--error-red); background: transparent; border-radius: var(--radius-sm); font-size: 13px !important; }
         .key-warning { font-size: 11px; color: var(--olive-gray); margin-top: 14px; }
         .key-error { font-size: 13px; color: var(--error-red); margin-top: 12px; }
-        .new-key-notice { display: none; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border-warm); border-radius: var(--radius-sm); background: var(--warm-sand); font-size: 13px; }
-        .new-key-notice.visible { display: block; }
-        .new-key-raw { font-family: monospace; overflow-wrap: anywhere; margin: 8px 0; }
-        .new-key-warning { font-size: 12px; color: var(--olive-gray); }
         .usage-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--border-cream); }
         .usage-numbers { font-size: 25px; font-weight: 600; color: var(--near-black); }
         .usage-unit { font-size: 13px; font-weight: 500; }
@@ -149,14 +145,9 @@
             <div class="developer-column">
                 <section id="key-card" class="developer-card" style="display:none;">
 <div class="card-heading"><span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="5"/><path d="m12 11 8-8 2 2-2 2 1 1-2 2-1-1-3 3"/></svg></span><div><h2>API Key của bạn</h2><p class="card-description">Sử dụng khóa này để truy cập API. Giữ khóa an toàn và không chia sẻ công khai.</p></div></div>
-                    <div class="new-key-notice" id="new-key-notice" role="status">
-                        <strong>API key mới đã được tạo</strong><div class="new-key-raw" id="new-key-raw"></div>
-                        <p class="new-key-warning">Sao chép và lưu khóa an toàn để dùng trong ứng dụng của bạn.</p>
-                        <button class="btn-copy" onclick="copyNewKey()">Sao chép khóa</button>
-                    </div>
                     <div id="key-info-section">
                         <div class="key-display"><span class="key-value masked" id="key-preview-text">Chưa có API key</span><button class="btn-copy" id="btn-copy-preview" onclick="copyPreview()" style="display:none;">Sao chép</button></div>
-                        <dl class="key-metadata" id="key-meta-text"><div><dt>Ngày tạo</dt><dd id="key-created">—</dd></div><div><dt>Dùng lần cuối</dt><dd id="key-last-used">—</dd></div></dl>
+                        <dl class="key-metadata" id="key-meta-text"><div><dt>Ngày tạo</dt><dd id="key-created">—</dd></div></dl>
                     </div>
                     <div class="key-actions"><button class="btn-generate" id="btn-generate" onclick="generateKey()"><span id="btn-generate-text">Tạo khóa API</span></button><button class="btn-revoke" id="btn-revoke" onclick="revokeKey()" style="display:none;">Thu hồi</button></div>
                     <p class="key-warning">Tạo khóa mới sẽ thu hồi khóa cũ ngay lập tức. Nếu đã kết nối ứng dụng hoặc Google Sheets, hãy dùng “Sao chép” để lấy khóa hiện tại.</p>
@@ -324,7 +315,6 @@
 
             document.getElementById('expired-banner').classList.toggle('visible', !!d.has_key && d.is_active === false);
             document.getElementById('key-created').textContent = d.created_at ? new Date(d.created_at).toLocaleString('vi-VN') : '—';
-            document.getElementById('key-last-used').textContent = d.last_used_at ? new Date(d.last_used_at).toLocaleString('vi-VN') : 'Chưa sử dụng';
 
             if (d.has_key) {
                 _currentKeyPreview = d.key_preview;
@@ -371,8 +361,6 @@
 
             _newKeyFull = d.api_key;
             generated = true;
-            document.getElementById('new-key-raw').textContent = d.api_key;
-            document.getElementById('new-key-notice').classList.add('visible');
 
             await loadKeyInfo(token);
         } catch (e) {
@@ -394,15 +382,10 @@
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
-            document.getElementById('new-key-notice').classList.remove('visible');
             await loadKeyInfo(token);
         } finally {
             btn.disabled = false;
         }
-    }
-
-    function copyNewKey() {
-        if (_newKeyFull) navigator.clipboard.writeText(_newKeyFull).then(() => alert('Đã sao chép!'));
     }
 
     function copyPreview() {

@@ -68,6 +68,9 @@
       padding: 12px 22px; border-radius: 10px; margin: 6px 0 4px;
     }
     .gs-cta:hover { background: var(--coral); }
+    .gs-preview { margin: 20px 0 8px; }
+    .gs-preview img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 0 0 1px var(--border-warm), 0 4px 24px rgba(0,0,0,0.05); }
+    .gs-preview figcaption { font-size: 13px; color: var(--stone-gray); margin-top: 8px; }
     .gs-cta-sub { font-size: 13px; color: var(--stone-gray); margin: 4px 0 0; }
 
     .gs-steps { list-style: none; padding: 0; margin: 18px 0; counter-reset: gs; }
@@ -120,6 +123,12 @@
         Tạo bản sao file mẫu →
       
       </a>
+
+      <figure class="gs-preview">
+        <img src="/fe/images/sheets-dashboard-preview.jpg" width="1400" height="1054" loading="lazy"
+             alt="Tab Tổng quan trong file mẫu: 8 thẻ chỉ số (vàng SJC, bạc, tỷ giá, vàng thế giới, lãi suất qua đêm, tiền gửi ACB, CPI, xuất khẩu) kèm biểu đồ xu hướng">
+        <figcaption>Bản sao của bạn sau khi dán API key — tab “Tổng quan” tự cập nhật từ dữ liệu Viet Dataverse.</figcaption>
+      </figure>
 
       <ol class="gs-steps">
         <li><strong>Nhấn “Tạo bản sao”.</strong> Google mở hộp thoại xác nhận, bấm nút là xong. Bản sao là của bạn, sửa thoải mái.</li>
