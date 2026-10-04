@@ -1347,10 +1347,13 @@ tab holds the only `IMPORTDATA`; the nine data tabs read it with `FILTER` (not
 cards plus `SPARKLINE` chart blocks — no native charts, they made the file too
 large to publish through the Drive connector) reads the data tabs. Period is a
 dropdown in `C8` on the cover since 2026-10-03, so nobody edits the hidden tab.
-**The live template `1UGILO_…` was deleted on 2026-10-03** (by the owner,
-after its `C6` was found holding a real key); until it is restored or replaced
-and the six `/copy` links updated, the "Tạo bản sao" button on the site is
-broken. Free 20/month is ~20 loads; API Supper Lite 1.000/month covers the file
+**The live template `1UGILO_…` was restored on 2026-10-04 and replaced with the
+2026-10-03 build** (File → Import → Replace spreadsheet, done in the owner's
+Chrome by the agent — same ID and "anyone with the link" sharing, so the site's
+`/copy` links needed no change). Its `C6` is empty; the key that sat there still
+exists in the file's version history, so that key must be revoked, not merely
+removed. To ship a future rebuild the same way: upload the `.xlsx` to the
+owner's Drive, then Import → My Drive → Replace spreadsheet. Free 20/month is ~20 loads; API Supper Lite 1.000/month covers the file
 left open all month (~720). `C7` on the cover is appended as `&_r=` so bumping
 it forces a refetch — `724b86677` dropped that and the refresh cell went dead
 until `tests/sheets/` pinned it. **Never paste a real key into the live
