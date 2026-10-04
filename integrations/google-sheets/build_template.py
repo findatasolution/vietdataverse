@@ -241,7 +241,7 @@ def last_formula(tab: str, col_letter: str, offset: int = 0) -> str:
 def build_cover(ws) -> None:
     ws.sheet_view.showGridLines = False
     ws.column_dimensions["A"].width = 3
-    ws.column_dimensions["B"].width = 34
+    ws.column_dimensions["B"].width = 40
     ws.column_dimensions["C"].width = 70
 
     ws["B2"] = "Viet Dataverse — Dữ liệu kinh tế Việt Nam"
@@ -275,7 +275,9 @@ def build_cover(ws) -> None:
     period_dv.add("C8")
 
     rows = [
-        ("Xong.", f"Mở tab \"{DASH}\" để xem bảng tổng quan; chín tab sau là dữ liệu chi tiết, mỗi tab có biểu đồ."),
+        ("Xong.", f"Mở tab \"{DASH}\" để xem bảng tổng quan; chín tab sau là dữ liệu chi tiết, biểu đồ nằm ở tab Tổng quan."),
+        ("Thấy thanh vàng?", "Sheets hỏi \"Allow access\" / \"Cho phép truy cập\" ở đầu trang: "
+                             "bấm cho phép, nếu không file không lấy được dữ liệu."),
         ("Chưa có key?", "Lấy miễn phí tại https://vietdataverse.online/pages/developer.html"),
         ("Làm mới", "Tăng số ở ô C7 (1 → 2 → 3…). Tải lại trang KHÔNG làm mới — Google giữ cache ~1 giờ."),
         ("Khoảng thời gian", "Chọn ở ô C8: 1m (1 tháng), 1y (1 năm), all (toàn bộ lịch sử)."),
@@ -287,6 +289,9 @@ def build_cover(ws) -> None:
         row = 10 + offset
         ws[f"B{row}"] = label
         ws[f"B{row}"].font = Font(size=11, bold=True, color=INK)
+        # Top-aligned like the text beside it: bottom-aligned labels sat level
+        # with the NEXT row's text, so each note read as the label above it.
+        ws[f"B{row}"].alignment = Alignment(vertical="top")
         ws[f"C{row}"] = text
         ws[f"C{row}"].font = Font(size=11, color=MUTED)
         ws[f"C{row}"].alignment = Alignment(wrap_text=True, vertical="top")
@@ -324,6 +329,10 @@ def build_dataset_tab(ws, spec: dict) -> None:
             # per-cell format over 2.5k rows made the file ~6x larger, and
             # correctness no longer depends on any format — see rule 1.
             ws.column_dimensions[letter].number_format = fmt
+            # The formula cell in DATA_ROW carries its own style, which beats
+            # the column default — without this the first data row alone
+            # showed 135800000 while every row below showed 136.600.000.
+            ws.cell(row=DATA_ROW, column=i).number_format = fmt
         ws.cell(row=DATA_ROW - 1, column=i).border = Border(bottom=thin)
     ws.row_dimensions[DATA_ROW - 1].height = 30
     ws.freeze_panes = f"A{DATA_ROW}"
@@ -344,6 +353,13 @@ def build_gdp_helper(ws) -> None:
     ws[f"I{DATA_ROW}"] = f'=IFERROR(FILTER({_rows("F")}, {total}), "")'
     ws.column_dimensions["H"].width = 11
     ws.column_dimensions["I"].width = 20
+    # Sector names ("Nông-lâm-thủy sản", "Công nghiệp-xây dựng") were cut off
+    # at the header-derived width.
+    ws.column_dimensions["C"].width = 24
+    # "Dữ liệu đến" on this tab read just "2026": column A is the year. The
+    # last quarter label in H is the honest cutoff.
+    ws["B2"] = (f'=IF({STATUS}<>"dataset", "—", '
+                f'IFERROR(INDEX(H{DATA_ROW}:H{MAX_ROWS}, COUNTA(H{DATA_ROW}:H{MAX_ROWS})), "—"))')
 
 
 def _col_of(spec: dict, header: str) -> str:

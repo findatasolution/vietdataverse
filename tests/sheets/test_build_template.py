@@ -150,3 +150,32 @@ def test_no_open_ended_ranges(wb):
     open_range = re.compile(r"\$?[A-Z]{1,3}\$?\d+:\$?[A-Z]{1,3}(?![$\d A-Za-z(])")
     for title, coord, formula in all_formulas(wb):
         assert not open_range.search(formula), (title, coord, formula)
+
+
+@pytest.mark.parametrize("spec", [d for d in bt.DATASETS], ids=lambda d: d["id"])
+def test_first_data_row_carries_the_number_format(wb, spec):
+    # Found in a real Sheet 2026-10-04: the formula cell in DATA_ROW has its
+    # own style, so the column default never reached it — row 1 showed
+    # 135800000, every row below 136.600.000.
+    ws = wb[spec["tab"]]
+    for i, (_h, _c, _k, fmt) in enumerate(spec["cols"], start=1):
+        if fmt:
+            assert ws.cell(row=bt.DATA_ROW, column=i).number_format == fmt
+
+
+def test_gdp_cutoff_is_a_quarter_not_a_year(wb):
+    # B2 read "2026" because column A is the year.
+    assert f"H{bt.DATA_ROW}" in wb["GDP"]["B2"].value
+
+
+def test_cover_warns_about_the_allow_access_bar(wb):
+    texts = [c.value for row in wb[bt.COVER].iter_rows() for c in row if isinstance(c.value, str)]
+    assert any("Allow access" in t for t in texts)
+    assert not any("mỗi tab có biểu đồ" in t for t in texts)
+
+
+def test_cover_labels_align_with_their_text(wb):
+    ws = wb[bt.COVER]
+    for row in range(10, 17):
+        if ws[f"B{row}"].value:
+            assert ws[f"B{row}"].alignment.vertical == ws[f"C{row}"].alignment.vertical == "top"
