@@ -1357,8 +1357,9 @@ owner's Drive, then Import → My Drive → Replace spreadsheet. **Two things a 
 real copy): Sheets shows a yellow "Allow access" bar before any `IMPORTDATA`
 runs — the cover now tells them to click it; and the `/copy` page warns that
 "the attached Apps Script file … will also be copied" — a bound script left
-over from the abandoned Apps Script build still lives in `1UGILO_…`. Import →
-Replace does not remove it; only the script editor (script.google.com) can.
+over from the abandoned Apps Script build ("Viet Dataverse Connector", empty
+`Code.gs`). Import → Replace does not remove it. **Deleted 2026-10-04** from
+script.google.com/home/my; the `/copy` page no longer shows the warning.
 Real-Sheet checks without an API key: point a private copy's `_raw!A1` at
 `tests/sheets/fixtures/refresh_data_1y_2026-10-03.csv` (raw GitHub URL) with
 `IMPORTDATA(url, ",", "en_US")`. Free 20/month is ~20 loads; API Supper Lite 1.000/month covers the file
