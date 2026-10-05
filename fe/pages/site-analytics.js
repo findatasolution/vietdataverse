@@ -16,6 +16,12 @@
         window.gtag('event', name, {...safe, ...page(), send_to: measurement});
     }
     window.VDAnalytics = {track};
+    // Auto-report funnel: the Sheets template copy is the step between
+    // "read the guide" and "created a key" that was otherwise unmeasured.
+    document.addEventListener('click', e => {
+        const a = e.target.closest && e.target.closest('a[href*="docs.google.com/spreadsheets/"][href$="/copy"]');
+        if (a) track('sheets_template_copy');
+    });
     if (!enabled) return;
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };

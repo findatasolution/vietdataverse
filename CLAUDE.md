@@ -1421,6 +1421,21 @@ Response shape:
 
 **A `records` layer-fallthrough bug independently caused the entire first IIP backfill attempt to return 0/80**: `crawl_period` fell through to layer 2/3 whenever `len(records) < 2`, but the prose-based IIP `layer1_structured` can only ever return 1 record (the aggregate; it has no per-sector breakdown), so a perfectly correct layer-1 match was discarded and replaced with a rate-limited Gemini call on *every single period*, including ones later confirmed to parse correctly in isolation. Fixed to `if not records:` in all three crawlers' `crawl_period`/`main()`.
 
+### DA agent + `be/da_report.py` (2026-10-05)
+
+`.claude/agents/da.md` (local, `.claude/` is gitignored) is the data-analyst agent:
+data quality, GA4 web performance, and funnels — above all the **auto-report
+funnel** (Sheets guide → `sheets_template_copy` → signup → API key →
+`/api/v1/excel/refresh-data` 200 → used on ≥3 days → 429 → paid). Its numbers
+come only from `python be/da_report.py [--days N] [--out file]`, read-only, which
+excludes internal accounts and negative-id test fixtures.
+
+**Standalone pages had no GA until 2026-10-05**: only `pricing.html` loaded
+`site-analytics.js`, so google-sheets, developer, api-docs… were invisible in
+GA4 and the funnel was blind exactly where it matters. All public
+`fe/pages/*.html` now load `/fe/pages/site-analytics.js` (admin.html
+deliberately not). Any new standalone page must load it too.
+
 ### Indexable dataset pages (`be/routers/seo_pages.py`, 2026-10-05)
 
 **The SPA's charts are hash routes (`/fe/#data/portal/chart/gold`), which Google
