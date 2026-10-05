@@ -1427,8 +1427,12 @@ Response shape:
 data quality, GA4 web performance, and funnels — above all the **auto-report
 funnel** (Sheets guide → `sheets_template_copy` → signup → API key →
 `/api/v1/excel/refresh-data` 200 → used on ≥3 days → 429 → paid). Its numbers
-come only from `python be/da_report.py [--days N] [--out file]`, read-only, which
-excludes internal accounts and negative-id test fixtures.
+come only from `python be/da_report.py [--out file]`, read-only, which excludes
+internal accounts and negative-id test fixtures. Every table has two fixed
+periods — **last 7 days** and **all time** — and there are two funnels: the
+**traffic funnel** (visitors → engaged → opened a dataset → downloaded → logged
+in → pricing → checkout → paid; distinct users, % of visitors, since the steps
+are not nested) and the auto-report funnel above (% of the step before).
 
 **Standalone pages had no GA until 2026-10-05**: only `pricing.html` loaded
 `site-analytics.js`, so google-sheets, developer, api-docs… were invisible in

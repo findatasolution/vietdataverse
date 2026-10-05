@@ -1,6 +1,6 @@
 """DA report — data quality + web performance + funnels, as one markdown page.
 
-Run:  python be/da_report.py [--days 30] [--out report.md]
+Run:  python be/da_report.py [--out report.md]   (every table: last 7 days + all time)
 
 Used by the `da` agent (.claude/agents/da.md). Read-only: it never writes to
 any database and never sends mail (the DQ email channel has been dead since
@@ -84,6 +84,41 @@ def section_data_quality():
         w(f"**Audit cấu trúc vàng SJC:** không chạy được ({str(exc)[:80]})\n")
 
 
+# ── periods ──────────────────────────────────────────────────────────────────
+# Every table shows both: the last week (what changed) and all time (where we
+# stand). `None` days = all time.
+PERIODS = [("Tuần (7 ngày)", 7), ("Toàn thời gian", None)]
+GA_EPOCH = "2020-01-01"  # before the GA4 property existed — means "all"
+
+
+def _since(days):
+    return f"{days} days" if days else "100 years"
+
+
+def funnel_table(steps, base="prev"):
+    """steps: [(label, [value per period])] → markdown table.
+
+    base="prev": % of the step above (a strict funnel, each step a subset).
+    base="top":  % of the first step — for the traffic funnel, whose steps are
+    not nested (a visitor can log in without opening a chart), so a
+    step-to-step ratio would print >100%."""
+    head = " | ".join(f"{lbl} | %" for lbl, _ in PERIODS)
+    w(f"| Bước | {head} |")
+    w("|---|" + "---|---|" * len(PERIODS))
+    prev = [None] * len(PERIODS)
+    for label, vals in steps:
+        cells = []
+        for i, v in enumerate(vals):
+            shown = "—" if v is None else f"{v:,.0f}"
+            ref = prev[i] if base == "prev" else steps[0][1][i]
+            first = label == steps[0][0]
+            cells.append(f"{shown} | {pct(v, ref) if ref and v is not None and not first else '—'}")
+            if v is not None:
+                prev[i] = v
+        w(f"| {label} | {' | '.join(cells)} |")
+    w("")
+
+
 # ── 2. Web performance (GA4) ─────────────────────────────────────────────────
 def _ga():
     from core import ga4
@@ -93,128 +128,148 @@ def _ga():
         raise RuntimeError("GA4 env vars chưa đặt")
     client, prop = ga4._client(), f"properties/{ga4.GA4_PROPERTY_ID}"
 
-    def run(dims, mets, days, limit=50):
+    def run(dims, mets, days, limit=500):
+        start = f"{days}daysAgo" if days else GA_EPOCH
         r = client.run_report(RunReportRequest(
             property=prop, dimensions=[Dimension(name=d) for d in dims],
             metrics=[Metric(name=m) for m in mets],
-            date_ranges=[DateRange(start_date=f"{days}daysAgo", end_date="today")],
+            date_ranges=[DateRange(start_date=start, end_date="today")],
             limit=limit))
         return [([v.value for v in row.dimension_values],
                  [float(v.value) for v in row.metric_values]) for row in r.rows]
     return run
 
 
-def section_web(days, run):
-    w(f"## 2. Hiệu quả web ({days} ngày, GA4)\n")
-    t = run([], ["activeUsers", "newUsers", "sessions", "screenPageViews",
-                 "engagementRate"], days)
-    if t:
-        u, n, s, pv, er = t[0][1]
-        w(f"Người dùng **{u:.0f}** (mới {n:.0f}) · session **{s:.0f}** · pageview "
-          f"**{pv:.0f}** · tỉ lệ tương tác **{er * 100:.0f}%**\n")
-    w("| Kênh | Session | Tương tác | Thời gian TB (s) |")
-    w("|---|---|---|---|")
-    rows = run(["sessionDefaultChannelGroup"],
-               ["sessions", "engagementRate", "averageSessionDuration"], days)
-    for (ch,), (s, er, dur) in sorted(rows, key=lambda r: -r[1][0]):
-        w(f"| {ch} | {s:.0f} | {er * 100:.0f}% | {dur:.0f} |")
+def section_web(run):
+    w("## 2. Hiệu quả web (GA4)\n")
+    w("| Chỉ số | " + " | ".join(l for l, _ in PERIODS) + " |")
+    w("|---|" + "---|" * len(PERIODS))
+    tots = []
+    for _, d in PERIODS:
+        t = run([], ["activeUsers", "newUsers", "sessions", "screenPageViews",
+                     "engagementRate", "averageSessionDuration"], d)
+        tots.append(t[0][1] if t else [0] * 6)
+    for i, name in enumerate(["Người dùng", "Người dùng mới", "Session", "Pageview"]):
+        w(f"| {name} | " + " | ".join(f"{t[i]:,.0f}" for t in tots) + " |")
+    w("| Tỉ lệ tương tác | " + " | ".join(f"{t[4] * 100:.0f}%" for t in tots) + " |")
+    w("| Thời gian TB/session (s) | " + " | ".join(f"{t[5]:.0f}" for t in tots) + " |")
     w("")
-    w("**Trang xem nhiều nhất:**")
-    pages = run(["pagePath"], ["screenPageViews"], days)
-    for (p,), (v,) in sorted(pages, key=lambda r: -r[1][0])[:10]:
-        w(f"- `{p}` — {v:.0f}")
+
+    w("**Nguồn traffic (người dùng · tỉ lệ tương tác):**\n")
+    w("| Kênh | " + " | ".join(l for l, _ in PERIODS) + " |")
+    w("|---|" + "---|" * len(PERIODS))
+    per = [{ch: (u, er) for (ch,), (u, er) in
+            run(["sessionDefaultChannelGroup"], ["activeUsers", "engagementRate"], d)}
+           for _, d in PERIODS]
+    for ch in sorted(per[-1], key=lambda c: -per[-1][c][0]):
+        w(f"| {ch} | " + " | ".join(
+            f"{p[ch][0]:.0f} · {p[ch][1] * 100:.0f}%" if ch in p else "—" for p in per) + " |")
+    w("")
+
+    w("**Trang xem nhiều nhất (tuần):**")
+    for (pg,), (v,) in sorted(run(["pagePath"], ["screenPageViews"], 7),
+                              key=lambda r: -r[1][0])[:10]:
+        w(f"- `{pg}` — {v:.0f}")
     w("")
 
 
 # ── 3. Funnels ───────────────────────────────────────────────────────────────
-def section_funnels(days, run):
-    w(f"## 3. Phễu ({days} ngày)\n")
+def _ga_users(run, d):
+    """Distinct users per event and per page path — funnels count people, not
+    events (one visitor opening 5 charts is one person, not 5)."""
+    ev = {n: u for (n,), (u,) in run(["eventName"], ["totalUsers"], d)}
+    pages = {p: u for (p,), (u,) in run(["pagePath"], ["totalUsers"], d)}
+    total = run([], ["activeUsers"], d)
+    return ev, pages, (total[0][1][0] if total else 0)
 
-    if run:
-        ev = {name: cnt for (name,), (cnt,) in run(["eventName"], ["eventCount"], days, 200)}
-        pv = {p: v for (p,), (v,) in run(["pagePath"], ["screenPageViews"], days, 500)}
-        pricing = sum(v for p, v in pv.items() if "pricing" in p)
-        steps = [("Lượt vào lần đầu (first_visit)", ev.get("first_visit", 0)),
-                 ("Mở chi tiết bộ dữ liệu", ev.get("dataset_detail_view", 0)),
-                 ("Tải dữ liệu thành công", ev.get("dataset_download_success", 0)),
-                 ("Xem trang giá", pricing),
-                 ("Bấm thanh toán (begin_checkout)", ev.get("begin_checkout", 0)),
-                 ("Chuyển sang PayOS", ev.get("checkout_redirect", 0))]
-        w("### 3a. Phễu website (GA4 — đếm sự kiện, không phải người)\n")
-        w("| Bước | Số | So với bước trước |")
-        w("|---|---|---|")
-        prev = None
-        for name, n in steps:
-            w(f"| {name} | {n:.0f} | {pct(n, prev) if prev is not None else '—'} |")
-            prev = n
-        w("")
-        sheets_pv = sum(v for p, v in pv.items() if "google-sheets" in p)
-        copies = ev.get("sheets_template_copy", 0)
-    else:
-        sheets_pv = copies = None
 
-    w("### 3b. Phễu báo cáo tự động — Google Sheets (người dùng thật, đã loại nội bộ & test)\n")
+def _db_counts(d):
     with get_engine_user().connect() as c:
         internal = [r[0] for r in c.execute(
             text("SELECT user_id FROM users WHERE email = ANY(:e)"),
             {"e": list(INTERNAL_EMAILS)})]
-        p = {"since": f"{days} days", "int": internal or [-1], "ep": SHEETS_ENDPOINT}
+        p = {"since": _since(d), "int": internal or [-1], "ep": SHEETS_ENDPOINT}
         q = lambda sql: c.execute(text(sql), p).scalar() or 0  # noqa: E731
-        signups = q("SELECT COUNT(*) FROM users WHERE created_at > NOW() - CAST(:since AS interval) "
-                    "AND user_id <> ALL(:int)")
-        keyed = q("SELECT COUNT(DISTINCT user_id) FROM api_keys WHERE created_at > NOW() - "
-                  "CAST(:since AS interval) AND user_id <> ALL(:int)")
-        used = q("SELECT COUNT(DISTINCT user_id) FROM api_call_log WHERE endpoint = :ep AND "
-                 "status_code = 200 AND at > NOW() - CAST(:since AS interval) AND user_id <> ALL(:int)")
-        repeat = q("SELECT COUNT(*) FROM (SELECT user_id, COUNT(DISTINCT at::date) d FROM api_call_log "
-                   "WHERE endpoint = :ep AND status_code = 200 AND at > NOW() - CAST(:since AS interval) "
-                   "AND user_id <> ALL(:int) GROUP BY user_id) x WHERE d >= 3")
-        capped = q("SELECT COUNT(DISTINCT user_id) FROM api_call_log WHERE status_code = 429 AND "
-                   "at > NOW() - CAST(:since AS interval) AND user_id <> ALL(:int)")
-        anon = q("SELECT COUNT(*) FROM api_call_log WHERE endpoint = :ep AND status_code = 401 "
-                 "AND at > NOW() - CAST(:since AS interval)")
-        paid = q("SELECT COUNT(DISTINCT user_id) FROM payment_orders WHERE status = 'paid' AND "
-                 "created_at > NOW() - CAST(:since AS interval) AND user_id <> ALL(:int)")
-        paid_vnd = q("SELECT COALESCE(SUM(amount),0) FROM payment_orders WHERE status = 'paid' AND "
-                     "created_at > NOW() - CAST(:since AS interval) AND user_id <> ALL(:int)")
-    steps = [("Xem trang hướng dẫn Google Sheets (pageview GA4)", sheets_pv),
-             ("Bấm tạo bản sao template (GA4)", copies),
-             ("Đăng ký tài khoản", signups),
-             ("Tạo API key", keyed),
-             ("File Sheets gọi dữ liệu thành công (≥1 lần)", used),
-             ("Dùng đều (≥3 ngày khác nhau)", repeat),
-             ("Chạm hết quota (429)", capped),
-             ("Trả tiền (PayOS paid)", paid)]
-    w("| Bước | Số | So với bước trước |")
-    w("|---|---|---|")
-    prev = None
-    for name, n in steps:
-        shown = "—" if n is None else f"{n:.0f}"
-        w(f"| {name} | {shown} | {pct(n, prev) if prev and n is not None else '—'} |")
-        prev = n if n is not None else prev
-    w("")
-    w(f"Doanh thu thật kỳ này: **{paid_vnd:,.0f}đ** · lượt gọi Sheets bị 401 (key sai/thiếu): {anon}\n")
-    w("_Ghi chú: trang độc lập (google-sheets, developer, pricing…) chỉ được gắn GA "
-      "từ 2026-10-05, và sự kiện `sheets_template_copy` cũng bắt đầu từ ngày đó — "
-      "kỳ báo cáo chứa ngày trước đó sẽ đếm thiếu hai bước đầu._\n")
+        win = "NOW() - CAST(:since AS interval)"
+        return dict(
+            signups=q(f"SELECT COUNT(*) FROM users WHERE created_at > {win} AND user_id <> ALL(:int)"),
+            keyed=q(f"SELECT COUNT(DISTINCT user_id) FROM api_keys WHERE created_at > {win} "
+                    "AND user_id <> ALL(:int)"),
+            used=q(f"SELECT COUNT(DISTINCT user_id) FROM api_call_log WHERE endpoint = :ep AND "
+                   f"status_code = 200 AND at > {win} AND user_id <> ALL(:int)"),
+            repeat=q("SELECT COUNT(*) FROM (SELECT user_id, COUNT(DISTINCT at::date) d FROM "
+                     f"api_call_log WHERE endpoint = :ep AND status_code = 200 AND at > {win} "
+                     "AND user_id <> ALL(:int) GROUP BY user_id) x WHERE d >= 3"),
+            capped=q(f"SELECT COUNT(DISTINCT user_id) FROM api_call_log WHERE status_code = 429 "
+                     f"AND at > {win} AND user_id <> ALL(:int)"),
+            anon=q(f"SELECT COUNT(*) FROM api_call_log WHERE endpoint = :ep AND status_code = 401 "
+                   f"AND at > {win}"),
+            paid=q(f"SELECT COUNT(DISTINCT user_id) FROM payment_orders WHERE status = 'paid' AND "
+                   f"created_at > {win} AND user_id <> ALL(:int)"),
+            paid_vnd=q(f"SELECT COALESCE(SUM(amount),0) FROM payment_orders WHERE status = 'paid' "
+                       f"AND created_at > {win} AND user_id <> ALL(:int)"),
+        )
+
+
+def section_funnels(run):
+    w("## 3. Phễu\n")
+    db = [_db_counts(d) for _, d in PERIODS]
+    ga = [_ga_users(run, d) for _, d in PERIODS] if run else None
+
+    def pages_users(g, needle):
+        return sum(u for p, u in g[1].items() if needle in p)
+
+    if ga:
+        w("### 3a. Phễu traffic (số người, GA4 + DB)\n")
+        funnel_table([
+            ("Người truy cập", [g[2] for g in ga]),
+            ("Có tương tác (ở lại, cuộn, click)", [g[0].get("user_engagement", 0) for g in ga]),
+            ("Mở chi tiết một bộ dữ liệu", [g[0].get("dataset_detail_view", 0) for g in ga]),
+            ("Tải dữ liệu thành công", [g[0].get("dataset_download_success", 0) for g in ga]),
+            ("Đăng nhập", [g[0].get("login", 0) for g in ga]),
+            ("Xem trang giá", [pages_users(g, "pricing") for g in ga]),
+            ("Bấm thanh toán", [g[0].get("begin_checkout", 0) for g in ga]),
+            ("Trả tiền (PayOS paid, khách thật)", [x["paid"] for x in db]),
+        ], base="top")
+        w("_% ở phễu traffic = so với số người truy cập. GA4 không loại được lượt "
+          "truy cập của chính chủ — chỉ bước trả tiền (DB) là đã loại nội bộ._\n")
+
+    w("### 3b. Phễu báo cáo tự động — Google Sheets (đã loại nội bộ & test)\n")
+    funnel_table([
+        ("Xem trang hướng dẫn Google Sheets",
+         [pages_users(g, "google-sheets") for g in ga] if ga else [None] * len(PERIODS)),
+        ("Bấm tạo bản sao template",
+         [g[0].get("sheets_template_copy", 0) for g in ga] if ga else [None] * len(PERIODS)),
+        ("Đăng ký tài khoản", [x["signups"] for x in db]),
+        ("Tạo API key", [x["keyed"] for x in db]),
+        ("File Sheets gọi dữ liệu thành công", [x["used"] for x in db]),
+        ("Dùng đều (≥3 ngày khác nhau)", [x["repeat"] for x in db]),
+        ("Chạm hết quota (429)", [x["capped"] for x in db]),
+        ("Trả tiền", [x["paid"] for x in db]),
+    ])
+    w("Doanh thu thật: " + " · ".join(f"{l} **{x['paid_vnd']:,.0f}đ**"
+                                      for (l, _), x in zip(PERIODS, db))
+      + f" · lượt gọi Sheets bị 401 (toàn thời gian): {db[-1]['anon']}\n")
+    w("_Ghi chú: trang độc lập (google-sheets, developer, pricing…) chỉ có GA từ "
+      "2026-10-05, sự kiện `sheets_template_copy` cũng từ ngày đó — số toàn thời "
+      "gian của các bước này đếm thiếu. % là so với bước liền trên._\n")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--days", type=int, default=30)
     ap.add_argument("--out")
     args = ap.parse_args()
 
-    w(f"# Báo cáo DA — {date.today():%d/%m/%Y} ({args.days} ngày gần nhất)\n")
+    w(f"# Báo cáo DA — {date.today():%d/%m/%Y} (tuần + toàn thời gian)\n")
     section_data_quality()
     try:
         run = _ga()
-        section_web(args.days, run)
+        section_web(run)
     except Exception as exc:
         run = None
         w(f"## 2. Hiệu quả web\n\n**GA4 không đọc được:** {str(exc)[:160]}\n"
           "(refresh token hết hạn → chạy lại luồng consent, xem CLAUDE.md mục GA4)\n")
-    section_funnels(args.days, run)
+    section_funnels(run)
 
     report = "\n".join(out)
     if args.out:
