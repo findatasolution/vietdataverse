@@ -75,5 +75,5 @@ jobs:
         # connected to, so it errors rather than skips. Everything else here is
         # pure logic or sqlite.
         run: |
-          python -m pytest tests/time tests/auth tests/fuel tests/subscription tests/sheets \
+          python -m pytest tests/time tests/auth tests/fuel tests/subscription tests/sheets tests/seo \
             --ignore=tests/subscription/test_subscription_db.py -v

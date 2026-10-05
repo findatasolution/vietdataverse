@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="/fe/images/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=aa319e0ba3">
+    <link rel="stylesheet" href="style.css?v=c2e0f2eb78">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#2f5fde">
     <meta name="msapplication-TileImage" content="https://vietdataverse.online/fe/images/icon-512.png">
@@ -76,7 +76,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=aa319e0ba3" as="style">
+    <link rel="preload" href="style.css?v=c2e0f2eb78" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -2196,7 +2196,7 @@
     </div>
 
     <script src="pages/data-journey.js?v=3665e71f21" defer></script>
-    <script src="app.js?v=1ea4b5c2da" defer></script>
+    <script src="app.js?v=6bd426cf45" defer></script>
     <script src="app.overview.js?v=19c8311719" defer></script>
     <script src="app.knowledge.js?v=2026091601" defer></script>
 
@@ -2235,6 +2235,22 @@
     <footer class="site-footer">
         <div class="site-footer-inner">
             <div class="site-footer-grid">
+
+                <!-- Col 0: Dữ liệu — crawlable links to the server-rendered dataset
+                     pages (be/routers/seo_pages.py). The SPA's own chart routes are
+                     hash fragments Google does not index; these are the only data
+                     URLs it can find from the homepage. -->
+                <div class="site-footer-col">
+                    <h4 class="site-footer-heading" data-i18n="ftData">Dữ liệu</h4>
+                    <a class="site-footer-link" href="/gia-vang-sjc">Giá vàng SJC</a>
+                    <a class="site-footer-link" href="/gia-bac">Giá bạc</a>
+                    <a class="site-footer-link" href="/ty-gia-usd">Tỷ giá USD/VND</a>
+                    <a class="site-footer-link" href="/lai-suat-tiet-kiem">Lãi suất tiết kiệm</a>
+                    <a class="site-footer-link" href="/lai-suat-lien-ngan-hang">Lãi suất liên ngân hàng</a>
+                    <a class="site-footer-link" href="/cpi-viet-nam">CPI Việt Nam</a>
+                    <a class="site-footer-link" href="/gdp-viet-nam">GDP Việt Nam</a>
+                    <a class="site-footer-link" href="/xuat-nhap-khau">Xuất nhập khẩu</a>
+                </div>
 
                 <!-- Col 1: Sản phẩm — "Giới thiệu" moved here from Legal, where it sat
                      next to a second About link (route legal/about) doing the same job. -->

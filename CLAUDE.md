@@ -1167,7 +1167,7 @@ chứng test thật sự đỏ khi cố tình hoàn nguyên `middleware.py`.
 Trước hôm nay **không có workflow nào chạy `tests/`** — 138 test tồn tại mà
 không ai chạy, đúng cái hố `crawl-tests.yml` từng lấp cho `crawl_tools/`.
 `.github/workflows/backend-tests.yml` chạy phần không cần secret
-(`tests/time tests/auth tests/fuel tests/subscription`, đã kiểm bằng cách chạy với
+(`tests/time tests/auth tests/fuel tests/subscription tests/sheets tests/seo`, đã kiểm bằng cách chạy với
 môi trường rỗng: 116 pass). Runner của GitHub chạy UTC — đúng môi trường đã che
 lỗi này — nên test tự sinh subprocess với `TZ` tường minh thay vì tin vào runner.
 
@@ -1418,6 +1418,33 @@ Response shape:
 **A 2023Q2 GDP `industry` row was previously wrong** (`1.56%`; source says `1.13%`) — it came from an early LLM extraction that was never checked against source (only the headline `total` figure had been verified). The table-based `layer1_structured` this replaced returned 0 records for every GDP quarter tested (2020Q1/2022Q3/2023Q2/2026Q1) because NSO's quarterly bulletin states GDP in prose, never a `<table>` — so every quarter was silently falling through to Gemini. The table was truncated and fully re-backfilled with the new prose parser once this was found.
 
 **A `records` layer-fallthrough bug independently caused the entire first IIP backfill attempt to return 0/80**: `crawl_period` fell through to layer 2/3 whenever `len(records) < 2`, but the prose-based IIP `layer1_structured` can only ever return 1 record (the aggregate; it has no per-sector breakdown), so a perfectly correct layer-1 match was discarded and replaced with a rate-limited Gemini call on *every single period*, including ones later confirmed to parse correctly in isolation. Fixed to `if not records:` in all three crawlers' `crawl_period`/`main()`.
+
+### Indexable dataset pages (`be/routers/seo_pages.py`, 2026-10-05)
+
+**The SPA's charts are hash routes (`/fe/#data/portal/chart/gold`), which Google
+does not index** — until this date the site had no URL that could rank for "giá
+vàng SJC", "tỷ giá USD", "lãi suất tiết kiệm"… GA4 (90 days to 2026-10-04) showed
+organic visitors were the *most* engaged on the site (87% engagement, 5+ min,
+2.8 pages) but there were only 45 sessions: a volume problem, not a fit problem.
+
+Eight server-rendered pages at the domain root — `/gia-vang-sjc`, `/gia-bac`,
+`/ty-gia-usd`, `/lai-suat-tiet-kiem`, `/lai-suat-lien-ngan-hang`, `/cpi-viet-nam`,
+`/gdp-viet-nam`, `/xuat-nhap-khau`. Each reads `fe/data/*.json` **at request
+time** (no build step — the box regenerates those files after every crawl), and
+renders latest figures, an inline-SVG sparkline (no JS, so crawlers and AI
+assistants read it), the recent history table, FAQ, source, and `Dataset` +
+`FAQPage` JSON-LD. A missing/malformed data file returns **503 + Retry-After**,
+never 500, so Google retries instead of dropping the URL.
+
+- **Adding a page means four places:** `PAGES` + `NAV` in the router, a `<url>` in
+  `fe/sitemap.xml`, and a link in the footer's "Dữ liệu" column
+  (`fe/partials/_layout_footer.html`, then `python fe/build.py`).
+  `tests/seo/test_seo_pages.py` fails if any of them is missed.
+- **"hôm nay" in a title only when the data is ≤2 days old** (`_fresh()`), otherwise
+  "mới nhất". FX/term-deposit/interbank were 10+ days stale on launch day; a title
+  claiming "hôm nay 24/09" on 05/10 is the overclaim this repo's honesty rules ban.
+- The term-deposit page says **ACB only** in its title and source — it is not a
+  market average, and must not be presented as one.
 
 ### Static JSON pattern (for FE perf)
 

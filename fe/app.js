@@ -108,7 +108,7 @@
                 tabDownload: 'Tải xuống',
                 // Chart titles & periods
                 cpiChart: 'CPI Việt Nam (% YoY/năm)',
-                ftProduct: 'Sản phẩm', ftLegal: 'Pháp lý', ftDevelopers: 'Nhà phát triển', ftConnect: 'Liên hệ',
+                ftData: 'Dữ liệu', ftProduct: 'Sản phẩm', ftLegal: 'Pháp lý', ftDevelopers: 'Nhà phát triển', ftConnect: 'Liên hệ',
                 ftAbout: 'Giới thiệu', ftBuyerGuide: 'Hướng dẫn người mua', ftSellerGuide: 'Hướng dẫn người bán',
                 ftTerms: 'Điều khoản sử dụng', ftPrivacy: 'Chính sách bảo mật', ftCookie: 'Chính sách cookie',
                 ftTakedown: 'DMCA / Gỡ nội dung', ftApiDocs: 'Tài liệu API', ftApiKey: 'API Key',
@@ -349,7 +349,7 @@
                 tabDownload: 'Download',
                 // Chart titles & periods
                 cpiChart: 'Vietnam CPI (% YoY)',
-                ftProduct: 'Product', ftLegal: 'Legal', ftDevelopers: 'Developers', ftConnect: 'Connect',
+                ftData: 'Data', ftProduct: 'Product', ftLegal: 'Legal', ftDevelopers: 'Developers', ftConnect: 'Connect',
                 ftAbout: 'About', ftBuyerGuide: 'Buyer guide', ftSellerGuide: 'Seller guide',
                 ftTerms: 'Terms of use', ftPrivacy: 'Privacy policy', ftCookie: 'Cookie policy',
                 ftTakedown: 'DMCA / Takedown', ftApiDocs: 'API docs', ftApiKey: 'API key',

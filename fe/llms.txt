@@ -8,11 +8,11 @@ Truy cập API: header `X-API-Key: <key>` hoặc query `?api_key=<key>`. Gói fr
 
 ## Datasets (Open Data)
 
-- [Giá vàng / Gold — SJC, DOJI, BTMC, PNJ (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/gold` · lịch sử giá vàng Việt Nam (free API key)
-- [Bạc / Silver — Phú Quý (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/silver` (free API key)
-- [Lãi suất tiết kiệm / Bank deposit rates — ACB (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/termdepo` · kỳ hạn 1–36 tháng (free API key)
-- [Tỷ giá / FX USD-VND — VCB & SBV (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/sbv-rate`, `GET /api/v1/sbv-centralrate`, `GET /api/v1/sbv-interbank` (free API key)
-- [CPI / lạm phát — GSO/NSO (monthly)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/macro/cpi` · cũng có `/api/v1/macro/gdp`, `/api/v1/macro/trade` (free API key)
+- [Giá vàng SJC / Gold — SJC (hourly, office hours)](https://vietdataverse.online/gia-vang-sjc): `GET /api/v1/gold` · lịch sử giá vàng Việt Nam (free API key)
+- [Bạc / Silver — Phú Quý (daily)](https://vietdataverse.online/gia-bac): `GET /api/v1/silver` (free API key)
+- [Lãi suất tiết kiệm / Bank deposit rates — ACB (daily)](https://vietdataverse.online/lai-suat-tiet-kiem): `GET /api/v1/termdepo` · kỳ hạn 1–36 tháng (free API key)
+- [Tỷ giá / FX USD-VND — VCB & SBV (daily)](https://vietdataverse.online/ty-gia-usd) · [lãi suất liên ngân hàng](https://vietdataverse.online/lai-suat-lien-ngan-hang): `GET /api/v1/sbv-rate`, `GET /api/v1/sbv-centralrate`, `GET /api/v1/sbv-interbank` (free API key)
+- [CPI / lạm phát — GSO/NSO (monthly)](https://vietdataverse.online/cpi-viet-nam) · [GDP](https://vietdataverse.online/gdp-viet-nam) · [xuất nhập khẩu](https://vietdataverse.online/xuat-nhap-khau): `GET /api/v1/macro/cpi` · cũng có `/api/v1/macro/gdp`, `/api/v1/macro/trade` (free API key)
 - [Vĩ mô toàn cầu / Global macro — Yahoo Finance (daily)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/global-macro` · vàng, bạc, Nasdaq (free API key)
 - [Phân tích vàng / Gold analysis (public)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/gold-analysis` · không cần key
 - [Tâm lý thị trường 1 giây / Market sentiment (public)](https://vietdataverse.online/pages/api-docs.html): `GET /api/v1/market-pulse` · không cần key, `?lang=&limit=` (tối đa 50)

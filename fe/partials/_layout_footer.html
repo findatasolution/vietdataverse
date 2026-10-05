@@ -88,6 +88,22 @@
         <div class="site-footer-inner">
             <div class="site-footer-grid">
 
+                <!-- Col 0: Dữ liệu — crawlable links to the server-rendered dataset
+                     pages (be/routers/seo_pages.py). The SPA's own chart routes are
+                     hash fragments Google does not index; these are the only data
+                     URLs it can find from the homepage. -->
+                <div class="site-footer-col">
+                    <h4 class="site-footer-heading" data-i18n="ftData">Dữ liệu</h4>
+                    <a class="site-footer-link" href="/gia-vang-sjc">Giá vàng SJC</a>
+                    <a class="site-footer-link" href="/gia-bac">Giá bạc</a>
+                    <a class="site-footer-link" href="/ty-gia-usd">Tỷ giá USD/VND</a>
+                    <a class="site-footer-link" href="/lai-suat-tiet-kiem">Lãi suất tiết kiệm</a>
+                    <a class="site-footer-link" href="/lai-suat-lien-ngan-hang">Lãi suất liên ngân hàng</a>
+                    <a class="site-footer-link" href="/cpi-viet-nam">CPI Việt Nam</a>
+                    <a class="site-footer-link" href="/gdp-viet-nam">GDP Việt Nam</a>
+                    <a class="site-footer-link" href="/xuat-nhap-khau">Xuất nhập khẩu</a>
+                </div>
+
                 <!-- Col 1: Sản phẩm — "Giới thiệu" moved here from Legal, where it sat
                      next to a second About link (route legal/about) doing the same job. -->
                 <div class="site-footer-col">

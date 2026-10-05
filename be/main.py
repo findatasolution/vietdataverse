@@ -16,7 +16,7 @@ from database import engine, Base
 from payment import router as payment_router
 from core.config import ALLOW_ORIGINS
 from core.startup import migrate_crawl_db
-from routers import market_data, analysis, auth_routes, interest, admin, admin_report, developer, sheets_export, vn30_data, student_verify, knowledge, wallet, seller, reports, takedown, webhooks, feedback, subscription, fuel_forecast
+from routers import market_data, analysis, auth_routes, interest, admin, admin_report, developer, sheets_export, vn30_data, student_verify, knowledge, wallet, seller, reports, takedown, webhooks, feedback, subscription, fuel_forecast, seo_pages
 
 # ── DB schema migrations ──────────────────────────────────────────────────────
 # USER_DB schema (users, payment_orders, user_interest) → Alembic (buildCommand).
@@ -196,6 +196,7 @@ app.include_router(seller.router)
 app.include_router(reports.router)
 app.include_router(takedown.router)
 app.include_router(webhooks.router)
+app.include_router(seo_pages.router)    # /gia-vang-sjc, /ty-gia-usd, … — indexable dataset pages
 
 # ── Static files ──────────────────────────────────────────────────────────────
 _cur  = os.path.dirname(os.path.abspath(__file__))

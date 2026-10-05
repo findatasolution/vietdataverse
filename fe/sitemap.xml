@@ -18,6 +18,48 @@
     </image:image>
   </url>
 
+  <!-- Dataset landing pages — server-rendered, indexable (be/routers/seo_pages.py) -->
+  <url>
+    <loc>https://vietdataverse.online/gia-vang-sjc</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/gia-bac</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/ty-gia-usd</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/lai-suat-tiet-kiem</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/lai-suat-lien-ngan-hang</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/cpi-viet-nam</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/gdp-viet-nam</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://vietdataverse.online/xuat-nhap-khau</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- Gold Forecast 2026 — Analytical report (high-value content page) -->
   <url>
     <loc>https://vietdataverse.online/pages/GoldForecast2026.html</loc>
