@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Trao đổi với người dùng (chat, giải thích, tóm tắt) bằng tiếng Việt. Code, comment, commit message vẫn giữ tiếng Anh như chuẩn hiện tại của repo.
 
+**Trả lời ngắn gọn, đúng trọng tâm, không lèm bèm.** Hỏi gì đưa đúng cái đó (vd hỏi công thức → chỉ đưa công thức + 1–2 dòng cách dùng). Không liệt kê phương án thay thế, cảnh báo phụ, giải thích dài trừ khi user hỏi.
+
 ## Agent Boundaries — Codex (HARD RULES)
 
 Hai luật tuyệt đối, không có ngoại lệ và không được tự diễn giải lỏng ra:
