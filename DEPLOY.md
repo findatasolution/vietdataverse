@@ -95,7 +95,7 @@ www.vietdataverse.online {
 ```
 
 ```bash
-docker compose up -d --build
+docker compose up -d --no-build   # image from CI (§3); never --build on the box
 curl -fsS http://localhost:8000/health                     # app healthy
 curl -sI https://vietdataverse.online/                      # HTTP/2 307, valid cert (after DNS propagates)
 ```
@@ -112,10 +112,26 @@ GitHub repo secrets (Settings → Secrets → Actions):
 | `DEPLOY_APP_DIR` | `/root/vietdataverse` |
 
 `.github/workflows/deploy.yml` runs on every push to `main` **and** after each
-"Generate Static Chart Data" run → the box `git reset --hard origin/main` +
-`docker compose up -d --build`. `git reset --hard` only touches tracked
-files, so it never disturbs the box-local `docker-compose.override.yml` /
-`caddy-conf/Caddyfile`. Caddy needs no reload on redeploy.
+"Generate Static Chart Data" run. **The image is built in CI and pushed to
+`ghcr.io/findatasolution/vietdataverse:<sha>`; the box never builds**
+(2026-11-23 — see below). The box then: saves `fe/data/`, `git reset --hard
+origin/main`, restores `fe/data/`, `docker pull` the image (logging in with the
+run's `GITHUB_TOKEN`), tags it `vietdataverse:latest`, `docker compose up -d
+--no-build`, prunes images + build cache. `git reset --hard` only touches
+tracked files, so it never disturbs the box-local `docker-compose.override.yml`
+/ `caddy-conf/Caddyfile`. Caddy needs no reload on redeploy.
+
+**Never `docker compose up --build` on this box.** 1 GB RAM, no swap: an on-box
+build OOM-killed the live app on 2026-11-19 (prod 502 for 3 days), and pip
+there downloads at a few KB/s, so every deploy from then on timed out after 10
+minutes — *after* `git reset` had already rolled `fe/data/` back to the
+committed copy, and before the refresh step that would have repaired it. That
+is why 2026-11-23's gold price vanished from the site an hour after it was
+crawled. 9 GB of build cache had also piled up; journald is now capped at
+200 MB (`/etc/systemd/journald.conf.d/size.conf`).
+
+Manual redeploy without CI: `docker pull ghcr.io/findatasolution/vietdataverse:latest
+&& docker tag … vietdataverse:latest && docker compose up -d --no-build`.
 
 ## 4. Box-side gold/silver crawl — PRIMARY path (promoted 2026-09-14)
 `deploy/crawl-fallback.*` (systemd timer + unit) is **the** scheduled crawler

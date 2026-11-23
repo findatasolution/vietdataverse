@@ -688,7 +688,7 @@ Why the box won:
 **Two things had to change before that regeneration was actually visible** (both found 2026-09-14, after the DB was already correct and the site still showed the old price):
 
 - `Dockerfile` does `COPY fe/ /app/fe/`, so the container served a build-time snapshot and ignored host-side writes entirely. `docker-compose.yml` now mounts `./fe/data:/app/fe/data:ro` over it.
-- `deploy.yml`'s `git reset --hard` reverts `fe/data/` to the committed copy — as fresh as the last "Update static chart data" bot commit and no fresher — so a deploy rolled published prices *backwards*. The deploy now ends by running `crawl-fallback.service` synchronously, leaving current data in place when it finishes.
+- `deploy.yml`'s `git reset --hard` reverts `fe/data/` to the committed copy — as fresh as the last "Update static chart data" bot commit and no fresher — so a deploy rolled published prices *backwards*. Since 2026-11-23 the deploy copies `fe/data/` aside and restores it across the reset, then still ends by running `crawl-fallback.service`. (The refresh-at-the-end alone was not enough: on-box image builds kept timing out first. **The image is now built in CI and pulled from GHCR — never `docker compose up --build` on the box**; see `DEPLOY.md` §3.)
 
 **`gh workflow run "Box — run gold/silver crawl now"`** (`.github/workflows/box-crawl-now.yml`) runs the unit on demand and prints its journal, using the deploy key GitHub already holds. It exists because moving the crawl to the box otherwise left no way to trigger a run or read its log without SSH.
 
