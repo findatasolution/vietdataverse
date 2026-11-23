@@ -1,6 +1,14 @@
             <div class="tab-content active" id="data-portal">
                 <div class="charts-scroll-page">
 
+                    <!-- ── Mobile landscape-mode close button ──
+                         Shown only on touch phones when CSS-rotation landscape fallback
+                         is active (body.chart-ls-active). Positioned fixed in top-right of
+                         the physical (portrait) screen. JS in app.js adds/removes .is-active.
+                         The native fullscreen+lock path (Android Chrome) does not need this;
+                         the system back button exits fullscreen natively. -->
+                    <button id="chart-ls-close" class="chart-ls-close" aria-label="Đóng landscape" title="Đóng">×</button>
+
                     <!-- ── Value-Prop Hero ──
                          Two columns: copy+CTAs left, illustration right. The
                          illustration is what closes the top-right corner that

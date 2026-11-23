@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="512x512"
         href="/fe/images/icon-512.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=c2e0f2eb78">
+    <link rel="stylesheet" href="style.css?v=2b7f36ec72">
     <meta name="theme-color" content="#f5f4ed">
     <meta name="msapplication-TileColor" content="#2f5fde">
     <meta name="msapplication-TileImage" content="https://vietdataverse.online/fe/images/icon-512.png">
@@ -76,7 +76,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.vietdataverse.online" crossorigin>
     <link rel="dns-prefetch" href="https://api.vietdataverse.online">
-    <link rel="preload" href="style.css?v=c2e0f2eb78" as="style">
+    <link rel="preload" href="style.css?v=2b7f36ec72" as="style">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -642,6 +642,14 @@
             <!-- Open Economic Data -->
             <div class="tab-content active" id="data-portal">
                 <div class="charts-scroll-page">
+
+                    <!-- ── Mobile landscape-mode close button ──
+                         Shown only on touch phones when CSS-rotation landscape fallback
+                         is active (body.chart-ls-active). Positioned fixed in top-right of
+                         the physical (portrait) screen. JS in app.js adds/removes .is-active.
+                         The native fullscreen+lock path (Android Chrome) does not need this;
+                         the system back button exits fullscreen natively. -->
+                    <button id="chart-ls-close" class="chart-ls-close" aria-label="Đóng landscape" title="Đóng">×</button>
 
                     <!-- ── Value-Prop Hero ──
                          Two columns: copy+CTAs left, illustration right. The
@@ -2196,7 +2204,7 @@
     </div>
 
     <script src="pages/data-journey.js?v=3665e71f21" defer></script>
-    <script src="app.js?v=6bd426cf45" defer></script>
+    <script src="app.js?v=aff34327b3" defer></script>
     <script src="app.overview.js?v=19c8311719" defer></script>
     <script src="app.knowledge.js?v=2026091601" defer></script>
 

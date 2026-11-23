@@ -1335,6 +1335,7 @@
             }
 
             function ovShowOverview() {
+                exitChartLandscape();
                 window.VDJourney?.hide();
                 document.querySelector('.data-hero')?.removeAttribute('hidden');
                 const root = document.getElementById('data-charts');
@@ -1490,6 +1491,115 @@
                 }
             }
 
+            // ── Mobile chart landscape mode ──────────────────────────────────────
+            // On portrait phones, entering a chart detail triggers landscape mode.
+            // Two paths are tried in order:
+            //   1. Native: requestFullscreen() + screen.orientation.lock('landscape')
+            //      (Android Chrome). No CSS rotation; tooltips work normally.
+            //   2. CSS fallback: add body.chart-ls-active, which uses CSS rotation to
+            //      make the chart section fill the portrait viewport in landscape.
+            //
+            // Both paths are only entered from click handlers (tile, prev/next) so
+            // the requestFullscreen() call is always within a user-gesture context.
+            // Deep links and browser Back/Forward do NOT trigger landscape mode —
+            // there is no user gesture to anchor the fullscreen request.
+            //
+            // TOOLTIP NOTE (CSS fallback): Chart.js hit-tests use
+            // getBoundingClientRect() on the canvas. Under CSS rotation the browser
+            // returns the visual bounding rect (rotated), so touch coordinates do
+            // not map exactly to canvas pixel coords. Most tap targets land close
+            // enough for practical use, but precision may be off on the horizontal
+            // axis. Physically rotating the device cancels the CSS rotation and
+            // restores accurate tooltips automatically (the orientation:landscape
+            // media query removes the transform).
+
+            let _lsMode = null; // null | 'native' | 'css'
+
+            function isMobilePortrait() {
+                // Engage only on small coarse-pointer (touch) devices in portrait.
+                return window.matchMedia('(pointer: coarse)').matches &&
+                       window.innerWidth < 640 &&
+                       window.innerHeight > window.innerWidth;
+            }
+
+            function _resizeActiveCharts() {
+                // Trigger Chart.js resize after container dimensions change.
+                try {
+                    if (window.chartInstances) {
+                        Object.values(window.chartInstances).forEach(c => { if (c) c.resize(); });
+                    }
+                } catch (_e) { /* non-fatal */ }
+            }
+
+            function _applyCssLandscape() {
+                // Apply CSS rotation fallback: rotate the chart section 90° to fill
+                // the portrait viewport in landscape proportions.
+                document.body.classList.add('chart-ls-active');
+                _lsMode = 'css';
+                document.getElementById('chart-ls-close')?.classList.add('is-active');
+                document.documentElement.style.overflow = 'hidden';
+                setTimeout(_resizeActiveCharts, 150);
+            }
+
+            function enterChartLandscapeFromClick() {
+                // Must be called synchronously from a click handler so that
+                // requestFullscreen() is within the user-gesture activation window.
+                if (!isMobilePortrait() || _lsMode) return;
+
+                const sectionEl = document.querySelector('.chart-section-group.ov-chart-detail');
+                if (!sectionEl) return;
+
+                if (sectionEl.requestFullscreen && screen.orientation && screen.orientation.lock) {
+                    // Attempt native path: fullscreen + orientation lock (Android Chrome).
+                    sectionEl.requestFullscreen()
+                        .then(() => screen.orientation.lock('landscape'))
+                        .then(() => {
+                            _lsMode = 'native';
+                            setTimeout(_resizeActiveCharts, 350);
+                        })
+                        .catch(() => {
+                            // Lock rejected (e.g. iOS, or already landscape) — CSS fallback.
+                            if (document.fullscreenElement) {
+                                document.exitFullscreen().catch(() => {});
+                            }
+                            _applyCssLandscape();
+                        });
+                    return;
+                }
+                // No requestFullscreen available: CSS fallback directly.
+                _applyCssLandscape();
+            }
+
+            function exitChartLandscape() {
+                if (!_lsMode) return;
+                if (_lsMode === 'native') {
+                    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+                    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                }
+                if (_lsMode === 'css') {
+                    document.body.classList.remove('chart-ls-active');
+                    document.documentElement.style.overflow = '';
+                    document.getElementById('chart-ls-close')?.classList.remove('is-active');
+                }
+                _lsMode = null;
+                setTimeout(_resizeActiveCharts, 150);
+            }
+
+            // Close button — tap × to exit CSS-rotation landscape mode.
+            document.getElementById('chart-ls-close')?.addEventListener('click', () => {
+                exitChartLandscape();
+            });
+
+            // Exit landscape mode when the browser exits fullscreen natively
+            // (e.g. user swipes down, presses back, or the system interrupts).
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && _lsMode === 'native') {
+                    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                    _lsMode = null;
+                    setTimeout(_resizeActiveCharts, 150);
+                }
+            });
+
             // Tile clicks (event delegation — tiles are (re)built by
             // VDOverview.mount on every return to the overview).
             document.addEventListener('click', e => {
@@ -1499,6 +1609,8 @@
                 const id = tile.dataset.chartId || tile.dataset.datasetId;
                 history.pushState(null, '', `#data/portal/chart/${id}`);
                 ovShowChartDetail(id);
+                // Enter landscape mode — still within the click user-gesture context.
+                enterChartLandscapeFromClick();
             });
 
             // Detail chrome: back link and ‹ › — plain buttons/anchor, not
@@ -1507,6 +1619,7 @@
             // listener anywhere in this file).
             document.getElementById('ov-back')?.addEventListener('click', e => {
                 e.preventDefault();
+                exitChartLandscape();
                 history.pushState(null, '', '#data/portal');
                 ovShowOverview();
             });
@@ -1514,13 +1627,23 @@
                 const order = window._ovSectionOrder, pos = window._ovSectionPos;
                 if (!order || pos <= 0) return;
                 const id = ovChartIdForDomCard(order[pos - 1]);
-                if (id) { history.pushState(null, '', `#data/portal/chart/${id}`); ovShowChartDetail(id); }
+                if (id) {
+                    exitChartLandscape();
+                    history.pushState(null, '', `#data/portal/chart/${id}`);
+                    ovShowChartDetail(id);
+                    enterChartLandscapeFromClick();
+                }
             });
             document.getElementById('ov-next')?.addEventListener('click', () => {
                 const order = window._ovSectionOrder, pos = window._ovSectionPos;
                 if (!order || pos >= order.length - 1) return;
                 const id = ovChartIdForDomCard(order[pos + 1]);
-                if (id) { history.pushState(null, '', `#data/portal/chart/${id}`); ovShowChartDetail(id); }
+                if (id) {
+                    exitChartLandscape();
+                    history.pushState(null, '', `#data/portal/chart/${id}`);
+                    ovShowChartDetail(id);
+                    enterChartLandscapeFromClick();
+                }
             });
             function ovChartIdForDomCard(domCardId) {
                 const c = window.VDOverview && window.VDOverview.REGISTRY.find(x => x.domCardId === domCardId);
@@ -1550,9 +1673,15 @@
                     }
                     return;
                 }
-                if (hash.indexOf('data/portal') !== 0) return;
-                const parts = hash.split('/'); // ['data','portal', ...rest]
-                applyDataPortalRoute(parts.slice(2).join('/') || null);
+                if (hash.indexOf('data/portal') !== 0) {
+                    // Navigating away from data portal entirely — exit landscape if active.
+                    exitChartLandscape();
+                    return;
+                }
+                // Navigating within data portal — if going to overview, exit landscape.
+                const sub = hash.split('/').slice(2).join('/') || null;
+                if (!sub) exitChartLandscape();
+                applyDataPortalRoute(sub);
             });
 
             // Handle URL hash on page load

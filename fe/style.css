@@ -5827,3 +5827,112 @@ document.querySelectorAll('.doc-section').forEach(s=>obs.observe(s));
     background: var(--terracotta);
     color: #fff;
 }
+
+/* ── Chart detail: mobile landscape mode ──────────────────────────────────
+   On portrait touch phones, ovShowChartDetail() tries in order:
+     1. requestFullscreen + screen.orientation.lock('landscape') — Android Chrome.
+        Native OS rotation: no CSS tricks needed, Chart.js tooltips work normally.
+     2. CSS rotation fallback (body.chart-ls-active) — iOS Safari and browsers
+        where orientation lock is unavailable.
+
+   CSS fallback geometry: the active .chart-section-group.ov-chart-detail is
+   given width:100vmax × height:100vmin (landscape proportions), centred on the
+   viewport with translate(-50%,-50%), then rotated 90°. The browser returns the
+   visual (post-rotation) bounding rect for getBoundingClientRect() on the canvas,
+   so Chart.js touch-tooltip hit-tests work for most cases but may land slightly
+   off on the horizontal axis in rotated mode. For precise tooltip interaction,
+   physically rotate the device to landscape (which exits CSS rotation) or tap
+   the × close button first, then rotate.
+
+   These rules only engage on coarse-pointer (touch) devices — desktop/tablet
+   with a mouse (pointer:fine) is excluded. ───────────────────────────────── */
+
+/* Close button: fixed in top-right of the PHYSICAL (portrait) screen,
+   not rotated — always upright so the user can tap it easily. */
+.chart-ls-close {
+    display: none;              /* hidden; .is-active makes it flex */
+    position: fixed;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 202;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border-cream);
+    background: var(--pure-white);
+    color: var(--olive-gray);
+    font-size: 1.375rem;
+    line-height: 1;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(20, 20, 19, 0.14);
+    touch-action: manipulation;
+    transition: background 150ms ease-out, color 150ms ease-out;
+}
+.chart-ls-close:hover { background: var(--warm-sand); color: var(--near-black); }
+.chart-ls-close.is-active { display: flex; }
+
+/* Only engage on touch-primary devices (phones) in portrait */
+@media (pointer: coarse) and (orientation: portrait) {
+    /* When CSS landscape mode is active, lock scroll and position/rotate the
+       active chart section to fill the portrait viewport in landscape orientation.
+       Geometry: width=100vmax × height=100vmin (landscape proportions), centred
+       at viewport centre via top/left calc, then rotated 90° CW. After rotation
+       all four element corners land exactly on the viewport corners. */
+    body.chart-ls-active {
+        overflow: hidden;
+        touch-action: none;
+    }
+    body.chart-ls-active .chart-section-group.ov-chart-detail {
+        position: fixed;
+        top: calc(50vh - 50vmin);       /* 50vh − half element height (100vmin/2) */
+        left: calc(50vw - 50vmax);      /* 50vw − half element width  (100vmax/2) */
+        width: 100vmax;                 /* landscape width  = portrait longer dim */
+        height: 100vmin;                /* landscape height = portrait shorter dim */
+        transform: rotate(90deg);
+        transform-origin: center center;
+        z-index: 200;
+        background: var(--ivory);
+        padding: 1rem;
+        box-sizing: border-box;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        border-radius: 0;
+    }
+    /* Chart container gets the remaining height after the card header */
+    body.chart-ls-active .chart-section-group.ov-chart-detail .chart-container {
+        height: calc(100vmin - 7rem) !important;
+    }
+}
+
+/* When the device is PHYSICALLY rotated to landscape while CSS mode is active,
+   cancel the rotation and use the full viewport naturally. Chart.js will receive
+   a window resize event and redraw at the larger canvas size. */
+@media (pointer: coarse) and (orientation: landscape) {
+    body.chart-ls-active .chart-section-group.ov-chart-detail {
+        transform: none;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        z-index: 200;
+        background: var(--ivory);
+        padding: 1rem;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+    body.chart-ls-active .chart-section-group.ov-chart-detail .chart-container {
+        height: calc(100vh - 7rem) !important;
+    }
+    /* Hide close button once the device is physically landscape — natural mode,
+       no need to exit. */
+    .chart-ls-close.is-active { display: none; }
+}
+
+/* Never show the close button on desktop/laptop (pointer:fine = mouse). */
+@media (pointer: fine) {
+    .chart-ls-close { display: none !important; }
+}

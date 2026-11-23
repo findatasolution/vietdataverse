@@ -1585,6 +1585,22 @@ chart, full size, unchanged from before. Spec:
   **The hero (`.data-hero`) deliberately stays visible on detail views** (product
   decision, 2026-09-16) — only the ticker blocks and the panel are hidden.
 
+### Chart detail-view layout + mobile landscape (added 2026-11-23)
+
+**Layout.** `.chart-section-group.ov-chart-detail` gets a viewport-aware chart container: `clamp(420px, 58vh, 620px)` on desktop, `clamp(300px, 55vh, 500px)` on mobile (≤767px). The `gs-two-col` two-column grid collapses to one column (`ov-chart-detail .gs-two-col { grid-template-columns: minmax(0,1fr) }`). Period buttons and type-selects are in `.chart-filters` (wraps on narrow screens). No changes to chart colors, data logic, or Chart.js options.
+
+**Mobile landscape.** On portrait phones (`pointer: coarse`, width < 640px, height > width), opening a chart detail triggers landscape mode from `enterChartLandscapeFromClick()` in `fe/app.js`. Two paths:
+
+1. **Native** (Android Chrome): `sectionEl.requestFullscreen()` + `screen.orientation.lock('landscape')`. Called synchronously from the tile-click/prev/next click handler so it's within a user-gesture activation window. Unlocked and exited fullscreen automatically when leaving the detail view. Chart.js tooltips work correctly (native OS rotation, no CSS tricks).
+
+2. **CSS rotation fallback** (iOS Safari, or when native lock is rejected): adds `body.chart-ls-active`. CSS positions the active `.chart-section-group.ov-chart-detail` as `position:fixed`, `width:100vmax`, `height:100vmin`, centred at the viewport with `top:calc(50vh-50vmin); left:calc(50vw-50vmax)`, then `transform:rotate(90deg)` around `center center`. After rotation, all four element corners land exactly on the viewport corners, filling the portrait screen in landscape orientation. A `<button id="chart-ls-close">` (`.chart-ls-close`, fixed top-right, z-index 202) lets the user exit. Body scroll is locked.
+
+   **iOS tooltip limitation**: Chart.js hit-tests use `getBoundingClientRect()` on the canvas. Under CSS rotation the browser returns the visual (rotated) bounding box, so touch-tooltip x-coordinates may be off on the horizontal axis. Physically rotating the device to landscape cancels the CSS rotation (the `@media (pointer:coarse) and (orientation:landscape)` rule removes the transform and uses `width:100vw; height:100vh`) and restores accurate tooltips.
+
+**Exiting landscape**: `exitChartLandscape()` is called from the ov-back (←) click, the close button, the `fullscreenchange` event (native path only), and the popstate handler (when navigating away from chart detail). Prev/next (‹ ›) navigation exits and re-enters landscape around the new chart.
+
+**Desktop/tablet**: the entire landscape path is guarded by `isMobilePortrait()` (`pointer:coarse` + `innerWidth < 640` + portrait check) in JS, and by `@media (pointer:coarse)` in CSS. Neither triggers on a laptop or tablet with a mouse.
+
 ### Brand assets (`fe/images/`) — self-hosted since 2026-09-16
 
 Every favicon / app icon / social card is generated from **one source file,
