@@ -2661,7 +2661,25 @@
             }
 
             if (!chartData) {
-                console.error(`Failed to parse data for ${chartType}`);
+                // An empty period is a data gap, not a code error: the file
+                // parsed fine and simply has no rows in this window (e.g. the
+                // FX crawl was down 2026-09-24 → 11-23, leaving 7d/1m empty).
+                // Say so in the card instead of leaving a blank canvas behind a
+                // console error. The finally-block in loadChartData keeps this
+                // visible because it contains a button.
+                console.warn(`[${chartType}] no data points for period ${period}`);
+                const loadingEl = document.getElementById(`${chartType}Loading`);
+                if (loadingEl) {
+                    loadingEl.style.display = 'flex';
+                    loadingEl.innerHTML = `
+                        <div style="text-align:center;padding:2rem;color:var(--text-tertiary)">
+                            <p style="font-size:0.9rem;margin-bottom:0.75rem">Chưa có dữ liệu trong khoảng thời gian này.</p>
+                            <button type="button" onclick="this.closest('[id$=Loading]').style.display='none'"
+                                style="background:transparent;color:var(--text-tertiary);border:1px solid var(--border-cream, #e8e6dc);padding:6px 18px;border-radius:6px;cursor:pointer;font-size:0.8rem;">
+                                Đóng — chọn khoảng dài hơn
+                            </button>
+                        </div>`;
+                }
                 return;
             }
 
