@@ -33,7 +33,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests sqlalchemy psycopg2-binary beautifulsoup4 selenium python-dotenv webdriver-manager google-generativeai
+        pip install requests sqlalchemy psycopg2-binary "psycopg[binary]" beautifulsoup4 selenium python-dotenv webdriver-manager google-generativeai
 
     - name: Run bank term deposit crawler
       env:
