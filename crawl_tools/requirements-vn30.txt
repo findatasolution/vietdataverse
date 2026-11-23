@@ -1,0 +1,9 @@
+# Only for the VN30 / VN-Index crawlers (internal cross-check data, see CLAUDE.md
+# "VN30 data source"). Kept apart from requirements.txt so these packages
+# cannot break unrelated crawlers.
+#
+# 2026-11-23: vnstock and vnstock3 are no longer on PyPI (pypi.org returns 404
+# for both), so this install fails and the VN30 workflows stay red until a
+# replacement source lands (REV-01 in BACKLOG.md).
+vnstock==4.0.7
+vnstock3==0.3.0.9

@@ -20,7 +20,7 @@ jobs:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: pip install -r crawl_tools/requirements.txt
+      run: pip install -r crawl_tools/requirements.txt -r crawl_tools/requirements-vn30.txt
 
     - name: Run VN30 price crawler
       env:
