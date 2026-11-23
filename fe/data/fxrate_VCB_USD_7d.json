@@ -1,1 +1,1 @@
-{"generated_at":"2026-11-23T04:43:25.733267","data":{"bank":"VCB","currency":"USD","period":"7d","count":0,"dates":[],"usd_vnd_rate":[],"buy_cash":[],"sell_rate":[]}}
+{"generated_at":"2026-11-23T04:58:48.114019","data":{"bank":"VCB","currency":"USD","period":"7d","count":1,"dates":["2026-11-23"],"usd_vnd_rate":[25650.0],"buy_cash":[25620.0],"sell_rate":[26030.0]}}
