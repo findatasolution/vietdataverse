@@ -101,6 +101,9 @@ jobs:
             docker tag "$IMAGE_REF" vietdataverse:latest
             docker logout ghcr.io
             docker compose up -d --no-build
+            # Drop older per-sha tags, or one accumulates per deploy.
+            docker image ls ghcr.io/findatasolution/vietdataverse --format '{{.Repository}}:{{.Tag}}' \
+              | grep -vxF "$IMAGE_REF" | xargs -r docker image rm >/dev/null 2>&1 || true
             docker image prune -f
             docker builder prune -af >/dev/null 2>&1 || true
             echo "Deployed $(git rev-parse --short HEAD) image $IMAGE_REF"
